@@ -25,7 +25,7 @@ def is_root():
 
 def create_dynamite_user(password):
     pass_encry = crypt.crypt(password)
-    subprocess.call('useradd -p "{}" -s /bin/bash'.format(pass_encry))
+    subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
 def download_file(url, filename, stdout=False):
@@ -165,6 +165,6 @@ class ElasticInstaller:
         if 'JAVA_HOME' not in open('/etc/environment').read():
             subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
         subprocess.call('source /etc/environment', shell=True)
-
+create_dynamite_user('tech0nsite!')
 ElasticInstaller().extract_elasticsearch()
 ElasticInstaller().setup_elasticsearch()
