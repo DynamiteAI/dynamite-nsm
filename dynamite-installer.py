@@ -1,7 +1,11 @@
 import os
 import sys
-from urllib2 import urlopen
-from urllib2 import URLError
+try:
+    from urllib2 import urlopen
+    from urllib2 import URLError
+except ModuleNotFoundError:
+    from urllib.request import urlopen
+    from urllib.error import URLError
 
 INSTALL_CACHE = os.environ['DYNAMITE_INSTALL_CACHE']
 ELASTICSEARCH_MIRRORS = os.environ['ELASTICSEARCH_LINUX_MIRRORS']
