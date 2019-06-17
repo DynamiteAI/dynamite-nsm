@@ -1,12 +1,16 @@
 import os
 import sys
+import tarfile
+import subprocess
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
-except ModuleNotFoundError:
+except Exception:
     from urllib.request import urlopen
     from urllib.error import URLError
 
+ELASTICSEARCH_ARCHIVE_NAME = 'elasticsearch-7.1.1.tar.gz'
+JAVA_ARCHIVE_NAME = 'java-11.0.2.tar.gz'
 INSTALL_CACHE = os.environ['DYNAMITE_INSTALL_CACHE']
 ELASTICSEARCH_MIRRORS = os.environ['ELASTICSEARCH_LINUX_MIRRORS']
 JAVA_MIRRORS = os.environ['JAVA_LINUX_MIRRORS']
@@ -40,7 +44,8 @@ def download_file(url, filename, stdout=False):
             if stdout:
                 sys.stdout.write('\nComplete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
                 sys.stdout.flush()
-    except URLError:
+    except URLError as e:
+        sys.stderr.write('An error occurred while attempting to download file. [{}]'.format(e))
         return False
     return True
 
@@ -49,17 +54,45 @@ class ElasticInstaller:
 
     def __init__(self):
         self.elasticsearch_downloaded = False
+        self.elasticsearch_extracted = False
         self.java_downloaded = False
-
-    def download_dependencies(self, stdout=False):
-        for url in open(JAVA_MIRRORS, 'r').readlines():
-            if download_file(url, 'java-11.tar.gz', stdout):
-                self.java_downloaded = True
-                break
+        self.java_extracted = False
 
     def download_elasticsearch(self, stdout=False):
         for url in open(ELASTICSEARCH_MIRRORS, 'r').readlines():
-            if download_file(url, 'elasticsearch-7.1.1.tar.gz', stdout):
+            if download_file(url, ELASTICSEARCH_ARCHIVE_NAME, stdout):
                 self.elasticsearch_downloaded = True
                 break
 
+    def download_java(self, stdout=False):
+        for url in open(JAVA_MIRRORS, 'r').readlines():
+            if download_file(url, JAVA_ARCHIVE_NAME, stdout):
+                self.java_downloaded = True
+                break
+
+    def extract_elasticsearch(self, stdout=False):
+        if stdout:
+            sys.stdout.write('Extracting: {} \n'.format(ELASTICSEARCH_ARCHIVE_NAME))
+        try:
+            tf = tarfile.open(os.path.join(INSTALL_CACHE, ELASTICSEARCH_ARCHIVE_NAME))
+            tf.extractall(path=INSTALL_CACHE)
+            sys.stdout.write('Complete!')
+            sys.stdout.flush()
+            self.elasticsearch_extracted = True
+        except IOError as e:
+            sys.stderr.write('An error occurred while attempting to extract file. [{}]'.format(e))
+
+    def extract_java(self, stdout=False):
+        if stdout:
+            sys.stdout.write('Extracting: {} \n'.format(JAVA_ARCHIVE_NAME))
+        try:
+            tf = tarfile.open(os.path.join(INSTALL_CACHE, JAVA_ARCHIVE_NAME))
+            tf.extractall(path=INSTALL_CACHE)
+            sys.stdout.write('Complete!')
+            sys.stdout.flush()
+            self.java_extracted = True
+        except IOError as e:
+            sys.stderr.write('An error occurred while attempting to extract file. [{}]'.format(e))
+
+    def setup_java(self):
+        subprocess.call('mkdir -p /usr/lib/jvm/java-11', shell=True)
