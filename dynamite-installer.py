@@ -62,6 +62,14 @@ def download_file(url, filename, stdout=False):
     return True
 
 
+def set_ownership_of_file(path):
+    for root, dirs, files in os.walk(path):
+        for momo in dirs:
+            shutil.chown(os.path.join(root, momo), user='dynamite', group='dynamite')
+        for momo in files:
+            shutil.chown(os.path.join(root, momo), user='dynamite', group='dynamite')
+
+
 class ElasticInstaller:
 
     INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
@@ -128,6 +136,7 @@ class ElasticInstaller:
             try:
                 shutil.move(os.path.join(INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
                             self.CONFIGURATION_DIRECTORY)
+
             except shutil.Error as e:
                 sys.stderr.write('{} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
@@ -140,6 +149,8 @@ class ElasticInstaller:
             subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.CONFIGURATION_DIRECTORY),
                             shell=True)
         subprocess.call('source /etc/environment', shell=True)
+        set_ownership_of_file(self.CONFIGURATION_DIRECTORY)
+        set_ownership_of_file(self.INSTALL_DIRECTORY)
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
