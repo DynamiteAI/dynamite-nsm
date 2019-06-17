@@ -136,5 +136,12 @@ class ElasticInstaller:
             shutil.move(os.path.join(INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
         except shutil.Error as e:
             sys.stderr.write('JVM already exists at path specified. [{}]\n'.format(e))
+        try:
+            os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
+        except FileExistsError as e:
+            sys.stderr.write('Java Sym-link already exists at path specified. [{}]\n'.format(e))
 
-        os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
+        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
+
+ElasticInstaller().setup_java()
+ElasticInstaller().setup_elasticsearch()
