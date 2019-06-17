@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import getpass
 import tarfile
 import subprocess
 try:
@@ -15,6 +16,10 @@ JAVA_ARCHIVE_NAME = 'java-11.0.2.tar.gz'
 INSTALL_CACHE = os.environ['DYNAMITE_INSTALL_CACHE']
 ELASTICSEARCH_MIRRORS = os.environ['ELASTICSEARCH_LINUX_MIRRORS']
 JAVA_MIRRORS = os.environ['JAVA_LINUX_MIRRORS']
+
+
+def is_root():
+    return getpass.getuser() == 'root'
 
 
 def download_file(url, filename, stdout=False):
@@ -53,6 +58,9 @@ def download_file(url, filename, stdout=False):
 
 class ElasticInstaller:
 
+    INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
+    CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
+
     def __init__(self):
         self.elasticsearch_downloaded = False
         self.elasticsearch_extracted = False
@@ -81,7 +89,7 @@ class ElasticInstaller:
             sys.stdout.flush()
             self.elasticsearch_extracted = True
         except IOError as e:
-            sys.stderr.write('An error occurred while attempting to extract file. [{}]'.format(e))
+            sys.stderr.write('An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     def extract_java(self, stdout=False):
         if stdout:
@@ -93,14 +101,40 @@ class ElasticInstaller:
             sys.stdout.flush()
             self.java_extracted = True
         except IOError as e:
-            sys.stderr.write('An error occurred while attempting to extract file. [{}]'.format(e))
+            sys.stderr.write('An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+    def setup_elasticsearch(self):
+        subprocess.call('mkdir -p {}'.format(self.INSTALL_DIRECTORY), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.CONFIGURATION_DIRECTORY), shell=True)
+        config_paths = [
+            'config/elasticsearch.yml',
+            'config/jvm.options'
+        ]
+        install_paths = [
+            'bin/',
+            'lib/',
+            'logs/',
+            'modules/',
+            'plugins/'
+        ]
+        for path in config_paths:
+            try:
+                shutil.move(os.path.join(INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
+                            self.CONFIGURATION_DIRECTORY)
+            except shutil.Error as e:
+                sys.stderr.write('{} already exists at this path. [{}]\n'.format(path, e))
+        for path in install_paths:
+            try:
+                shutil.move(os.path.join(INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
+                            self.INSTALL_DIRECTORY)
+            except shutil.Error as e:
+                sys.stderr.write('{} already exists at this path. [{}]\n'.format(path, e))
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
         try:
             shutil.move(os.path.join(INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
         except shutil.Error as e:
-            sys.stderr.write('JVM already exists at path specified. [{}]'.format(e))
+            sys.stderr.write('JVM already exists at path specified. [{}]\n'.format(e))
 
         os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
-
