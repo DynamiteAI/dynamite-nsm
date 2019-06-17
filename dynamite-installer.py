@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import tarfile
 import subprocess
 try:
@@ -95,4 +96,11 @@ class ElasticInstaller:
             sys.stderr.write('An error occurred while attempting to extract file. [{}]'.format(e))
 
     def setup_java(self):
-        subprocess.call('mkdir -p /usr/lib/jvm/java-11', shell=True)
+        subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
+        try:
+            shutil.move(os.path.join(INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
+        except shutil.Error as e:
+            sys.stderr.write('JVM already exists at path specified. [{}]'.format(e))
+
+        os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
+
