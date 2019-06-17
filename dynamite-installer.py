@@ -1,5 +1,6 @@
 import os
 import sys
+import crypt
 import shutil
 import getpass
 import tarfile
@@ -20,6 +21,11 @@ JAVA_MIRRORS = os.environ['JAVA_LINUX_MIRRORS']
 
 def is_root():
     return getpass.getuser() == 'root'
+
+
+def create_dynamite_user(password):
+    pass_encry = crypt.crypt(password)
+    subprocess.call('useradd -p "{}" -s /bin/bash'.format(pass_encry))
 
 
 def download_file(url, filename, stdout=False):
