@@ -108,7 +108,7 @@ class ElasticInstaller:
         subprocess.call('mkdir -p {}'.format(self.CONFIGURATION_DIRECTORY), shell=True)
         config_paths = [
             'config/elasticsearch.yml',
-            'config/jvm.options'
+            'config/jvm.options',
             'config/log4j2.properties'
         ]
         install_paths = [
@@ -133,7 +133,7 @@ class ElasticInstaller:
         if 'ES_PATH_CONF' not in open('/etc/environment').read():
             subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.CONFIGURATION_DIRECTORY),
                             shell=True)
-            subprocess.call('source /etc/environment', shell=True)
+        subprocess.call('source /etc/environment', shell=True)
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
@@ -147,7 +147,7 @@ class ElasticInstaller:
             sys.stderr.write('Java Sym-link already exists at path specified. [{}]\n'.format(e))
         if 'JAVA_HOME' not in open('/etc/environment').read():
             subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
-            subprocess.call('source /etc/environment', shell=True)
+        subprocess.call('source /etc/environment', shell=True)
 
-ElasticInstaller().setup_java()
+ElasticInstaller().extract_elasticsearch()
 ElasticInstaller().setup_elasticsearch()
