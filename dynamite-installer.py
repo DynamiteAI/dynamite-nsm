@@ -1,4 +1,4 @@
 from installer import elasticsearch
 
-config = elasticsearch.ElasticConfigurator()
+config = elasticsearch.ElasticConfigurator('/etc/dynamite/elasticsearch/')
 config.write_configs()
