@@ -78,6 +78,22 @@ def set_ownership_of_file(path):
             shutil.chown(os.path.join(root, momo), user='dynamite', group='dynamite')
 
 
+def update_vm_max_map_count():
+    new_output = ''
+    found = False
+    for line in open('/etc/sysctl.conf').readlines():
+        if not line.startswith('#') and 'vm.max_map_count' in line:
+            new_output += 'vm.max_map_count=262144'
+            found = True
+        else:
+            new_output += line
+        new_output += '\n'
+    if not found:
+        new_output += 'vm.max_map_count=262144'
+    open('/etc/sysctl.conf', 'w').write(new_output)
+    subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
+
+
 class ElasticConfigurator:
 
     def __init__(self, config_directory):
@@ -89,7 +105,6 @@ class ElasticConfigurator:
         es_config_options = {}
         for line in open(os.path.join(self.config_directory, 'elasticsearch.yml')).readlines():
             if not line.startswith('#'):
-                print(line)
                 k, v = line.strip().split(':')
                 es_config_options[k] = v
         return es_config_options
@@ -190,18 +205,6 @@ class ElasticInstaller:
         self.java_downloaded = False
         self.java_extracted = False
 
-    @staticmethod
-    def update_vm_max_map_count():
-        new_output = ''
-        for line in open('/etc/sysctl.conf').readlines():
-            if not line.startswith('#') and 'vm.max_map_count' in line:
-                new_output += 'vm.max_map_count=262144'
-            else:
-                new_output += line
-            new_output += '\n'
-        open('/etc/sysctl.conf', 'w').write(new_output)
-        subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
-
     def download_elasticsearch(self, stdout=False):
         for url in open(ELASTICSEARCH_MIRRORS, 'r').readlines():
             if download_file(url, ELASTICSEARCH_ARCHIVE_NAME, stdout):
@@ -287,7 +290,7 @@ class ElasticInstaller:
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
         es_config.write_configs()
-        self.update_vm_max_map_count()
+        update_vm_max_map_count()
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
