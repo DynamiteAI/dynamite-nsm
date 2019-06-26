@@ -18,6 +18,7 @@ except Exception:
 ELASTICSEARCH_ARCHIVE_NAME = 'elasticsearch-7.1.1.tar.gz'
 JAVA_ARCHIVE_NAME = 'java-11.0.2.tar.gz'
 INSTALL_CACHE = os.environ['DYNAMITE_INSTALL_CACHE']
+DEFAULT_CONFIGS = os.environ['DEFAULT_CONFIGS']
 ELASTICSEARCH_MIRRORS = os.environ['ELASTICSEARCH_LINUX_MIRRORS']
 JAVA_MIRRORS = os.environ['JAVA_LINUX_MIRRORS']
 
@@ -102,9 +103,9 @@ class ElasticConfigurator:
         new_output = ''
         for line in open(os.path.join(self.config_directory, 'jvm.options')).readlines():
             if not line.startswith('#') and '-Xms' in line:
-                new_output += self.jvm_config_options['initial_memory']
+                new_output += '-Xms' + self.jvm_config_options['initial_memory']
             elif not line.startswith('#') and '-Xmx' in line:
-                new_output += self.jvm_config_options['maximum_memory']
+                new_output += '-Xmx' + self.jvm_config_options['maximum_memory']
             else:
                 new_output += line
             new_output += '\n'
@@ -159,14 +160,13 @@ class ElasticConfigurator:
         with open(os.path.join(self.config_directory, 'elasticsearch.yml'), 'a') as elastic_search_config_obj:
             for k, v in self.es_config_options.items():
                 elastic_search_config_obj.write('{}: {}\n'.format(k, v))
-                continue
         self._overwrite_jvm_options()
 
 
 class ElasticInstaller:
-
-    INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
     CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
+    INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
+    LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
 
     def __init__(self):
         self.elasticsearch_downloaded = False
@@ -188,7 +188,7 @@ class ElasticInstaller:
 
     def extract_elasticsearch(self, stdout=False):
         if stdout:
-            sys.stdout.write('Extracting: {} \n'.format(ELASTICSEARCH_ARCHIVE_NAME))
+            sys.stdout.write('[+] Extracting: {} \n'.format(ELASTICSEARCH_ARCHIVE_NAME))
         try:
             tf = tarfile.open(os.path.join(INSTALL_CACHE, ELASTICSEARCH_ARCHIVE_NAME))
             tf.extractall(path=INSTALL_CACHE)
@@ -196,24 +196,27 @@ class ElasticInstaller:
             sys.stdout.flush()
             self.elasticsearch_extracted = True
         except IOError as e:
-            sys.stderr.write('An error occurred while attempting to extract file. [{}]\n'.format(e))
+            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     def extract_java(self, stdout=False):
         if stdout:
-            sys.stdout.write('Extracting: {} \n'.format(JAVA_ARCHIVE_NAME))
+            sys.stdout.write('[+] Extracting: {} \n'.format(JAVA_ARCHIVE_NAME))
         try:
             tf = tarfile.open(os.path.join(INSTALL_CACHE, JAVA_ARCHIVE_NAME))
             tf.extractall(path=INSTALL_CACHE)
-            sys.stdout.write('Complete!')
+            sys.stdout.write('[+] Complete!\n')
             sys.stdout.flush()
             self.java_extracted = True
         except IOError as e:
-            sys.stderr.write('An error occurred while attempting to extract file. [{}]\n'.format(e))
+            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
-    def setup_elasticsearch(self):
+    def setup_elasticsearch(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating dynamite install/configuration/logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.INSTALL_DIRECTORY), shell=True)
         subprocess.call('mkdir -p {}'.format(self.CONFIGURATION_DIRECTORY), shell=True)
-        subprocess.call('mkdir -p {}').format(os.path.join(self.INSTALL_DIRECTORY, 'data'), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.LOG_DIRECTORY), shell=True)
+        subprocess.call('mkdir -p {}'.format(os.path.join(self.INSTALL_DIRECTORY, 'data')), shell=True)
         config_paths = [
             'config/elasticsearch.yml',
             'config/jvm.options',
@@ -232,30 +235,35 @@ class ElasticInstaller:
                             self.CONFIGURATION_DIRECTORY)
 
             except shutil.Error as e:
-                sys.stderr.write('{} already exists at this path. [{}]\n'.format(path, e))
+                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
             try:
                 shutil.move(os.path.join(INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
                             self.INSTALL_DIRECTORY)
             except shutil.Error as e:
-                sys.stderr.write('{} already exists at this path. [{}]\n'.format(path, e))
+                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         if 'ES_PATH_CONF' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[-] Updating ElasticSearch default configuration path [{}]\n'.format(self.CONFIGURATION_DIRECTORY))
             subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.CONFIGURATION_DIRECTORY),
                             shell=True)
         subprocess.call('source /etc/environment', shell=True)
+        sys.stdout.write('[+] Overwriting default configuration.\n')
+        shutil.copy(os.path.join(DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'), self.CONFIGURATION_DIRECTORY)
         set_ownership_of_file(self.CONFIGURATION_DIRECTORY)
         set_ownership_of_file(self.INSTALL_DIRECTORY)
+        set_ownership_of_file(self.LOG_DIRECTORY)
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
         try:
             shutil.move(os.path.join(INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
         except shutil.Error as e:
-            sys.stderr.write('JVM already exists at path specified. [{}]\n'.format(e))
+            sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
         try:
             os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
         except Exception as e:
-            sys.stderr.write('Java Sym-link already exists at path specified. [{}]\n'.format(e))
+            sys.stderr.write('[-] Java Sym-link already exists at path specified. [{}]\n'.format(e))
         if 'JAVA_HOME' not in open('/etc/environment').read():
             subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
         subprocess.call('source /etc/environment', shell=True)
