@@ -17,7 +17,7 @@ if __name__ == '__main__':
     es_installer.download_java(stdout=True)
     es_installer.extract_java(stdout=True)
     es_installer.setup_java()
-    elasticsearch.create_dynamite_user('password')
+    utilities.create_dynamite_user('password')
     es_installer.download_elasticsearch(stdout=True)
     es_installer.extract_elasticsearch(stdout=True)
     es_installer.setup_elasticsearch(stdout=True)
