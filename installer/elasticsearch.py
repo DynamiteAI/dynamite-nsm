@@ -1,97 +1,12 @@
 import os
 import sys
-import crypt
 import shutil
-import getpass
 import tarfile
 import subprocess
-
 from datetime import datetime
 
-try:
-    from urllib2 import urlopen
-    from urllib2 import URLError
-except Exception:
-    from urllib.request import urlopen
-    from urllib.error import URLError
-
-ELASTICSEARCH_ARCHIVE_NAME = 'elasticsearch-7.1.1.tar.gz'
-JAVA_ARCHIVE_NAME = 'java-11.0.2.tar.gz'
-INSTALL_CACHE = os.environ['DYNAMITE_INSTALL_CACHE']
-DEFAULT_CONFIGS = os.environ['DEFAULT_CONFIGS']
-ELASTICSEARCH_MIRRORS = os.environ['ELASTICSEARCH_LINUX_MIRRORS']
-JAVA_MIRRORS = os.environ['JAVA_LINUX_MIRRORS']
-
-
-def is_root():
-    return getpass.getuser() == 'root'
-
-
-def get_memory_available_bytes():
-    return os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
-
-
-def create_dynamite_user(password):
-    pass_encry = crypt.crypt(password)
-    subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
-
-
-def download_file(url, filename, stdout=False):
-    """
-    :param url: The url to the file to download
-    :param filename: The name of the file to store
-    :return: None
-    """
-    response = urlopen(url)
-    CHUNK = 16 * 1024
-    if stdout:
-        sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
-        sys.stdout.write('[+] Progress: ')
-        sys.stdout.flush()
-    try:
-        with open(os.path.join(INSTALL_CACHE, filename), 'wb') as f:
-            chunk_num = 0
-            while True:
-                chunk = response.read(CHUNK)
-                if stdout:
-                    if chunk_num % 100 == 0:
-                        sys.stdout.write('+')
-                        sys.stdout.flush()
-                if not chunk:
-                    break
-                chunk_num += 1
-                f.write(chunk)
-            if stdout:
-                sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
-                sys.stdout.flush()
-    except URLError as e:
-        sys.stderr.write('[-] An error occurred while attempting to download file. [{}]\n'.format(e))
-        return False
-    return True
-
-
-def set_ownership_of_file(path):
-    for root, dirs, files in os.walk(path):
-        for momo in dirs:
-            shutil.chown(os.path.join(root, momo), user='dynamite', group='dynamite')
-        for momo in files:
-            shutil.chown(os.path.join(root, momo), user='dynamite', group='dynamite')
-
-
-def update_vm_max_map_count():
-    new_output = ''
-    found = False
-    for line in open('/etc/sysctl.conf').readlines():
-        if not line.startswith('#') and 'vm.max_map_count' in line:
-            new_output += 'vm.max_map_count=262144'
-            found = True
-        else:
-            new_output += line
-        new_output += '\n'
-    if not found:
-        new_output += 'vm.max_map_count=262144'
-    open('/etc/sysctl.conf', 'w').write(new_output)
-    subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
+from installer import const
+from installer import utilities
 
 
 class ElasticConfigurator:
@@ -206,23 +121,23 @@ class ElasticInstaller:
         self.java_extracted = False
 
     def download_elasticsearch(self, stdout=False):
-        for url in open(ELASTICSEARCH_MIRRORS, 'r').readlines():
-            if download_file(url, ELASTICSEARCH_ARCHIVE_NAME, stdout):
+        for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
+            if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout):
                 self.elasticsearch_downloaded = True
                 break
 
     def download_java(self, stdout=False):
-        for url in open(JAVA_MIRRORS, 'r').readlines():
-            if download_file(url, JAVA_ARCHIVE_NAME, stdout):
+        for url in open(const.JAVA_MIRRORS, 'r').readlines():
+            if utilities.download_file(url, const.JAVA_ARCHIVE_NAME, stdout):
                 self.java_downloaded = True
                 break
 
     def extract_elasticsearch(self, stdout=False):
         if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(ELASTICSEARCH_ARCHIVE_NAME))
+            sys.stdout.write('[+] Extracting: {} \n'.format(const.ELASTICSEARCH_ARCHIVE_NAME))
         try:
-            tf = tarfile.open(os.path.join(INSTALL_CACHE, ELASTICSEARCH_ARCHIVE_NAME))
-            tf.extractall(path=INSTALL_CACHE)
+            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
+            tf.extractall(path=const.INSTALL_CACHE)
             sys.stdout.write('[+] Complete!\n')
             sys.stdout.flush()
             self.elasticsearch_extracted = True
@@ -231,10 +146,10 @@ class ElasticInstaller:
 
     def extract_java(self, stdout=False):
         if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(JAVA_ARCHIVE_NAME))
+            sys.stdout.write('[+] Extracting: {} \n'.format(const.JAVA_ARCHIVE_NAME))
         try:
-            tf = tarfile.open(os.path.join(INSTALL_CACHE, JAVA_ARCHIVE_NAME))
-            tf.extractall(path=INSTALL_CACHE)
+            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.JAVA_ARCHIVE_NAME))
+            tf.extractall(path=const.INSTALL_CACHE)
             sys.stdout.write('[+] Complete!\n')
             sys.stdout.flush()
             self.java_extracted = True
@@ -262,14 +177,14 @@ class ElasticInstaller:
         ]
         for path in config_paths:
             try:
-                shutil.move(os.path.join(INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
+                shutil.move(os.path.join(const.INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
                             self.CONFIGURATION_DIRECTORY)
 
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
             try:
-                shutil.move(os.path.join(INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
+                shutil.move(os.path.join(const.INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
                             self.INSTALL_DIRECTORY)
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
@@ -281,21 +196,22 @@ class ElasticInstaller:
                             shell=True)
         subprocess.call('source /etc/environment', shell=True)
         sys.stdout.write('[+] Overwriting default configuration.\n')
-        shutil.copy(os.path.join(DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'), self.CONFIGURATION_DIRECTORY)
-        set_ownership_of_file('/etc/dynamite/')
-        set_ownership_of_file('/opt/dynamite/')
-        set_ownership_of_file('/var/dynamite/')
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
+                    self.CONFIGURATION_DIRECTORY)
+        utilities.set_ownership_of_file('/etc/dynamite/')
+        utilities.set_ownership_of_file('/opt/dynamite/')
+        utilities.set_ownership_of_file('/var/dynamite/')
         es_config = ElasticConfigurator(config_directory=self.CONFIGURATION_DIRECTORY)
         sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
         es_config.write_configs()
-        update_vm_max_map_count()
+        utilities.update_vm_max_map_count()
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
         try:
-            shutil.move(os.path.join(INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
+            shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
         except shutil.Error as e:
             sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
         try:
