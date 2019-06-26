@@ -29,7 +29,7 @@ def is_root():
 
 def create_dynamite_user(password):
     pass_encry = crypt.crypt(password)
-    subprocess.call('useradd -p "{}" -s /bin/bash'.format(pass_encry))
+    subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry))
 
 
 def download_file(url, filename, stdout=False):
