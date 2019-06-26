@@ -244,15 +244,16 @@ class ElasticInstaller:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         if 'ES_PATH_CONF' not in open('/etc/environment').read():
             if stdout:
-                sys.stdout.write('[-] Updating ElasticSearch default configuration path [{}]\n'.format(self.CONFIGURATION_DIRECTORY))
+                sys.stdout.write('[-] Updating ElasticSearch default configuration path [{}]\n'.format(
+                    self.CONFIGURATION_DIRECTORY))
             subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.CONFIGURATION_DIRECTORY),
                             shell=True)
         subprocess.call('source /etc/environment', shell=True)
         sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'), self.CONFIGURATION_DIRECTORY)
-        set_ownership_of_file(self.CONFIGURATION_DIRECTORY)
-        set_ownership_of_file(self.INSTALL_DIRECTORY)
-        set_ownership_of_file(self.LOG_DIRECTORY)
+        set_ownership_of_file('/etc/dynamite/')
+        set_ownership_of_file('/opt/dynamite/')
+        set_ownership_of_file('/var/dynamite/')
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
