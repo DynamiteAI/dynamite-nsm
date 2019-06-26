@@ -27,6 +27,10 @@ def is_root():
     return getpass.getuser() == 'root'
 
 
+def get_memory_available_bytes():
+    return os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+
+
 def create_dynamite_user(password):
     pass_encry = crypt.crypt(password)
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
