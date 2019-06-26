@@ -155,7 +155,7 @@ class ElasticConfigurator:
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
         shutil.move(os.path.join(self.config_directory, 'elasticsearch.yml'), es_config_backup)
         shutil.copy(os.path.join(self.config_directory, 'jvm.options'), java_config_backup)
-        with open(os.path.join(self.config_directory, 'elasticsearch.yml')) as elastic_search_config_obj:
+        with open(os.path.join(self.config_directory, 'elasticsearch.yml', 'w')) as elastic_search_config_obj:
             for k, v in self.es_config_options.items():
                 elastic_search_config_obj.write('{}: {}'.format(k, v))
         self._overwrite_jvm_options()
