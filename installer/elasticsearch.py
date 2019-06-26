@@ -45,8 +45,8 @@ def download_file(url, filename, stdout=False):
     response = urlopen(url)
     CHUNK = 16 * 1024
     if stdout:
-        sys.stdout.write('Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
-        sys.stdout.write('Progress: ')
+        sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
+        sys.stdout.write('[+] Progress: ')
         sys.stdout.flush()
     try:
         with open(os.path.join(INSTALL_CACHE, filename), 'wb') as f:
@@ -65,7 +65,7 @@ def download_file(url, filename, stdout=False):
                 sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
                 sys.stdout.flush()
     except URLError as e:
-        sys.stderr.write('An error occurred while attempting to download file. [{}]'.format(e))
+        sys.stderr.write('[-] An error occurred while attempting to download file. [{}]\n'.format(e))
         return False
     return True
 
@@ -190,6 +190,18 @@ class ElasticInstaller:
         self.java_downloaded = False
         self.java_extracted = False
 
+    @staticmethod
+    def update_vm_max_map_count():
+        new_output = ''
+        for line in open('/etc/sysctl.conf').readlines():
+            if not line.startswith('#') and 'vm.max_map_count' in line:
+                new_output += 'vm.max_map_count=262144'
+            else:
+                new_output += line
+            new_output += '\n'
+        open('/etc/sysctl.conf', 'w').write(new_output)
+        subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
+
     def download_elasticsearch(self, stdout=False):
         for url in open(ELASTICSEARCH_MIRRORS, 'r').readlines():
             if download_file(url, ELASTICSEARCH_ARCHIVE_NAME, stdout):
@@ -271,10 +283,11 @@ class ElasticInstaller:
         set_ownership_of_file('/opt/dynamite/')
         set_ownership_of_file('/var/dynamite/')
         es_config = ElasticConfigurator(config_directory=self.CONFIGURATION_DIRECTORY)
-        sys.stdout.write('[+] Setting up JVM default heap settings [4GB]')
+        sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
         es_config.write_configs()
+        self.update_vm_max_map_count()
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
