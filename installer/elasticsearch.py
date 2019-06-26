@@ -58,7 +58,7 @@ def download_file(url, filename, stdout=False):
                 chunk_num += 1
                 f.write(chunk)
             if stdout:
-                sys.stdout.write('\nComplete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
+                sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
                 sys.stdout.flush()
     except URLError as e:
         sys.stderr.write('An error occurred while attempting to download file. [{}]'.format(e))
@@ -126,6 +126,12 @@ class ElasticConfigurator:
     def get_log_path(self):
         return self.es_config_options.get('path.logs')
 
+    def get_jvm_initial_memory(self):
+        return self.jvm_config_options.get('initial_memory')
+
+    def get_jvm_maximum_memory(self):
+        return self.jvm_config_options.get('maximum_memory')
+
     def set_cluster_name(self, name):
         self.es_config_options['cluster.name'] = name
 
@@ -146,6 +152,12 @@ class ElasticConfigurator:
 
     def set_discovery_seed_host(self, host_list):
         self.es_config_options['discovery.seed_hosts'] = host_list
+
+    def set_jvm_initial_memory(self, gigs):
+        self.jvm_config_options['initial_memory'] = str(int(gigs)) + 'g'
+
+    def set_jvm_maximum_memory(self, gigs):
+        self.jvm_config_options['maximum_memory'] = str(int(gigs)) + 'g'
 
     def write_configs(self):
         backup_configurations = os.path.join(self.config_directory, 'config_backups/')
@@ -192,7 +204,7 @@ class ElasticInstaller:
         try:
             tf = tarfile.open(os.path.join(INSTALL_CACHE, ELASTICSEARCH_ARCHIVE_NAME))
             tf.extractall(path=INSTALL_CACHE)
-            sys.stdout.write('Complete!')
+            sys.stdout.write('[+] Complete!\n')
             sys.stdout.flush()
             self.elasticsearch_extracted = True
         except IOError as e:
@@ -254,6 +266,11 @@ class ElasticInstaller:
         set_ownership_of_file('/etc/dynamite/')
         set_ownership_of_file('/opt/dynamite/')
         set_ownership_of_file('/var/dynamite/')
+        es_config = ElasticConfigurator(config_directory=self.CONFIGURATION_DIRECTORY)
+        sys.stdout.write('[+] Setting up JVM default heap settings [4GB]')
+        es_config.set_jvm_initial_memory(4)
+        es_config.set_jvm_maximum_memory(4)
+        es_config.write_configs()
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
