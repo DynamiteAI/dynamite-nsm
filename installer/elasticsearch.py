@@ -247,4 +247,4 @@ class ElasticProcess:
 
     def start(self):
         subprocess.call('runuser -l dynamite -c "export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF=$ES_PATH_CONF '
-                        '&& $ES_HOME/bin/elasticsearch"')
+                        '&& $ES_HOME/bin/elasticsearch"', shell=True)

@@ -53,7 +53,7 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'start':
-        elasticsearch.ElasticProcess(os.environ['ES_PATH_CONF']).start()
+        elasticsearch.ElasticProcess().start()
     else:
         sys.stderr.write('[-] Unrecognized command - {}\n'.format(args.command))
         sys.exit(1)
