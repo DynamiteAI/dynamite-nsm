@@ -206,6 +206,7 @@ class ElasticInstaller:
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
         es_config.write_configs()
+        sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
 
