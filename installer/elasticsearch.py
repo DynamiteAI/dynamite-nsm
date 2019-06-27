@@ -241,11 +241,10 @@ class ElasticInstaller:
 
 class ElasticProcess:
 
-    def __init__(self, configuration_directory):
-        self.configuration_directory = configuration_directory
+    def __init__(self):
+        self.configuration_directory = os.environ['ES_PATH_CONF']
         self.config = ElasticConfigurator(self.configuration_directory)
 
     def start(self):
-        subprocess.call('runuser -l dynamite -c export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF={} && '
-                        '$ES_HOME/bin/elasticsearch'.format(
-            self.configuration_directory))
+        subprocess.call('runuser -l dynamite -c "export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF=$ES_PATH_CONF '
+                        '&& $ES_HOME/bin/elasticsearch"')
