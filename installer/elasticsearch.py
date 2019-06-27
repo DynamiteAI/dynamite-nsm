@@ -243,8 +243,8 @@ class ElasticInstaller:
 
 class ElasticProcess:
 
-    def __init__(self):
-        self.configuration_directory = os.environ['ES_PATH_CONF']
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        self.configuration_directory = configuration_directory
         self.config = ElasticConfigurator(self.configuration_directory)
 
     def start(self):
