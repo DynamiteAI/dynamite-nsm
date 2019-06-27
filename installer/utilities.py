@@ -1,4 +1,6 @@
 import os
+import pwd
+import grp
 import sys
 import crypt
 import shutil
@@ -63,11 +65,13 @@ def download_file(url, filename, stdout=False):
 
 
 def set_ownership_of_file(path):
+    uid = pwd.getpwnam('dynamite')
+    group = grp.getgrgid('nogroup')
     for root, dirs, files in os.walk(path):
         for momo in dirs:
-            shutil.chown(os.path.join(root, momo), user='dynamite', group='dynamite')
+            os.chown(os.path.join(root, momo), uid, group)
         for momo in files:
-            shutil.chown(os.path.join(root, momo), user='dynamite', group='dynamite')
+            os.chown(os.path.join(root, momo), uid, group)
 
 
 def update_vm_max_map_count():
