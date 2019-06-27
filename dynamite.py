@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse
 import traceback
@@ -10,7 +11,7 @@ def _parse_cmdline():
     parser = argparse.ArgumentParser(
         description='Install/Configure the Dynamite Analysis Framework.'
     )
-    parser.add_argument('command', metavar='command', type=str, help='An action to perform [install]')
+    parser.add_argument('command', metavar='command', type=str, help='An action to perform [install|start]')
     parser.add_argument('component', metavar='component', type=str,
                         help='The component to perform an action against [elasticsearch]')
     return parser.parse_args()
@@ -45,5 +46,14 @@ def install_elasticsearch():
 
 if __name__ == '__main__':
     args = _parse_cmdline()
-    if args.command == 'install' and args.component == 'elasticsearch':
-        install_elasticsearch()
+    if args.command == 'install':
+        if args.component == 'elasticsearch':
+            install_elasticsearch()
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
+    elif args.command == 'start':
+        elasticsearch.ElasticProcess(os.environ['ES_PATH_CONF']).start()
+    else:
+        sys.stderr.write('[-] Unrecognized command - {}\n'.format(args.command))
+        sys.exit(1)

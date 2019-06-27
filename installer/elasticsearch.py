@@ -8,17 +8,21 @@ import subprocess
 from installer import const
 from installer import utilities
 
+CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
+INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
+LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
+
 
 class ElasticConfigurator:
 
-    def __init__(self, config_directory):
-        self.config_directory = config_directory
+    def __init__(self, configuration_directory):
+        self.configuration_directory = configuration_directory
         self.es_config_options = self._parse_elasticyaml()
         self.jvm_config_options = self._parse_jvm_options()
 
     def _parse_elasticyaml(self):
         es_config_options = {}
-        for line in open(os.path.join(self.config_directory, 'elasticsearch.yml')).readlines():
+        for line in open(os.path.join(self.configuration_directory, 'elasticsearch.yml')).readlines():
             if not line.startswith('#'):
                 k, v = line.strip().split(':')
                 es_config_options[k] = v
@@ -26,7 +30,7 @@ class ElasticConfigurator:
 
     def _parse_jvm_options(self):
         jvm_options = {}
-        for line in open(os.path.join(self.config_directory, 'jvm.options')).readlines():
+        for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
             if not line.startswith('#') and '-Xms' in line:
                 jvm_options['initial_memory'] = line.replace('-Xms', '').strip()
             elif not line.startswith('#') and '-Xmx' in line:
@@ -35,7 +39,7 @@ class ElasticConfigurator:
 
     def _overwrite_jvm_options(self):
         new_output = ''
-        for line in open(os.path.join(self.config_directory, 'jvm.options')).readlines():
+        for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
             if not line.startswith('#') and '-Xms' in line:
                 new_output += '-Xms' + self.jvm_config_options['initial_memory']
             elif not line.startswith('#') and '-Xmx' in line:
@@ -43,7 +47,7 @@ class ElasticConfigurator:
             else:
                 new_output += line
             new_output += '\n'
-        open(os.path.join(self.config_directory, 'jvm.options'), 'w').write(new_output)
+        open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
     def get_cluster_name(self):
         return self.es_config_options.get('cluster.name')
@@ -95,26 +99,30 @@ class ElasticConfigurator:
 
     def write_configs(self):
         timestamp = int(time.time())
-        backup_configurations = os.path.join(self.config_directory, 'config_backups/')
+        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         es_config_backup = os.path.join(backup_configurations, 'elasticsearch.yml.backup.{}'.format(timestamp))
         java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
             timestamp
         ))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.move(os.path.join(self.config_directory, 'elasticsearch.yml'), es_config_backup)
-        shutil.copy(os.path.join(self.config_directory, 'jvm.options'), java_config_backup)
-        with open(os.path.join(self.config_directory, 'elasticsearch.yml'), 'a') as elastic_search_config_obj:
+        shutil.move(os.path.join(self.configuration_directory, 'elasticsearch.yml'), es_config_backup)
+        shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
+        with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'a') as elastic_search_config_obj:
             for k, v in self.es_config_options.items():
                 elastic_search_config_obj.write('{}: {}\n'.format(k, v))
         self._overwrite_jvm_options()
 
 
 class ElasticInstaller:
-    CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
-    INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
-    LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
 
-    def __init__(self):
+    def __init__(self,
+                 configuration_directory=CONFIGURATION_DIRECTORY,
+                 install_directory=INSTALL_DIRECTORY,
+                 log_directory=LOG_DIRECTORY):
+
+        self.configuration_directory = configuration_directory
+        self.install_directory = install_directory
+        self.log_directory = log_directory
         self.elasticsearch_downloaded = False
         self.elasticsearch_extracted = False
         self.java_downloaded = False
@@ -159,10 +167,10 @@ class ElasticInstaller:
     def setup_elasticsearch(self, stdout=False):
         if stdout:
             sys.stdout.write('[+] Creating dynamite install/configuration/logging directories.\n')
-        subprocess.call('mkdir -p {}'.format(self.INSTALL_DIRECTORY), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.CONFIGURATION_DIRECTORY), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.LOG_DIRECTORY), shell=True)
-        subprocess.call('mkdir -p {}'.format(os.path.join(self.INSTALL_DIRECTORY, 'data')), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
         config_paths = [
             'config/elasticsearch.yml',
             'config/jvm.options',
@@ -178,30 +186,36 @@ class ElasticInstaller:
         for path in config_paths:
             try:
                 shutil.move(os.path.join(const.INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
-                            self.CONFIGURATION_DIRECTORY)
+                            self.configuration_directory)
 
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
             try:
                 shutil.move(os.path.join(const.INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
-                            self.INSTALL_DIRECTORY)
+                            self.install_directory)
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         if 'ES_PATH_CONF' not in open('/etc/environment').read():
             if stdout:
-                sys.stdout.write('[-] Updating ElasticSearch default configuration path [{}]\n'.format(
-                    self.CONFIGURATION_DIRECTORY))
-            subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.CONFIGURATION_DIRECTORY),
+                sys.stdout.write('[+] Updating ElasticSearch default configuration path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
+                            shell=True)
+        if 'ES_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
         subprocess.call('source /etc/environment', shell=True)
         sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
-                    self.CONFIGURATION_DIRECTORY)
+                    self.configuration_directory)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/dynamite/')
-        es_config = ElasticConfigurator(config_directory=self.CONFIGURATION_DIRECTORY)
+        es_config = ElasticConfigurator(configuration_directory=self.configuration_directory)
         sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
@@ -223,3 +237,15 @@ class ElasticInstaller:
         if 'JAVA_HOME' not in open('/etc/environment').read():
             subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
         subprocess.call('source /etc/environment', shell=True)
+
+
+class ElasticProcess:
+
+    def __init__(self, configuration_directory):
+        self.configuration_directory = configuration_directory
+        self.config = ElasticConfigurator(self.configuration_directory)
+
+    def start(self):
+        subprocess.call('runuser -l dynamite -c export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF={} && '
+                        '$ES_HOME/bin/elasticsearch'.format(
+            self.configuration_directory))
