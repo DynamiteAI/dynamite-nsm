@@ -171,6 +171,7 @@ class ElasticInstaller:
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
+        subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
         config_paths = [
             'config/elasticsearch.yml',
             'config/jvm.options',
@@ -214,7 +215,8 @@ class ElasticInstaller:
                     self.configuration_directory)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/dynamite/')
+        utilities.set_ownership_of_file('/var/log/dynamite')
+        utilities.set_ownership_of_file('/var/run/dynamite')
         es_config = ElasticConfigurator(configuration_directory=self.configuration_directory)
         sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
@@ -247,4 +249,5 @@ class ElasticProcess:
 
     def start(self):
         subprocess.call('runuser -l dynamite -c "export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF=$ES_PATH_CONF '
-                        '&& $ES_HOME/bin/elasticsearch"', shell=True)
+                        '&& $ES_HOME/bin/elasticsearch -p /var/run/elasticsearch/elasticsearch.pid --quiet"',
+                        shell=True)
