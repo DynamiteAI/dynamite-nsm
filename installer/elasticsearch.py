@@ -209,7 +209,7 @@ class ElasticInstaller:
                     self.configuration_directory))
             subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
-        subprocess.call('source /etc/environment', shell=True)
+        subprocess.call("env -i bash -c 'source init_env && env", shell=True)
         sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
                     self.configuration_directory)
@@ -249,5 +249,6 @@ class ElasticProcess:
 
     def start(self):
         subprocess.call('runuser -l dynamite -c "export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF=$ES_PATH_CONF '
-                        '&& $ES_HOME/bin/elasticsearch -p /var/run/elasticsearch/elasticsearch.pid --quiet"',
+                        '&& export ES_HOME=$ES_HOME && $ES_HOME/bin/elasticsearch '
+                        '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet"',
                         shell=True)
