@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import shutil
 import tarfile
 import subprocess
@@ -94,11 +95,11 @@ class ElasticConfigurator:
         self.jvm_config_options['maximum_memory'] = str(int(gigs)) + 'g'
 
     def write_configs(self):
+        timestamp = int(time.time())
         backup_configurations = os.path.join(self.config_directory, 'config_backups/')
-        es_config_backup = os.path.join(backup_configurations, 'elasticsearch.yml.backup.{}'.format(
-            datetime.utcnow().timestamp()))
+        es_config_backup = os.path.join(backup_configurations, 'elasticsearch.yml.backup.{}'.format(timestamp))
         java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
-            datetime.utcnow().timestamp()
+            timestamp
         ))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
         shutil.move(os.path.join(self.config_directory, 'elasticsearch.yml'), es_config_backup)

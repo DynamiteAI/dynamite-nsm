@@ -66,7 +66,7 @@ def download_file(url, filename, stdout=False):
 
 def set_ownership_of_file(path):
     uid = pwd.getpwnam('dynamite')
-    group = grp.getgrgid('nogroup')
+    group = grp.getgrgid('dynamite')
     for root, dirs, files in os.walk(path):
         for momo in dirs:
             os.chown(os.path.join(root, momo), uid, group)
