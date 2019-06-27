@@ -10,7 +10,9 @@ def _parse_cmdline():
     parser = argparse.ArgumentParser(
         description='Install/Configure the Dynamite Analysis Framework.'
     )
-    parser.add_argument('mode', metavar='mode', type=str, help='The install/configure mode. [install-elasticsearch]')
+    parser.add_argument('command', metavar='command', type=str, help='An action to perform [install]')
+    parser.add_argument('component', metavar='component', type=str,
+                        help='The component to perform an action against [elasticsearch]')
     return parser.parse_args()
 
 
@@ -43,5 +45,5 @@ def install_elasticsearch():
 
 if __name__ == '__main__':
     args = _parse_cmdline()
-    if args.mode == 'install-elasticsearch':
+    if args.command == 'install' and args.component == 'elasticsearch':
         install_elasticsearch()

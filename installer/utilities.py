@@ -3,7 +3,6 @@ import pwd
 import grp
 import sys
 import crypt
-import shutil
 import getpass
 import subprocess
 
@@ -18,20 +17,37 @@ from installer import const
 
 
 def is_root():
+    """
+    Determine whether or not the current user is root
+
+    :return: True, if the user is root
+    """
     return getpass.getuser() == 'root'
 
 
 def get_memory_available_bytes():
+    """
+    Get the amount of RAM (in bytes) of the current system
+
+    :return: The number of bytes available in memory
+    """
     return os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
 
 
 def create_dynamite_user(password):
+    """
+    Create the dynamite user
+
+    :param password: The password for the user
+    """
     pass_encry = crypt.crypt(password)
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
 def download_file(url, filename, stdout=False):
     """
+    Given a URL and destination file name, download the file to local install_cache
+
     :param url: The url to the file to download
     :param filename: The name of the file to store
     :return: None
@@ -65,6 +81,11 @@ def download_file(url, filename, stdout=False):
 
 
 def set_ownership_of_file(path):
+    """
+    Set the ownership of a file to dynamite user/group at a given path
+
+    :param path: The path to the file
+    """
     uid = pwd.getpwnam('dynamite').pw_uid
     group = grp.getgrnam('dynamite').gr_gid
     for root, dirs, files in os.walk(path):
@@ -75,6 +96,9 @@ def set_ownership_of_file(path):
 
 
 def update_sysctl():
+    """
+    Updates the vm.max_map_count and fs.file-max count
+    """
     new_output = ''
     vm_found = False
     fs_found = False
@@ -99,6 +123,9 @@ def update_sysctl():
 
 
 def update_user_file_handle_limits():
+    """
+    Updates the max number of file handles the dynamite user can have open
+    """
     new_output = ''
     limit_found = False
     for line in open('/etc/security/limits.conf').readlines():
