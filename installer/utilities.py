@@ -95,7 +95,7 @@ def update_sysctl():
     open('/etc/sysctl.conf', 'w').write(new_output)
     subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
     subprocess.call('sysctl -w fs.file-max=65535', shell=True)
-    subprocess.call('sysctl -p')
+    subprocess.call('sysctl -p', shell=True)
 
 
 def update_user_file_handle_limits():
