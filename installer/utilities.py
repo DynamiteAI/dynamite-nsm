@@ -74,17 +74,40 @@ def set_ownership_of_file(path):
             os.chown(os.path.join(root, momo), uid, group)
 
 
-def update_vm_max_map_count():
+def update_sysctl():
     new_output = ''
-    found = False
+    vm_found = False
+    fs_found = False
     for line in open('/etc/sysctl.conf').readlines():
         if not line.startswith('#') and 'vm.max_map_count' in line:
             new_output += 'vm.max_map_count=262144'
-            found = True
+            vm_found = True
+        elif not line.startswith('#') and 'fs.file-max' in line:
+            new_output += 'fs.file-max=65535'
+            fs_found = True
         else:
             new_output += line
         new_output += '\n'
-    if not found:
-        new_output += 'vm.max_map_count=262144'
+    if not vm_found:
+        new_output += 'vm.max_map_count=262144\n'
+    if not fs_found:
+        new_output += 'fs.file-max=65535\n'
     open('/etc/sysctl.conf', 'w').write(new_output)
     subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
+    subprocess.call('sysctl -w fs.file-max=65535', shell=True)
+    subprocess.call('sysctl -p')
+
+
+def update_user_file_handle_limits():
+    new_output = ''
+    limit_found = False
+    for line in open('/etc/security/limits.conf').readlines():
+        if line.startswith('dynamite'):
+            new_output += 'dynamite    -   nofile   65535'
+            limit_found = True
+        else:
+            new_output += line
+        new_output += '\n'
+    if not limit_found:
+        new_output += 'dynamite    -   nofile   65535\n'
+    open('/etc/security/limits.conf', 'w').write(new_output)

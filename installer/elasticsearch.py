@@ -4,7 +4,6 @@ import time
 import shutil
 import tarfile
 import subprocess
-from datetime import datetime
 
 from installer import const
 from installer import utilities
@@ -207,7 +206,8 @@ class ElasticInstaller:
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
         es_config.write_configs()
-        utilities.update_vm_max_map_count()
+        utilities.update_user_file_handle_limits()
+        utilities.update_sysctl()
 
     def setup_java(self):
         subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
