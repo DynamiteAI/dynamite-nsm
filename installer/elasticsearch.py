@@ -265,13 +265,14 @@ class ElasticProcess:
             self.pid = -1
 
     def start(self):
-        subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
-                        '&& export ES_HOME={} && {}/bin/elasticsearch '
-                        '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &"'.format(self.config.java_home,
+        command = 'runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} ' \
+                  '&& export ES_HOME={} && {}/bin/elasticsearch ' \
+                  '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet"'.format(self.config.java_home,
                                                                                                self.config.es_path_conf,
                                                                                                self.config.es_home,
-                                                                                               self.config.es_home),
-                        shell=True)
+                                                                                               self.config.es_home)
+        command_tokenized = command.split(' ')
+        subprocess.Popen(command_tokenized, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
         retry = 0
         self.pid = -1
         while retry < 3:
