@@ -70,6 +70,17 @@ if __name__ == '__main__':
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
+    elif args.command == 'stop':
+        if args.component == 'elasticsearch':
+            sys.stdout.write('[+] Stopping ElasticSearch.')
+            stopped = elasticsearch.ElasticProcess().stop()
+            if stopped:
+                sys.stdout.write('[+] ElasticSearch stopped successfully.')
+            else:
+                sys.stdout.write('[-] An error occurred while attempting to stop ElasticSearch.')
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
     else:
         sys.stderr.write('[-] Unrecognized command - {}\n'.format(args.command))
         sys.exit(1)

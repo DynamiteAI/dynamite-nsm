@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import signal
 import shutil
 import tarfile
 import subprocess
@@ -280,10 +281,28 @@ class ElasticProcess:
         while retry < 3:
             try:
                 self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
+                if not utilities.check_pid(self.pid):
+                    retry += 1
+                else:
+                    return True
             except IOError:
                 retry += 1
                 time.sleep(1)
-        return utilities.check_pid(self.pid)
+        return False
+
+    def stop(self, stdout=False):
+        alive = True
+        while alive:
+            try:
+                if stdout:
+                    sys.stdout.write('[+] Attempting to stop ElasticSearch [{}]'.format(self.pid))
+                os.kill(self.pid, signal.SIGTERM)
+                time.sleep(1)
+                alive = utilities.check_pid(self.pid)
+            except Exception as e:
+                sys.stderr.write('[-] An error occurred while attempting to stop ElasticSearch: {}'.format(e))
+                return False
+        return True
 
     def status(self):
         return {
