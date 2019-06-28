@@ -140,7 +140,7 @@ def update_sysctl():
 
 def tail_file(path, n=1, bs=1024):
     f = open(path)
-    f.seek(0,2)
+    f.seek(0, 2)
     l = 1-f.read(1).count('\n')
     B = f.tell()
     while n >= l and B > 0:

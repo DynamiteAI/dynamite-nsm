@@ -54,13 +54,13 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'start':
         if args.component == 'elasticsearch':
-            sys.stdout.write('[+] Starting ElasticSearch.')
+            sys.stdout.write('[+] Starting ElasticSearch.\n')
             started = elasticsearch.ElasticProcess().start(stdout=True)
             if started:
                 sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
                                  '\'dynamite.py status elasticsearch\'.')
             else:
-                sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.')
+                sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
@@ -72,12 +72,12 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'stop':
         if args.component == 'elasticsearch':
-            sys.stdout.write('[+] Stopping ElasticSearch.')
+            sys.stdout.write('[+] Stopping ElasticSearch.\n')
             stopped = elasticsearch.ElasticProcess().stop(stdout=True)
             if stopped:
-                sys.stdout.write('[+] ElasticSearch stopped successfully.')
+                sys.stdout.write('[+] ElasticSearch stopped successfully.\n')
             else:
-                sys.stdout.write('[-] An error occurred while attempting to stop ElasticSearch.')
+                sys.stdout.write('[-] An error occurred while attempting to stop ElasticSearch.\n')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
