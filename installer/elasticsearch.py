@@ -278,5 +278,7 @@ class ElasticProcess:
     def status(self):
         return {
             'pid': self.pid,
-            'running': utilities.check_pid(self.pid)
+            'running': utilities.check_pid(self.pid),
+            'logs': utilities.tail_file(os.path.join(
+                self.config.get_log_path(), self.config.get_cluster_name() + '.log'), n=5)
         }

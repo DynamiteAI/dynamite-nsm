@@ -22,6 +22,8 @@ def check_pid(pid):
 
     :return: True, if the process is running
     """
+    if pid == -1:
+        return False
     try:
         os.kill(pid, 0)
     except OSError:
@@ -134,6 +136,23 @@ def update_sysctl():
     subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
     subprocess.call('sysctl -w fs.file-max=65535', shell=True)
     subprocess.call('sysctl -p', shell=True)
+
+
+def tail_file(path, n=1, bs=1024):
+    f = open(file)
+    f.seek(0,2)
+    l = 1-f.read(1).count('\n')
+    B = f.tell()
+    while n >= l and B > 0:
+            block = min(bs, B)
+            B -= block
+            f.seek(B, 0)
+            l += f.read(block).count('\n')
+    f.seek(B, 0)
+    l = min(l,n)
+    lines = f.readlines()[-l:]
+    f.close()
+    return lines
 
 
 def update_user_file_handle_limits():
