@@ -128,7 +128,6 @@ def setup_java():
         sys.stderr.write('[-] Java Sym-link already exists at path specified. [{}]\n'.format(e))
     if 'JAVA_HOME' not in open('/etc/environment').read():
         subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
-    subprocess.call('source /etc/environment', shell=True)
 
 
 def set_ownership_of_file(path):
