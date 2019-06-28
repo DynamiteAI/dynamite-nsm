@@ -19,6 +19,10 @@ class ElasticConfigurator:
         self.configuration_directory = configuration_directory
         self.es_config_options = self._parse_elasticyaml()
         self.jvm_config_options = self._parse_jvm_options()
+        self.java_home = None
+        self.es_home = None
+        self.es_path_conf = None
+        self._parse_environment_file()
 
     def _parse_elasticyaml(self):
         es_config_options = {}
@@ -36,6 +40,15 @@ class ElasticConfigurator:
             elif not line.startswith('#') and '-Xmx' in line:
                 jvm_options['maximum_memory'] = line.replace('-Xmx', '').strip()
         return jvm_options
+
+    def _parse_environment_file(self):
+        for line in open('/etc/environment').readlines():
+            if line.startswith('JAVA_HOME'):
+                self.java_home = line.split('=')[1].strip()
+            elif line.startswith('ES_PATH_CONF'):
+                self.es_path_conf = line.split('=')[1].strip()
+            elif line.startswith('ES_HOME'):
+                self.es_home = line.split('=')[1].strip()
 
     def _overwrite_jvm_options(self):
         new_output = ''
@@ -248,7 +261,9 @@ class ElasticProcess:
         self.config = ElasticConfigurator(self.configuration_directory)
 
     def start(self):
-        subprocess.call('runuser -l dynamite -c "export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF=$ES_PATH_CONF '
-                        '&& export ES_HOME=$ES_HOME && $ES_HOME/bin/elasticsearch '
-                        '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet"',
+        subprocess.call('runuser -l dynamite -c "export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF={} '
+                        '&& export ES_HOME={} && {}/bin/elasticsearch '
+                        '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet"'.format(self.config.java_home,
+                                                                                               self.config.es_path_conf,
+                                                                                               self.config.es_home),
                         shell=True)
