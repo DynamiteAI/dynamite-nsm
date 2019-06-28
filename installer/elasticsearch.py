@@ -232,7 +232,7 @@ class ElasticInstaller:
         :param stdout: Print output to console
         """
         for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout):
+            if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
                 break
 
     @staticmethod
