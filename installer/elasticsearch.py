@@ -368,13 +368,13 @@ class ElasticProcess:
                     sys.stdout.write(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1
-                    time.sleep(1)
+                    time.sleep(3)
                 else:
                     return True
             except IOError:
                 sys.stdout.write(start_message)
                 retry += 1
-                time.sleep(1)
+                time.sleep(3)
         return False
 
     def stop(self, stdout=False):

@@ -40,7 +40,9 @@ def install_elasticsearch():
         sys.stderr.write('[-] A fatal error occurred while attempting to install ElasticSearch: ')
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)
-    sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n')
+    sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
+    sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
+    sys.stdout.flush()
     sys.exit(0)
 
 
