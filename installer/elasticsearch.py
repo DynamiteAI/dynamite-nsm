@@ -278,11 +278,12 @@ class ElasticProcess:
         Process(target=start_shell_out).start()
         retry = 0
         self.pid = -1
-        time.sleep(2)
+        time.sleep(4)
         while retry < 6:
             start_message = '[+] [Attempt: {}] Starting ElasticSearch on PID [{}]\n'.format(retry + 1, self.pid)
             try:
                 self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
+                start_message = '[+] [Attempt: {}] Starting ElasticSearch on PID [{}]\n'.format(retry + 1, self.pid)
                 if stdout:
                     sys.stdout.write(start_message)
                 if not utilities.check_pid(self.pid):
