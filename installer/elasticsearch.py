@@ -350,7 +350,11 @@ class ElasticProcess:
                                                                                                    self.config.es_home,
                                                                                                    self.config.es_home),
                             shell=True)
-        Process(target=start_shell_out).start()
+        if not utilities.check_pid(self.pid):
+            Process(target=start_shell_out).start()
+        else:
+            sys.stderr.write('[-] ElasticSearch is already running on PID [{}]\n'.format(self.pid))
+            return True
         retry = 0
         self.pid = -1
         time.sleep(5)
