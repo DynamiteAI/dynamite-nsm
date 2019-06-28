@@ -273,11 +273,7 @@ class ElasticProcess:
         self.pid = int(open('/var/run/dynamite/elasticsearch.pid').read())
 
     def status(self):
-        command = 'ps -p {} -o pid,vsz=MEMORY -o user,group=GROUP -o comm,args=ARGS'.format(self.pid)
-        command_tokenized = command.split(' ')
-        process = subprocess.Popen(command_tokenized, stdout=subprocess.PIPE)
-        command_output = process.communicate()
-        print(command_output)
         return {
-            'pid': self.pid
+            'pid': self.pid,
+            'running': utilities.check_pid(self.pid)
         }

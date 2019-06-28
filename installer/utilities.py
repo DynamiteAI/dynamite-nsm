@@ -16,6 +16,20 @@ except Exception:
 from installer import const
 
 
+def check_pid(pid):
+    """
+    Check For the existence of a unix pid.
+
+    :return: True, if the process is running
+    """
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+
 def is_root():
     """
     Determine whether or not the current user is root

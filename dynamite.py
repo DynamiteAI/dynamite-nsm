@@ -1,5 +1,5 @@
-import os
 import sys
+import json
 import argparse
 import traceback
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'status':
         if args.component == 'elasticsearch':
-            elasticsearch.ElasticProcess().status()
+            sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
