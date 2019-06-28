@@ -259,7 +259,10 @@ class ElasticProcess:
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         self.configuration_directory = configuration_directory
         self.config = ElasticConfigurator(self.configuration_directory)
-        self.pid = -1
+        try:
+            self.pid = int(open('/var/run/dynamite/elasticsearch.pid').read())
+        except IOError:
+            self.pid = -1
 
     def start(self):
         subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
