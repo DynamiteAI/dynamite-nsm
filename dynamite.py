@@ -58,7 +58,7 @@ if __name__ == '__main__':
             started = elasticsearch.ElasticProcess().start(stdout=True)
             if started:
                 sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
-                                 '\'dynamite.py status elasticsearch\'.')
+                                 '\'dynamite.py status elasticsearch\'.\n')
             else:
                 sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
         else:
