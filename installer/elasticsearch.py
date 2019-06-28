@@ -16,8 +16,13 @@ LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
 
 
 class ElasticConfigurator:
-
+    """
+    Wrapper for configuring elasticsearch.yml and jvm.options
+    """
     def __init__(self, configuration_directory):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        """
         self.configuration_directory = configuration_directory
         self.es_config_options = self._parse_elasticyaml()
         self.jvm_config_options = self._parse_jvm_options()
@@ -27,6 +32,10 @@ class ElasticConfigurator:
         self._parse_environment_file()
 
     def _parse_elasticyaml(self):
+        """
+        Parse elasticsearch.yaml, return a object representing the config
+        :return: A dictionary of config options and their values
+        """
         es_config_options = {}
         for line in open(os.path.join(self.configuration_directory, 'elasticsearch.yml')).readlines():
             if not line.startswith('#'):
@@ -35,6 +44,10 @@ class ElasticConfigurator:
         return es_config_options
 
     def _parse_jvm_options(self):
+        """
+        Parses the initial and max heap allocation from jvm.options configuration
+        :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
+        """
         jvm_options = {}
         for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
             if not line.startswith('#') and '-Xms' in line:
@@ -44,6 +57,10 @@ class ElasticConfigurator:
         return jvm_options
 
     def _parse_environment_file(self):
+        """
+        Parses the /etc/environment file and returns results for JAVA_HOME, ES_PATH_CONF, ES_HOME;
+        stores the results in class variables of the same name
+        """
         for line in open('/etc/environment').readlines():
             if line.startswith('JAVA_HOME'):
                 self.java_home = line.split('=')[1].strip()
@@ -53,6 +70,9 @@ class ElasticConfigurator:
                 self.es_home = line.split('=')[1].strip()
 
     def _overwrite_jvm_options(self):
+        """
+        Overwrites the JVM initial/max memory if settings were updated
+        """
         new_output = ''
         for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
             if not line.startswith('#') and '-Xms' in line:
@@ -65,54 +85,111 @@ class ElasticConfigurator:
         open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
     def get_cluster_name(self):
+        """
+        :return: The name of the ElasticSearch cluster
+        """
         return self.es_config_options.get('cluster.name')
 
     def get_network_host(self):
+        """
+        :return: The server that the cluster is running on
+        """
         return self.es_config_options.get('network.host')
 
     def get_network_port(self):
+        """
+        :return: The port that the cluster is running on
+        """
         return self.es_config_options.get('http.port')
 
     def get_data_path(self):
+        """
+        :return: The directory where data is being stored
+        """
         return self.es_config_options.get('path.data')
 
     def get_log_path(self):
+        """
+        :return: The directory logs are being stored in
+        """
         return self.es_config_options.get('path.logs')
 
+    def get_discovery_seed_hosts(self):
+        """
+        :return: A list of hosts also in the cluster
+        """
+        self.es_config_options.get('discovery.seed_hosts')
+
     def get_jvm_initial_memory(self):
+        """
+        :return: The initial amount of memory the JVM heap allocates
+        """
         return self.jvm_config_options.get('initial_memory')
 
     def get_jvm_maximum_memory(self):
+        """
+        :return: The maximum amount of memory the JVM heap allocates
+        """
         return self.jvm_config_options.get('maximum_memory')
 
     def set_cluster_name(self, name):
+        """
+        :param name: The name of the cluster
+        """
         self.es_config_options['cluster.name'] = name
 
     def set_network_host(self, host):
+        """
+        :param host: The IP address for ElasticSearch service to listen on
+        """
         self.es_config_options['network.host'] = host
 
     def set_network_port(self, port):
+        """
+        :param port: The port number of the for ElasticSearch service to listen on
+        """
         self.es_config_options['http.port'] = port
 
     def set_node_name(self, name):
+        """
+        :param name: The name of the ElasticSearch node
+        """
         self.es_config_options['node.name'] = name
 
     def set_data_path(self, path):
+        """
+        :param path: The path to the ElasticSearch node data
+        """
         self.es_config_options['path.data'] = path
 
     def set_log_path(self, path):
+        """
+        :param path: The path to the log directory
+        """
         self.es_config_options['path.logs'] = path
 
     def set_discovery_seed_host(self, host_list):
+        """
+        :param host_list: A list of hosts also in the cluster
+        """
         self.es_config_options['discovery.seed_hosts'] = host_list
 
     def set_jvm_initial_memory(self, gigs):
+        """
+        :param gigs: The amount of initial memory (In Gigabytes) for the JVM to allocate to the heap
+        """
         self.jvm_config_options['initial_memory'] = str(int(gigs)) + 'g'
 
     def set_jvm_maximum_memory(self, gigs):
+        """
+        :param gigs: The amount of maximum memory (In Gigabytes) for the JVM to allocate to the heap
+        """
         self.jvm_config_options['maximum_memory'] = str(int(gigs)) + 'g'
 
     def write_configs(self):
+        """
+        Write (and backs-up) elasticsearch.yml and jvm.option configurations
+        """
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         es_config_backup = os.path.join(backup_configurations, 'elasticsearch.yml.backup.{}'.format(timestamp))
@@ -129,22 +206,42 @@ class ElasticConfigurator:
 
 
 class ElasticInstaller:
+    """
+    Provides a simple interface for installing a new ElasticSearch node
+    """
 
     def __init__(self,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
+        :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
+        """
 
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
 
-    def download_elasticsearch(self, stdout=False):
+    @staticmethod
+    def download_elasticsearch(stdout=False):
+        """
+        Download ElasticSearch archive
+
+        :param stdout: Print output to console
+        """
         for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
             if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout):
                 break
 
-    def extract_elasticsearch(self, stdout=False):
+    @staticmethod
+    def extract_elasticsearch(stdout=False):
+        """
+        Extract ElasticSearch to local install_cache
+
+        :param stdout: Print output to console
+        """
         if stdout:
             sys.stdout.write('[+] Extracting: {} \n'.format(const.ELASTICSEARCH_ARCHIVE_NAME))
         try:
@@ -156,6 +253,12 @@ class ElasticInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     def setup_elasticsearch(self, stdout=False):
+        """
+        Create required directories, files, and variables to run ElasticSearch successfully;
+        Setup Java environment
+
+        :param stdout: Print output to console
+        """
         if stdout:
             sys.stdout.write('[+] Creating dynamite install/configuration/logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -218,8 +321,14 @@ class ElasticInstaller:
 
 
 class ElasticProcess:
-
+    """
+    An interface for start|stop|status|restart of the ElasticSearch process
+    """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        """
+
         self.configuration_directory = configuration_directory
         self.config = ElasticConfigurator(self.configuration_directory)
         try:
@@ -228,6 +337,11 @@ class ElasticProcess:
             self.pid = -1
 
     def start(self, stdout=False):
+        """
+        Start the ElasticSearch process
+        :param stdout: Print output to console
+        :return: True if started successfully
+        """
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
                             '&& export ES_HOME={} && {}/bin/elasticsearch '
@@ -260,6 +374,12 @@ class ElasticProcess:
         return False
 
     def stop(self, stdout=False):
+        """
+        Stop the ElasticSearch process
+
+        :param stdout: Print output to console
+        :return: True if stopped successfully
+        """
         alive = True
         while alive:
             try:
@@ -273,7 +393,22 @@ class ElasticProcess:
                 return False
         return True
 
+    def restart(self, stdout=False):
+        """
+        Restart the ElasticSearch process
+
+        :param stdout: Print output to console
+        :return: True if started successfully
+        """
+        self.stop(stdout=stdout)
+        return self.start(stdout=stdout)
+
     def status(self):
+        """
+        Check the status of the ElasticSearch process
+
+        :return: A dictionary containing the run status and relevant configuration options
+        """
         log_path = os.path.join(self.config.get_log_path(), self.config.get_cluster_name() + '.log')
         if os.path.exists(log_path):
             log_preview = utilities.tail_file(log_path, n=5)
