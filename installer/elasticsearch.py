@@ -274,9 +274,19 @@ class ElasticProcess:
         return True
 
     def status(self):
+        log_path = os.path.join(self.config.get_log_path(), self.config.get_cluster_name() + '.log')
+        if os.path.exists(log_path):
+            log_preview = utilities.tail_file(log_path, n=5)
+        else:
+            log_preview = None
         return {
-            'pid': self.pid,
-            'running': utilities.check_pid(self.pid),
-            'logs': utilities.tail_file(os.path.join(
-                self.config.get_log_path(), self.config.get_cluster_name() + '.log'), n=5)
+            'PID': self.pid,
+            'RUNNING': utilities.check_pid(self.pid),
+            'JAVA_HEAP_INIT': self.config.get_jvm_initial_memory(),
+            'JAVA_HEAP_MAX': self.config.get_jvm_maximum_memory(),
+            'JAVA_HOME': self.config.java_home,
+            'ES_HOME': self.config.es_home,
+            'ES_PATH_CONF': self.config.es_path_conf,
+            'ES_CONFIG_OPTIONS': self.config.es_config_options,
+            'LOGS': log_preview
         }
