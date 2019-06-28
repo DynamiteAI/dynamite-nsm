@@ -272,8 +272,15 @@ class ElasticProcess:
                                                                                                self.config.es_home,
                                                                                                self.config.es_home),
                         shell=True)
-
-        self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
+        retry = 0
+        self.pid = -1
+        while retry < 3:
+            try:
+                self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
+            except IOError:
+                retry += 1
+                time.sleep(1)
+        return utilities.check_pid(self.pid)
 
     def status(self):
         return {

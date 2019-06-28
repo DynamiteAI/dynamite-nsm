@@ -54,7 +54,13 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'start':
         if args.component == 'elasticsearch':
-            elasticsearch.ElasticProcess().start()
+            sys.stdout.write('[+] Starting ElasticSearch.')
+            started = elasticsearch.ElasticProcess().start()
+            if started:
+                sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
+                                 '\'dynamite.py status elasticsearch\'.')
+            else:
+                sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
