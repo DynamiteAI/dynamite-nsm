@@ -4,6 +4,7 @@ import time
 import shutil
 import tarfile
 import subprocess
+from multiprocessing import Process
 
 from installer import const
 from installer import utilities
@@ -265,14 +266,15 @@ class ElasticProcess:
             self.pid = -1
 
     def start(self):
-        command = 'runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} ' \
-                  '&& export ES_HOME={} && {}/bin/elasticsearch ' \
-                  '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet"'.format(self.config.java_home,
-                                                                                               self.config.es_path_conf,
-                                                                                               self.config.es_home,
-                                                                                               self.config.es_home)
-        command_tokenized = command.split(' ')
-        subprocess.Popen(command_tokenized, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
+        def start_shell_out():
+            subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
+                            '&& export ES_HOME={} && {}/bin/elasticsearch '
+                            '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &"'.format(self.config.java_home,
+                                                                                                   self.config.es_path_conf,
+                                                                                                   self.config.es_home,
+                                                                                                   self.config.es_home),
+                            shell=True)
+        Process(target=start_shell_out).start()
         retry = 0
         self.pid = -1
         while retry < 3:
