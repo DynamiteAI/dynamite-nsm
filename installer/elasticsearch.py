@@ -259,6 +259,7 @@ class ElasticProcess:
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         self.configuration_directory = configuration_directory
         self.config = ElasticConfigurator(self.configuration_directory)
+        self.pid = -1
 
     def start(self):
         subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
@@ -268,3 +269,15 @@ class ElasticProcess:
                                                                                                self.config.es_home,
                                                                                                self.config.es_home),
                         shell=True)
+
+        self.pid = int(open('/var/run/dynamite/elasticsearch.pid').read())
+
+    def status(self):
+        command = 'ps -p {} -o pid,vsz=MEMORY -o user,group=GROUP -o comm,args=ARGS'.format(self.pid)
+        command_tokenized = command.split(' ')
+        process = subprocess.Popen(command_tokenized, stdout=subprocess.PIPE)
+        command_output = process.communicate()
+        print(command_output)
+        return {
+            'pid': self.pid
+        }
