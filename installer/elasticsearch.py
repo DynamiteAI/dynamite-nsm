@@ -278,17 +278,18 @@ class ElasticProcess:
         Process(target=start_shell_out).start()
         retry = 0
         self.pid = -1
-        while retry < 3:
+        while retry < 6:
             try:
                 self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
                 if stdout:
-                    sys.stdout.write('[+] Starting ElasticSearch on PID [{}]'.format(self.pid))
+                    sys.stdout.write('[+] Starting ElasticSearch on PID [{}]\n'.format(self.pid))
                 if not utilities.check_pid(self.pid):
                     retry += 1
                     time.sleep(1)
                 else:
                     return True
             except IOError:
+                sys.stdout.write('[+] Starting ElasticSearch on PID [{}]\n'.format(self.pid))
                 retry += 1
                 time.sleep(1)
         return False
@@ -298,12 +299,12 @@ class ElasticProcess:
         while alive:
             try:
                 if stdout:
-                    sys.stdout.write('[+] Attempting to stop ElasticSearch [{}]'.format(self.pid))
+                    sys.stdout.write('[+] Attempting to stop ElasticSearch [{}]\n'.format(self.pid))
                 os.kill(self.pid, signal.SIGTERM)
                 time.sleep(1)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
-                sys.stderr.write('[-] An error occurred while attempting to stop ElasticSearch: {}'.format(e))
+                sys.stderr.write('[-] An error occurred while attempting to stop ElasticSearch: {}\n'.format(e))
                 return False
         return True
 
