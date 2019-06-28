@@ -261,9 +261,10 @@ class ElasticProcess:
         self.config = ElasticConfigurator(self.configuration_directory)
 
     def start(self):
-        subprocess.call('runuser -l dynamite -c "export JAVA_HOME=$JAVA_HOME && export ES_PATH_CONF={} '
+        subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
                         '&& export ES_HOME={} && {}/bin/elasticsearch '
                         '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet"'.format(self.config.java_home,
                                                                                                self.config.es_path_conf,
+                                                                                               self.config.es_home,
                                                                                                self.config.es_home),
                         shell=True)
