@@ -260,7 +260,7 @@ class ElasticProcess:
         self.configuration_directory = configuration_directory
         self.config = ElasticConfigurator(self.configuration_directory)
         try:
-            self.pid = int(open('/var/run/dynamite/elasticsearch.pid').read())
+            self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
         except IOError:
             self.pid = -1
 
@@ -273,7 +273,7 @@ class ElasticProcess:
                                                                                                self.config.es_home),
                         shell=True)
 
-        self.pid = int(open('/var/run/dynamite/elasticsearch.pid').read())
+        self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
 
     def status(self):
         return {
