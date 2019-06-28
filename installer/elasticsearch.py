@@ -138,21 +138,10 @@ class ElasticInstaller:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
-        self.elasticsearch_downloaded = False
-        self.elasticsearch_extracted = False
-        self.java_downloaded = False
-        self.java_extracted = False
 
     def download_elasticsearch(self, stdout=False):
         for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
             if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout):
-                self.elasticsearch_downloaded = True
-                break
-
-    def download_java(self, stdout=False):
-        for url in open(const.JAVA_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.JAVA_ARCHIVE_NAME, stdout):
-                self.java_downloaded = True
                 break
 
     def extract_elasticsearch(self, stdout=False):
@@ -163,19 +152,6 @@ class ElasticInstaller:
             tf.extractall(path=const.INSTALL_CACHE)
             sys.stdout.write('[+] Complete!\n')
             sys.stdout.flush()
-            self.elasticsearch_extracted = True
-        except IOError as e:
-            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-
-    def extract_java(self, stdout=False):
-        if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(const.JAVA_ARCHIVE_NAME))
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.JAVA_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-            sys.stdout.write('[+] Complete!\n')
-            sys.stdout.flush()
-            self.java_extracted = True
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
@@ -224,7 +200,6 @@ class ElasticInstaller:
                     self.configuration_directory))
             subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
-        subprocess.call("env -i bash -c 'source init_env && env", shell=True)
         sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
                     self.configuration_directory)
@@ -240,20 +215,6 @@ class ElasticInstaller:
         sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
-
-    def setup_java(self):
-        subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
-        try:
-            shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
-        except shutil.Error as e:
-            sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
-        try:
-            os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
-        except Exception as e:
-            sys.stderr.write('[-] Java Sym-link already exists at path specified. [{}]\n'.format(e))
-        if 'JAVA_HOME' not in open('/etc/environment').read():
-            subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
-        subprocess.call('source /etc/environment', shell=True)
 
 
 class ElasticProcess:

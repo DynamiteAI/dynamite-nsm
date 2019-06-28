@@ -3,7 +3,9 @@ import pwd
 import grp
 import sys
 import crypt
+import shutil
 import getpass
+import tarfile
 import subprocess
 
 try:
@@ -94,6 +96,39 @@ def download_file(url, filename, stdout=False):
         sys.stderr.write('[-] An error occurred while attempting to download file. [{}]\n'.format(e))
         return False
     return True
+
+
+def download_java(stdout=False):
+    for url in open(const.JAVA_MIRRORS, 'r').readlines():
+        if download_file(url, const.JAVA_ARCHIVE_NAME, stdout):
+            break
+
+
+def extract_java(stdout=False):
+    if stdout:
+        sys.stdout.write('[+] Extracting: {} \n'.format(const.JAVA_ARCHIVE_NAME))
+    try:
+        tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.JAVA_ARCHIVE_NAME))
+        tf.extractall(path=const.INSTALL_CACHE)
+        sys.stdout.write('[+] Complete!\n')
+        sys.stdout.flush()
+    except IOError as e:
+        sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+
+def setup_java():
+    subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
+    try:
+        shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
+    except shutil.Error as e:
+        sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
+    try:
+        os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
+    except Exception as e:
+        sys.stderr.write('[-] Java Sym-link already exists at path specified. [{}]\n'.format(e))
+    if 'JAVA_HOME' not in open('/etc/environment').read():
+        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
+    subprocess.call('source /etc/environment', shell=True)
 
 
 def set_ownership_of_file(path):

@@ -29,9 +29,9 @@ def install_elasticsearch():
         sys.exit(1)
     try:
         es_installer = elasticsearch.ElasticInstaller()
-        es_installer.download_java(stdout=True)
-        es_installer.extract_java(stdout=True)
-        es_installer.setup_java()
+        utilities.download_java(stdout=True)
+        utilities.extract_java(stdout=True)
+        utilities.setup_java()
         utilities.create_dynamite_user('password')
         es_installer.download_elasticsearch(stdout=True)
         es_installer.extract_elasticsearch(stdout=True)
