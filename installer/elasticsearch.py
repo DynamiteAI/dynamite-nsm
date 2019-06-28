@@ -266,7 +266,7 @@ class ElasticProcess:
         except IOError:
             self.pid = -1
 
-    def start(self):
+    def start(self, stdout=False):
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
                             '&& export ES_HOME={} && {}/bin/elasticsearch '
@@ -281,8 +281,11 @@ class ElasticProcess:
         while retry < 3:
             try:
                 self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
+                if stdout:
+                    sys.stdout.write('[+] Starting ElasticSearch on PID [{}]'.format(self.pid))
                 if not utilities.check_pid(self.pid):
                     retry += 1
+                    time.sleep(1)
                 else:
                     return True
             except IOError:

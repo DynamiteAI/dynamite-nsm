@@ -55,7 +55,7 @@ if __name__ == '__main__':
     elif args.command == 'start':
         if args.component == 'elasticsearch':
             sys.stdout.write('[+] Starting ElasticSearch.')
-            started = elasticsearch.ElasticProcess().start()
+            started = elasticsearch.ElasticProcess().start(stdout=True)
             if started:
                 sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
                                  '\'dynamite.py status elasticsearch\'.')
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     elif args.command == 'stop':
         if args.component == 'elasticsearch':
             sys.stdout.write('[+] Stopping ElasticSearch.')
-            stopped = elasticsearch.ElasticProcess().stop()
+            stopped = elasticsearch.ElasticProcess().stop(stdout=True)
             if stopped:
                 sys.stdout.write('[+] ElasticSearch stopped successfully.')
             else:
