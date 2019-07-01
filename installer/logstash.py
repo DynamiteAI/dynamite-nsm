@@ -6,6 +6,7 @@ import tarfile
 import subprocess
 from installer import const
 from installer import utilities
+from installer import elastiflow
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/'
 INSTALL_DIRECTORY = '/opt/dynamite/logstash/'
@@ -239,4 +240,7 @@ class LogstashInstaller:
         sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
+        ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
+                                                    os.path.join(self.configuration_directory, 'elastiflow'))
+        ef_install.setup_logstash_elastiflow()
 

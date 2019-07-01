@@ -1,9 +1,10 @@
-import os
+ELASTIFLOW_ARCHIVE_NAME = 'elastiflow-3.5.0.tar.gz'
 ELASTICSEARCH_ARCHIVE_NAME = 'elasticsearch-7.1.1.tar.gz'
 LOGSTASH_ARCHIVE_NAME = 'logstash-7.1.1.tar.gz'
 JAVA_ARCHIVE_NAME = 'java-11.0.2.tar.gz'
-INSTALL_CACHE = os.environ['DYNAMITE_INSTALL_CACHE']
-DEFAULT_CONFIGS = os.environ['DEFAULT_CONFIGS']
-ELASTICSEARCH_MIRRORS = os.environ['ELASTICSEARCH_LINUX_MIRRORS']
-LOGSTASH_MIRRORS = os.environ['LOGSTASH_LINUX_MIRRORS']
-JAVA_MIRRORS = os.environ['JAVA_LINUX_MIRRORS']
+INSTALL_CACHE = "install_cache/"
+DEFAULT_CONFIGS = "default_configs/"
+ELASTIFLOW_MIRRORS = "mirrors/elastiflow-3.5.0"
+ELASTICSEARCH_MIRRORS = "mirrors/elasticsearch-7.1.1"
+LOGSTASH_MIRRORS = "mirrors/logstash-7.1.1"
+JAVA_MIRRORS = "mirrors/java-11"
