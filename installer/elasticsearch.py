@@ -38,7 +38,7 @@ class ElasticConfigurator:
         """
         es_config_options = {}
         for line in open(os.path.join(self.configuration_directory, 'elasticsearch.yml')).readlines():
-            if not line.startswith('#'):
+            if not line.startswith('#') and ':' in line:
                 k, v = line.strip().split(':')
                 es_config_options[k] = str(v).strip()
         return es_config_options

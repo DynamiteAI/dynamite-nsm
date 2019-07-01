@@ -35,7 +35,7 @@ class LogstashConfigurator:
         """
         ls_config_options = {}
         for line in open(os.path.join(self.configuration_directory, 'logstash.yml')).readlines():
-            if not line.startswith('#'):
+            if not line.startswith('#') and ':' in line:
                 k, v = line.strip().split(':')
                 ls_config_options[k] = str(v).strip()
         return ls_config_options
