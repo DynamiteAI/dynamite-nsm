@@ -190,7 +190,6 @@ class LogstashInstaller:
         install_paths = [
             'bin/',
             'lib/',
-            'logs/',
             'logstash-core/',
             'logstash-core-plugin-api/'
             'modules/',
