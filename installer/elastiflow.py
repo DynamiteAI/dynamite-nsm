@@ -65,17 +65,17 @@ class ElastiFlowInstaller:
         utilities.set_ownership_of_file(self.install_directory)
         utilities.set_ownership_of_file(self.configuration_directory)
         if 'ELASTIFLOW_DICT_PATH' not in open('/etc/environment').read():
-            dict_path = os.path.join(self.install_directory, 'elastiflow', 'dictionaries')
+            dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow dictionary configuration path [{}]\n'.format(dict_path))
             subprocess.call('echo ELASTIFLOW_DICT_PATH="{}" >> /etc/environment'.format(dict_path), shell=True)
         if 'ELASTIFLOW_TEMPLATE_PATH' not in open('/etc/environment').read():
-            template_path = os.path.join(self.install_directory, 'elastiflow', 'templates')
+            template_path = os.path.join(self.install_directory, 'templates')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow template configuration path [{}]\n'.format(template_path))
             subprocess.call('echo ELASTIFLOW_TEMPLATE_PATH="{}" >> /etc/environment'.format(template_path), shell=True)
         if 'ELASTIFLOW_GEOIP_DB_PATH' not in open('/etc/environment').read():
-            geo_path = os.path.join(self.install_directory, 'elastiflow', 'geoipdbs')
+            geo_path = os.path.join(self.install_directory, 'geoipdbs')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow geodb configuration path [{}]\n'.format(geo_path))
             subprocess.call('echo ELASTIFLOW_GEOIP_DB_PATH="{}" >> /etc/environment'.format(geo_path), shell=True)
