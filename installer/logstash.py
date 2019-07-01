@@ -229,10 +229,6 @@ class LogstashInstaller:
         sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'logstash.yml'),
                     self.configuration_directory)
-        utilities.set_ownership_of_file('/etc/dynamite/')
-        utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/log/dynamite')
-        utilities.set_ownership_of_file('/var/run/dynamite')
         ls_config = LogstashConfigurator(configuration_directory=self.configuration_directory)
         if stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
@@ -251,4 +247,8 @@ class LogstashInstaller:
         ef_install.download_elasticflow(stdout=stdout)
         ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)
+        utilities.set_ownership_of_file('/etc/dynamite/')
+        utilities.set_ownership_of_file('/opt/dynamite/')
+        utilities.set_ownership_of_file('/var/log/dynamite')
+        utilities.set_ownership_of_file('/var/run/dynamite')
 
