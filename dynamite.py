@@ -58,6 +58,10 @@ def install_logstash():
         sys.exit(1)
     try:
         ls_installer = logstash.LogstashInstaller()
+        utilities.download_java(stdout=True)
+        utilities.extract_java(stdout=True)
+        utilities.setup_java()
+        utilities.create_dynamite_user('password')
         ls_installer.download_logstash(stdout=True)
         ls_installer.extract_logstash(stdout=True)
         ls_installer.setup_logstash(stdout=True)
