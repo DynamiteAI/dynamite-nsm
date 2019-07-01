@@ -193,8 +193,8 @@ class LogstashInstaller:
             'logstash-core/',
             'logstash-core-plugin-api/',
             'modules/',
-            'plugins/',
-            'vendor/'
+            'tools/',
+            'vendor/',
             'x-pack/'
         ]
         for path in config_paths:
