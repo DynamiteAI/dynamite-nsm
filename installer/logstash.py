@@ -249,7 +249,8 @@ class LogstashInstaller:
         ef_install.setup_logstash_elastiflow(stdout=stdout)
         if stdout:
             sys.stdout.write('[+] Installing Logstash plugins')
-        subprocess.call('{}/bin/logstash-plugin install sflow'.format(self.install_directory), shell=True)
+        subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
+                        shell=True)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
