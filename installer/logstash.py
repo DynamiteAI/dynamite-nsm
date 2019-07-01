@@ -191,7 +191,7 @@ class LogstashInstaller:
             'bin/',
             'lib/',
             'logstash-core/',
-            'logstash-core-plugin-api/'
+            'logstash-core-plugin-api/',
             'modules/',
             'plugins/',
             'vendor/'
