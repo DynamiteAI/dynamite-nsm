@@ -79,3 +79,8 @@ class ElastiFlowInstaller:
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow geodb configuration path [{}]\n'.format(geo_path))
             subprocess.call('echo ELASTIFLOW_GEOIP_DB_PATH="{}" >> /etc/environment'.format(geo_path), shell=True)
+        if 'ELASTIFLOW_DEFINITION_PATH' not in open('/etc/environment').read():
+            def_path = os.path.join(self.install_directory, 'definitions')
+            if stdout:
+                sys.stdout.write('[+] Updating Elastiflow definitions configuration path [{}]\n'.format(def_path))
+            subprocess.call('echo ELASTIFLOW_GEOIP_DB_PATH="{}" >> /etc/environment'.format(def_path), shell=True)
