@@ -1,6 +1,5 @@
 import os
 import sys
-import shutil
 import tarfile
 import subprocess
 
@@ -63,3 +62,5 @@ class ElastiFlowInstaller:
             sys.stdout.write('[+] Copying elastiflow configurations\n')
         utilities.copytree(os.path.join(const.INSTALL_CACHE, 'elastiflow-3.5.0', 'logstash', 'elastiflow'),
                            self.install_directory)
+        utilities.set_ownership_of_file(self.install_directory)
+        utilities.set_ownership_of_file(self.configuration_directory)

@@ -164,8 +164,9 @@ class LogstashInstaller:
         try:
             tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME))
             tf.extractall(path=const.INSTALL_CACHE)
-            sys.stdout.write('[+] Complete!\n')
-            sys.stdout.flush()
+            if stdout:
+                sys.stdout.write('[+] Complete!\n')
+                sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
@@ -233,17 +234,20 @@ class LogstashInstaller:
         utilities.set_ownership_of_file('/var/log/dynamite')
         utilities.set_ownership_of_file('/var/run/dynamite')
         ls_config = LogstashConfigurator(configuration_directory=self.configuration_directory)
-        sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
+        if stdout:
+            sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         ls_config.set_jvm_initial_memory(4)
         ls_config.set_jvm_maximum_memory(4)
         ls_config.write_configs()
-        sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
+        if stdout:
+            sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
         ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
                                                     os.path.join(self.configuration_directory, 'elastiflow'))
+
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
-                    os.path.join(self.install_directory, 'pipelines.yml'))
+                    os.path.join(self.configuration_directory, 'pipelines.yml'))
         ef_install.download_elasticflow(stdout=stdout)
         ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)

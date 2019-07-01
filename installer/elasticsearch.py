@@ -247,8 +247,9 @@ class ElasticInstaller:
         try:
             tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
             tf.extractall(path=const.INSTALL_CACHE)
-            sys.stdout.write('[+] Complete!\n')
-            sys.stdout.flush()
+            if stdout:
+                sys.stdout.write('[+] Complete!\n')
+                sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
@@ -303,7 +304,8 @@ class ElasticInstaller:
                     self.configuration_directory))
             subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
-        sys.stdout.write('[+] Overwriting default configuration.\n')
+        if stdout:
+            sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
                     self.configuration_directory)
         utilities.set_ownership_of_file('/etc/dynamite/')
@@ -311,11 +313,13 @@ class ElasticInstaller:
         utilities.set_ownership_of_file('/var/log/dynamite')
         utilities.set_ownership_of_file('/var/run/dynamite')
         es_config = ElasticConfigurator(configuration_directory=self.configuration_directory)
-        sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
+        if stdout:
+            sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
         es_config.write_configs()
-        sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
+        if stdout:
+            sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
 
@@ -372,7 +376,8 @@ class ElasticProcess:
                 else:
                     return True
             except IOError:
-                sys.stdout.write(start_message)
+                if stdout:
+                    sys.stdout.write(start_message)
                 retry += 1
                 time.sleep(3)
         return False
