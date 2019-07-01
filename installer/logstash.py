@@ -189,6 +189,7 @@ class LogstashInstaller:
         ]
         install_paths = [
             'Gemfile',
+            'Gemfile.lock',
             'bin/',
             'lib/',
             'logstash-core/',
