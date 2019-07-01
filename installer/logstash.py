@@ -242,5 +242,7 @@ class LogstashInstaller:
         utilities.update_sysctl()
         ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
                                                     os.path.join(self.configuration_directory, 'elastiflow'))
+        ef_install.download_elasticflow()
+        ef_install.extract_elastiflow()
         ef_install.setup_logstash_elastiflow()
 
