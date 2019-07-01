@@ -188,6 +188,7 @@ class LogstashInstaller:
             'config/log4j2.properties'
         ]
         install_paths = [
+            'Gemfile',
             'bin/',
             'lib/',
             'logstash-core/',
