@@ -83,4 +83,4 @@ class ElastiFlowInstaller:
             def_path = os.path.join(self.install_directory, 'definitions')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow definitions configuration path [{}]\n'.format(def_path))
-            subprocess.call('echo ELASTIFLOW_GEOIP_DB_PATH="{}" >> /etc/environment'.format(def_path), shell=True)
+            subprocess.call('echo ELASTIFLOW_DEFINITION_PATH="{}" >> /etc/environment'.format(def_path), shell=True)
