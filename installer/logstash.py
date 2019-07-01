@@ -244,7 +244,7 @@ class LogstashInstaller:
                                                     os.path.join(self.configuration_directory, 'elastiflow'))
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
                     os.path.join(self.install_directory, 'pipelines.yml'))
-        ef_install.download_elasticflow(stdout=True)
-        ef_install.extract_elastiflow(stdout=True)
-        ef_install.setup_logstash_elastiflow()
+        ef_install.download_elasticflow(stdout=stdout)
+        ef_install.extract_elastiflow(stdout=stdout)
+        ef_install.setup_logstash_elastiflow(stdout=stdout)
 
