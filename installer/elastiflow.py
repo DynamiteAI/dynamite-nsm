@@ -54,10 +54,12 @@ class ElastiFlowInstaller:
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
-    def setup_logstash_elastiflow(self):
+    def setup_logstash_elastiflow(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating elastiflow install|configuration directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
-                    os.path.join(self.install_directory, 'pipelines.yml'))
+        if stdout:
+            sys.stdout.write('[+] Copying elastiflow configurations\n')
         utilities.copytree(os.path.join(const.INSTALL_CACHE, 'elastiflow-3.5.0', 'logstash', 'elastiflow'),
                            self.install_directory)

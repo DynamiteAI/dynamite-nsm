@@ -177,7 +177,7 @@ class LogstashInstaller:
         :param stdout: Print output to console
         """
         if stdout:
-            sys.stdout.write('[+] Creating dynamite install/configuration/logging directories.\n')
+            sys.stdout.write('[+] Creating logstash install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
@@ -242,7 +242,9 @@ class LogstashInstaller:
         utilities.update_sysctl()
         ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
                                                     os.path.join(self.configuration_directory, 'elastiflow'))
-        ef_install.download_elasticflow()
-        ef_install.extract_elastiflow()
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
+                    os.path.join(self.install_directory, 'pipelines.yml'))
+        ef_install.download_elasticflow(stdout=True)
+        ef_install.extract_elastiflow(stdout=True)
         ef_install.setup_logstash_elastiflow()
 

@@ -260,7 +260,7 @@ class ElasticInstaller:
         :param stdout: Print output to console
         """
         if stdout:
-            sys.stdout.write('[+] Creating dynamite install/configuration/logging directories.\n')
+            sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
