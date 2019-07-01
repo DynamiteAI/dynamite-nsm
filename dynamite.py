@@ -3,8 +3,9 @@ import json
 import argparse
 import traceback
 
-from installer import elasticsearch
 from installer import utilities
+from installer import logstash
+from installer import elasticsearch
 
 
 def _parse_cmdline():
@@ -46,11 +47,32 @@ def install_elasticsearch():
     sys.exit(0)
 
 
+def install_logstash():
+    if not utilities.is_root():
+        sys.stderr.write('[-] This script must be run as root.\n')
+        sys.exit(1)
+    if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
+        sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
+            utilities.get_memory_available_bytes()/(1024 ** 3)
+        ))
+        sys.exit(1)
+    try:
+        ls_installer = logstash.LogstashInstaller()
+        ls_installer.download_logstash()
+        ls_installer.extract_logstash()
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
+
+
 if __name__ == '__main__':
     args = _parse_cmdline()
     if args.command == 'install':
         if args.component == 'elasticsearch':
             install_elasticsearch()
+        elif args.component == 'logstash':
+            install_logstash()
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
