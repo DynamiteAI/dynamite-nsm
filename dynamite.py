@@ -58,8 +58,9 @@ def install_logstash():
         sys.exit(1)
     try:
         ls_installer = logstash.LogstashInstaller()
-        ls_installer.download_logstash()
-        ls_installer.extract_logstash()
+        ls_installer.download_logstash(stdout=True)
+        ls_installer.extract_logstash(stdout=True)
+        ls_installer.setup_logstash(stdout=True)
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
         traceback.print_exc(file=sys.stderr)
