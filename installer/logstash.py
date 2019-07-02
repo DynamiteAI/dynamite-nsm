@@ -388,11 +388,17 @@ class LogstashProcess:
         :return: True if stopped successfully
         """
         alive = True
+        attempts = 0
         while alive:
             try:
                 if stdout:
                     sys.stdout.write('[+] Attempting to stop LogStash [{}]\n'.format(self.pid))
-                os.kill(self.pid, signal.SIGTERM)
+                    if attempts > 3:
+                        sig_command = signal.SIGKILL
+                    else:
+                        sig_command = signal.SIGTERM
+                    attempts += 1
+                os.kill(self.pid, sig_command)
                 time.sleep(1)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
