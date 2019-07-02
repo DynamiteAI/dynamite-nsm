@@ -83,7 +83,6 @@ def install_logstash():
 
 if __name__ == '__main__':
     args = _parse_cmdline()
-    utilities.source_environment_file()
     if args.command == 'install':
         if args.component == 'elasticsearch':
             install_elasticsearch()
