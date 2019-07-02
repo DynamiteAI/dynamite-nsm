@@ -45,9 +45,6 @@ def install_elasticsearch():
     sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
     sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
     sys.stdout.flush()
-    time.sleep(1)
-    sys.stdout.write('[+] YOU MUST LOGOUT (or exit this shell) TO COMPLETE INSTALLATION')
-    sys.stdout.flush()
     sys.exit(0)
 
 
@@ -76,9 +73,7 @@ def install_logstash():
     sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
     sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
     sys.stdout.flush()
-    time.sleep(1)
-    sys.stdout.write('[+] YOU MUST LOGOUT (or exit this shell) TO COMPLETE INSTALLATION')
-    sys.stdout.flush()
+    sys.exit(0)
 
 
 if __name__ == '__main__':

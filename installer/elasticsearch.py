@@ -353,13 +353,9 @@ class ElasticProcess:
         :return: True if started successfully
         """
         def start_shell_out():
-            subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && export ES_PATH_CONF={} '
-                            '&& export ES_HOME={} && {}/bin/elasticsearch '
-                            '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &"'.format(self.config.java_home,
-                                                                                                   self.config.es_path_conf,
-                                                                                                   self.config.es_home,
-                                                                                                   self.config.es_home),
-                            shell=True)
+            subprocess.call('runuser -l dynamite -c "{} && {}/bin/elasticsearch '
+                            '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &"'.format(
+                utilities.get_environment_file_str(), self.config.es_home), shell=True)
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
