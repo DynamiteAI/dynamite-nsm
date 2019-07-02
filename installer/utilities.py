@@ -130,6 +130,15 @@ def extract_java(stdout=False):
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
 
+def get_environment_file_str():
+    export_str = ''
+    for line in open('/etc/environment').readlines():
+        if '=' in line:
+            key, value = line.strip().split('=')
+            export_str += 'export {}={} && '.format(key, value)
+    return export_str
+
+
 def setup_java():
     subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
     try:
@@ -184,13 +193,6 @@ def update_sysctl():
     subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
     subprocess.call('sysctl -w fs.file-max=65535', shell=True)
     subprocess.call('sysctl -p', shell=True)
-
-
-def source_environment_file():
-    for line in open('/etc/environment').readlines():
-        if '=' in line:
-            key, value = line.strip().split('=')
-            subprocess.call('export {}={}'.format(key, value), shell=True)
 
 
 def tail_file(path, n=1, bs=1024):
