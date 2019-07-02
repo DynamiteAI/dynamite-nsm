@@ -1,4 +1,4 @@
-ELASTIFLOW_ARCHIVE_NAME = 'elastiflow-vlabs-0.1-3.5.0'
+ELASTIFLOW_ARCHIVE_NAME = 'elastiflow-vlabs-0.1-3.5.0.tar.gz'
 ELASTICSEARCH_ARCHIVE_NAME = 'elasticsearch-7.1.1.tar.gz'
 LOGSTASH_ARCHIVE_NAME = 'logstash-7.1.1.tar.gz'
 JAVA_ARCHIVE_NAME = 'java-11.0.2.tar.gz'
