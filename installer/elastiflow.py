@@ -121,7 +121,8 @@ class ElastiflowConfigurator:
                 if env_key in elastiflow_vars_map.keys():
                     line = '{}={}'.format(env_key, elastiflow_vars_map[env_key])
                     elastiflow_vars_map.pop(env_key, None)
-            new_env_content += line + '\n'
+            if line.strip() != '':
+                new_env_content += line + '\n'
         for unwritten_key, unwritten_val in elastiflow_vars_map.items():
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
         with open('/etc/environment', 'w') as f:
