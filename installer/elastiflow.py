@@ -11,6 +11,120 @@ CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/elastiflow/conf.d/'
 INSTALL_DIRECTORY = '/etc/dynamite/logstash/elastiflow/'
 
 
+class ElastiflowConfigurator:
+
+    def __init__(self):
+        self.netflow_ipv4_host = '0.0.0.0'
+        self.netflow_ipv6_host = '[::]'
+        self.netflow_ipv4_port = 2055
+        self.netflow_ipv6_port = 56343
+        self.sflow_ipv4_host = '0.0.0.0'
+        self.sflow_ipv6_host = '[::]'
+        self.sflow_ipv4_port = 6343
+        self.sflow_ipv6_port = 54739
+        self.ipfix_tcp_ipv4_host = '0.0.0.0'
+        self.ipfix_tcp_ipv6_host = '[::]'
+        self.ipfix_tcp_ipv4_port = 4739
+        self.ipfix_tcp_ipv6_port = 54739
+        self.ipfix_udp_ipv4_host = '0.0.0.0'
+        self.ipfix_udp_ipv6_host = '[::]'
+        self.ipfix_udp_ipv4_port = 4739
+        self.ipfix_udp_ipv6_port = 54739
+        self.zeek_ipv4_host = '0.0.0.0'
+        self.zeek_ipv4_port = 5044
+
+        self.netflow_udp_workers = 4
+        self.netflow_udp_queue_size = 4096
+        self.netflow_udp_rcv_buff = 33554432
+        self.sflow_udp_workers = 4
+        self.sflow_udp_queue_size = 4096
+        self.sflow_udp_rcv_buff = 33554432
+        self.ipfix_udp_workers = 4
+        self.ipfix_udp_queue_size = 4096
+        self.ipfix_udp_rcv_buff = 33554432
+
+        self.elastiflow_es_host = '127.0.0.1:9200'
+
+    def _parse_environment_file(self):
+        """
+        Parses the /etc/environment file and returns results for JAVA_HOME, LS_PATH_CONF, LS_HOME;
+        stores the results in class variables of the same name
+        """
+        for line in open('/etc/environment').readlines():
+            if line.startswith('ELASTIFLOW_NETFLOW_IPV4_HOST'):
+                self.netflow_ipv4_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_NETFLOW_IPV4_PORT'):
+                self.netflow_ipv4_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_SFLOW_IPV4_HOST'):
+                self.sflow_ipv4_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_SFLOW_IPV4_PORT'):
+                self.sflow_ipv4_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_TCP_IPV4_HOST'):
+                self.ipfix_tcp_ipv4_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_TCP_IPV4_PORT'):
+                self.ipfix_tcp_ipv4_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_UDP_IPV4_HOST'):
+                self.ipfix_udp_ipv4_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_UDP_IPV4_PORT'):
+                self.ipfix_udp_ipv4_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_NETFLOW_IPV6_HOST'):
+                self.netflow_ipv6_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_NETFLOW_IPV6_PORT'):
+                self.netflow_ipv6_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_SFLOW_IPV6_HOST'):
+                self.sflow_ipv6_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_SFLOW_IPV6_PORT'):
+                self.sflow_ipv6_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_TCP_IPV6_HOST'):
+                self.ipfix_tcp_ipv6_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_TCP_IPV6_PORT'):
+                self.ipfix_tcp_ipv6_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_UDP_IPV6_HOST'):
+                self.ipfix_udp_ipv6_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_UDP_IPV6_PORT'):
+                self.ipfix_udp_ipv6_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_ZEEK_HOST'):
+                self.zeek_ipv4_host = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_ZEEK_PORT'):
+                self.zeek_ipv4_port = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_NETFLOW_UDP_WORKERS'):
+                self.netflow_udp_workers = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_NETFLOW_UDP_QUEUE_SIZE'):
+                self.netflow_udp_queue_size = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_NETFLOW_UDP_RCV_BUFF'):
+                self.netflow_udp_rcv_buff = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_SFLOW_UDP_WORKERS'):
+                self.sflow_udp_workers = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_SFLOW_UDP_QUEUE_SIZE'):
+                self.sflow_udp_queue_size = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_SFLOW_UDP_RCV_BUFF'):
+                self.sflow_udp_rcv_buff = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_UDP_WORKERS'):
+                self.ipfix_udp_workers = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_UDP_QUEUE_SIZE'):
+                self.ipfix_udp_queue_size = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_IPFIX_UDP_RCV_BUFF'):
+                self.ipfix_udp_rcv_buff = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_ES_HOST'):
+                self.elastiflow_es_host = line.split('=')[1].strip()
+
+    def write_environment_variables(self):
+        elastiflow_vars_map = {}
+        new_env_content = ''
+        lines = open('/etc/environment').readlines()
+        for var in vars(self):
+            elastiflow_key = 'ELASTIFLOW_' + str(var).upper()
+            elastiflow_vars_map[elastiflow_key] = getattr(self, var)
+        for line in lines:
+            if '=' in line:
+                env_key = line.split('=')[0]
+                if env_key in elastiflow_vars_map.keys():
+                    line = '{}={}'.format(env_key, elastiflow_vars_map[env_key])
+            new_env_content += line + '\n'
+        with open('/etc/environment', 'w') as f:
+            f.write(new_env_content)
+
+
 class ElastiFlowInstaller:
 
     def __init__(self,
@@ -84,3 +198,4 @@ class ElastiFlowInstaller:
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow definitions configuration path [{}]\n'.format(def_path))
             subprocess.call('echo ELASTIFLOW_DEFINITION_PATH="{}" >> /etc/environment'.format(def_path), shell=True)
+        ElastiflowConfigurator().write_environment_variables()
