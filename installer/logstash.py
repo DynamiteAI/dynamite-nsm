@@ -335,17 +335,13 @@ class LogstashProcess:
         :return: True if started successfully
         """
         def start_shell_out():
-            p = subprocess.Popen('runuser -l dynamite -c "export JAVA_HOME={} && {}/bin/logstash '
+            subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && {}/bin/logstash '
                             '--quiet --path.settings={}"'.format(
                 self.config.java_home, self.config.ls_home, self.config.ls_path_conf), shell=True)
-            p.communicate()
-            os.remove('/var/run/dynamite/logstash/logstash.pid')
-            if stdout:
-                sys.stdout.write('[+] Starting Logstash on PID [{}]\n'.format(p.pid))
-            open('/var/run/dynamite/logstash/logstash.pid', 'w').write(str(p.pid))
-            self.pid = p.pid
         if not utilities.check_pid(self.pid):
-            Process(target=start_shell_out).start()
+            p = Process(target=start_shell_out)
+            p.start()
+            self.pid = p.pid
         else:
             sys.stderr.write('[-] Logstash is already running on PID [{}]\n'.format(self.pid))
             return True
