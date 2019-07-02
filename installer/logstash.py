@@ -349,8 +349,8 @@ class LogstashProcess:
         self.pid = -1
 
         def start_shell_out():
-            command = 'runuser -l dynamite -c "{} {}/bin/logstash --quiet ' \
-                      '--path.settings={} & echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
+            command = 'runuser -l dynamite -c "{} {}/bin/logstash ' \
+                      '--path.settings={} &>/dev/null echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
                 utilities.get_environment_file_str(), self.config.ls_home, self.config.ls_path_conf)
             subprocess.call(command, shell=True)
         if not utilities.check_pid(self.pid):
