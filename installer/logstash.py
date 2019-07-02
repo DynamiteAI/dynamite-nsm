@@ -334,6 +334,8 @@ class LogstashProcess:
         :param stdout: Print output to console
         :return: True if started successfully
         """
+        self.pid = -1
+
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && {}/bin/logstash '
                             '--quiet --path.settings={}"'.format(
@@ -342,11 +344,11 @@ class LogstashProcess:
             p = Process(target=start_shell_out)
             p.start()
             self.pid = p.pid
+            open('/var/run/dynamite/logstash/logstash.pid', 'w').write(str(self.pid))
         else:
             sys.stderr.write('[-] Logstash is already running on PID [{}]\n'.format(self.pid))
             return True
         retry = 0
-        self.pid = -1
         time.sleep(5)
         while retry < 6:
             start_message = '[+] [Attempt: {}] Starting Logstash on PID [{}]\n'.format(retry + 1, self.pid)
