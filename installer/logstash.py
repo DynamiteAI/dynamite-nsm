@@ -338,13 +338,10 @@ class LogstashProcess:
 
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && {}/bin/logstash '
-                            '--quiet --path.settings={} &"'.format(
+                            '--quiet --path.settings={} & echo $! > /var/run/dynamite/logstash/logstash.pid"'.format(
                 self.config.java_home, self.config.ls_home, self.config.ls_path_conf), shell=True)
         if not utilities.check_pid(self.pid):
-            p = Process(target=start_shell_out)
-            p.start()
-            self.pid = p.pid
-            open('/var/run/dynamite/logstash/logstash.pid', 'w').write(str(self.pid))
+            Process(target=start_shell_out).start()
         else:
             sys.stderr.write('[-] Logstash is already running on PID [{}]\n'.format(self.pid))
             return True
