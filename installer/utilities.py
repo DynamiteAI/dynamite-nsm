@@ -186,6 +186,13 @@ def update_sysctl():
     subprocess.call('sysctl -p', shell=True)
 
 
+def source_environment_file():
+    for line in open('/etc/environment').readlines():
+        if '=' in line:
+            key, value = line.strip().split('=')
+            subprocess.call('export {}={}'.format(key, value), shell=True)
+
+
 def tail_file(path, n=1, bs=1024):
     f = open(path)
     f.seek(0, 2)

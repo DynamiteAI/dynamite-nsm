@@ -205,7 +205,7 @@ pipeline.batch.delay: 50
 #   * trace
 #
 # log.level: info
-# path.logs:
+path.logs: /var/log/dynamite/logstash/
 #
 # ------------ Other Settings --------------
 #

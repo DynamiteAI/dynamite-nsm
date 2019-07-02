@@ -84,6 +84,12 @@ class LogstashConfigurator:
             new_output += '\n'
         open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
+    def get_log_path(self):
+        """
+        :return: The path to Logstash logs on filesystem
+        """
+        return self.ls_config_options.get('path.logs')
+
     def get_node_name(self):
         """
         :return: The name of the LogStash collector node
@@ -120,6 +126,12 @@ class LogstashConfigurator:
         :return: The maximum amount of memory the JVM heap allocates
         """
         return self.jvm_config_options.get('maximum_memory')
+
+    def set_log_path(self, path):
+        """
+        :param path: The path to Logstash logs on the filesystem
+        """
+        self.ls_config_options['path.logs'] = path
 
     def set_node_name(self, name):
         """
