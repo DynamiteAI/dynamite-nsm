@@ -102,6 +102,12 @@ class ElasticConfigurator:
         """
         return self.es_config_options.get('http.port')
 
+    def get_node_name(self):
+        """
+        :return: The name of the ElasticSearch node
+        """
+        return self.es_config_options.get('node.name')
+
     def get_data_path(self):
         """
         :return: The directory where data is being stored

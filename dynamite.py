@@ -1,8 +1,9 @@
 import sys
 import json
+import time
 import argparse
 import traceback
-
+import subprocess
 from installer import utilities
 from installer import logstash
 from installer import elasticsearch
@@ -44,6 +45,11 @@ def install_elasticsearch():
     sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
     sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
     sys.stdout.flush()
+    time.sleep(1)
+    sys.stdout.write('[+] THIS SHELL WILL EXIT IN 3 seconds, TO COMPLETE INSTALLATION.')
+    sys.stdout.flush()
+    time.sleep(3)
+    subprocess.call('exit', shell=True)
     sys.exit(0)
 
 
@@ -69,6 +75,14 @@ def install_logstash():
         sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)
+    sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
+    sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
+    sys.stdout.flush()
+    time.sleep(1)
+    sys.stdout.write('[+] THIS SHELL WILL EXIT IN 3 seconds, TO COMPLETE INSTALLATION.')
+    sys.stdout.flush()
+    time.sleep(3)
+    subprocess.call('exit', shell=True)
 
 
 if __name__ == '__main__':
@@ -90,6 +104,14 @@ if __name__ == '__main__':
                                  '\'dynamite.py status elasticsearch\'.\n')
             else:
                 sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
+        elif args.component == 'logstash':
+            sys.stdout.write('[+] Starting LogStash\n')
+            started = logstash.LogstashProcess().start(stdout=True)
+            if started:
+                sys.stdout.write('[+] LogStash started successfully. Check its status at any time with: '
+                                 '\'dynamite.py status logstash\'.\n')
+            else:
+                sys.stdout.write('[-] An error occurred while attempting to start LogStash.\n')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
@@ -107,6 +129,13 @@ if __name__ == '__main__':
                 sys.stdout.write('[+] ElasticSearch stopped successfully.\n')
             else:
                 sys.stdout.write('[-] An error occurred while attempting to stop ElasticSearch.\n')
+        elif args.component == 'logstash':
+            sys.stdout.write('[+] Stopping LogStash.\n')
+            stopped = logstash.LogstashProcess().stop(stdout=True)
+            if stopped:
+                sys.stdout.write('[+] LogStash stopped successfully.\n')
+            else:
+                sys.stdout.write('[-] An error occurred while attempting to stop LogStash.\n')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
@@ -118,6 +147,13 @@ if __name__ == '__main__':
                 sys.stdout.write('[+] ElasticSearch restarted successfully.\n')
             else:
                 sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
+        elif args.component == 'logstash':
+            sys.stdout.write('[+] Restarting LogStash.\n')
+            restarted = logstash.LogstashProcess().restart(stdout=True)
+            if restarted:
+                sys.stdout.write('[+] LogStash restarted successfully.\n')
+            else:
+                sys.stdout.write('[-] An error occurred while attempting to start LogStash.\n')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

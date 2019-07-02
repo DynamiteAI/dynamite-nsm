@@ -1,9 +1,11 @@
 import os
 import sys
 import time
+import signal
 import shutil
 import tarfile
 import subprocess
+from multiprocessing import Process
 from installer import const
 from installer import utilities
 from installer import elastiflow
@@ -25,8 +27,8 @@ class LogstashConfigurator:
         self.ls_config_options = self._parse_logstashyaml()
         self.jvm_config_options = self._parse_jvm_options()
         self.java_home = None
-        self.es_home = None
-        self.es_path_conf = None
+        self.ls_home = None
+        self.ls_path_conf = None
         self._parse_environment_file()
 
     def _parse_logstashyaml(self):
@@ -63,9 +65,9 @@ class LogstashConfigurator:
             if line.startswith('JAVA_HOME'):
                 self.java_home = line.split('=')[1].strip()
             elif line.startswith('LS_PATH_CONF'):
-                self.es_path_conf = line.split('=')[1].strip()
+                self.ls_path_conf = line.split('=')[1].strip()
             elif line.startswith('LS_HOME'):
-                self.es_home = line.split('=')[1].strip()
+                self.ls_home = line.split('=')[1].strip()
 
     def _overwrite_jvm_options(self):
         """
@@ -82,6 +84,31 @@ class LogstashConfigurator:
             new_output += '\n'
         open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
+    def get_node_name(self):
+        """
+        :return: The name of the LogStash collector node
+        """
+        return self.ls_config_options.get('node.name')
+
+    def get_data_path(self):
+        """
+        :return: The directory where data (persistent queues) are being stored
+        """
+        return self.ls_config_options.get('path.data')
+
+    def get_pipeline_batch_size(self):
+        """
+        :return: The number of events to retrieve from inputs before sending to filters+workers
+        """
+        return self.ls_config_options.get('pipeline.batch.size')
+
+    def get_pipeline_batch_delay(self):
+        """
+        :return: The number of milliseconds while polling for the next event before dispatching an
+        undersized batch to filters+outputs
+        """
+        return self.ls_config_options.get('pipeline.batch.delay')
+
     def get_jvm_initial_memory(self):
         """
         :return: The initial amount of memory the JVM heap allocates
@@ -93,6 +120,31 @@ class LogstashConfigurator:
         :return: The maximum amount of memory the JVM heap allocates
         """
         return self.jvm_config_options.get('maximum_memory')
+
+    def set_node_name(self, name):
+        """
+        :param name: The name of the Logstash collector node
+        """
+        self.ls_config_options['node.name'] = name
+
+    def set_data_path(self, path):
+        """
+        :param path: The path to the Logstash collector node
+        """
+        self.ls_config_options['path.data'] = path
+
+    def set_pipeline_batch_size(self, event_count):
+        """
+        :param event_count: How many events to retrieve from inputs before sending to filters+workers
+        """
+        self.ls_config_options['pipeline.batch.size'] = event_count
+
+    def set_pipeline_batch_delay(self, delay_millisecs):
+        """
+        :param delay_millisecs: How long to wait in milliseconds while polling for the next event before dispatching an
+        undersized batch to filters+outputs
+        """
+        self.ls_config_options['pipeline.batch.delay'] = delay_millisecs
 
     def set_jvm_initial_memory(self, gigs):
         """
@@ -227,11 +279,13 @@ class LogstashInstaller:
             subprocess.call('echo LS_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
         sys.stdout.write('[+] Overwriting default configuration.\n')
+        sys.stdout.flush()
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'logstash.yml'),
                     self.configuration_directory)
         ls_config = LogstashConfigurator(configuration_directory=self.configuration_directory)
         if stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
+            sys.stdout.flush()
         ls_config.set_jvm_initial_memory(4)
         ls_config.set_jvm_maximum_memory(4)
         ls_config.write_configs()
@@ -248,11 +302,97 @@ class LogstashInstaller:
         ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)
         if stdout:
-            sys.stdout.write('[+] Installing Logstash plugins')
+            sys.stdout.write('[+] Installing Logstash plugins\n')
+            sys.stdout.flush()
         subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
                         shell=True)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
         utilities.set_ownership_of_file('/var/run/dynamite')
+
+
+class LogstashProcess:
+    """
+    An interface for start|stop|status|restart of the LogStash process
+    """
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
+        """
+
+        self.configuration_directory = configuration_directory
+        self.config = LogstashConfigurator(self.configuration_directory)
+        try:
+            self.pid = int(open('/var/run/dynamite/logstash/logstash.pid').read())
+        except IOError:
+            self.pid = -1
+
+    def start(self, stdout=False):
+        """
+        Start the LogStash process
+        :param stdout: Print output to console
+        :return: True if started successfully
+        """
+        def start_shell_out():
+            subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && {}/bin/logstash '
+                            '-p /var/run/dynamite/logstash/logstash.pid --quiet --path.settings={} &"'.format(
+                self.config.java_home, self.config.ls_home, self.config.ls_path_conf), shell=True)
+        if not utilities.check_pid(self.pid):
+            Process(target=start_shell_out).start()
+        else:
+            sys.stderr.write('[-] Logstash is already running on PID [{}]\n'.format(self.pid))
+            return True
+        retry = 0
+        self.pid = -1
+        time.sleep(5)
+        while retry < 6:
+            start_message = '[+] [Attempt: {}] Starting Logstash on PID [{}]\n'.format(retry + 1, self.pid)
+            try:
+                with open('/var/run/dynamite/logstash/logstash.pid') as f:
+                    self.pid = int(f.read())
+                start_message = '[+] [Attempt: {}] Starting LogStash on PID [{}]\n'.format(retry + 1, self.pid)
+                if stdout:
+                    sys.stdout.write(start_message)
+                if not utilities.check_pid(self.pid):
+                    retry += 1
+                    time.sleep(3)
+                else:
+                    return True
+            except IOError:
+                if stdout:
+                    sys.stdout.write(start_message)
+                retry += 1
+                time.sleep(3)
+        return False
+
+    def stop(self, stdout=False):
+        """
+        Stop the LogStash process
+
+        :param stdout: Print output to console
+        :return: True if stopped successfully
+        """
+        alive = True
+        while alive:
+            try:
+                if stdout:
+                    sys.stdout.write('[+] Attempting to stop LogStash [{}]\n'.format(self.pid))
+                os.kill(self.pid, signal.SIGTERM)
+                time.sleep(1)
+                alive = utilities.check_pid(self.pid)
+            except Exception as e:
+                sys.stderr.write('[-] An error occurred while attempting to stop LogStash: {}\n'.format(e))
+                return False
+        return True
+
+    def restart(self, stdout=False):
+        """
+        Restart the LogStash process
+
+        :param stdout: Print output to console
+        :return: True if started successfully
+        """
+        self.stop(stdout=stdout)
+        return self.start(stdout=stdout)
 
