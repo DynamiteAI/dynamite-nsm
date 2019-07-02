@@ -46,10 +46,8 @@ def install_elasticsearch():
     sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
     sys.stdout.flush()
     time.sleep(1)
-    sys.stdout.write('[+] THIS SHELL WILL EXIT IN 3 seconds, TO COMPLETE INSTALLATION.')
+    sys.stdout.write('[+] YOU MUST LOGOUT (or exit this shell) TO COMPLETE INSTALLATION')
     sys.stdout.flush()
-    time.sleep(3)
-    subprocess.call('exit', shell=True)
     sys.exit(0)
 
 
@@ -79,10 +77,8 @@ def install_logstash():
     sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
     sys.stdout.flush()
     time.sleep(1)
-    sys.stdout.write('[+] THIS SHELL WILL EXIT IN 3 seconds, TO COMPLETE INSTALLATION.')
+    sys.stdout.write('[+] YOU MUST LOGOUT (or exit this shell) TO COMPLETE INSTALLATION')
     sys.stdout.flush()
-    time.sleep(3)
-    subprocess.call('exit', shell=True)
 
 
 if __name__ == '__main__':

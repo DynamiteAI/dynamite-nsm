@@ -338,7 +338,7 @@ class LogstashProcess:
 
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "export JAVA_HOME={} && {}/bin/logstash '
-                            '--quiet --path.settings={} & echo $! > /var/run/dynamite/logstash/logstash.pid"'.format(
+                            '--quiet --path.settings={} & echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
                 self.config.java_home, self.config.ls_home, self.config.ls_path_conf), shell=True)
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
