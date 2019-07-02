@@ -325,7 +325,7 @@ class LogstashProcess:
         self.config = LogstashConfigurator(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/logstash/logstash.pid').read())
-        except IOError:
+        except (IOError | ValueError):
             self.pid = -1
 
     def start(self, stdout=False):
