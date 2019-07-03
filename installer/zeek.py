@@ -67,3 +67,13 @@ class ZeekInstaller:
             sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+    def setup_zeek(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        subprocess.call('cd {}/bro-2.6.2/; ./configure --prefix={} --scriptdir={}'.format(const.INSTALL_CACHE,
+                                                                                          self.install_directory,
+                                                                                          self.configuration_directory),
+                        shell=True)
