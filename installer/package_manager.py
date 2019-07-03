@@ -43,6 +43,6 @@ class OSPackageManager:
             params = 'check-update'
         if not self.package_manager:
             return False
-        p = subprocess.Popen('{} {}'.format(self.package_manager, params), shell=True)
+        p = subprocess.Popen('{} {} &>/dev/null'.format(self.package_manager, params), shell=True)
         p.communicate()
-        return p.returncode == 0
+        return p.returncode == 0 or p.returncode == 100
