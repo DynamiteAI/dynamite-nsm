@@ -78,6 +78,7 @@ def install_monitor():
         sys.exit(1)
     zeek_installer.download_zeek(stdout=True)
     zeek_installer.extract_zeek(stdout=True)
+    zeek_installer.setup_zeek(stdout=True)
 
 
 if __name__ == '__main__':
