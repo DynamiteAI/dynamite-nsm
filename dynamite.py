@@ -4,8 +4,10 @@ import time
 import argparse
 import traceback
 import subprocess
-from installer import utilities
+
+from installer import zeek
 from installer import logstash
+from installer import utilities
 from installer import elasticsearch
 
 
@@ -20,10 +22,6 @@ def _parse_cmdline():
 
 
 def install_elasticsearch():
-    if not utilities.is_root():
-        sys.stderr.write('[-] This script must be run as root.\n')
-        sys.exit(1)
-
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1024 ** 3)
@@ -49,9 +47,6 @@ def install_elasticsearch():
 
 
 def install_logstash():
-    if not utilities.is_root():
-        sys.stderr.write('[-] This script must be run as root.\n')
-        sys.exit(1)
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1024 ** 3)
@@ -76,13 +71,24 @@ def install_logstash():
     sys.exit(0)
 
 
+def install_monitor():
+    zeek_installer = zeek.ZeekInstaller()
+    zeek_installer.download_zeek(stdout=True)
+    zeek_installer.extract_zeek(stdout=True)
+
+
 if __name__ == '__main__':
     args = _parse_cmdline()
+    if not utilities.is_root():
+        sys.stderr.write('[-] This script must be run as root.\n')
+        sys.exit(1)
     if args.command == 'install':
         if args.component == 'elasticsearch':
             install_elasticsearch()
         elif args.component == 'logstash':
             install_logstash()
+        elif args.component == 'monitor':
+            install_monitor()
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
