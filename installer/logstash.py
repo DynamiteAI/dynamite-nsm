@@ -393,11 +393,11 @@ class LogstashProcess:
             try:
                 if stdout:
                     sys.stdout.write('[+] Attempting to stop LogStash [{}]\n'.format(self.pid))
-                    if attempts > 3:
-                        sig_command = signal.SIGKILL
-                    else:
-                        sig_command = signal.SIGTERM
-                    attempts += 1
+                if attempts > 3:
+                    sig_command = signal.SIGKILL
+                else:
+                    sig_command = signal.SIGTERM
+                attempts += 1
                 os.kill(self.pid, sig_command)
                 time.sleep(1)
                 alive = utilities.check_pid(self.pid)
@@ -415,4 +415,18 @@ class LogstashProcess:
         """
         self.stop(stdout=stdout)
         return self.start(stdout=stdout)
+
+    def status(self):
+        """
+        Check the status of the LogStash process
+
+        :return: A dictionary containing the run status and relevant configuration options
+        """
+        log_path = os.path.join(self.config.get_log_path(), 'logstash-plain.log')
+
+        return {
+            'PID': self.pid,
+            'RUNNING': utilities.check_pid(self.pid),
+            'LOGS': log_path
+        }
 

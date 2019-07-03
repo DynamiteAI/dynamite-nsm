@@ -109,6 +109,8 @@ if __name__ == '__main__':
     elif args.command == 'status':
         if args.component == 'elasticsearch':
             sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
+        elif args.component == 'logstash':
+            sys.stdout.write(json.dumps(logstash.LogstashProcess().status(), indent=1) + '\n')
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
