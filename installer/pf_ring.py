@@ -6,6 +6,7 @@ import subprocess
 
 from installer import const
 from installer import utilities
+from installer import package_manager
 
 
 class PFRingInstaller:
@@ -38,16 +39,23 @@ class PFRingInstaller:
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
+    @staticmethod
+    def install_dependencies():
+        pkt_mng = package_manager.OSPackageManager()
+        packages = None
+        if pkt_mng.package_manager == 'apt-get':
+            packages = ['linux-headers-generic']
+        elif pkt_mng.package_manager == 'yum':
+            packages = ['kernel-devel']
+        if packages:
+            pkt_mng.install_packages(packages)
+            return True
+        return False
+
     def setup_pf_ring(self, stdout=False):
         if stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].')
             sys.stdout.flush()
             time.sleep(2)
         subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING-7.4.0', 'kernel'))
-        if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].')
-            sys.stdout.flush()
-            time.sleep(2)
-        subprocess.call('./configure && make && make install', shell=True,
-                        cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING-7.4.0', 'userland', 'lib'))
 

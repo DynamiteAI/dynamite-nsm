@@ -26,20 +26,6 @@ class ZeekInstaller:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
 
-    def install_dependencies(self):
-        pkt_mng = package_manager.OSPackageManager()
-        packages = None
-        if pkt_mng.package_manager == 'apt-get':
-            packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
-                        'python-dev', 'swig', 'zlib1g-dev']
-        elif pkt_mng.package_manager == 'yum':
-            packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
-                        'python-devel', 'swig', 'zlib-devel']
-        if packages:
-            pkt_mng.install_packages(packages)
-            return True
-        return False
-
     @staticmethod
     def download_zeek(stdout=False):
         """
@@ -67,6 +53,21 @@ class ZeekInstaller:
             sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+    @staticmethod
+    def install_dependencies():
+        pkt_mng = package_manager.OSPackageManager()
+        packages = None
+        if pkt_mng.package_manager == 'apt-get':
+            packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
+                        'python-dev', 'swig', 'zlib1g-dev']
+        elif pkt_mng.package_manager == 'yum':
+            packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
+                        'python-devel', 'swig', 'zlib-devel']
+        if packages:
+            pkt_mng.install_packages(packages)
+            return True
+        return False
 
     def setup_zeek(self, stdout=False):
         if stdout:

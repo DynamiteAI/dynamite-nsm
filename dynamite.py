@@ -78,6 +78,7 @@ def install_monitor():
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         sys.exit(1)
+    pf_ring_install.install_dependencies()
     pf_ring_install.download_pf_ring(stdout=True)
     pf_ring_install.extract_pf_ring(stdout=True)
     pf_ring_install.setup_pf_ring(stdout=True)
