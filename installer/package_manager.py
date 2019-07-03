@@ -31,7 +31,8 @@ class OSPackageManager:
         flags = '-y'
         if not self.package_manager:
             return False
-        p = subprocess.Popen('{} {} install {} '.format(self.package_manager, flags, ' '.join(packages)), shell=True)
+        p = subprocess.Popen('{} {} install {} &> /dev/null'.format(self.package_manager, flags, ' '.join(packages)),
+                             shell=True)
         p.communicate()
         return p.returncode == 0
 
@@ -43,6 +44,6 @@ class OSPackageManager:
             params = 'check-update'
         if not self.package_manager:
             return False
-        p = subprocess.Popen('{} {} &>/dev/null'.format(self.package_manager, params), shell=True)
+        p = subprocess.Popen('{} {} &> /dev/null'.format(self.package_manager, params), shell=True)
         p.communicate()
         return p.returncode == 0 or p.returncode == 100
