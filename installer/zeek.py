@@ -65,8 +65,7 @@ class ZeekInstaller:
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
                         'python-devel', 'swig', 'zlib-devel']
         if packages:
-            pkt_mng.install_packages(packages)
-            return True
+            return pkt_mng.install_packages(packages)
         return False
 
     def setup_zeek(self, stdout=False):

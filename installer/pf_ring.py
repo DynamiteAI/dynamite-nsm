@@ -48,8 +48,7 @@ class PFRingInstaller:
         elif pkt_mng.package_manager == 'yum':
             packages = ['make', 'gcc', 'kernel-devel']
         if packages:
-            pkt_mng.install_packages(packages)
-            return True
+            return pkt_mng.install_packages(packages)
         return False
 
     def setup_pf_ring(self, stdout=False):

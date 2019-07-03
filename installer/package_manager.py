@@ -27,4 +27,6 @@ class OSPackageManager:
         :param packages: Name of binary packages to install
         """
         flags = '-y'
-        subprocess.call('{} {} install {} '.format(self.package_manager, flags, ' '.join(packages)), shell=True)
+        p = subprocess.Popen('{} {} install {} '.format(self.package_manager, flags, ' '.join(packages)), shell=True)
+        p.communicate()
+        return p.returncode == 0
