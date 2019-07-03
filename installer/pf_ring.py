@@ -42,6 +42,8 @@ class PFRingInstaller:
     @staticmethod
     def install_dependencies():
         pkt_mng = package_manager.OSPackageManager()
+        if not pkt_mng.refresh_package_indexes():
+            return False
         packages = None
         if pkt_mng.package_manager == 'apt-get':
             packages = ['make', 'gcc', 'linux-headers-generic']

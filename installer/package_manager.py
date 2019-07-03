@@ -20,6 +20,8 @@ class OSPackageManager:
             return 'apt-get'
         elif yum_p.returncode == 0:
             return 'yum'
+        else:
+            return None
 
     def install_packages(self, packages):
         """
@@ -27,6 +29,20 @@ class OSPackageManager:
         :param packages: Name of binary packages to install
         """
         flags = '-y'
+        if not self.package_manager:
+            return False
         p = subprocess.Popen('{} {} install {} '.format(self.package_manager, flags, ' '.join(packages)), shell=True)
+        p.communicate()
+        return p.returncode == 0
+
+    def refresh_package_indexes(self):
+        params = None
+        if self.package_manager == 'apt-get':
+            params = 'update'
+        elif self.package_manager == 'yum':
+            params = 'check-update'
+        if not self.package_manager:
+            return False
+        p = subprocess.Popen('{} {}'.format(self.package_manager, params))
         p.communicate()
         return p.returncode == 0
