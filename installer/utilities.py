@@ -131,6 +131,9 @@ def extract_java(stdout=False):
 
 
 def get_environment_file_str():
+    """
+    :return: The contents of the /etc/environment file as a giant export string
+    """
     export_str = ''
     for line in open('/etc/environment').readlines():
         if '=' in line:
@@ -140,6 +143,9 @@ def get_environment_file_str():
 
 
 def setup_java():
+    """
+    Installs the latest version of OpenJDK
+    """
     subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
     try:
         shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')

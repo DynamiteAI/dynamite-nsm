@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import tarfile
 import subprocess
 
@@ -9,7 +10,7 @@ from installer import package_manager
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/zeek/'
-INSTALL_DIRECTORY = '/etc/dynamite/zeek/'
+INSTALL_DIRECTORY = '/opt/dynamite/zeek/'
 
 
 class ZeekInstaller:
@@ -38,7 +39,6 @@ class ZeekInstaller:
             pkt_mng.install_packages(packages)
             return True
         return False
-
 
     @staticmethod
     def download_zeek(stdout=False):
@@ -73,6 +73,9 @@ class ZeekInstaller:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        if stdout:
+            sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.')
+            time.sleep(5)
         subprocess.call('./configure --prefix={} --scriptdir={}'.format(self.install_directory,
                                                                         self.configuration_directory),
                         shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
