@@ -76,3 +76,4 @@ class ZeekInstaller:
         subprocess.call('./configure --prefix={} --scriptdir={}'.format(self.install_directory,
                                                                         self.configuration_directory),
                         shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
+        subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
