@@ -73,7 +73,6 @@ class ZeekInstaller:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        subprocess.call('cd {}/bro-2.6.2/; ./configure --prefix={} --scriptdir={}'.format(const.INSTALL_CACHE,
-                                                                                          self.install_directory,
-                                                                                          self.configuration_directory),
-                        shell=True)
+        subprocess.call('./configure --prefix={} --scriptdir={}'.format(self.install_directory,
+                                                                        self.configuration_directory),
+                        shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
