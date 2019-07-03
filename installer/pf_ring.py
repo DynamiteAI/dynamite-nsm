@@ -43,11 +43,11 @@ class PFRingInstaller:
             sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].')
             sys.stdout.flush()
             time.sleep(2)
-        subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING', 'kernel'))
+        subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING-7.4.0', 'kernel'))
         if stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].')
             sys.stdout.flush()
             time.sleep(2)
         subprocess.call('./configure && make && make install', shell=True,
-                        cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING', 'userland', 'lib'))
+                        cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING-7.4.0', 'userland', 'lib'))
 
