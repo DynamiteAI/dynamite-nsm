@@ -89,9 +89,23 @@ class PFRingInstaller:
                                                                              'PF_RING-7.4.0', 'kernel'))
         subprocess.call('modprobe pf_ring min_num_slots=32768', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                              'PF_RING-7.4.0', 'kernel'))
-        if 'pf_ring' not in open('/etc/modules').read():
-            if stdout:
-                sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
-            subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
+        try:
+            if 'pf_ring' not in open('/etc/modules').read():
+                if stdout:
+                    sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
+                subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
+        except IOError:
+            if os.path.exists('/etc/modules-load.d'):
+                pf_ring_module_found = False
+                for mod_conf in os.listdir('/etc/modules-load.d/'):
+                    mod_conf_path = os.path.join('/etc/modules-load.d', mod_conf)
+                    if 'pf_ring' in open(mod_conf_path).read():
+                        pf_ring_module_found = True
+                        break
+                if not pf_ring_module_found:
+                    subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules-load.d/pf_ring.conf', shell=True)
+            else:
+                sys.stderr.write('[-] Could not determine a method to enable pf_ring kernel module. '
+                                 'You must enable manually.\n')
 
 
