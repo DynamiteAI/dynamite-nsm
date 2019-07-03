@@ -8,8 +8,17 @@ from installer import const
 from installer import utilities
 from installer import package_manager
 
+INSTALL_DIRECTORY = '/opt/dynamite/pf_ring/'
+
 
 class PFRingInstaller:
+
+    def __init__(self, install_directory=INSTALL_DIRECTORY):
+        """
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/pf_ring/)
+        """
+        self.install_directory = install_directory
+
 
     @staticmethod
     def download_pf_ring(stdout=False):
@@ -55,30 +64,34 @@ class PFRingInstaller:
 
     def setup_pf_ring(self, stdout=False):
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].')
+            sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].\n\n')
             sys.stdout.flush()
             time.sleep(2)
-        subprocess.call('./configure --prefix=/opt/dynamite/pfring && make install',
+        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                         cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING-7.4.0', 'userland', 'lib'), shell=True)
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [libpcap].')
+            sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n\n')
             sys.stdout.flush()
             time.sleep(2)
-        subprocess.call('./configure --prefix=/opt/dynamite/pfring && make install',
+        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                         cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING-7.4.0', 'userland', 'libpcap'), shell=True)
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].')
+            sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].\n\n')
             sys.stdout.flush()
             time.sleep(2)
-        subprocess.call('./configure --prefix=/opt/dynamite/pfring && make install',
+        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                         cwd=os.path.join(const.INSTALL_CACHE, 'PF_RING-7.4.0', 'userland', 'tcpdump'), shell=True)
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].')
+            sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n\n')
             sys.stdout.flush()
             time.sleep(2)
         subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                              'PF_RING-7.4.0', 'kernel'))
         subprocess.call('modprobe pf_ring min_num_slots=32768', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                              'PF_RING-7.4.0', 'kernel'))
+        if 'pf_ring' not in open('/etc/modules').read():
+            if stdout:
+                sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
+            subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
 
 

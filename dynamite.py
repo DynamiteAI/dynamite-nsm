@@ -73,17 +73,13 @@ def install_logstash():
 
 
 def install_monitor():
-    pf_ring_install = pf_ring.PFRingInstaller()
     zeek_installer = zeek.ZeekInstaller()
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         sys.exit(1)
-    pf_ring_install.download_pf_ring(stdout=True)
-    pf_ring_install.extract_pf_ring(stdout=True)
-    pf_ring_install.setup_pf_ring(stdout=True)
-    #zeek_installer.download_zeek(stdout=True)
-    #zeek_installer.extract_zeek(stdout=True)
-    #zeek_installer.setup_zeek(stdout=True)
+    zeek_installer.download_zeek(stdout=True)
+    zeek_installer.extract_zeek(stdout=True)
+    zeek_installer.setup_zeek(stdout=True)
 
 
 def prepare_monitor():

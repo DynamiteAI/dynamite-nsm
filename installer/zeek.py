@@ -5,6 +5,7 @@ import tarfile
 import subprocess
 
 from installer import const
+from installer import pf_ring
 from installer import utilities
 from installer import package_manager
 
@@ -76,9 +77,15 @@ class ZeekInstaller:
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         if stdout:
+            sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.')
+        pf_ring_install = pf_ring.PFRingInstaller()
+        pf_ring_install.download_pf_ring(stdout=True)
+        pf_ring_install.extract_pf_ring(stdout=True)
+        pf_ring_install.setup_pf_ring(stdout=True)
+        if stdout:
             sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.')
             time.sleep(5)
-        subprocess.call('./configure --prefix={} --scriptdir={}'.format(self.install_directory,
-                                                                        self.configuration_directory),
-                        shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
+        subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
+            self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
+            shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
         subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
