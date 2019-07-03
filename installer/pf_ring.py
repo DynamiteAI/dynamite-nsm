@@ -44,9 +44,9 @@ class PFRingInstaller:
         pkt_mng = package_manager.OSPackageManager()
         packages = None
         if pkt_mng.package_manager == 'apt-get':
-            packages = ['linux-headers-generic']
+            packages = ['make', 'gcc', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
-            packages = ['kernel-devel']
+            packages = ['make', 'gcc', 'kernel-devel']
         if packages:
             pkt_mng.install_packages(packages)
             return True

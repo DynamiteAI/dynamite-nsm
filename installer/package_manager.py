@@ -26,7 +26,5 @@ class OSPackageManager:
         Given a set of packages, installs the packages
         :param packages: Name of binary packages to install
         """
-        flags = ''
-        if self.package_manager == 'yum':
-            flags = '-y'
-        subprocess.call('{} install {} {}'.format(self.package_manager, ' '.join(packages), flags), shell=True)
+        flags = '-y'
+        subprocess.call('{} {} install {} '.format(self.package_manager, flags, ' '.join(packages)), shell=True)

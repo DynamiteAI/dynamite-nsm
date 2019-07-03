@@ -78,7 +78,6 @@ def install_monitor():
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         sys.exit(1)
-    pf_ring_install.install_dependencies()
     pf_ring_install.download_pf_ring(stdout=True)
     pf_ring_install.extract_pf_ring(stdout=True)
     pf_ring_install.setup_pf_ring(stdout=True)
@@ -87,12 +86,29 @@ def install_monitor():
     #zeek_installer.setup_zeek(stdout=True)
 
 
+def prepare_monitor():
+    pf_ring_install = pf_ring.PFRingInstaller()
+    if not pf_ring_install.install_dependencies():
+        sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
+        sys.exit(1)
+    sys.stdout.write('[+] *** Development Kernel Packages & Build Tools Installed. Please Reboot ***\n\n')
+    sys.stdout.write('[+] After reboot, continue installation with: \'dynamite.py install monitor\'.\n')
+    sys.stdout.flush()
+    sys.exit(0)
+
+
 if __name__ == '__main__':
     args = _parse_cmdline()
     if not utilities.is_root():
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
-    if args.command == 'install':
+    if args.command == 'prepare':
+        if args.component == 'monitor':
+            prepare_monitor()
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
+    elif args.command == 'install':
         if args.component == 'elasticsearch':
             install_elasticsearch()
         elif args.component == 'logstash':
