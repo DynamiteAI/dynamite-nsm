@@ -182,7 +182,7 @@ if __name__ == '__main__':
         if args.component == 'elasticsearch':
             sys.stdout.write('[+] Profiling ElasticSearch.\n')
             es_profiler = elasticsearch.ElasticProfiler(stderr=True)
-            sys.stdout.write(es_profiler + '\n')
+            sys.stdout.write(str(es_profiler) + '\n')
             sys.exit(0)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
