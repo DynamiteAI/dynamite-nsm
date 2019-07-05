@@ -4,9 +4,9 @@ import time
 import tarfile
 import subprocess
 
-from installer import const
-from installer import utilities
-from installer import package_manager
+from lib import const
+from lib import utilities
+from lib import package_manager
 
 INSTALL_DIRECTORY = '/opt/dynamite/pf_ring/'
 

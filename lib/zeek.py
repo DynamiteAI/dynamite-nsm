@@ -10,10 +10,10 @@ try:
 except Exception:
     from configparser import ConfigParser
 
-from installer import const
-from installer import pf_ring
-from installer import utilities
-from installer import package_manager
+from lib import const
+from lib import pf_ring
+from lib import utilities
+from lib import package_manager
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/zeek/'
@@ -26,7 +26,7 @@ class ZeekScriptConfigurator:
     """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         """
-        :param configuration_directory:
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         """
         self.configuration_directory = configuration_directory
         self.zeek_scripts = None
@@ -34,6 +34,9 @@ class ZeekScriptConfigurator:
         self._parse_zeek_scripts()
 
     def _parse_zeek_scripts(self):
+        """
+        Parse the local.bro configuration file, and determine which scripts are enabled/disabled
+        """
         self.zeek_scripts = {}
         self.zeek_sigs = {}
         for line in open(os.path.join(self.configuration_directory, 'site', 'local.bro')).readlines():
@@ -55,33 +58,56 @@ class ZeekScriptConfigurator:
                 script = line.split('@load')[1]
                 self.zeek_scripts[script] = enabled
 
-    def enable_script(self, name):
-        try:
-            self.zeek_scripts[name] = True
-            return True
-        except KeyError:
-            return False
-
     def disable_script(self, name):
+        """
+        :param name: The name of the script (E.G protocols/http/software)
+        :return: True, if the script was successfully disabled
+        """
         try:
             self.zeek_scripts[name] = False
             return True
         except KeyError:
             return False
 
-    def get_enabled_scripts(self):
-        return [script for script in self.zeek_scripts.keys() if self.zeek_scripts[script]]
+    def enable_script(self, name):
+        """
+        :param name: The name of the script (E.G protocols/http/software)
+        :return: True, if the script was successfully enabled
+        """
+        try:
+            self.zeek_scripts[name] = True
+            return True
+        except KeyError:
+            return False
 
     def get_disabled_scripts(self):
+        """
+        :return: A list of disabled Zeek scripts
+        """
         return [script for script in self.zeek_scripts.keys() if not self.zeek_scripts[script]]
 
+    def get_enabled_scripts(self):
+        """
+        :return: A list of enabled Zeek scripts
+        """
+        return [script for script in self.zeek_scripts.keys() if self.zeek_scripts[script]]
+
     def get_enabled_sigs(self):
+        """
+        :return: A list of enabled Zeek signatures
+        """
         return [sig for sig in self.zeek_sigs.keys() if self.zeek_sigs[sig]]
 
     def get_disabled_sigs(self):
+        """
+        :return: A list of disabled Zeek signatures
+        """
         return [sig for sig in self.zeek_sigs.keys() if not self.zeek_sigs[sig]]
 
     def write_config(self):
+        """
+        Overwrite the existing local.bro config with changed values
+        """
         timestamp = int(time.time())
         output_str = ''
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
@@ -310,7 +336,6 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, stdout=False):
-        """
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -351,11 +376,11 @@ class ZeekInstaller:
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'local.bro'),
                     os.path.join(self.configuration_directory, 'site', 'local.bro'))
         ZeekScriptConfigurator().write_config()
-        """
+
         node_config = ZeekNodeConfigurator(self.install_directory)
 
         available_cpus = utilities.get_cpu_core_count()
-        workers_cpu_grps = [range(1, available_cpus)[n:n + 2] for n in range(0, len(range(1, available_cpus)), 2)]
+        workers_cpu_grps = [range(0, available_cpus)[n:n + 2] for n in range(0, len(range(0, available_cpus)), 2)]
 
         for i, cpu_group in enumerate(workers_cpu_grps):
             node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),

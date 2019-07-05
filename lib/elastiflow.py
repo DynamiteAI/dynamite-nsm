@@ -3,8 +3,8 @@ import sys
 import tarfile
 import subprocess
 
-from installer import const
-from installer import utilities
+from lib import const
+from lib import utilities
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/elastiflow/conf.d/'

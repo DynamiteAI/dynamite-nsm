@@ -18,7 +18,7 @@ except Exception:
     from urllib.request import urlopen
     from urllib.error import URLError
 
-from installer import const
+from lib import const
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
@@ -52,6 +52,13 @@ def check_pid(pid):
 
 
 def check_socket(host, port):
+    """
+    Check if a host is listening on a given port
+
+    :param host: The host the service is listening on
+    :param port: The port the service is listening on
+    :return: True, if a service is listening on a given HOST:PORT
+    """
     if isinstance(port, str):
         port = int(port)
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -159,10 +166,16 @@ def get_memory_available_bytes():
 
 
 def get_network_interface_names():
+    """
+    :return: A list of network interfaces
+    """
     return os.listdir('/sys/class/net')
 
 
 def get_cpu_core_count():
+    """
+    :return: The count of CPU cores available on the system
+    """
     return multiprocessing.cpu_count()
 
 
@@ -245,7 +258,7 @@ def tail_file(path, n=1, bs=1024):
             f.seek(B, 0)
             l += f.read(block).count('\n')
     f.seek(B, 0)
-    l = min(l,n)
+    l = min(l, n)
     lines = f.readlines()[-l:]
     f.close()
     return lines

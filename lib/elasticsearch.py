@@ -8,8 +8,8 @@ import tarfile
 import subprocess
 from multiprocessing import Process
 
-from installer import const
-from installer import utilities
+from lib import const
+from lib import utilities
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
 INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
