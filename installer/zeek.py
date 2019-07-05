@@ -97,7 +97,8 @@ class ZeekNodeConfigurator:
             'host': host
         }
 
-    def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0,1)):
+    def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0, 1)):
+        pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
         self.node_config[name] = {
             'type': 'worker',
             'interface': interface,
