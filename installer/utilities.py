@@ -162,7 +162,7 @@ def get_environment_file_dict():
     for line in open('/etc/environment').readlines():
         if '=' in line:
             key, value = line.strip().split('=')
-            export_dict[key], = value
+            export_dict[key] = value
     return export_dict
 
 
