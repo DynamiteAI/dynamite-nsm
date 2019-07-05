@@ -31,7 +31,7 @@ class OSPackageManager:
         flags = '-y'
         if not self.package_manager:
             return False
-        p = subprocess.Popen('{} {} install {} &> /dev/null'.format(self.package_manager, flags, ' '.join(packages)),
+        p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
                              shell=True)
         p.communicate()
         return p.returncode == 0
