@@ -229,6 +229,12 @@ class ZeekInstaller:
             subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/environment'.format(self.configuration_directory),
                             shell=True)
         """
+        if stdout:
+            sys.stdout.write('[+] Overwriting default Script | Node configurations.\n')
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'broctl-nodes.cfg'),
+                    os.path.join(self.install_directory, 'etc', 'node.cfg'))
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'local.bro'),
+                    os.path.join(self.configuration_directory, 'etc', 'local.bro'))
         ZeekScriptConfigurator().write_config()
         node_config = ZeekNodeConfigurator(self.install_directory)
         available_cpus = utilities.get_cpu_core_count() -1
