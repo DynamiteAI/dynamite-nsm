@@ -454,7 +454,7 @@ class ElasticProfiler:
             'CONFIGURED': self.is_configured,
             'RUNNING': self.is_running,
             'LISTENING': self.is_listening
-        })
+        }, indent=1)
 
     @staticmethod
     def _is_downloaded(stderr=False):

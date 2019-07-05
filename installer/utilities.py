@@ -57,7 +57,7 @@ def check_socket(host, port):
         if sock.connect_ex((host, port)) == 0:
             return True
         else:
-            print False
+            return False
 
 
 def is_root():
