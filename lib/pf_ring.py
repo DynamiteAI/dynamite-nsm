@@ -164,7 +164,7 @@ class PFRingProfiler:
 
     @staticmethod
     def _is_running():
-        p = subprocess.Popen('lsmod', stdout=subprocess.PIPE, shell=True)
-        p.communicate()
-        res = 'pf_ring' in p.stdout.read()
-        return res
+        p = subprocess.Popen('lsmod', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
+	return 'pf_ring' in p.stdout.read()
+
+
