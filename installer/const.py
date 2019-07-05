@@ -9,6 +9,7 @@ ELASTICSEARCH_DIRECTORY_NAME = 'elasticsearch-7.1.1'
 JAVA_DIRECTORY_NAME = 'java-11.0.2'
 LOGSTASH_DIRECTORY_NAME = 'logstash-7.1.1'
 PF_RING_DIRECTORY_NAME = 'PF_RING-7.4.0'
+ZEEK_DIRECTORY_NAME = 'bro-2.6.2'
 INSTALL_CACHE = "install_cache/"
 DEFAULT_CONFIGS = "default_configs/"
 ELASTIFLOW_MIRRORS = "mirrors/elastiflow-3.5.0"

@@ -50,6 +50,20 @@ class ZeekScriptConfigurator:
                 script = line.split('@load')[1]
                 self.zeek_scripts[script] = enabled
 
+    def enable_script(self, name):
+        try:
+            self.zeek_scripts[name] = True
+            return True
+        except KeyError:
+            return False
+
+    def disable_script(self, name):
+        try:
+            self.zeek_scripts[name] = False
+            return True
+        except KeyError:
+            return False
+
     def get_enabled_scripts(self):
         return [script for script in self.zeek_scripts.keys() if self.zeek_scripts[script]]
 
@@ -215,7 +229,6 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, stdout=False):
-        """
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -234,8 +247,9 @@ class ZeekInstaller:
             time.sleep(5)
         subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
             self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
-            shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
-        subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
+            shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
+        subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
+                                                                           const.ZEEK_DIRECTORY_NAME))
         if 'ZEEK_HOME' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
@@ -248,7 +262,6 @@ class ZeekInstaller:
                     self.configuration_directory))
             subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/environment'.format(self.configuration_directory),
                             shell=True)
-        """
         if stdout:
             sys.stdout.write('[+] Overwriting default Script | Node configurations.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'broctl-nodes.cfg'),
@@ -257,6 +270,8 @@ class ZeekInstaller:
                     os.path.join(self.configuration_directory, 'site', 'local.bro'))
         ZeekScriptConfigurator().write_config()
         node_config = ZeekNodeConfigurator(self.install_directory)
+
+        # We want to leave at least one core available for everything non-NSM related
         available_cpus = utilities.get_cpu_core_count() -1
         workers_cpu_grps = [range(0, available_cpus)[n:n + 2] for n in range(0, len(range(0, available_cpus)), 2)]
 
