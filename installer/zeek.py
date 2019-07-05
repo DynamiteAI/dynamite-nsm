@@ -24,27 +24,43 @@ class ZeekScriptConfigurator:
 
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         self.configuration_directory = configuration_directory
-        self.zeek_scripts = self._parse_zeek_scripts()
+        self.zeek_scripts = None
+        self.zeek_sigs = None
+        self._parse_zeek_scripts()
 
     def _parse_zeek_scripts(self):
-        zeek_scripts = {}
+        self.zeek_scripts = {}
+        self.zeek_sigs = {}
         for line in open(os.path.join(self.configuration_directory, 'site','local.bro')).readlines():
             line = line.replace(' ', '').strip()
-            if '@load' in line:
+            if '@load-sigs' in line:
+                if line.startswith('#'):
+                    enabled = False
+                    line = line[1:]
+                else:
+                    enabled = True
+                sigs = line.split('@load-sigs')[1]
+                self.zeek_sigs[sigs] = enabled
+            elif '@load' in line:
                 if line.startswith('#'):
                     enabled = False
                     line = line[1:]
                 else:
                     enabled = True
                 script = line.split('@load')[1]
-                zeek_scripts[script] = enabled
-        return zeek_scripts
+                self.zeek_scripts[script] = enabled
 
     def get_enabled_scripts(self):
         return [script for script in self.zeek_scripts.keys() if self.zeek_scripts[script]]
 
     def get_disabled_scripts(self):
         return [script for script in self.zeek_scripts.keys() if not self.zeek_scripts[script]]
+
+    def get_enabled_sigs(self):
+        return [sig for sig in self.zeek_sigs.keys() if self.zeek_sigs[sig]]
+
+    def get_disabled_sigs(self):
+        return [sig for sig in self.zeek_sigs.keys() if not self.zeek_sigs[sig]]
 
     def write_config(self):
         timestamp = int(time.time())
@@ -57,6 +73,10 @@ class ZeekScriptConfigurator:
             output_str += '@load {}\n'.format(e_script)
         for d_script in self.get_disabled_scripts():
             output_str += '#@load {}\n'.format(d_script)
+        for e_sig in self.get_enabled_sigs():
+            output_str += '@load-sigs {}\n'.format(e_sig)
+        for d_sig in self.get_disabled_sigs():
+            output_str += '@load-sigs {}\n'.format(d_sig)
         shutil.move(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
         with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
             f.write(output_str)
