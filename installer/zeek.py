@@ -92,3 +92,15 @@ class ZeekInstaller:
             self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
             shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
         subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE, 'bro-2.6.2'))
+        if 'ZEEK_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo ZEEK_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
+        if 'ZEEK_SCRIPTS' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Zeek default script path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/environment'.format(self.configuration_directory),
+                            shell=True)

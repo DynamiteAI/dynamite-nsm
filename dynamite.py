@@ -178,6 +178,15 @@ if __name__ == '__main__':
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
+    elif args.command == 'profile':
+        if args.component == 'elasticsearch':
+            sys.stdout.write('[+] Profiling ElasticSearch.\n')
+            es_profiler = elasticsearch.ElasticProfiler(stderr=True)
+            sys.stdout.write(es_profiler + '\n')
+            sys.exit(0)
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
     else:
         sys.stderr.write('[-] Unrecognized command - {}\n'.format(args.command))
         sys.exit(1)

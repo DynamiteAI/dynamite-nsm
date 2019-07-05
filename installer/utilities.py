@@ -3,10 +3,12 @@ import pwd
 import grp
 import sys
 import crypt
+import socket
 import shutil
 import getpass
 import tarfile
 import subprocess
+from contextlib import closing
 
 try:
     from urllib2 import urlopen
@@ -46,6 +48,16 @@ def check_pid(pid):
         return False
     else:
         return True
+
+
+def check_socket(host, port):
+    if isinstance(port, str):
+        port = int(port)
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        if sock.connect_ex((host, port)) == 0:
+            return True
+        else:
+            print False
 
 
 def is_root():

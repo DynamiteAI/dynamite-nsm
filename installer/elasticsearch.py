@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import time
 import signal
 import shutil
@@ -307,7 +308,7 @@ class ElasticInstaller:
         if 'ES_HOME' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
-                    self.configuration_directory))
+                    self.install_directory))
             subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
         if stdout:
@@ -439,55 +440,95 @@ class ElasticProcess:
 
 class ElasticProfiler:
 
-    def __init__(self):
-        self.is_downloaded = False
-        self.is_installed = False
-        self.is_configured = False
-        self.is_running = False
-        self.is_listening = False
+    def __init__(self, stderr=False):
+        self.is_downloaded = self._is_downloaded(stderr=stderr)
+        self.is_installed = self._is_installed(stderr=stderr)
+        self.is_configured = self._is_configured(stderr=stderr)
+        self.is_running = self._is_running()
+        self.is_listening = self._is_listening(stderr=stderr)
+
+    def __str__(self):
+        return json.dumps({
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'CONFIGURED': self.is_configured,
+            'RUNNING': self.is_running,
+            'LISTENING': self.is_listening
+        })
 
     @staticmethod
-    def _is_installed(stdout=False):
+    def _is_downloaded(stderr=False):
+        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME)):
+            if stderr:
+                sys.stderr.write('[-] ElasticSearch installation archive could not be found.\n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_installed(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         es_home = env_dict.get('ES_HOME')
         if not es_home:
-            if stdout:
+            if stderr:
                 sys.stderr.write('[-] ElasticSearch installation directory could not be located in /etc/environment.\n')
         es_home_files_and_dirs = os.listdir(es_home)
         if 'bin' not in es_home_files_and_dirs:
-            if stdout:
+            if stderr:
                 sys.stderr.write('[-] Could not locate ElasticSearch {}/bin directory.\n'.format(es_home))
             return False
         if 'lib' not in es_home_files_and_dirs:
-            if stdout:
+            if stderr:
                 sys.stderr.write('[-] Could not locate ElasticSearch {}/lib directory.\n'.format(es_home))
             return False
         es_binaries = os.listdir(os.path.join(es_home, 'bin'))
         if 'elasticsearch' not in es_binaries:
-            if stdout:
+            if stderr:
                 sys.stderr.write('[-] Could not locate ElasticSearch binary in {}/bin/\n'.format(es_home))
             return False
         return True
 
     @staticmethod
-    def _is_configured(stdout=False):
+    def _is_configured(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         es_path_conf = env_dict.get('ES_PATH_CONF')
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
-            if stdout:
+            if stderr:
                 sys.stderr.write('[-] Could not locate elasticsearch.yml in {}'.format(es_path_conf))
             return False
         if not os.path.exists(os.path.join(es_path_conf, 'jvm.options')):
-            if stdout:
+            if stderr:
                 sys.stderr.write('[-] Could not locate jvm.options in {}'.format(es_path_conf))
             return False
         try:
             ElasticConfigurator(configuration_directory=es_path_conf)
         except Exception:
-            if stdout:
+            if stderr:
                 sys.stderr.write('[-] Un-parsable elasticsearch.yml or jvm.options \n')
             return False
         return True
 
-    def profile(self, stdout=False):
-        pass
+    @staticmethod
+    def _is_running():
+        return ElasticProcess().status()['RUNNING']
+
+    @staticmethod
+    def _is_listening(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        es_path_conf = env_dict.get('ES_PATH_CONF')
+        if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
+            if stderr:
+                sys.stderr.write('[-] Could not locate elasticsearch.yml in {}'.format(es_path_conf))
+            return False
+        if not os.path.exists(os.path.join(es_path_conf, 'jvm.options')):
+            if stderr:
+                sys.stderr.write('[-] Could not locate jvm.options in {}'.format(es_path_conf))
+            return False
+        try:
+            es_config = ElasticConfigurator(configuration_directory=es_path_conf)
+        except Exception:
+            if stderr:
+                sys.stderr.write('[-] Un-parsable elasticsearch.yml or jvm.options \n')
+            return False
+        host = es_config.get_network_host()
+        port = es_config.get_network_port()
+        return utilities.check_socket(host, port)
