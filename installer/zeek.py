@@ -132,7 +132,7 @@ class ZeekNodeConfigurator:
                     config.add_section(section)
                 except Exception: # Duplicate section
                     pass
-                config.set(section, k, v)
+                config.set(section, k, str(v))
                 with open(os.path.join(self.install_directory, 'etc', 'node.cfg'), 'w') as configfile:
                     config.write(configfile)
 
