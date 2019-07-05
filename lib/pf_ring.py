@@ -127,7 +127,7 @@ class PFRingProfiler:
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)
-        self.is_running = self.is_running()
+        self.is_running = self._is_running()
 
     def __str__(self):
         return json.dumps({
