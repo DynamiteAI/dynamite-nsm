@@ -128,6 +128,7 @@ class ZeekNodeConfigurator:
         config = ConfigParser()
         for section in self.node_config.keys():
             for k, v in self.node_config[section].items():
+                config.add_section(section)
                 config.set(section, k, v)
                 with open(os.path.join(self.install_directory, 'etc', 'node.cfg'), 'w') as configfile:
                     config.write(configfile)

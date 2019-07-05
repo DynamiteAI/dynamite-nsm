@@ -73,12 +73,14 @@ def install_logstash():
 
 
 def install_monitor():
+    """
     zeek_installer = zeek.ZeekInstaller()
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         sys.exit(1)
     zeek_installer.download_zeek(stdout=True)
     zeek_installer.extract_zeek(stdout=True)
+    """
     zeek_installer.setup_zeek(stdout=True)
 
 
