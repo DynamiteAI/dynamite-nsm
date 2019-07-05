@@ -21,8 +21,13 @@ INSTALL_DIRECTORY = '/opt/dynamite/zeek/'
 
 
 class ZeekScriptConfigurator:
-
+    """
+    Wrapper for configuring broctl sites/local.bro
+    """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        """
+        :param configuration_directory:
+        """
         self.configuration_directory = configuration_directory
         self.zeek_scripts = None
         self.zeek_sigs = None
@@ -31,7 +36,7 @@ class ZeekScriptConfigurator:
     def _parse_zeek_scripts(self):
         self.zeek_scripts = {}
         self.zeek_sigs = {}
-        for line in open(os.path.join(self.configuration_directory, 'site','local.bro')).readlines():
+        for line in open(os.path.join(self.configuration_directory, 'site', 'local.bro')).readlines():
             line = line.replace(' ', '').strip()
             if '@load-sigs' in line:
                 if line.startswith('#'):
@@ -97,12 +102,20 @@ class ZeekScriptConfigurator:
 
 
 class ZeekNodeConfigurator:
-
+    """
+    Wrapper for configuring broctl node.cfg
+    """
     def __init__(self, install_directory=INSTALL_DIRECTORY):
+        """
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+        """
         self.install_directory = install_directory
         self.node_config = self._parse_node_config()
 
     def _parse_node_config(self):
+        """
+        :return: A dictionary representing the configurations storred within node.cfg
+        """
         node_config = {}
         config_parser = ConfigParser()
         config_parser.readfp(open(os.path.join(self.install_directory, 'etc', 'node.cfg')))
@@ -114,51 +127,119 @@ class ZeekNodeConfigurator:
         return node_config
 
     def add_logger(self, name, host):
+        """
+        :param name: The name of the logger
+        :param host: The host on which the logger is running
+        :return: True, if added successfully
+        """
         self.node_config[name] = {
             'type': 'logger',
             'host': host
         }
+        return True
 
     def add_manager(self, name, host):
+        """
+        :param name: The name of the manager
+        :param host: The host on which the manager is running
+        :return: True, if added successfully
+        """
         self.node_config[name] = {
             'type': 'manager',
             'host': host
         }
+        return True
 
     def add_proxy(self, name, host):
+        """
+        :param name: The name of the proxy
+        :param host: The host on which the proxy is running
+        :return: True, if added successfully
+        """
         self.node_config[name] = {
             'type': 'proxy',
             'host': host
         }
+        return True
 
     def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0, 1)):
-        pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
-        self.node_config[name] = {
-            'type': 'worker',
-            'interface': interface,
-            'lb_method': 'pf_ring',
-            'lb_procs': lb_procs,
-            'pin_cpus': ','.join(pin_cpus),
-            'host': host
-        }
+        """
+        :param name: The name of the worker
+        :param interface: The interface that the worker should be monitoring
+        :param host: The host on which the worker is running
+        :param lb_procs: The number of Zeek processes associated with a given worker
+        :param pin_cpus: Core affinity for the processes (iterable)
+        :return: True, if added successfully
+        """
+        if max(pin_cpus) < utilities.get_cpu_core_count() and min(pin_cpus) >= 0:
+            pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
+            self.node_config[name] = {
+                'type': 'worker',
+                'interface': interface,
+                'lb_method': 'pf_ring',
+                'lb_procs': lb_procs,
+                'pin_cpus': ','.join(pin_cpus),
+                'host': host
+            }
+            return True
+        return False
 
     def remove_logger(self, name):
-        if self.node_config[name]['type'] == 'worker':
-            self.node_config[name].pop()
+        """
+        :param name: The name of the logger
+        :return: True, if successfully removed
+        """
+        try:
+            if self.node_config[name]['type'] == 'worker':
+                self.node_config[name].pop()
+            else:
+                return False
+        except KeyError:
+            return False
 
     def remove_manager(self, name):
-        if self.node_config[name]['type'] == 'manager':
-            self.node_config[name].pop()
+        """
+        :param name: The name of the manager
+        :return: True, if successfully removed
+        """
+        try:
+            if self.node_config[name]['type'] == 'manager':
+                self.node_config[name].pop()
+            else:
+                return False
+        except KeyError:
+            return False
 
     def remove_proxy(self, name):
-        if self.node_config[name]['type'] == 'proxy':
-            self.node_config[name].pop()
+        """
+        :param name: The name of the proxy
+        :return: True, if successfully removed
+        """
+        try:
+            if self.node_config[name]['type'] == 'proxy':
+                self.node_config[name].pop()
+            else:
+                return False
+        except KeyError:
+            return False
 
     def remove_worker(self, name):
-        if self.node_config[name]['type'] == 'worker':
-            self.node_config[name].pop()
+        """
+        :param name: The name of the worker
+        :return: True, if successfully removed
+        """
+        try:
+            if self.node_config[name]['type'] == 'worker':
+                self.node_config[name].pop()
+            else:
+                return False
+        except KeyError:
+            return False
 
     def write_config(self):
+        """
+        Overwrite the existing node.cfg with changed values
+        """
         config = ConfigParser()
         for section in self.node_config.keys():
             for k, v in self.node_config[section].items():
@@ -229,6 +310,7 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, stdout=False):
+        """
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -269,11 +351,11 @@ class ZeekInstaller:
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'local.bro'),
                     os.path.join(self.configuration_directory, 'site', 'local.bro'))
         ZeekScriptConfigurator().write_config()
+        """
         node_config = ZeekNodeConfigurator(self.install_directory)
 
-        # We want to leave at least one core available for everything non-NSM related
-        available_cpus = utilities.get_cpu_core_count() -1
-        workers_cpu_grps = [range(0, available_cpus)[n:n + 2] for n in range(0, len(range(0, available_cpus)), 2)]
+        available_cpus = utilities.get_cpu_core_count()
+        workers_cpu_grps = [range(1, available_cpus)[n:n + 2] for n in range(0, len(range(1, available_cpus)), 2)]
 
         for i, cpu_group in enumerate(workers_cpu_grps):
             node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
