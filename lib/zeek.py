@@ -390,3 +390,17 @@ class ZeekInstaller:
                                    pin_cpus=cpu_group
                                    )
             node_config.write_config()
+
+
+class ZeekProcess:
+
+    def __init__(self, install_directory=INSTALL_DIRECTORY):
+        """
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+        """
+        self.install_directory = install_directory
+
+    def start(self):
+        p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
+        p.communicate()
+        return p.pid == 0

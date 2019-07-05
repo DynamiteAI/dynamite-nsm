@@ -183,6 +183,11 @@ if __name__ == '__main__':
             es_profiler = elasticsearch.ElasticProfiler(stderr=True)
             sys.stdout.write(str(es_profiler) + '\n')
             sys.exit(0)
+        elif args.component == 'monitor':
+            sys.stdout.write('[+] Profiling Monitor.\n')
+            pf_ring_profiler = pf_ring.PFRingProfiler()
+            sys.stdout.write(str(pf_ring_profiler) + '\n')
+            sys.exit(0)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

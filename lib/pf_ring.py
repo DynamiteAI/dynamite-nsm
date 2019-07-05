@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import time
 import tarfile
 import subprocess
@@ -49,6 +50,10 @@ class PFRingInstaller:
 
     @staticmethod
     def install_dependencies():
+        """
+        Install required PF_RING dependencies
+        :return: True, if packages were successfully installed
+        """
         pkt_mng = package_manager.OSPackageManager()
         if not pkt_mng.refresh_package_indexes():
             return False
@@ -115,3 +120,50 @@ class PFRingInstaller:
                         self.install_directory))
                 subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
                                 shell=True)
+
+
+class PFRingProfiler:
+
+    def __init__(self, stderr=False):
+        self.is_downloaded = self._is_downloaded(stderr=stderr)
+        self.is_installed = self._is_installed(stderr=stderr)
+        self.is_running = self.is_running()
+
+    def __str__(self):
+        return json.dumps({
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running,
+        }, indent=1)
+
+    @staticmethod
+    def _is_downloaded(stderr=False):
+        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.PF_RING_ARCHIVE_NAME)):
+            if stderr:
+                sys.stderr.write('[-] PF_RING installation archive could not be found.\n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_installed(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        pf_ring_home = env_dict.get('PF_RING_HOME')
+        if not pf_ring_home:
+            if stderr:
+                sys.stderr.write('[-] PF_RING installation directory could not be located in /etc/environment.\n')
+        pf_ring_home_files_and_dirs = os.listdir(pf_ring_home)
+        if 'bin' not in pf_ring_home_files_and_dirs:
+            if stderr:
+                sys.stderr.write('[-] Could not locate PF_RING {}/bin directory.\n'.format(pf_ring_home))
+            return False
+        if 'lib' not in pf_ring_home_files_and_dirs:
+            if stderr:
+                sys.stderr.write('[-] Could not locate PF_RING {}/lib directory.\n'.format(pf_ring_home))
+            return False
+        return True
+
+    @staticmethod
+    def _is_running():
+        p = subprocess.Popen('lsmod', stdout=subprocess.PIPE, shell=True)
+        p.communicate()
+        return 'pf_ring' in p.stdout.read()
