@@ -12,9 +12,9 @@ class OSPackageManager:
         Detect the POSIX package manager currently being used
         :return: The package manager command
         """
-        apt_get_p = subprocess.Popen('apt-get -h &>/dev/null', shell=True)
+        apt_get_p = subprocess.Popen('apt-get -h &> /dev/null', shell=True)
         apt_get_p.communicate()
-        yum_p = subprocess.Popen('yum -h &>/dev/null', shell=True)
+        yum_p = subprocess.Popen('yum -h &> /dev/null', shell=True)
         yum_p.communicate()
         if apt_get_p.returncode == 0:
             return 'apt-get'
