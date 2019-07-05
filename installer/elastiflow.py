@@ -178,7 +178,7 @@ class ElastiFlowInstaller:
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         if stdout:
             sys.stdout.write('[+] Copying elastiflow configurations\n')
-        utilities.copytree(os.path.join(const.INSTALL_CACHE, 'elastiflow-vlabs-0.1-3.5.0', 'logstash', 'elastiflow'),
+        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'logstash', 'elastiflow'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
         utilities.set_ownership_of_file(self.configuration_directory)

@@ -142,6 +142,18 @@ def get_environment_file_str():
     return export_str
 
 
+def get_environment_file_dict():
+    """
+    :return: The contents of the /etc/environment file as a dictionary
+    """
+    export_dict = {}
+    for line in open('/etc/environment').readlines():
+        if '=' in line:
+            key, value = line.strip().split('=')
+            export_dict[key], = value
+    return export_dict
+
+
 def setup_java():
     """
     Installs the latest version of OpenJDK

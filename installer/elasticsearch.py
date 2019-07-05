@@ -287,14 +287,14 @@ class ElasticInstaller:
         ]
         for path in config_paths:
             try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                             self.configuration_directory)
 
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
             try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, 'elasticsearch-7.1.1/{}'.format(path)),
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                             self.install_directory)
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
@@ -374,7 +374,7 @@ class ElasticProcess:
                     sys.stdout.write(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1
-                    time.sleep(3)
+                    time.sleep(5)
                 else:
                     return True
             except IOError:
@@ -400,6 +400,7 @@ class ElasticProcess:
                 if attempts > 3:
                     sig_command = signal.SIGKILL
                 else:
+                    # Kill the zombie after the third attempt of asking it to kill itself
                     sig_command = signal.SIGTERM
                 attempts += 1
                 os.kill(self.pid, sig_command)
@@ -434,3 +435,59 @@ class ElasticProcess:
             'RUNNING': utilities.check_pid(self.pid),
             'LOGS': log_path
         }
+
+
+class ElasticProfiler:
+
+    def __init__(self):
+        self.is_downloaded = False
+        self.is_installed = False
+        self.is_configured = False
+        self.is_running = False
+        self.is_listening = False
+
+    @staticmethod
+    def _is_installed(stdout=False):
+        env_dict = utilities.get_environment_file_dict()
+        es_home = env_dict.get('ES_HOME')
+        if not es_home:
+            if stdout:
+                sys.stderr.write('[-] ElasticSearch installation directory could not be located in /etc/environment.\n')
+        es_home_files_and_dirs = os.listdir(es_home)
+        if 'bin' not in es_home_files_and_dirs:
+            if stdout:
+                sys.stderr.write('[-] Could not locate ElasticSearch {}/bin directory.\n'.format(es_home))
+            return False
+        if 'lib' not in es_home_files_and_dirs:
+            if stdout:
+                sys.stderr.write('[-] Could not locate ElasticSearch {}/lib directory.\n'.format(es_home))
+            return False
+        es_binaries = os.listdir(os.path.join(es_home, 'bin'))
+        if 'elasticsearch' not in es_binaries:
+            if stdout:
+                sys.stderr.write('[-] Could not locate ElasticSearch binary in {}/bin/\n'.format(es_home))
+            return False
+        return True
+
+    @staticmethod
+    def _is_configured(stdout=False):
+        env_dict = utilities.get_environment_file_dict()
+        es_path_conf = env_dict.get('ES_PATH_CONF')
+        if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
+            if stdout:
+                sys.stderr.write('[-] Could not locate elasticsearch.yml in {}'.format(es_path_conf))
+            return False
+        if not os.path.exists(os.path.join(es_path_conf, 'jvm.options')):
+            if stdout:
+                sys.stderr.write('[-] Could not locate jvm.options in {}'.format(es_path_conf))
+            return False
+        try:
+            ElasticConfigurator(configuration_directory=es_path_conf)
+        except Exception:
+            if stdout:
+                sys.stderr.write('[-] Un-parsable elasticsearch.yml or jvm.options \n')
+            return False
+        return True
+
+    def profile(self, stdout=False):
+        pass

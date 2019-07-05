@@ -267,14 +267,14 @@ class LogstashInstaller:
         ]
         for path in config_paths:
             try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, 'logstash-7.1.1/{}'.format(path)),
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
                             self.configuration_directory)
 
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
             try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, 'logstash-7.1.1/{}'.format(path)),
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
                             self.install_directory)
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
