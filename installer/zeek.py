@@ -5,6 +5,11 @@ import shutil
 import tarfile
 import subprocess
 
+try:
+    from ConfigParser import ConfigParser
+except Exception:
+    from configparser import ConfigParser
+
 from installer import const
 from installer import pf_ring
 from installer import utilities
@@ -51,10 +56,80 @@ class ZeekScriptConfigurator:
         for e_script in self.get_enabled_scripts():
             output_str += '@load {}\n'.format(e_script)
         for d_script in self.get_disabled_scripts():
-            output_str += '@load {}\n'.format(d_script)
+            output_str += '#@load {}\n'.format(d_script)
         shutil.move(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
         with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
             f.write(output_str)
+
+
+class ZeekNodeConfigurator:
+
+    def __init__(self, install_directory=INSTALL_DIRECTORY):
+        self.install_directory = install_directory
+        self.node_config = self._parse_node_config()
+
+    def _parse_node_config(self):
+        node_config = {}
+        config_parser = ConfigParser()
+        config_parser.readfp(open(os.path.join(self.install_directory, 'etc', 'node.cfg')))
+        for section in config_parser.sections():
+            node_config[section] = {}
+            for item in config_parser.items(section):
+                key, value = item
+                node_config[section][key] = value
+        return node_config
+
+    def add_logger(self, name, host):
+        self.node_config[name] = {
+            'type': 'logger',
+            'host': host
+        }
+
+    def add_manager(self, name, host):
+        self.node_config[name] = {
+            'type': 'manager',
+            'host': host
+        }
+
+    def add_proxy(self, name, host):
+        self.node_config[name] = {
+            'type': 'proxy',
+            'host': host
+        }
+
+    def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0,1)):
+        self.node_config[name] = {
+            'type': 'worker',
+            'interface': interface,
+            'lb_method': 'pf_ring',
+            'lb_procs': lb_procs,
+            'pin_cpus': ','.join(pin_cpus),
+            'host': host
+        }
+
+    def remove_logger(self, name):
+        if self.node_config[name]['type'] == 'worker':
+            self.node_config[name].pop()
+
+    def remove_manager(self, name):
+        if self.node_config[name]['type'] == 'manager':
+            self.node_config[name].pop()
+
+    def remove_proxy(self, name):
+        if self.node_config[name]['type'] == 'proxy':
+            self.node_config[name].pop()
+
+    def remove_worker(self, name):
+        if self.node_config[name]['type'] == 'worker':
+            self.node_config[name].pop()
+
+    def write_config(self):
+        config = ConfigParser()
+        for section in self.node_config.keys():
+            for k, v in self.node_config[section].items():
+                config.set(section, k, v)
+                with open(os.path.join(self.install_directory, 'etc', 'node.cfg'), 'w') as configfile:
+                    config.write(configfile)
 
 
 class ZeekInstaller:
@@ -150,3 +225,15 @@ class ZeekInstaller:
                             shell=True)
         """
         ZeekScriptConfigurator().write_config()
+        node_config = ZeekNodeConfigurator(self.install_directory)
+        available_cpus = utilities.get_cpu_core_count() -1
+        workers_cpu_grps = [range(0, available_cpus)[n:n + 2] for n in range(0, len(range(0, available_cpus)), 2)]
+
+        for i, cpu_group in enumerate(workers_cpu_grps):
+            node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
+                                   host='localhost',
+                                   interface=utilities.get_network_interface_names()[0],
+                                   lb_procs=10,
+                                   pin_cpus=cpu_group
+                                   )
+            node_config.write_config()
