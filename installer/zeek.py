@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import shutil
 import tarfile
 import subprocess
 
@@ -12,6 +13,48 @@ from installer import package_manager
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/zeek/'
 INSTALL_DIRECTORY = '/opt/dynamite/zeek/'
+
+
+class ZeekScriptConfigurator:
+
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        self.configuration_directory = configuration_directory
+        self.zeek_scripts = self._parse_zeek_scripts()
+
+    def _parse_zeek_scripts(self):
+        zeek_scripts = {}
+        for line in open(os.path.join(self.configuration_directory, 'site','local.bro')).readlines():
+            line = line.replace(' ', '').strip()
+            if '@load' in line:
+                if line.startswith('#'):
+                    enabled = False
+                    line = line[1:]
+                else:
+                    enabled = True
+                script = line.split('@load')[1]
+                zeek_scripts[script] = enabled
+        return zeek_scripts
+
+    def get_enabled_scripts(self):
+        return [script for script in self.zeek_scripts.keys() if self.zeek_scripts[script]]
+
+    def get_disabled_scripts(self):
+        return [script for script in self.zeek_scripts.keys() if not self.zeek_scripts[script]]
+
+    def write_config(self):
+        timestamp = int(time.time())
+        output_str = ''
+        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
+        zeek_config_backup = os.path.join(backup_configurations, 'local.bro.backup.{}'.format(timestamp))
+
+        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        for e_script in self.get_enabled_scripts():
+            output_str += '@load {}\n'.format(e_script)
+        for d_script in self.get_disabled_scripts():
+            output_str += '@load {}\n'.format(d_script)
+        shutil.move(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
+        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
+            f.write(output_str)
 
 
 class ZeekInstaller:
@@ -72,6 +115,7 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, stdout=False):
+        """
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -104,3 +148,5 @@ class ZeekInstaller:
                     self.configuration_directory))
             subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/environment'.format(self.configuration_directory),
                             shell=True)
+        """
+        ZeekScriptConfigurator().write_config()

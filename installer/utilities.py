@@ -8,6 +8,7 @@ import shutil
 import getpass
 import tarfile
 import subprocess
+import multiprocessing
 from contextlib import closing
 
 try:
@@ -58,24 +59,6 @@ def check_socket(host, port):
             return True
         else:
             return False
-
-
-def is_root():
-    """
-    Determine whether or not the current user is root
-
-    :return: True, if the user is root
-    """
-    return getpass.getuser() == 'root'
-
-
-def get_memory_available_bytes():
-    """
-    Get the amount of RAM (in bytes) of the current system
-
-    :return: The number of bytes available in memory
-    """
-    return os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
 
 
 def create_dynamite_user(password):
@@ -164,6 +147,32 @@ def get_environment_file_dict():
             key, value = line.strip().split('=')
             export_dict[key] = value
     return export_dict
+
+
+def get_memory_available_bytes():
+    """
+    Get the amount of RAM (in bytes) of the current system
+
+    :return: The number of bytes available in memory
+    """
+    return os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+
+
+def get_network_interface_names():
+    return os.listdir('/sys/class/net')
+
+
+def get_cpu_core_count():
+    return multiprocessing.cpu_count()
+
+
+def is_root():
+    """
+    Determine whether or not the current user is root
+
+    :return: True, if the user is root
+    """
+    return getpass.getuser() == 'root'
 
 
 def setup_java():
