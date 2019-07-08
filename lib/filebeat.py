@@ -9,7 +9,7 @@ from multiprocessing import Process
 from lib import const
 from lib import utilities
 
-INSTALL_DIRECTORY = '/opt/dynamite/filebeats/'
+INSTALL_DIRECTORY = '/opt/dynamite/filebeat/'
 
 
 class FileBeatInstaller:
@@ -51,3 +51,5 @@ class FileBeatInstaller:
             sys.stdout.write('[+] Creating Filebeat install directory.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME), self.install_directory)
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
+                    self.install_directory)

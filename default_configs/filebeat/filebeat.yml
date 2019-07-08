@@ -21,7 +21,7 @@ filebeat.inputs:
 - type: log
 
   # Change to true to enable this input configuration.
-  enabled: false
+  enabled: true
 
   # Paths that should be crawled and fetched. Glob based paths.
   paths:
@@ -68,7 +68,8 @@ output.logstash:
 
 processors:
  - add_fields:
-    "originating_agent_tag": "{{agent_tag}}"
+     fields:
+      "originating_agent_tag": "{{agent_tag}}"
 
 #================================ Logging =====================================
 
