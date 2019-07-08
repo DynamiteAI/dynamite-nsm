@@ -217,7 +217,7 @@ class ZeekNodeConfigurator:
         """
         try:
             if self.node_config[name]['type'] == 'worker':
-                self.node_config[name].pop()
+                del self.node_config[name]
             else:
                 return False
         except KeyError:
@@ -230,7 +230,7 @@ class ZeekNodeConfigurator:
         """
         try:
             if self.node_config[name]['type'] == 'manager':
-                self.node_config[name].pop()
+                del self.node_config[name]
             else:
                 return False
         except KeyError:
@@ -243,7 +243,7 @@ class ZeekNodeConfigurator:
         """
         try:
             if self.node_config[name]['type'] == 'proxy':
-                self.node_config[name].pop()
+                del self.node_config[name]
             else:
                 return False
         except KeyError:
@@ -256,7 +256,7 @@ class ZeekNodeConfigurator:
         """
         try:
             if self.node_config[name]['type'] == 'worker':
-                self.node_config[name].pop()
+                del self.node_config[name]
             else:
                 return False
         except KeyError:
@@ -402,5 +402,19 @@ class ZeekProcess:
 
     def start(self):
         p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
+        p.communicate()
+        return p.pid == 0
+
+    def stop(self):
+        p = subprocess.Popen('{} stop'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
+        p.communicate()
+        return p.pid == 0
+
+    def status(self):
+        p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
+        return p.communicate()
+
+    def restart(self):
+        p = subprocess.Popen('{} restart'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
         return p.pid == 0

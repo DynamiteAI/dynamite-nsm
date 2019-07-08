@@ -248,6 +248,14 @@ def update_sysctl():
 
 
 def tail_file(path, n=1, bs=1024):
+    """
+    Tail the last n lines of a file at a given path
+
+    :param path: The path to the file
+    :param n: The last n number of lines
+    :param bs: The block-size in bytes
+    :return: A list of lines
+    """
     f = open(path)
     f.seek(0, 2)
     l = 1-f.read(1).count('\n')
@@ -278,5 +286,5 @@ def update_user_file_handle_limits():
             new_output += line
         new_output += '\n'
     if not limit_found:
-        new_output += 'dynamite    -   nofile   65535\n'
-    open('/etc/security/limits.conf', 'w').write(new_output)
+        new_output += '\ndynamite    -   nofile   65535\n'
+    open('/etc/security/limits.conf', 'a').write(new_output)

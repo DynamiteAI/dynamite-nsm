@@ -5,6 +5,7 @@ import traceback
 
 from lib import zeek
 from lib import pf_ring
+from lib import filebeat
 from lib import logstash
 from lib import utilities
 from lib import elasticsearch
@@ -71,6 +72,7 @@ def install_logstash():
 
 
 def install_monitor():
+    """
     zeek_installer = zeek.ZeekInstaller()
 
     if not zeek_installer.install_dependencies():
@@ -79,6 +81,11 @@ def install_monitor():
     zeek_installer.download_zeek(stdout=True)
     zeek_installer.extract_zeek(stdout=True)
     zeek_installer.setup_zeek(stdout=True)
+    """
+    filebeat_installer = filebeat.FileBeatInstaller()
+    filebeat_installer.download_filebeat(stdout=True)
+    filebeat_installer.extract_filebeat(stdout=True)
+    filebeat_installer.setup_filebeat(stdout=True)
 
 
 def prepare_monitor():
