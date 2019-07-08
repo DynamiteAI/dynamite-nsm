@@ -336,6 +336,7 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, stdout=False):
+        """
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -357,6 +358,7 @@ class ZeekInstaller:
             shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
         subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                            const.ZEEK_DIRECTORY_NAME))
+        """
         if 'ZEEK_HOME' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
