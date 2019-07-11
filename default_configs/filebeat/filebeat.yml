@@ -24,8 +24,7 @@ filebeat.inputs:
   enabled: true
 
   # Paths that should be crawled and fetched. Glob based paths.
-  paths:
-    - /opt/dynamite/zeek/logs/current/*.log
+  paths: ["/opt/dynamite/zeek/logs/current/*.log"]
 
 #============================= Filebeat modules ===============================
 
@@ -39,18 +38,11 @@ filebeat.config.modules:
   # Period on which files under path should be checked for changes
   #reload.period: 10s
 
-#==================== Elasticsearch template setting ==========================
-
-setup.template.settings:
-  index.number_of_shards: 1
-  #index.codec: best_compression
-  #_source.enabled: false
-
 
 #----------------------------- Logstash output --------------------------------
 output.logstash:
   # The Logstash hosts
-  hosts: ["96.127.123.210:5044"]
+   hosts: "localhost:5044"
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
@@ -68,8 +60,7 @@ output.logstash:
 
 processors:
  - add_fields:
-     fields:
-      "originating_agent_tag": "{{agent_tag}}"
+   fields: ["originating_agent_tag": "monitor001"]
 
 #================================ Logging =====================================
 

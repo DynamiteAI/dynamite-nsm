@@ -247,7 +247,6 @@ class LogstashInstaller:
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
-        subprocess.call('mkdir -p {}'.format('/var/run/dynamite/logstash/'), shell=True)
         config_paths = [
             'config/logstash.yml',
             'config/jvm.options',
@@ -321,7 +320,6 @@ class LogstashInstaller:
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
-        utilities.set_ownership_of_file('/var/run/dynamite')
 
 
 class LogstashProcess:
@@ -335,6 +333,10 @@ class LogstashProcess:
 
         self.configuration_directory = configuration_directory
         self.config = LogstashConfigurator(self.configuration_directory)
+
+        if not os.path.exists('/var/run/dynamite/logstash/'):
+            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/logstash/'), shell=True)
+            utilities.set_ownership_of_file('/var/run/dynamite')
         try:
             self.pid = int(open('/var/run/dynamite/logstash/logstash.pid').read()) + 1
         except (IOError, ValueError):

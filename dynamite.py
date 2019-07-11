@@ -71,10 +71,8 @@ def install_logstash():
     sys.exit(0)
 
 
-def install_monitor():
-
+def install_agent():
     zeek_installer = zeek.ZeekInstaller()
-
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         sys.exit(1)
@@ -87,7 +85,33 @@ def install_monitor():
     filebeat_installer.setup_filebeat(stdout=True)
 
 
-def prepare_monitor():
+def start_agent():
+    sys.stdout.write('[+] Starting agent processes.\n')
+    zeek_p = zeek.ZeekProcess()
+    if not zeek_p.start():
+        sys.stderr.write('[-] Could not start agent.zeek_process.\n')
+        sys.exit(1)
+    filebeat_p = filebeat.FileBeatProcess()
+    if not filebeat_p.start():
+        sys.stderr.write('[-] Could not start agent.filebeat.\n')
+        sys.exit(1)
+    sys.exit(0)
+
+
+def stop_agent():
+    sys.stdout.write('[+] Starting agent processes.\n')
+    zeek_p = zeek.ZeekProcess()
+    if not zeek_p.stop():
+        sys.stderr.write('[-] Could not stop agent.zeek_process.\n')
+        sys.exit(1)
+    filebeat_p = filebeat.FileBeatProcess()
+    if not filebeat_p.stop():
+        sys.stderr.write('[-] Could not stop agent.filebeat.\n')
+        sys.exit(1)
+    sys.exit(0)
+
+
+def prepare_agent():
     pf_ring_install = pf_ring.PFRingInstaller()
     if not pf_ring_install.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
@@ -104,8 +128,8 @@ if __name__ == '__main__':
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
     if args.command == 'prepare':
-        if args.component == 'monitor':
-            prepare_monitor()
+        if args.component == 'agent':
+            prepare_agent()
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
@@ -114,13 +138,15 @@ if __name__ == '__main__':
             install_elasticsearch()
         elif args.component == 'logstash':
             install_logstash()
-        elif args.component == 'monitor':
-            install_monitor()
+        elif args.component == 'agent':
+            install_agent()
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'start':
-        if args.component == 'elasticsearch':
+        if args.component == 'agent':
+            start_agent()
+        elif args.component == 'elasticsearch':
             sys.stdout.write('[+] Starting ElasticSearch.\n')
             started = elasticsearch.ElasticProcess().start(stdout=True)
             if started:
@@ -148,7 +174,9 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'stop':
-        if args.component == 'elasticsearch':
+        if args.component == 'agent':
+            stop_agent()
+        elif args.component == 'elasticsearch':
             sys.stdout.write('[+] Stopping ElasticSearch.\n')
             stopped = elasticsearch.ElasticProcess().stop(stdout=True)
             if stopped:
@@ -189,8 +217,8 @@ if __name__ == '__main__':
             es_profiler = elasticsearch.ElasticProfiler(stderr=True)
             sys.stdout.write(str(es_profiler) + '\n')
             sys.exit(0)
-        elif args.component == 'monitor':
-            sys.stdout.write('[+] Profiling Monitor.\n')
+        elif args.component == 'agent':
+            sys.stdout.write('[+] Profiling Agent.\n')
             pf_ring_profiler = pf_ring.PFRingProfiler()
             sys.stdout.write(str(pf_ring_profiler) + '\n')
             sys.exit(0)

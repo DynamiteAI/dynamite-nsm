@@ -336,7 +336,6 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, stdout=False):
-        """
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -358,7 +357,7 @@ class ZeekInstaller:
             shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
         subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                            const.ZEEK_DIRECTORY_NAME))
-        """
+
         if 'ZEEK_HOME' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
@@ -405,12 +404,12 @@ class ZeekProcess:
     def start(self):
         p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
-        return p.pid == 0
+        return p.returncode == 0
 
     def stop(self):
         p = subprocess.Popen('{} stop'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
-        return p.pid == 0
+        return p.returncode == 0
 
     def status(self):
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
@@ -419,4 +418,4 @@ class ZeekProcess:
     def restart(self):
         p = subprocess.Popen('{} restart'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
-        return p.pid == 0
+        return p.returncode == 0
