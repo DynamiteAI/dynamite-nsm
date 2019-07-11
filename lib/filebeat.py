@@ -152,15 +152,35 @@ class FileBeatProcess:
             command = '{}/filebeat -c {}/filebeat.yml & echo $! > /var/run/dynamite/filebeat/filebeat.pid'.format(
                 self.config.install_directory, self.config.install_directory)
             subprocess.call(command, shell=True)
-
         if stdout:
             sys.stdout.write('[+] Starting Filebeat\n')
-        time.sleep(2)
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
             sys.stderr.write('[-] Filebeat is already running on PID [{}]\n'.format(self.pid))
             return True
+        retry = 0
+        self.pid = -1
+        time.sleep(5)
+        while retry < 6:
+            start_message = '[+] [Attempt: {}] Starting FileBeat on PID [{}]\n'.format(retry + 1, self.pid)
+            try:
+                with open('/var/run/dynamite/filebeat/filebeat.pid') as f:
+                    self.pid = int(f.read())
+                start_message = '[+] [Attempt: {}] Starting FileBeat on PID [{}]\n'.format(retry + 1, self.pid)
+                if stdout:
+                    sys.stdout.write(start_message)
+                if not utilities.check_pid(self.pid):
+                    retry += 1
+                    time.sleep(5)
+                else:
+                    return True
+            except IOError:
+                if stdout:
+                    sys.stdout.write(start_message)
+                retry += 1
+                time.sleep(3)
+        return False
 
     def stop(self, stdout=False):
         """
