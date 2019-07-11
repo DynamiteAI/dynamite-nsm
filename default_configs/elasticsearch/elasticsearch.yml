@@ -89,3 +89,5 @@ discovery.seed_hosts: ["localhost"]
 
 indices.query.bool.max_clause_count: 8192
 search.max_buckets: 100000
+
+cluster.initial_master_nodes: ["es-1"]

@@ -4,6 +4,7 @@ import time
 import signal
 import shutil
 import tarfile
+import traceback
 import subprocess
 from multiprocessing import Process
 from lib import const
@@ -432,3 +433,27 @@ class LogstashProcess:
             'LOGS': log_path
         }
 
+
+def install_logstash():
+    if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
+        sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
+            utilities.get_memory_available_bytes()/(1024 ** 3)
+        ))
+        sys.exit(1)
+    try:
+        ls_installer = LogstashInstaller()
+        utilities.download_java(stdout=True)
+        utilities.extract_java(stdout=True)
+        utilities.setup_java()
+        utilities.create_dynamite_user('password')
+        ls_installer.download_logstash(stdout=True)
+        ls_installer.extract_logstash(stdout=True)
+        ls_installer.setup_logstash(stdout=True)
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
+    sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
+    sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
+    sys.stdout.flush()
+    sys.exit(0)

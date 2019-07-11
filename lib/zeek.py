@@ -416,7 +416,8 @@ class ZeekProcess:
         return p.returncode == 0
 
     def status(self):
-        p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
+        p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True,
+                             stdout=subprocess.PIPE)
         return p.communicate()
 
     def restart(self, stdout=False):

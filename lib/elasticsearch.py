@@ -5,6 +5,7 @@ import time
 import signal
 import shutil
 import tarfile
+import traceback
 import subprocess
 from multiprocessing import Process
 
@@ -535,3 +536,27 @@ class ElasticProcess:
             'LOGS': log_path
         }
 
+
+def install_elasticsearch():
+    if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
+        sys.stderr.write('[-] Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]\n'.format(
+            utilities.get_memory_available_bytes()/(1024 ** 3)
+        ))
+        sys.exit(1)
+    try:
+        es_installer = ElasticInstaller()
+        utilities.download_java(stdout=True)
+        utilities.extract_java(stdout=True)
+        utilities.setup_java()
+        utilities.create_dynamite_user('password')
+        es_installer.download_elasticsearch(stdout=True)
+        es_installer.extract_elasticsearch(stdout=True)
+        es_installer.setup_elasticsearch(stdout=True)
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to install ElasticSearch: ')
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
+    sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
+    sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
+    sys.stdout.flush()
+    sys.exit(0)

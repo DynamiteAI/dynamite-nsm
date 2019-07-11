@@ -126,6 +126,7 @@ class FileBeatInstaller:
                     self.install_directory)
         beats_config = FileBeatConfigurator(self.install_directory)
         beats_config.set_logstash_targets(self.monitor_paths)
+        beats_config.write_config()
 
 
 class FileBeatProcess:
@@ -181,6 +182,20 @@ class FileBeatProcess:
                 retry += 1
                 time.sleep(3)
         return False
+
+    def status(self):
+        """
+        Check the status of the FileBeat process
+
+        :return: A dictionary containing the run status and relevant configuration options
+        """
+        log_path = os.path.join(self.config.install_directory, 'logs', 'filebeat')
+
+        return {
+            'PID': self.pid,
+            'RUNNING': utilities.check_pid(self.pid),
+            'LOGS': log_path
+        }
 
     def stop(self, stdout=False):
         """
