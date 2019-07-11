@@ -136,7 +136,6 @@ class FileBeatProcess:
 
         if not os.path.exists('/var/run/dynamite/filebeat/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/filebeat/'), shell=True)
-            utilities.set_ownership_of_file('/var/run/dynamite')
 
         try:
             self.pid = int(open('/var/run/dynamite/filebeat/filebeat.pid').read())
