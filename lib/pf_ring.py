@@ -114,12 +114,12 @@ class PFRingInstaller:
             else:
                 sys.stderr.write('[-] Could not determine a method to enable pf_ring kernel module. '
                                  'You must enable manually using a tool such as \'modprobe\'.\n')
-            if 'PF_RING_HOME' not in open('/etc/environment').read():
-                if stdout:
-                    sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
-                        self.install_directory))
-                subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
-                                shell=True)
+        if 'PF_RING_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
 
 
 class PFRingProfiler:

@@ -51,31 +51,44 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'start':
         if args.component == 'agent':
-            agent.start_agent()
+            if agent.start_agent():
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to start agent.')
+                sys.exit(1)
         elif args.component == 'elasticsearch':
             sys.stdout.write('[+] Starting ElasticSearch.\n')
             started = elasticsearch.ElasticProcess().start(stdout=True)
             if started:
                 sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
                                  '\'dynamite.py status elasticsearch\'.\n')
+                sys.exit(0)
             else:
                 sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
+                sys.exit(1)
         elif args.component == 'logstash':
             sys.stdout.write('[+] Starting LogStash\n')
             started = logstash.LogstashProcess().start(stdout=True)
             if started:
                 sys.stdout.write('[+] LogStash started successfully. Check its status at any time with: '
                                  '\'dynamite.py status logstash\'.\n')
+                sys.exit(0)
             else:
-                sys.stdout.write('[-] An error occurred while attempting to start LogStash.\n')
+                sys.stderr.write('[-] An error occurred while attempting to start LogStash.\n')
+                sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'status':
         if args.component == 'agent':
-            agent.status_agent()
+            zeek_status, other_processes = agent.status_agent()
+            sys.stdout.write(zeek_status)
+            sys.stdout.write(json.dumps(other_processes, indent=1))
+            sys.stdout.flush()
+            sys.exit(0)
         elif args.component == 'elasticsearch':
             sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
+            sys.exit(0)
         elif args.component == 'logstash':
             sys.stdout.write(json.dumps(logstash.LogstashProcess().status(), indent=1) + '\n')
         else:
@@ -83,7 +96,10 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'stop':
         if args.component == 'agent':
-            agent.stop_agent()
+            if agent.stop_agent():
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to stop agent.')
         elif args.component == 'elasticsearch':
             sys.stdout.write('[+] Stopping ElasticSearch.\n')
             stopped = elasticsearch.ElasticProcess().stop(stdout=True)
@@ -96,15 +112,25 @@ if __name__ == '__main__':
             stopped = logstash.LogstashProcess().stop(stdout=True)
             if stopped:
                 sys.stdout.write('[+] LogStash stopped successfully.\n')
+                sys.exit(0)
             else:
                 sys.stdout.write('[-] An error occurred while attempting to stop LogStash.\n')
+                sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'restart':
         if args.component == 'agent':
-            agent.stop_agent()
-            agent.start_agent()
+            if agent.stop_agent():
+                if agent.start_agent():
+                    sys.stdout.write('[+] Agent restarted successfully.\n')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] Agent failed to start.\n')
+                    sys.exit(1)
+            else:
+                sys.stdout.write('[-] Agent failed to stop.\n')
+
         elif args.component == 'elasticsearch':
             sys.stdout.write('[+] Restarting ElasticSearch.\n')
             restarted = elasticsearch.ElasticProcess().restart(stdout=True)
