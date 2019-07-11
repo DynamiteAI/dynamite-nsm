@@ -15,9 +15,12 @@ def _parse_cmdline():
     parser = argparse.ArgumentParser(
         description='Install/Configure the Dynamite Analysis Framework.'
     )
-    parser.add_argument('command', metavar='command', type=str, help='An action to perform [install|start]')
+    parser.add_argument('command', metavar='command', type=str,
+                        help='An action to perform [prepare|install|start|stop|status]')
     parser.add_argument('component', metavar='component', type=str,
-                        help='The component to perform an action against [elasticsearch]')
+                        help='The component to perform an action against [agent|logstash|elasticsearch]')
+    parser.add_argument('--host', type=str, dest='host', required='point' in sys.argv, help='A valid Ipv4/Ipv6 address or hostname')
+    parser.add_argument('--port', type=int, dest='port', required='point' in sys.argv, help='A valid port [1-65535]')
     return parser.parse_args()
 
 
@@ -98,6 +101,13 @@ def status_agent():
     sys.stdout.write(json.dumps(agent_status, indent=1) + '\n')
 
 
+def point_agent(host, port):
+    filebeat_config = filebeat.FileBeatConfigurator()
+    filebeat_config.set_logstash_targets(['{}:{}'.format(host, port)])
+    sys.stdout.write('[+] Agent is now pointing to Logstash [{}:{}]\n'.format(host, port))
+    sys.stdout.write('[+] Agent must be restarted for changes to take effect.\n')
+
+
 def start_agent():
     sys.stdout.write('[+] Starting agent processes.\n')
     zeek_p = zeek.ZeekProcess()
@@ -140,7 +150,9 @@ if __name__ == '__main__':
     if not utilities.is_root():
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
-    if args.command == 'prepare':
+    if args.command == 'point':
+        point_agent(args.host, args.port)
+    elif args.command == 'prepare':
         if args.component == 'agent':
             prepare_agent()
         else:
