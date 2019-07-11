@@ -419,7 +419,7 @@ class ZeekProcess:
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
-        return out
+        return out.decode('utf-8')
 
     def restart(self, stdout=False):
         if stdout:
