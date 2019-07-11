@@ -149,7 +149,7 @@ class FileBeatProcess:
         :return: True if started successfully
         """
         def start_shell_out():
-            command = '{}/filebeat -C {}/filebeat.yml & echo $! > /var/run/dynamite/filebeat/filebeat.pid'.format(
+            command = '{}/filebeat -c {}/filebeat.yml & echo $! > /var/run/dynamite/filebeat/filebeat.pid'.format(
                 self.config.install_directory, self.config.install_directory)
             subprocess.call(command, shell=True)
 
