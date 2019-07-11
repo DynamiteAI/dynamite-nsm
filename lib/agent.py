@@ -24,7 +24,7 @@ def status_agent():
     zeek_p = zeek.ZeekProcess()
     filebeat_p = filebeat.FileBeatProcess()
     pf_ring_prof = pf_ring.PFRingProfiler()
-    sys.stdout.write(zeek_p.status() + '\n')
+    sys.stdout.write(zeek_p.status())
     agent_status = dict(
         agent_processes={
             'pf_ring': pf_ring_prof.get_profile(),
