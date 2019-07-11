@@ -104,6 +104,7 @@ def status_agent():
 def point_agent(host, port):
     filebeat_config = filebeat.FileBeatConfigurator()
     filebeat_config.set_logstash_targets(['{}:{}'.format(host, port)])
+    filebeat_config.write_config()
     sys.stdout.write('[+] Agent is now pointing to Logstash [{}:{}]\n'.format(host, port))
     sys.stdout.write('[+] Agent must be restarted for changes to take effect.\n')
 
@@ -151,7 +152,11 @@ if __name__ == '__main__':
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
     if args.command == 'point':
-        point_agent(args.host, args.port)
+        if args.component == 'agent':
+            point_agent(args.host, args.port)
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
     elif args.command == 'prepare':
         if args.component == 'agent':
             prepare_agent()
@@ -221,7 +226,10 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'restart':
-        if args.component == 'elasticsearch':
+        if args.component == 'agent':
+            stop_agent()
+            start_agent()
+        elif args.component == 'elasticsearch':
             sys.stdout.write('[+] Restarting ElasticSearch.\n')
             restarted = elasticsearch.ElasticProcess().restart(stdout=True)
             if restarted:
