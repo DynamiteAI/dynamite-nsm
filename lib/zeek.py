@@ -401,12 +401,16 @@ class ZeekProcess:
         """
         self.install_directory = install_directory
 
-    def start(self):
+    def start(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Attempting to start Zeek cluster.\n')
         p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
         return p.returncode == 0
 
-    def stop(self):
+    def stop(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Attempting to stop Zeek cluster.\n')
         p = subprocess.Popen('{} stop'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
         return p.returncode == 0
@@ -415,7 +419,9 @@ class ZeekProcess:
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         return p.communicate()
 
-    def restart(self):
+    def restart(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Attempting to restart Zeek cluster.\n')
         p = subprocess.Popen('{} restart'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
         return p.returncode == 0

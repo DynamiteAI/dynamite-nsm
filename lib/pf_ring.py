@@ -167,5 +167,12 @@ class PFRingProfiler:
         p = subprocess.Popen('lsmod', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
         return 'pf_ring' in p.stdout.read()
 
+    def get_profile(self):
+        return {
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running,
+        }
+
 
 

@@ -85,27 +85,40 @@ def install_agent():
     filebeat_installer.setup_filebeat(stdout=True)
 
 
+def status_agent():
+    zeek_p = zeek.ZeekProcess()
+    filebeat_p = filebeat.FileBeatProcess()
+    pf_ring_prof = pf_ring.PFRingProfiler()
+    agent_status =  dict(
+        agent_processes={
+            'zeek': zeek_p.status(),
+            'pf_ring': pf_ring_prof.get_profile()
+        }
+    )
+    sys.stdout.write(json.dumps(agent_status, indent=1) + '\n')
+
+
 def start_agent():
     sys.stdout.write('[+] Starting agent processes.\n')
     zeek_p = zeek.ZeekProcess()
-    if not zeek_p.start():
+    if not zeek_p.start(stdout=True):
         sys.stderr.write('[-] Could not start agent.zeek_process.\n')
         sys.exit(1)
     filebeat_p = filebeat.FileBeatProcess()
-    if not filebeat_p.start():
+    if not filebeat_p.start(stdout=True):
         sys.stderr.write('[-] Could not start agent.filebeat.\n')
         sys.exit(1)
     sys.exit(0)
 
 
 def stop_agent():
-    sys.stdout.write('[+] Starting agent processes.\n')
+    sys.stdout.write('[+] Stopping agent processes.\n')
     zeek_p = zeek.ZeekProcess()
-    if not zeek_p.stop():
+    if not zeek_p.stop(stdout=True):
         sys.stderr.write('[-] Could not stop agent.zeek_process.\n')
         sys.exit(1)
     filebeat_p = filebeat.FileBeatProcess()
-    if not filebeat_p.stop():
+    if not filebeat_p.stop(stdout=True):
         sys.stderr.write('[-] Could not stop agent.filebeat.\n')
         sys.exit(1)
     sys.exit(0)
@@ -166,7 +179,9 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'status':
-        if args.component == 'elasticsearch':
+        if args.component == 'agent':
+            status_agent()
+        elif args.component == 'elasticsearch':
             sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
         elif args.component == 'logstash':
             sys.stdout.write(json.dumps(logstash.LogstashProcess().status(), indent=1) + '\n')
