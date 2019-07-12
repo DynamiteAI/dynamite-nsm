@@ -1,6 +1,7 @@
 import sys
 import json
 import argparse
+import subprocess
 
 from lib import agent
 from lib import logstash
@@ -36,6 +37,7 @@ if __name__ == '__main__':
     if not utilities.is_root():
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
+    utilities.create_dynamite_root_directory()
     args = _parse_cmdline()
     if args.command == 'point':
         if args.component == 'agent':

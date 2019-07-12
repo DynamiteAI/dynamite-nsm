@@ -1,8 +1,15 @@
+import os
 import sys
+from datetime import datetime
+
 
 from lib import zeek
 from lib import pf_ring
 from lib import filebeat
+
+
+def is_agent_environment_prepared():
+    return os.path.exists('/opt/dynamite/.agent_environment_prepared')
 
 
 def install_agent(network_interface, agent_label, logstash_target):
@@ -13,6 +20,13 @@ def install_agent(network_interface, agent_label, logstash_target):
     :param logstash_target: The host port combination for the target Logstash server (E.G "localhost:5044")
     :return: True, if install succeeded
     """
+    if not is_agent_environment_prepared():
+        sys.stderr.write('[-] The environment must first be prepared prior to agent installation. \n')
+        sys.stderr.write('[-] This includes the installation of kernel development headers, '
+                         'required for PF_RING kernel modules to be loaded. \n')
+        sys.stderr.write('[-] To prepare the agent environment run \'dynamite.py prepare agent\'.\n')
+        sys.stderr.flush()
+        return False
     zeek_installer = zeek.ZeekInstaller()
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
     filebeat_installer = filebeat.FileBeatInstaller()
@@ -77,10 +91,19 @@ def prepare_agent():
 
     :return: True, if successfully prepared
     """
+    if not is_agent_environment_prepared():
+        agent_preparation_date = open('/opt/dynamite/.agent_environment_prepared').read()
+        sys.stderr.write('[-] This environment has already been prepared ({}). '
+                         'You can proceed with agent installation.\n'.format(agent_preparation_date))
+        sys.stderr.write('[-] \'dynamite.py install agent\'.\n')
+        sys.stderr.flush()
+        return False
     pf_ring_install = pf_ring.PFRingInstaller()
     if not pf_ring_install.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         return False
+    with open('/opt/dynamite/.agent_environment_prepared', 'w') as f:
+        f.write(datetime.utcnow())
     sys.stdout.write('[+] *** Development Kernel Packages & Build Tools Installed. Please Reboot ***\n\n')
     sys.stdout.write('[+] After reboot, continue installation with: \'dynamite.py install monitor\'.\n')
     sys.stdout.flush()
