@@ -30,13 +30,14 @@ def _parse_cmdline():
     parser.add_argument('--port', type=int, dest='port', required=('point' in sys.argv)
                                                                   or ('install' in sys.argv and 'agent' in sys.argv)
                         , help='A valid port [1-65535]')
-    parser.add_argument('--debug', type=str, default=False, dest='debug', help='Include detailed error messages in console.')
+    parser.add_argument('--debug', type=str, default=False, dest='debug', action='store_true',
+                        help='Include detailed error messages in console.')
     return parser.parse_args()
 
 
 def _fatal_exception(action, component, debug=False):
-    message = '[-] {}.{} failed. Is it installed?.\n' \
-              '[-] \'dynamite.py install {}\'.\n'.format(action, component, component)
+    message = '[-] {}.{} failed. Is it installed?\n' \
+              '[-] \'dynamite.py install {}\'\n'.format(action, component, component)
     sys.stderr.write(message)
     if debug:
         sys.stderr.write('\nDebug:')
