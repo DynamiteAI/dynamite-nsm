@@ -103,7 +103,7 @@ def prepare_agent():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         return False
     with open('/opt/dynamite/.agent_environment_prepared', 'w') as f:
-        f.write(datetime.utcnow())
+        f.write(str(datetime.utcnow()))
     sys.stdout.write('[+] *** Development Kernel Packages & Build Tools Installed. Please Reboot ***\n\n')
     sys.stdout.write('[+] After reboot, continue installation with: \'dynamite.py install monitor\'.\n')
     sys.stdout.flush()
