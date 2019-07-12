@@ -3,9 +3,9 @@ import pwd
 import grp
 import sys
 import crypt
+import errno
 import socket
 import shutil
-import getpass
 import tarfile
 import subprocess
 import multiprocessing
@@ -185,7 +185,12 @@ def is_root():
 
     :return: True, if the user is root
     """
-    return getpass.getuser() == 'root'
+    try:
+        os.rename('/etc/foo', '/etc/bar')
+    except IOError as e:
+        if e[0] == errno.EPERM:
+            return False
+    return True
 
 
 def setup_java():

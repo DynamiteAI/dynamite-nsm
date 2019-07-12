@@ -83,7 +83,7 @@ class FileBeatConfigurator:
 
 class FileBeatInstaller:
 
-    def __init__(self, monitor_paths=(zeek.INSTALL_DIRECTORY + 'logs/current/*.log'),
+    def __init__(self, monitor_paths=(zeek.INSTALL_DIRECTORY + 'logs/current/*.log',),
                  install_directory=INSTALL_DIRECTORY):
         self.monitor_paths = list(monitor_paths)
         self.install_directory = install_directory
@@ -118,6 +118,11 @@ class FileBeatInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     def setup_filebeat(self, stdout=False):
+        """
+        Creates necessary directory structure, and copies required files, generates a default configuration
+
+        :param stdout: Print output to console
+        """
         if stdout:
             sys.stdout.write('[+] Creating Filebeat install directory.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -125,7 +130,7 @@ class FileBeatInstaller:
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
                     self.install_directory)
         beats_config = FileBeatConfigurator(self.install_directory)
-        beats_config.set_logstash_targets(self.monitor_paths)
+        beats_config.set_monitor_target_paths(self.monitor_paths)
         beats_config.write_config()
 
 

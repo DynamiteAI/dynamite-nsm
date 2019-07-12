@@ -3,7 +3,6 @@ import json
 import argparse
 
 from lib import agent
-from lib import pf_ring
 from lib import logstash
 from lib import utilities
 from lib import elasticsearch
@@ -41,9 +40,17 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
-            elasticsearch.install_elasticsearch()
+            if elasticsearch.install_elasticsearch():
+                sys.exit(0)
+            else:
+                sys.stderr.write(['[-] Failed to install ElasticSearch.\n'])
+                sys.exit(1)
         elif args.component == 'logstash':
-            logstash.install_logstash()
+            if logstash.install_logstash():
+                sys.exit(0)
+            else:
+                sys.stderr.write(['[-] Failed to install Logstash.\n'])
+                sys.exit(1)
         elif args.component == 'agent':
             agent.install_agent()
         else:
@@ -105,8 +112,10 @@ if __name__ == '__main__':
             stopped = elasticsearch.ElasticProcess().stop(stdout=True)
             if stopped:
                 sys.stdout.write('[+] ElasticSearch stopped successfully.\n')
+                sys.exit(0)
             else:
                 sys.stdout.write('[-] An error occurred while attempting to stop ElasticSearch.\n')
+                sys.exit(1)
         elif args.component == 'logstash':
             sys.stdout.write('[+] Stopping LogStash.\n')
             stopped = logstash.LogstashProcess().stop(stdout=True)
@@ -130,21 +139,26 @@ if __name__ == '__main__':
                     sys.exit(1)
             else:
                 sys.stdout.write('[-] Agent failed to stop.\n')
+                sys.exit(1)
 
         elif args.component == 'elasticsearch':
             sys.stdout.write('[+] Restarting ElasticSearch.\n')
             restarted = elasticsearch.ElasticProcess().restart(stdout=True)
             if restarted:
                 sys.stdout.write('[+] ElasticSearch restarted successfully.\n')
+                sys.exit(0)
             else:
                 sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
+                sys.exit(0)
         elif args.component == 'logstash':
             sys.stdout.write('[+] Restarting LogStash.\n')
             restarted = logstash.LogstashProcess().restart(stdout=True)
             if restarted:
                 sys.stdout.write('[+] LogStash restarted successfully.\n')
+                sys.exit(0)
             else:
                 sys.stdout.write('[-] An error occurred while attempting to start LogStash.\n')
+                sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

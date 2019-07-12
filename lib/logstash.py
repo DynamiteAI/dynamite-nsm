@@ -318,6 +318,8 @@ class LogstashInstaller:
             sys.stdout.flush()
         subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
                         shell=True)
+        subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
+                        shell=True)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
@@ -439,7 +441,7 @@ def install_logstash():
         sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1024 ** 3)
         ))
-        sys.exit(1)
+        return False
     try:
         ls_installer = LogstashInstaller()
         utilities.download_java(stdout=True)
@@ -452,8 +454,8 @@ def install_logstash():
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
         traceback.print_exc(file=sys.stderr)
-        sys.exit(1)
+        return False
     sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
     sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
     sys.stdout.flush()
-    sys.exit(0)
+    return True

@@ -109,6 +109,9 @@ class ElastiflowConfigurator:
                 self.elastiflow_es_host = line.split('=')[1].strip()
 
     def write_environment_variables(self):
+        """
+        Update the environment variables tied to ElastiFlow Logstash configurations
+        """
         elastiflow_vars_map = {}
         new_env_content = ''
         lines = open('/etc/environment').readlines()

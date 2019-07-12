@@ -1,5 +1,4 @@
 import sys
-import json
 
 from lib import zeek
 from lib import pf_ring
@@ -7,6 +6,9 @@ from lib import filebeat
 
 
 def install_agent():
+    """
+    Installs the required agent components to module default directories
+    """
     zeek_installer = zeek.ZeekInstaller()
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
@@ -21,6 +23,10 @@ def install_agent():
 
 
 def point_agent(host, port):
+    """
+    :param host: The logstash host to forward logs too
+    :param port: The service port the logstash host is listening on [5044 standard]
+    """
     filebeat_config = filebeat.FileBeatConfigurator()
     filebeat_config.set_logstash_targets(['{}:{}'.format(host, port)])
     filebeat_config.write_config()
@@ -29,6 +35,12 @@ def point_agent(host, port):
 
 
 def prepare_agent():
+    """
+    Install the necessary build dependencies and kernel-headers
+    *** IMPORTANT A REBOOT IS REQUIRED AFTER RUNNING THIS FUNCTION ***
+
+    :return: True, if successfully prepared
+    """
     pf_ring_install = pf_ring.PFRingInstaller()
     if not pf_ring_install.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
@@ -40,6 +52,10 @@ def prepare_agent():
 
 
 def start_agent():
+    """
+    Start the Zeek (BroCtl) and FileBeats processes
+    :return: True, if started successfully
+    """
     sys.stdout.write('[+] Starting agent processes.\n')
     zeek_p = zeek.ZeekProcess()
     if not zeek_p.start(stdout=True):
@@ -53,6 +69,11 @@ def start_agent():
 
 
 def status_agent():
+    """
+    Retrieve the status of the agent processes
+    :return: A tuple, where the first element is the zeek process status (string), and second element are
+             the FileBeats and PF_RING status
+    """
     zeek_p = zeek.ZeekProcess()
     filebeat_p = filebeat.FileBeatProcess()
     pf_ring_prof = pf_ring.PFRingProfiler()
@@ -65,8 +86,11 @@ def status_agent():
     return zeek_p.status(), agent_status
 
 
-
 def stop_agent():
+    """
+    Stop the Zeek (BroCtl) and FileBeats processes
+    :return: True, if stopped successfully
+    """
     sys.stdout.write('[+] Stopping agent processes.\n')
     zeek_p = zeek.ZeekProcess()
     if not zeek_p.stop(stdout=True):

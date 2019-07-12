@@ -126,7 +126,7 @@ class ElasticConfigurator:
         """
         :return: A list of hosts also in the cluster
         """
-        self.es_config_options.get('discovery.seed_hosts')
+        return json.loads(self.es_config_options.get('discovery.seed_hosts'))
 
     def get_jvm_initial_memory(self):
         """
@@ -163,6 +163,7 @@ class ElasticConfigurator:
         :param name: The name of the ElasticSearch node
         """
         self.es_config_options['node.name'] = name
+        self.es_config_options['cluster.initial_master_nodes'] = json.dumps([name])
 
     def set_data_path(self, path):
         """
@@ -180,7 +181,7 @@ class ElasticConfigurator:
         """
         :param host_list: A list of hosts also in the cluster
         """
-        self.es_config_options['discovery.seed_hosts'] = host_list
+        self.es_config_options['discovery.seed_hosts'] = json.dumps(host_list)
 
     def set_jvm_initial_memory(self, gigs):
         """
@@ -538,11 +539,15 @@ class ElasticProcess:
 
 
 def install_elasticsearch():
+    """
+    Install ElasticSearch/ElastiFlow with default directories
+    :return: True, if successfully installed
+    """
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1024 ** 3)
         ))
-        sys.exit(1)
+        return False
     try:
         es_installer = ElasticInstaller()
         utilities.download_java(stdout=True)
@@ -555,8 +560,8 @@ def install_elasticsearch():
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to install ElasticSearch: ')
         traceback.print_exc(file=sys.stderr)
-        sys.exit(1)
+        return False
     sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
     sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
     sys.stdout.flush()
-    sys.exit(0)
+    return True
