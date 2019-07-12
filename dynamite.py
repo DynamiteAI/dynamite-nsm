@@ -35,8 +35,8 @@ def _parse_cmdline():
 
 
 def _fatal_exception(action, component, debug=False):
-    message = '{}.{} failed. Is it installed?.\n' \
-              '\'dynamite.py install {}\'.\n'.format(action, component, component)
+    message = '[-] {}.{} failed. Is it installed?.\n' \
+              '[-] \'dynamite.py install {}\'.\n'.format(action, component, component)
     sys.stderr.write(message)
     if args.debug:
         sys.stderr.write('\nDebug:')
