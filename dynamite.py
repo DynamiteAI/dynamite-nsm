@@ -40,7 +40,7 @@ def _fatal_exception(action, component, debug=False):
               '[-] \'dynamite.py install {}\'\n'.format(action, component, component)
     sys.stderr.write(message)
     if debug:
-        sys.stderr.write('\nDebug:')
+        sys.stderr.write('\n\n========== DEBUG ==========\n\n')
         traceback.print_exc(file=sys.stderr)
     sys.exit(1)
 
