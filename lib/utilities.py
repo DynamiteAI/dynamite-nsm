@@ -219,6 +219,16 @@ def set_ownership_of_file(path):
             os.chown(os.path.join(root, momo), uid, group)
 
 
+def set_permissions_of_file(file_path, unix_permissions_integer):
+    """
+    Set the permissions of a file to unix_permissions_integer
+
+    :param file_path: The path to the file
+    :param unix_permissions_integer: The numeric represention of user/group/everyone permissions on a file
+    """
+    subprocess.call('chmod {} {}'.format(unix_permissions_integer, file_path), shell=True)
+
+
 def update_sysctl():
     """
     Updates the vm.max_map_count and fs.file-max count

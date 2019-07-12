@@ -58,12 +58,26 @@ class FileBeatConfigurator:
         self.monitor_target_paths = monitor_log_paths
 
     def get_agent_tag(self):
+        """
+        Get the tag associated to the agent
+        :return: A tag associated with the agent
+        """
         return self.agent_tag
 
     def get_logstash_targets(self):
+        """
+        A list of Logstash targets that the agent is pointing too
+
+        :return: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"]
+        """
         return self.logstash_targets
 
     def get_monitor_target_paths(self):
+        """
+        A list of log paths to monitor
+
+        :return: A list of log files to monitor
+        """
         return self.monitor_target_paths
 
     def write_config(self):
@@ -132,6 +146,8 @@ class FileBeatInstaller:
         beats_config = FileBeatConfigurator(self.install_directory)
         beats_config.set_monitor_target_paths(self.monitor_paths)
         beats_config.write_config()
+        utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
+                                          unix_permissions_integer=501)
 
 
 class FileBeatProcess:

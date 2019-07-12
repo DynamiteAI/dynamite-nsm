@@ -7,19 +7,22 @@ from lib import filebeat
 
 def install_agent(network_interface, agent_label, logstash_target):
     """
-    :param interface: The network interface that the agent should analyze traffic on
+    :param network_interface: The network interface that the agent should analyze traffic on
     :param agent_label: A descriptive label representing the
     segment/location on your network that your agent is monitoring
     :param logstash_target: The host port combination for the target Logstash server (E.G "localhost:5044")
     :return: True, if install succeeded
     """
     zeek_installer = zeek.ZeekInstaller()
+    zeek_profiler = zeek.ZeekProfiler(stderr=True)
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         return False
-    zeek_installer.download_zeek(stdout=True)
-    zeek_installer.extract_zeek(stdout=True)
-    zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
+    if not zeek_profiler.is_downloaded:
+        zeek_installer.download_zeek(stdout=True)
+        zeek_installer.extract_zeek(stdout=True)
+    if not zeek_profiler.is_installed:
+        zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
     filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_installer.download_filebeat(stdout=True)
     filebeat_installer.extract_filebeat(stdout=True)
@@ -45,7 +48,7 @@ def point_agent(host, port):
 def prepare_agent():
     """
     Install the necessary build dependencies and kernel-headers
-    *** IMPORTANT A REBOOT IS REQUIRED AFTER RUNNING THIS FUNCTION ***
+    *** IMPORTANT A REBOOT IS REQUIRED AFTER RUNNING THIS METHOD ***
 
     :return: True, if successfully prepared
     """
