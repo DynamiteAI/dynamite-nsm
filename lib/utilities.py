@@ -70,8 +70,6 @@ def check_socket(host, port):
 def create_dynamite_root_directory():
     subprocess.call('mkdir -p /opt/dynamite/', shell=True)
     subprocess.call('mkdir -p /tmp/dynamite/', shell=True)
-    set_ownership_of_file('/opt/dyanmite/')
-    set_ownership_of_file('/tmp/dyanmite/')
 
 
 def create_dynamite_user(password):
