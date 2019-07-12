@@ -434,11 +434,12 @@ class LogstashProcess:
         return {
             'PID': self.pid,
             'RUNNING': utilities.check_pid(self.pid),
+            'USER': 'dynamite',
             'LOGS': log_path
         }
 
 
-def install_logstash():
+def install_logstash(install_jdk=True, create_dynamite_user=True, stdout=False):
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1024 ** 3)
@@ -446,10 +447,12 @@ def install_logstash():
         return False
     try:
         ls_installer = LogstashInstaller()
-        utilities.download_java(stdout=True)
-        utilities.extract_java(stdout=True)
-        utilities.setup_java()
-        utilities.create_dynamite_user('password')
+        if install_jdk:
+            utilities.download_java(stdout=True)
+            utilities.extract_java(stdout=True)
+            utilities.setup_java()
+        if create_dynamite_user:
+            utilities.create_dynamite_user('password')
         ls_installer.download_logstash(stdout=True)
         ls_installer.extract_logstash(stdout=True)
         ls_installer.setup_logstash(stdout=True)
@@ -457,7 +460,8 @@ def install_logstash():
         sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
         traceback.print_exc(file=sys.stderr)
         return False
-    sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
-    sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
-    sys.stdout.flush()
+    if stdout:
+        sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
+        sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
+        sys.stdout.flush()
     return True

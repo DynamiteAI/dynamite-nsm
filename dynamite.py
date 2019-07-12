@@ -33,10 +33,10 @@ def _parse_cmdline():
 
 
 if __name__ == '__main__':
-    args = _parse_cmdline()
     if not utilities.is_root():
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
+    args = _parse_cmdline()
     if args.command == 'point':
         if args.component == 'agent':
             agent.point_agent(args.host, args.port)
@@ -51,13 +51,13 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
-            if elasticsearch.install_elasticsearch():
+            if elasticsearch.install_elasticsearch(stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
                 sys.stderr.write(['[-] Failed to install ElasticSearch.\n'])
                 sys.exit(1)
         elif args.component == 'logstash':
-            if logstash.install_logstash():
+            if logstash.install_logstash(stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
                 sys.stderr.write(['[-] Failed to install Logstash.\n'])

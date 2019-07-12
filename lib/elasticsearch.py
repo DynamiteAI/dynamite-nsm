@@ -534,11 +534,12 @@ class ElasticProcess:
         return {
             'PID': self.pid,
             'RUNNING': utilities.check_pid(self.pid),
+            'USER': 'dynamite',
             'LOGS': log_path
         }
 
 
-def install_elasticsearch():
+def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=False):
     """
     Install ElasticSearch/ElastiFlow with default directories
     :return: True, if successfully installed
@@ -550,10 +551,12 @@ def install_elasticsearch():
         return False
     try:
         es_installer = ElasticInstaller()
-        utilities.download_java(stdout=True)
-        utilities.extract_java(stdout=True)
-        utilities.setup_java()
-        utilities.create_dynamite_user('password')
+        if install_jdk:
+            utilities.download_java(stdout=True)
+            utilities.extract_java(stdout=True)
+            utilities.setup_java()
+        if create_dynamite_user:
+            utilities.create_dynamite_user('password')
         es_installer.download_elasticsearch(stdout=True)
         es_installer.extract_elasticsearch(stdout=True)
         es_installer.setup_elasticsearch(stdout=True)
@@ -561,7 +564,8 @@ def install_elasticsearch():
         sys.stderr.write('[-] A fatal error occurred while attempting to install ElasticSearch: ')
         traceback.print_exc(file=sys.stderr)
         return False
-    sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
-    sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
+    if stdout:
+        sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
+        sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
     sys.stdout.flush()
     return True

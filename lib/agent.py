@@ -45,9 +45,17 @@ def install_agent(network_interface, agent_label, logstash_target):
     else:
         sys.stdout.write('[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
 
-    sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite.py start agent\'.\n')
-    sys.stdout.flush()
-    return zeek_profiler.is_installed and filebeat_profiler.is_installed
+    pf_ring_post_install_profiler = pf_ring.PFRingProfiler()
+    zeek_post_install_profiler = zeek.ZeekProfiler()
+    filebeat_post_install_profiler = filebeat.FileBeatProfiler()
+    if not pf_ring_post_install_profiler.is_running:
+        sys.stderr.write('[-] PF_RING kernel module was not loaded properly.\n')
+        return False
+    if zeek_post_install_profiler.is_installed and filebeat_post_install_profiler.is_installed:
+        sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite.py start agent\'.\n')
+        sys.stdout.flush()
+        return True
+    return False
 
 
 def point_agent(host, port):
@@ -84,6 +92,10 @@ def start_agent():
     Start the Zeek (BroCtl) and FileBeats processes
     :return: True, if started successfully
     """
+    pf_ring_profiler = pf_ring.PFRingProfiler(stderr=True)
+    if not pf_ring_profiler.is_running:
+        sys.stderr.write('[-] PF_RING kernel modules were not loaded. You may need to re-install the agent.\n')
+        return False
     sys.stdout.write('[+] Starting agent processes.\n')
     zeek_p = zeek.ZeekProcess()
     if not zeek_p.start(stdout=True):
