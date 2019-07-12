@@ -3,7 +3,6 @@ import pwd
 import grp
 import sys
 import crypt
-import errno
 import socket
 import shutil
 import tarfile
@@ -185,12 +184,7 @@ def is_root():
 
     :return: True, if the user is root
     """
-    try:
-        os.rename('/etc/foo', '/etc/bar')
-    except IOError as e:
-        if e[0] == errno.EPERM:
-            return False
-    return True
+    return os.getuid() == 0
 
 
 def setup_java():
