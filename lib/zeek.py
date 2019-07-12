@@ -453,6 +453,13 @@ class ZeekProfiler:
             return False
         return True
 
+    def get_profile(self):
+        return {
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running,
+        }
+
     @staticmethod
     def _is_running():
         env_dict = utilities.get_environment_file_dict()

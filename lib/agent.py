@@ -110,6 +110,17 @@ def prepare_agent():
     return True
 
 
+def profile_agent():
+    pf_ring_profiler = pf_ring.PFRingProfiler()
+    filebeat_profiler = filebeat.FileBeatProfiler()
+    zeek_profiler = zeek.ZeekProfiler()
+    return dict(
+        PF_RING=pf_ring_profiler.get_profile(),
+        FILEBEAT=filebeat_profiler.get_profile(),
+        ZEEK=zeek_profiler.get_profile()
+    )
+
+
 def start_agent():
     """
     Start the Zeek (BroCtl) and FileBeats processes

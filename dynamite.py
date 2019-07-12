@@ -1,7 +1,6 @@
 import sys
 import json
 import argparse
-import subprocess
 
 from lib import agent
 from lib import logstash
@@ -182,6 +181,14 @@ if __name__ == '__main__':
             es_profiler = elasticsearch.ElasticProfiler(stderr=True)
             sys.stdout.write(str(es_profiler) + '\n')
             sys.exit(0)
+        elif args.component == 'agent':
+            profile_result = agent.profile_agent()
+            sys.stdout.write('[+]  PF_RING.INSTALLED: {}'.format(profile_result['PF_RING']['INSTALLED']))
+            sys.stdout.write('[+]    PF_RING.RUNNING: {}'.format(profile_result['PF_RING']['RUNNING']))
+            sys.stdout.write('[+]     ZEEK.INSTALLED: {}'.format(profile_result['ZEEK']['INSTALLED']))
+            sys.stdout.write('[+]       ZEEK.RUNNING: {}'.format(profile_result['ZEEK']['RUNNING']))
+            sys.stdout.write('[+] FILEBEAT.INSTALLED: {}'.format(profile_result['FILEBEAT']['INSTALLED']))
+            sys.stdout.write('[+]   FILEBEAT.RUNNING: {}'.format(profile_result['FILEBEAT']['RUNNING']))
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

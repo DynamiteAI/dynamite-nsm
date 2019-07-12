@@ -207,6 +207,13 @@ class FileBeatProfiler:
             return FileBeatProcess(install_directory=filebeat_home).status()['RUNNING']
         return False
 
+    def get_profile(self):
+        return {
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running,
+        }
+
 
 class FileBeatProcess:
 
