@@ -12,7 +12,9 @@ INSTALL_DIRECTORY = '/etc/dynamite/logstash/elastiflow/'
 
 
 class ElastiflowConfigurator:
-
+    """
+    A configuration interface for ElastiFlow
+    """
     def __init__(self):
         self.netflow_ipv4_host = '0.0.0.0'
         self.netflow_ipv6_host = '[::]'

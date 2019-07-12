@@ -335,7 +335,9 @@ class ZeekInstaller:
             return pkt_mng.install_packages(packages)
         return False
 
-    def setup_zeek(self, stdout=False):
+    def setup_zeek(self, network_interface=None, stdout=False):
+        if not network_interface:
+            network_interface = utilities.get_network_interface_names()[0]
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -386,7 +388,7 @@ class ZeekInstaller:
         for i, cpu_group in enumerate(workers_cpu_grps):
             node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
                                    host='localhost',
-                                   interface=utilities.get_network_interface_names()[0],
+                                   interface=network_interface,
                                    lb_procs=10,
                                    pin_cpus=cpu_group
                                    )

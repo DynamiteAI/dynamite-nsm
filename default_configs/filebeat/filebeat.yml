@@ -42,7 +42,7 @@ filebeat.config.modules:
 #----------------------------- Logstash output --------------------------------
 output.logstash:
   # The Logstash hosts
-   hosts: "localhost:5044"
+   hosts: ["localhost:5044"]
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications

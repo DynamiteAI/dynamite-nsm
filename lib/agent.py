@@ -5,21 +5,29 @@ from lib import pf_ring
 from lib import filebeat
 
 
-def install_agent():
+def install_agent(network_interface, agent_label, logstash_target):
     """
-    Installs the required agent components to module default directories
+    :param interface: The network interface that the agent should analyze traffic on
+    :param agent_label: A descriptive label representing the
+    segment/location on your network that your agent is monitoring
+    :param logstash_target: The host port combination for the target Logstash server (E.G "localhost:5044")
+    :return: True, if install succeeded
     """
     zeek_installer = zeek.ZeekInstaller()
     if not zeek_installer.install_dependencies():
         sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
-        sys.exit(1)
+        return False
     zeek_installer.download_zeek(stdout=True)
     zeek_installer.extract_zeek(stdout=True)
-    zeek_installer.setup_zeek(stdout=True)
+    zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
     filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_installer.download_filebeat(stdout=True)
     filebeat_installer.extract_filebeat(stdout=True)
     filebeat_installer.setup_filebeat(stdout=True)
+    filebeat_config = filebeat.FileBeatConfigurator()
+    filebeat_config.set_logstash_targets([logstash_target])
+    filebeat_config.set_agent_tag(agent_label)
+    return True
 
 
 def point_agent(host, port):

@@ -16,8 +16,19 @@ def _parse_cmdline():
                         help='An action to perform [prepare|install|start|stop|status]')
     parser.add_argument('component', metavar='component', type=str,
                         help='The component to perform an action against [agent|logstash|elasticsearch]')
-    parser.add_argument('--host', type=str, dest='host', required='point' in sys.argv, help='A valid Ipv4/Ipv6 address or hostname')
-    parser.add_argument('--port', type=int, dest='port', required='point' in sys.argv, help='A valid port [1-65535]')
+    parser.add_argument('--interface', type=str, dest='network_interface', required='install' in sys.argv
+                                                                            and 'agent' in sys.argv,
+                        help='A network interface to analyze traffic on.')
+    parser.add_argument('--host', type=str, dest='interface', required=('point' in sys.argv)
+                                                                  or ('install' in sys.argv and 'agent' in sys.argv),
+                        help='A valid Ipv4/Ipv6 address or hostname')
+    parser.add_argument('--agent-label', type=str, dest='agent_label', required='install' in sys.argv and 'agent' in sys.argv,
+                        help='A descriptive label associated with the agent. '
+                             'This could be a location on your network (VLAN01),'
+                             'or the types of servers on a segment (E.G Workstations-US-1).')
+    parser.add_argument('--port', type=int, dest='port', required=('point' in sys.argv)
+                                                                  or ('install' in sys.argv and 'agent' in sys.argv)
+                        , help='A valid port [1-65535]')
     return parser.parse_args()
 
 
@@ -52,7 +63,8 @@ if __name__ == '__main__':
                 sys.stderr.write(['[-] Failed to install Logstash.\n'])
                 sys.exit(1)
         elif args.component == 'agent':
-            agent.install_agent()
+            agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
+                                logstash_target='{}:{}'.format(args.host, args.port))
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

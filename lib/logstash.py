@@ -316,9 +316,11 @@ class LogstashInstaller:
         if stdout:
             sys.stdout.write('[+] Installing Logstash plugins\n')
             sys.stdout.flush()
-        subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-sflow'.format(
+            utilities.get_environment_file_str(), self.install_directory),
                         shell=True)
-        subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-input-beats'.format(
+            utilities.get_environment_file_str(), self.install_directory),
                         shell=True)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
