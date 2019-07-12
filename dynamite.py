@@ -30,7 +30,7 @@ def _parse_cmdline():
     parser.add_argument('--port', type=int, dest='port', required=('point' in sys.argv)
                                                                   or ('install' in sys.argv and 'agent' in sys.argv)
                         , help='A valid port [1-65535]')
-    parser.add_argument('--debug', type=str, default=False, dest='debug', action='store_true',
+    parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
     return parser.parse_args()
 
