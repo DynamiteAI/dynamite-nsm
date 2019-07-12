@@ -26,8 +26,8 @@ class FileBeatConfigurator:
     def _parse_filebeatyaml(self):
         for line in open(os.path.join(self.install_directory, 'filebeat.yml')).readlines():
             if not line.startswith('#') and ':' in line:
-                if line.strip().startswith('"originating_agent_tag"'):
-                    self.agent_tag = line.split(':')[1].strip()[1:-1]
+                if '"originating_agent_tag"' in line.strip():
+                    self.agent_tag = line.split(':')[2].strip()[1:-1]
                 elif 'hosts:' in line:
                     self.logstash_targets = list(json.loads(line.replace('hosts:', '').strip()))
                 elif 'paths:' in line:
