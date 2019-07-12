@@ -201,10 +201,6 @@ def setup_java():
         shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
     except shutil.Error as e:
         sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
-    try:
-        os.symlink('/usr/lib/jvm/jdk-11.0.2/bin/java', '/usr/bin/java')
-    except Exception as e:
-        sys.stderr.write('[-] Java Sym-link already exists at path specified. [{}]\n'.format(e))
     if 'JAVA_HOME' not in open('/etc/environment').read():
         subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
 

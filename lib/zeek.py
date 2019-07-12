@@ -338,6 +338,11 @@ class ZeekInstaller:
     def setup_zeek(self, network_interface=None, stdout=False):
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
+        if network_interface not in utilities.get_network_interface_names():
+            sys.stderr.write(
+                '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
+                    network_interface, utilities.get_network_interface_names()))
+            return False
         if stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
@@ -351,7 +356,8 @@ class ZeekInstaller:
         pf_ring_install.extract_pf_ring(stdout=True)
         pf_ring_install.setup_pf_ring(stdout=True)
         if stdout:
-            sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.')
+            sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.'
+                             '\n\n')
             sys.stdout.flush()
             time.sleep(5)
         subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(

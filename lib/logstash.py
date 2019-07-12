@@ -440,6 +440,14 @@ class LogstashProcess:
 
 
 def install_logstash(install_jdk=True, create_dynamite_user=True, stdout=False):
+    """
+    Install Logstash/ElastiFlow
+
+    :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
+    :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
+    :param stdout: Print the output to console
+    :return: True, if installation succeeded
+    """
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1024 ** 3)

@@ -1,6 +1,7 @@
 import sys
 import json
 import argparse
+import traceback
 
 from lib import agent
 from lib import logstash
@@ -30,6 +31,15 @@ def _parse_cmdline():
                                                                   or ('install' in sys.argv and 'agent' in sys.argv)
                         , help='A valid port [1-65535]')
     return parser.parse_args()
+
+
+def _fatal_exception(action, component, debug=False):
+    message = '{}.{} failed. Is it installed?.\n' \
+              '\'dynamite.py install {}\'.\n'.format(action, component, component)
+    if args.debug:
+        sys.stderr.write(message + '\nDebug:')
+        traceback.print_exc(file=sys.stderr)
+    sys.exit(1)
 
 
 if __name__ == '__main__':
@@ -70,126 +80,168 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'start':
+
         if args.component == 'agent':
-            if agent.start_agent():
-                sys.exit(0)
-            else:
-                sys.stderr.write('[-] Failed to start agent.')
-                sys.exit(1)
+            try:
+                if agent.start_agent():
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] Failed to start agent.')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('start', 'agent', args.debug)
         elif args.component == 'elasticsearch':
-            sys.stdout.write('[+] Starting ElasticSearch.\n')
-            started = elasticsearch.ElasticProcess().start(stdout=True)
-            if started:
-                sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
-                                 '\'dynamite.py status elasticsearch\'.\n')
-                sys.exit(0)
-            else:
-                sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
-                sys.exit(1)
+            try:
+                sys.stdout.write('[+] Starting ElasticSearch.\n')
+                started = elasticsearch.ElasticProcess().start(stdout=True)
+                if started:
+                    sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
+                                     '\'dynamite.py status elasticsearch\'.\n')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('start', 'elasticsearch', args.debug)
         elif args.component == 'logstash':
-            sys.stdout.write('[+] Starting LogStash\n')
-            started = logstash.LogstashProcess().start(stdout=True)
-            if started:
-                sys.stdout.write('[+] LogStash started successfully. Check its status at any time with: '
-                                 '\'dynamite.py status logstash\'.\n')
-                sys.exit(0)
-            else:
-                sys.stderr.write('[-] An error occurred while attempting to start LogStash.\n')
-                sys.exit(1)
+            try:
+                sys.stdout.write('[+] Starting LogStash\n')
+                started = logstash.LogstashProcess().start(stdout=True)
+                if started:
+                    sys.stdout.write('[+] LogStash started successfully. Check its status at any time with: '
+                                     '\'dynamite.py status logstash\'.\n')
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] An error occurred while attempting to start LogStash.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('start', 'logstash', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'status':
-        if args.component == 'agent':
-            zeek_status, other_processes = agent.status_agent()
-            sys.stdout.write(zeek_status)
-            sys.stdout.write(json.dumps(other_processes, indent=1))
-            sys.stdout.flush()
-            sys.exit(0)
-        elif args.component == 'elasticsearch':
-            sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
-            sys.exit(0)
-        elif args.component == 'logstash':
-            sys.stdout.write(json.dumps(logstash.LogstashProcess().status(), indent=1) + '\n')
-        else:
-            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
-            sys.exit(1)
+            if args.component == 'agent':
+                try:
+                    zeek_status, other_processes = agent.status_agent()
+                    sys.stdout.write(zeek_status)
+                    sys.stdout.write(json.dumps(other_processes, indent=1))
+                    sys.stdout.flush()
+                    sys.exit(0)
+                except Exception:
+                    _fatal_exception('status', 'agent', args.debug)
+            elif args.component == 'elasticsearch':
+                try:
+                    sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
+                    sys.exit(0)
+                except Exception:
+                    _fatal_exception('status', 'elasticsearch', args.debug)
+            elif args.component == 'logstash':
+                try:
+                    sys.stdout.write(json.dumps(logstash.LogstashProcess().status(), indent=1) + '\n')
+                except Exception:
+                    _fatal_exception('status', 'logstash', args.debug)
+            else:
+                sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+                sys.exit(1)
     elif args.command == 'stop':
         if args.component == 'agent':
-            if agent.stop_agent():
-                sys.exit(0)
-            else:
-                sys.stderr.write('[-] Failed to stop agent.')
+            try:
+                if agent.stop_agent():
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] Failed to stop agent.')
+            except Exception:
+                _fatal_exception('stop', 'agent', args.debug)
         elif args.component == 'elasticsearch':
-            sys.stdout.write('[+] Stopping ElasticSearch.\n')
-            stopped = elasticsearch.ElasticProcess().stop(stdout=True)
-            if stopped:
-                sys.stdout.write('[+] ElasticSearch stopped successfully.\n')
-                sys.exit(0)
-            else:
-                sys.stdout.write('[-] An error occurred while attempting to stop ElasticSearch.\n')
-                sys.exit(1)
+            try:
+                sys.stdout.write('[+] Stopping ElasticSearch.\n')
+                stopped = elasticsearch.ElasticProcess().stop(stdout=True)
+                if stopped:
+                    sys.stdout.write('[+] ElasticSearch stopped successfully.\n')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] An error occurred while attempting to stop ElasticSearch.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('stop', 'elasticsearch', args.debug)
         elif args.component == 'logstash':
-            sys.stdout.write('[+] Stopping LogStash.\n')
-            stopped = logstash.LogstashProcess().stop(stdout=True)
-            if stopped:
-                sys.stdout.write('[+] LogStash stopped successfully.\n')
-                sys.exit(0)
-            else:
-                sys.stdout.write('[-] An error occurred while attempting to stop LogStash.\n')
-                sys.exit(1)
+            try:
+                sys.stdout.write('[+] Stopping LogStash.\n')
+                stopped = logstash.LogstashProcess().stop(stdout=True)
+                if stopped:
+                    sys.stdout.write('[+] LogStash stopped successfully.\n')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] An error occurred while attempting to stop LogStash.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('stop', 'logstash', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'restart':
         if args.component == 'agent':
-            if agent.stop_agent():
-                if agent.start_agent():
-                    sys.stdout.write('[+] Agent restarted successfully.\n')
+            try:
+                if agent.stop_agent():
+                    if agent.start_agent():
+                        sys.stdout.write('[+] Agent restarted successfully.\n')
+                        sys.exit(0)
+                    else:
+                        sys.stdout.write('[-] Agent failed to start.\n')
+                        sys.exit(1)
+                else:
+                    sys.stdout.write('[-] Agent failed to stop.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('restart', 'agent', args.debug)
+        elif args.component == 'elasticsearch':
+            try:
+                sys.stdout.write('[+] Restarting ElasticSearch.\n')
+                restarted = elasticsearch.ElasticProcess().restart(stdout=True)
+                if restarted:
+                    sys.stdout.write('[+] ElasticSearch restarted successfully.\n')
                     sys.exit(0)
                 else:
-                    sys.stdout.write('[-] Agent failed to start.\n')
-                    sys.exit(1)
-            else:
-                sys.stdout.write('[-] Agent failed to stop.\n')
-                sys.exit(1)
-
-        elif args.component == 'elasticsearch':
-            sys.stdout.write('[+] Restarting ElasticSearch.\n')
-            restarted = elasticsearch.ElasticProcess().restart(stdout=True)
-            if restarted:
-                sys.stdout.write('[+] ElasticSearch restarted successfully.\n')
-                sys.exit(0)
-            else:
-                sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
-                sys.exit(0)
+                    sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
+                    sys.exit(0)
+            except Exception:
+                _fatal_exception('restart', 'elasticsearch', args.debug)
         elif args.component == 'logstash':
-            sys.stdout.write('[+] Restarting LogStash.\n')
-            restarted = logstash.LogstashProcess().restart(stdout=True)
-            if restarted:
-                sys.stdout.write('[+] LogStash restarted successfully.\n')
-                sys.exit(0)
-            else:
-                sys.stdout.write('[-] An error occurred while attempting to start LogStash.\n')
-                sys.exit(1)
+            try:
+                sys.stdout.write('[+] Restarting LogStash.\n')
+                restarted = logstash.LogstashProcess().restart(stdout=True)
+                if restarted:
+                    sys.stdout.write('[+] LogStash restarted successfully.\n')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] An error occurred while attempting to start LogStash.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('restart', 'logstash', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'profile':
         if args.component == 'elasticsearch':
-            sys.stdout.write('[+] Profiling ElasticSearch.\n')
-            es_profiler = elasticsearch.ElasticProfiler(stderr=True)
-            sys.stdout.write(str(es_profiler) + '\n')
-            sys.exit(0)
+            try:
+                sys.stdout.write('[+] Profiling ElasticSearch.\n')
+                es_profiler = elasticsearch.ElasticProfiler(stderr=True)
+                sys.stdout.write(str(es_profiler) + '\n')
+                sys.exit(0)
+            except Exception:
+                _fatal_exception('profile', 'elasticsearch', args.debug)
         elif args.component == 'agent':
-            profile_result = agent.profile_agent()
-            sys.stdout.write('[+]  PF_RING.INSTALLED: {}\n'.format(profile_result['PF_RING']['INSTALLED']))
-            sys.stdout.write('[+]    PF_RING.RUNNING: {}\n'.format(profile_result['PF_RING']['RUNNING']))
-            sys.stdout.write('[+]     ZEEK.INSTALLED: {}\n'.format(profile_result['ZEEK']['INSTALLED']))
-            sys.stdout.write('[+]       ZEEK.RUNNING: {}\n'.format(profile_result['ZEEK']['RUNNING']))
-            sys.stdout.write('[+] FILEBEAT.INSTALLED: {}\n'.format(profile_result['FILEBEAT']['INSTALLED']))
-            sys.stdout.write('[+]   FILEBEAT.RUNNING: {}\n'.format(profile_result['FILEBEAT']['RUNNING']))
-            sys.stdout.flush()
+            try:
+                profile_result = agent.profile_agent()
+                sys.stdout.write('[+]  PF_RING.INSTALLED: {}\n'.format(profile_result['PF_RING']['INSTALLED']))
+                sys.stdout.write('[+]    PF_RING.RUNNING: {}\n'.format(profile_result['PF_RING']['RUNNING']))
+                sys.stdout.write('[+]     ZEEK.INSTALLED: {}\n'.format(profile_result['ZEEK']['INSTALLED']))
+                sys.stdout.write('[+]       ZEEK.RUNNING: {}\n'.format(profile_result['ZEEK']['RUNNING']))
+                sys.stdout.write('[+] FILEBEAT.INSTALLED: {}\n'.format(profile_result['FILEBEAT']['INSTALLED']))
+                sys.stdout.write('[+]   FILEBEAT.RUNNING: {}\n'.format(profile_result['FILEBEAT']['RUNNING']))
+                sys.stdout.flush()
+            except Exception:
+                _fatal_exception('profile', 'agent', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
