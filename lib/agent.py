@@ -15,22 +15,39 @@ def install_agent(network_interface, agent_label, logstash_target):
     """
     zeek_installer = zeek.ZeekInstaller()
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
-    if not zeek_installer.install_dependencies():
-        sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
+    filebeat_installer = filebeat.FileBeatInstaller()
+    filebeat_profiler = filebeat.FileBeatProfiler()
+    if zeek_profiler.is_running or filebeat_profiler.is_running:
+        sys.stderr.write('[-] Please stop the agent before attempting re-installation.\n')
         return False
     if not zeek_profiler.is_downloaded:
         zeek_installer.download_zeek(stdout=True)
         zeek_installer.extract_zeek(stdout=True)
+    else:
+        sys.stdout.write('[+] Zeek has already been downloaded to local cache. Skipping Zeek Download.\n')
     if not zeek_profiler.is_installed:
+        if not zeek_installer.install_dependencies():
+            sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
+            return False
         zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
-    filebeat_installer = filebeat.FileBeatInstaller()
-    filebeat_installer.download_filebeat(stdout=True)
-    filebeat_installer.extract_filebeat(stdout=True)
-    filebeat_installer.setup_filebeat(stdout=True)
-    filebeat_config = filebeat.FileBeatConfigurator()
-    filebeat_config.set_logstash_targets([logstash_target])
-    filebeat_config.set_agent_tag(agent_label)
-    return True
+    else:
+        sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
+    if not filebeat_profiler.is_downloaded:
+        filebeat_installer.download_filebeat(stdout=True)
+        filebeat_installer.extract_filebeat(stdout=True)
+    else:
+        sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
+    if not filebeat_profiler.is_installed:
+        filebeat_installer.setup_filebeat(stdout=True)
+        filebeat_config = filebeat.FileBeatConfigurator()
+        filebeat_config.set_logstash_targets([logstash_target])
+        filebeat_config.set_agent_tag(agent_label)
+    else:
+        sys.stdout.write('[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
+
+    sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite.py start agent\'.\n')
+    sys.stdout.flush()
+    return zeek_profiler.is_installed and filebeat_profiler.is_installed
 
 
 def point_agent(host, port):
