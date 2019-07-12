@@ -91,7 +91,7 @@ def prepare_agent():
 
     :return: True, if successfully prepared
     """
-    if not is_agent_environment_prepared():
+    if is_agent_environment_prepared():
         agent_preparation_date = open('/opt/dynamite/.agent_environment_prepared').read()
         sys.stderr.write('[-] This environment has already been prepared ({}). '
                          'You can proceed with agent installation.\n'.format(agent_preparation_date))
