@@ -19,7 +19,7 @@ def _parse_cmdline():
     parser.add_argument('--interface', type=str, dest='network_interface', required='install' in sys.argv
                                                                             and 'agent' in sys.argv,
                         help='A network interface to analyze traffic on.')
-    parser.add_argument('--host', type=str, dest='interface', required=('point' in sys.argv)
+    parser.add_argument('--host', type=str, dest='host', required=('point' in sys.argv)
                                                                   or ('install' in sys.argv and 'agent' in sys.argv),
                         help='A valid Ipv4/Ipv6 address or hostname')
     parser.add_argument('--agent-label', type=str, dest='agent_label', required='install' in sys.argv and 'agent' in sys.argv,
