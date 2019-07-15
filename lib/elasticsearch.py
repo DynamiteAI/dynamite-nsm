@@ -426,6 +426,8 @@ class ElasticProfiler:
             return False
         host = es_config.get_network_host()
         port = es_config.get_network_port()
+        if host.strip() == '0.0.0.0':
+            host = 'localhost'
         return utilities.check_socket(host, port)
 
 
