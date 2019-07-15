@@ -52,14 +52,14 @@ class KibanaAPIConfigurator:
         with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
                                const.ELASTIFLOW_DASHBOARDS_CONFIG)) as kibana_dashboards_obj:
             kibana_objects = json.loads(kibana_dashboards_obj.read())
-            for i, k_objects in enumerate(chunks(kibana_objects, len(kibana_objects)/4)):
+            for i, k_objects_chunk in enumerate(chunks(kibana_objects, len(kibana_objects)/4)):
                 try:
                     url_request = Request(
                         url='http://{}:{}/api/kibana/dashboards/import'.format(
                             self.kibana_config.get_server_host(),
                             self.kibana_config.get_server_port()
                         ),
-                        data=json.dumps(kibana_objects),
+                        data=json.dumps(k_objects_chunk),
                         headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
                     )
                     response = urlopen(url_request)
