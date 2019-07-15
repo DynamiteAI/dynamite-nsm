@@ -125,6 +125,19 @@ if __name__ == '__main__':
                     sys.exit(1)
             except Exception:
                 _fatal_exception('start', 'logstash', args.debug)
+        elif args.component == 'kibana':
+            try:
+                sys.stdout.write('[+] Starting Kibana\n')
+                started = kibana.KibanaProcess().start(stdout=True)
+                if started:
+                    sys.stdout.write('[+] Kibana started successfully. Check its status at any time with: '
+                                     '\'dynamite.py status kibana\'.\n')
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] An error occurred while attempting to start LogStash.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('start', 'logstash', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

@@ -35,7 +35,7 @@ class ElasticConfigurator:
 
     def _parse_elasticyaml(self):
         """
-        Parse elasticsearch.yaml, return a object representing the config
+        Parse elasticsearch.yml, return a object representing the config
         :return: A dictionary of config options and their values
         """
         es_config_options = {}
@@ -146,17 +146,17 @@ class ElasticConfigurator:
         """
         self.es_config_options['cluster.name'] = name
 
-    def set_network_host(self, host):
+    def set_network_host(self, host='localhost'):
         """
         :param host: The IP address for ElasticSearch service to listen on
         """
         self.es_config_options['network.host'] = host
 
-    def set_network_port(self, port):
+    def set_network_port(self, port=9200):
         """
         :param port: The port number of the for ElasticSearch service to listen on
         """
-        self.es_config_options['http.port'] = port
+        self.es_config_options['http.port'] = str(port)
 
     def set_node_name(self, name):
         """
@@ -324,6 +324,8 @@ class ElasticInstaller:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
+        es_config.set_network_host('0.0.0.0')
+        es_config.set_network_port(9200)
         es_config.write_configs()
         if stdout:
             sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
@@ -447,7 +449,7 @@ class ElasticProcess:
         """
         Start the ElasticSearch process
         :param stdout: Print output to console
-        :return: True if started successfully
+        :return: True, if started successfully
         """
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "{} {}/bin/elasticsearch '

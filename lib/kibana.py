@@ -1,9 +1,14 @@
 import os
 import sys
+import time
+import json
 import shutil
+import signal
 import tarfile
 import traceback
 import subprocess
+
+from multiprocessing import Process
 
 from lib import const
 from lib import utilities
@@ -11,6 +16,75 @@ from lib import utilities
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
 CONFIGURATION_DIRECTORY = '/etc/dynamite/kibana/'
 LOG_DIRECTORY = '/var/log/dynamite/kibana/'
+
+
+class KibanaConfigurator:
+
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        self.configuration_directory = configuration_directory
+        self.kb_config_options = self._parse_kibanayaml()
+        self.kibana_home = None
+        self.kibana_path_conf = None
+        self.kibana_logs = None
+        self._parse_environment_file()
+
+    def _parse_kibanayaml(self):
+        """
+        Parse kibana.yml, return a object representing the config
+        :return: A dictionary of config options and their values
+        """
+        kb_config_options = {}
+        for line in open(os.path.join(self.configuration_directory, 'kibana.yml')).readlines():
+            if not line.startswith('#') and ':' in line:
+                k, v = line.strip().split(':')
+                kb_config_options[k] = str(v).strip()
+        return kb_config_options
+
+    def _parse_environment_file(self):
+        """
+        Parses the /etc/environment file and returns results for JAVA_HOME, KIBANA_PATH_CONF, KIBANA_HOME; KIBANA_LOGS
+        stores the results in class variables of the same name
+        """
+        for line in open('/etc/environment').readlines():
+            if line.startswith('JAVA_HOME'):
+                self.java_home = line.split('=')[1].strip()
+            elif line.startswith('KIBANA_PATH_CONF'):
+                self.kibana_path_conf = line.split('=')[1].strip()
+            elif line.startswith('KIBANA_HOME'):
+                self.kibana_home = line.split('=')[1].strip()
+            elif line.startswith('KIBANA_LOGS'):
+                self.kibana_logs = line.split('=')[1].strip()
+
+    def set_server_host(self, host='0.0.0.0'):
+        """
+        :param host: The IP address for Kibana service to listen on
+        """
+        self.kb_config_options['server.host'] = host
+
+    def set_server_port(self, port=5601):
+        """
+        :param port: The port number of the for Kibana service to listen on
+        """
+        self.kb_config_options['server.port'] = str(port)
+
+    def set_elasticsearch_hosts(self, host_list):
+        """
+        :param host_list: A list of ElasticSearch hosts for Kibana to connect too
+        """
+        self.kb_config_options['elasticsearch.hosts'] = json.dumps(host_list)
+
+    def write_configs(self):
+        """
+        Write (and backs-up) kibana.yml configuration
+        """
+        timestamp = int(time.time())
+        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
+        kibana_config_backup = os.path.join(backup_configurations, 'kibana.yml.backup.{}'.format(timestamp))
+        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        shutil.move(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
+        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'a') as kibana_search_config_obj:
+            for k, v in self.kb_config_options.items():
+                kibana_search_config_obj.write('{}: {}\n'.format(k, v))
 
 
 class KibanaInstaller:
@@ -86,6 +160,144 @@ class KibanaInstaller:
                             self.install_directory)
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+        if 'KIBANA_PATH_CONF' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Kibana default configuration path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo KIBANA_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
+                            shell=True)
+        if 'KIBANA_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Kibana default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo KIBANA_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
+        if 'KIBANA_LOGS' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Kibana default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo KIBANA_LOGS="{}" >> /etc/environment'.format(self.log_directory),
+                            shell=True)
+        if stdout:
+            sys.stdout.write('[+] Overwriting default configuration.\n')
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'kibana', 'kibana.yml'),
+                    self.configuration_directory)
+
+        utilities.set_ownership_of_file('/etc/dynamite/')
+        utilities.set_ownership_of_file('/opt/dynamite/')
+        utilities.set_ownership_of_file('/var/log/dynamite')
+
+
+class KibanaProcess:
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        """
+
+        self.configuration_directory = configuration_directory
+        self.config = KibanaConfigurator(self.configuration_directory)
+        try:
+            self.pid = int(open('/var/run/dynamite/kibana/kibana.pid').read())
+        except (IOError, ValueError):
+            self.pid = -1
+
+    def start(self, stdout=False):
+        """
+        Start the Kibana process
+        :param stdout: Print output to console
+        :return: True, if started successfully
+        """
+        def start_shell_out():
+            subprocess.call('runuser -l dynamite -c "{} {}/bin/kibana '
+                            '-c {} &>/dev/null &"'.format(
+                                utilities.get_environment_file_str(),
+                                self.config.kibana_home,
+                                os.path.join(self.config.kibana_path_conf, 'kibana.yml')
+                            ), shell=True)
+        if not os.path.exists('/var/run/dynamite/kibana/'):
+            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
+            utilities.set_ownership_of_file('/var/run/dynamite')
+
+        if not utilities.check_pid(self.pid):
+            Process(target=start_shell_out).start()
+        else:
+            sys.stderr.write('[-] Kibana is already running on PID [{}]\n'.format(self.pid))
+            return True
+        retry = 0
+        self.pid = -1
+        time.sleep(5)
+        while retry < 6:
+            start_message = '[+] [Attempt: {}] Starting Kibana on PID [{}]\n'.format(retry + 1, self.pid)
+            try:
+                with open('/var/run/dynamite/kibana/kibana.pid') as f:
+                    self.pid = int(f.read())
+                start_message = '[+] [Attempt: {}] Starting Kibana on PID [{}]\n'.format(retry + 1, self.pid)
+                if stdout:
+                    sys.stdout.write(start_message)
+                if not utilities.check_pid(self.pid):
+                    retry += 1
+                    time.sleep(5)
+                else:
+                    return True
+            except IOError:
+                if stdout:
+                    sys.stdout.write(start_message)
+                retry += 1
+                time.sleep(3)
+        return False
+
+    def stop(self, stdout=False):
+        """
+        Stop the Kibana process
+
+        :param stdout: Print output to console
+        :return: True if stopped successfully
+        """
+        alive = True
+        attempts = 0
+        while alive:
+            try:
+                if stdout:
+                    sys.stdout.write('[+] Attempting to stop Kibana [{}]\n'.format(self.pid))
+                if attempts > 3:
+                    sig_command = signal.SIGKILL
+                else:
+                    # Kill the zombie after the third attempt of asking it to kill itself
+                    sig_command = signal.SIGTERM
+                attempts += 1
+                os.kill(self.pid, sig_command)
+                time.sleep(1)
+
+                alive = utilities.check_pid(self.pid)
+            except Exception as e:
+                sys.stderr.write('[-] An error occurred while attempting to stop Kibana: {}\n'.format(e))
+                return False
+        return True
+
+    def restart(self, stdout=False):
+        """
+        Restart the Kibana process
+
+        :param stdout: Print output to console
+        :return: True if started successfully
+        """
+        self.stop(stdout=stdout)
+        return self.start(stdout=stdout)
+
+    def status(self):
+        """
+        Check the status of the ElasticSearch process
+
+        :return: A dictionary containing the run status and relevant configuration options
+        """
+        log_path = os.path.join(self.config.get_log_path(), self.config.get_cluster_name() + '.log')
+
+        return {
+            'PID': self.pid,
+            'RUNNING': utilities.check_pid(self.pid),
+            'USER': 'dynamite',
+            'LOGS': log_path
+        }
 
 
 def install_kibana(install_jdk=True, create_dynamite_user=True, stdout=False):
@@ -93,7 +305,8 @@ def install_kibana(install_jdk=True, create_dynamite_user=True, stdout=False):
     Install Kibana/ElastiFlow Dashboards
 
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
-    :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
+    :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run
+    Logstash/ElasticSearch/Kibana
     :param stdout: Print the output to console
     :return: True, if installation succeeded
     """
@@ -114,7 +327,7 @@ def install_kibana(install_jdk=True, create_dynamite_user=True, stdout=False):
         kb_installer.extract_kibana(stdout=True)
         kb_installer.setup_kibana(stdout=True)
     except Exception:
-        sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
+        sys.stderr.write('[-] A fatal error occurred while attempting to install Kibana: ')
         traceback.print_exc(file=sys.stderr)
         return False
     if stdout:
