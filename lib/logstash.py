@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import json
 import signal
 import shutil
 import tarfile
@@ -325,6 +326,78 @@ class LogstashInstaller:
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
+
+
+class LogstashProfiler:
+
+    def __init__(self, stderr=False):
+        self.is_downloaded = self._is_downloaded(stderr=stderr)
+        self.is_installed = self._is_installed(stderr=stderr)
+        self.is_configured = self._is_configured(stderr=stderr)
+        self.is_running = self._is_running()
+
+    def __str__(self):
+        return json.dumps({
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'CONFIGURED': self.is_configured,
+            'RUNNING': self.is_running,
+        }, indent=1)
+
+    @staticmethod
+    def _is_downloaded(stderr=False):
+        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME)):
+            if stderr:
+                sys.stderr.write('[-] Logstash installation archive could not be found.\n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_installed(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        ls_home = env_dict.get('LS_HOME')
+        if not ls_home:
+            if stderr:
+                sys.stderr.write('[-] LogStash installation directory could not be located in /etc/environment.\n')
+        ls_home_files_and_dirs = os.listdir(ls_home)
+        if 'bin' not in ls_home_files_and_dirs:
+            if stderr:
+                sys.stderr.write('[-] Could not locate LogStash {}/bin directory.\n'.format(ls_home))
+            return False
+        if 'lib' not in ls_home_files_and_dirs:
+            if stderr:
+                sys.stderr.write('[-] Could not locate LogStash {}/lib directory.\n'.format(ls_home))
+            return False
+        ls_binaries = os.listdir(os.path.join(ls_home, 'bin'))
+        if 'logstash' not in ls_binaries:
+            if stderr:
+                sys.stderr.write('[-] Could not locate LogStash binary in {}/bin/\n'.format(ls_home))
+            return False
+        return True
+
+    @staticmethod
+    def _is_configured(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        ls_path_conf = env_dict.get('LS_PATH_CONF')
+        if not os.path.exists(os.path.join(ls_path_conf, 'logstash.yml')):
+            if stderr:
+                sys.stderr.write('[-] Could not locate logstash.yml in {}'.format(ls_path_conf))
+            return False
+        if not os.path.exists(os.path.join(ls_path_conf, 'jvm.options')):
+            if stderr:
+                sys.stderr.write('[-] Could not locate jvm.options in {}'.format(ls_path_conf))
+            return False
+        try:
+            LogstashConfigurator(configuration_directory=ls_path_conf)
+        except Exception:
+            if stderr:
+                sys.stderr.write('[-] Un-parsable logstash.yml or jvm.options \n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_running():
+        return LogstashProcess().status()['RUNNING']
 
 
 class LogstashProcess:

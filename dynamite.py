@@ -285,6 +285,16 @@ if __name__ == '__main__':
                 sys.exit(0)
             except Exception:
                 _fatal_exception('profile', 'elasticsearch', args.debug)
+        elif args.component == 'logstash':
+            try:
+                sys.stdout.write('[+] Profiling LogStash.\n')
+                profile_result = logstash.LogstashProfiler(stderr=True)
+                sys.stdout.write('[+]  LOGSTASH.INSTALLED: {}\n'.format(profile_result.is_installed))
+                sys.stdout.write('[+] LOGSTASH.CONFIGURED: {}\n'.format(profile_result.is_configured))
+                sys.stdout.write('[+]    LOGSTASH.RUNNING: {}\n'.format(profile_result.is_running))
+                sys.exit(0)
+            except Exception:
+                _fatal_exception('profile', 'elasticsearch', args.debug)
         elif args.component == 'kibana':
             try:
                 sys.stdout.write('[+] Profiling Kibana.\n')
@@ -295,7 +305,7 @@ if __name__ == '__main__':
                 sys.stdout.write('[+]     KIBANA.API_UP: {}\n'.format(profile_result.is_listening))
                 sys.exit(0)
             except Exception:
-                _fatal_exception('profile', 'elasticsearch', args.debug)
+                _fatal_exception('profile', 'kibana', args.debug)
         elif args.component == 'agent':
             try:
                 profile_result = agent.profile_agent()
