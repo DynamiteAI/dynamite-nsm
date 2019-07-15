@@ -12,6 +12,7 @@ from multiprocessing import Process
 
 from lib import const
 from lib import utilities
+from lib.logstash import LogstashProfiler
 
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
 CONFIGURATION_DIRECTORY = '/etc/dynamite/kibana/'
@@ -208,6 +209,17 @@ class KibanaInstaller:
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
+        if KibanaProfiler().is_installed:
+            if stdout:
+                sys.stdout.write('[+] Installing Kibana Dashboards\n')
+            KibanaProcess(self.configuration_directory).start()
+            while KibanaProfiler().is_listening:
+                if stdout:
+                    sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
+                time.sleep(5)
+            if stdout:
+                sys.stdout.write('[+] Kibana API is up, creating dashboards.\n')
+                KibanaProcess(self.configuration_directory).stop()
 
 
 class KibanaProfiler:
