@@ -286,6 +286,7 @@ class KibanaProfiler:
             return False
         host = kibana_config.get_server_host()
         port = kibana_config.get_server_port()
+        print(host, port)
         if host.strip() == '0.0.0.0':
             host = 'localhost'
         return utilities.check_socket(host, port)
