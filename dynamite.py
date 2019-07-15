@@ -285,6 +285,17 @@ if __name__ == '__main__':
                 sys.exit(0)
             except Exception:
                 _fatal_exception('profile', 'elasticsearch', args.debug)
+        elif args.component == 'kibana':
+            try:
+                sys.stdout.write('[+] Profiling Kibana.\n')
+                profile_result = kibana.KibanaProfiler(stderr=True)
+                sys.stdout.write('[+]  KIBANA.INSTALLED: {}\n'.format(profile_result.is_installed))
+                sys.stdout.write('[+] KIBANA.CONFIGURED: {}\n'.format(profile_result.is_configured))
+                sys.stdout.write('[+]    KIBANA.RUNNING: {}\n'.format(profile_result.is_running))
+                sys.stdout.write('[+]     KIBANA.API_UP: {}\n'.format(profile_result.is_listening))
+                sys.exit(0)
+            except Exception:
+                _fatal_exception('profile', 'elasticsearch', args.debug)
         elif args.component == 'agent':
             try:
                 profile_result = agent.profile_agent()

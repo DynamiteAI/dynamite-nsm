@@ -59,6 +59,24 @@ class KibanaConfigurator:
             elif line.startswith('KIBANA_LOGS'):
                 self.kibana_logs = line.split('=')[1].strip()
 
+    def get_server_host(self):
+        """
+        :return: The host the Kibana is running on
+        """
+        return self.kb_config_options['server.host']
+
+    def get_server_port(self):
+        """
+        :return: The port the Kibana is running on
+        """
+        return self.kb_config_options['server.port']
+
+    def get_elasticsearch_hosts(self):
+        """
+        :return: A list of elasticsearch hosts to connect too
+        """
+        return self.kb_config_options['elasticsearch.hosts']
+
     def set_server_host(self, host='0.0.0.0'):
         """
         :param host: The IP address for Kibana service to listen on
@@ -192,10 +210,89 @@ class KibanaInstaller:
         utilities.set_ownership_of_file('/var/log/dynamite')
 
 
+class KibanaProfiler:
+
+    def __init__(self, stderr=False):
+        self.is_downloaded = self._is_downloaded(stderr=stderr)
+        self.is_installed = self._is_installed(stderr=stderr)
+        self.is_configured = self._is_configured(stderr=stderr)
+        self.is_running = self._is_running()
+        self.is_listening = self._is_listening(stderr=stderr)
+
+    @staticmethod
+    def _is_downloaded(stderr=False):
+        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME)):
+            if stderr:
+                sys.stderr.write('[-] Kibana installation archive could not be found.\n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_installed(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        kibana_home = env_dict.get('KIBANA_HOME')
+        if not kibana_home:
+            if stderr:
+                sys.stderr.write('[-] Kibana installation directory could not be located in /etc/environment.\n')
+        kibana_home_files_and_dirs = os.listdir(kibana_home)
+        if 'bin' not in kibana_home_files_and_dirs:
+            if stderr:
+                sys.stderr.write('[-] Could not locate Kibana {}/bin directory.\n'.format(kibana_home))
+            return False
+        if 'webpackShims' not in kibana_home_files_and_dirs:
+            if stderr:
+                sys.stderr.write('[-] Could not locate Kibana {}/webpackShims directory.\n'.format(kibana_home))
+            return False
+        kibana_binaries = os.listdir(os.path.join(kibana_home, 'bin'))
+        if 'kibana' not in kibana_binaries:
+            if stderr:
+                sys.stderr.write('[-] Could not locate Kibana binary in {}/bin/\n'.format(kibana_home))
+            return False
+        return True
+
+    @staticmethod
+    def _is_configured(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        kibana_path_conf = env_dict.get('KIBANA_PATH_CONF')
+        if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
+            if stderr:
+                sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))
+            return False
+        try:
+            KibanaConfigurator(configuration_directory=kibana_path_conf)
+        except Exception:
+            if stderr:
+                sys.stderr.write('[-] Un-parsable kibana.yml \n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_running():
+        return KibanaProcess().status()['RUNNING']
+
+    @staticmethod
+    def _is_listening(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        kibana_path_conf = env_dict.get('KIBANA_PATH_CONF')
+        if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
+            if stderr:
+                sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))
+            return False
+        try:
+            kibana_config = KibanaConfigurator(configuration_directory=kibana_path_conf)
+        except Exception:
+            if stderr:
+                sys.stderr.write('[-] Un-parsable elasticsearch.yml or jvm.options \n')
+            return False
+        host = kibana_config.get_server_host()
+        port = kibana_config.get_server_port()
+        return utilities.check_socket(host, port)
+
+
 class KibanaProcess:
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
         """
 
         self.configuration_directory = configuration_directory
