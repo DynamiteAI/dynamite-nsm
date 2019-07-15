@@ -52,7 +52,7 @@ class KibanaAPIConfigurator:
         with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
                                const.ELASTIFLOW_DASHBOARDS_CONFIG)) as kibana_dashboards_obj:
             kibana_objects = json.loads(kibana_dashboards_obj.read())
-            for i, k_objects_chunk in enumerate(chunks(kibana_objects, len(kibana_objects)/4)):
+            for i, k_objects_chunk in enumerate(chunks(kibana_objects, len(kibana_objects)/50)):
                 try:
                     url_request = Request(
                         url='http://{}:{}/api/kibana/dashboards/import'.format(
