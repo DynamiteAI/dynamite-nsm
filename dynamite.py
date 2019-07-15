@@ -4,6 +4,7 @@ import argparse
 import traceback
 
 from lib import agent
+from lib import kibana
 from lib import logstash
 from lib import utilities
 from lib import elasticsearch
@@ -75,6 +76,12 @@ if __name__ == '__main__':
                 sys.exit(0)
             else:
                 sys.stderr.write(['[-] Failed to install Logstash.\n'])
+                sys.exit(1)
+        elif args.component == 'kibana':
+            if kibana.install_kibana(stdout=True, create_dynamite_user=True, install_jdk=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write(['[-] Failed to install Kibana.\n'])
                 sys.exit(1)
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
