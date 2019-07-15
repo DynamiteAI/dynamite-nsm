@@ -303,7 +303,7 @@ class KibanaInstaller:
             time.sleep(10)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             api_config.create_elastiflow_index_patterns(stdout=stdout)
-            api_config.create_elastiflow_dashboards(stdout=stdout)
+            # api_config.create_elastiflow_dashboards(stdout=stdout)
             time.sleep(2)
             # KibanaProcess(self.configuration_directory).stop()
 
