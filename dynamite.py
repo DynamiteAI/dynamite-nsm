@@ -289,9 +289,10 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Profiling LogStash.\n')
                 profile_result = logstash.LogstashProfiler(stderr=True)
-                sys.stdout.write('[+]  LOGSTASH.INSTALLED: {}\n'.format(profile_result.is_installed))
-                sys.stdout.write('[+] LOGSTASH.CONFIGURED: {}\n'.format(profile_result.is_configured))
-                sys.stdout.write('[+]    LOGSTASH.RUNNING: {}\n'.format(profile_result.is_running))
+                sys.stdout.write('[+]            LOGSTASH.INSTALLED: {}\n'.format(profile_result.is_installed))
+                sys.stdout.write('[+]  LOGSTASH.ELASIFLOW.INSTALLED: {}\n'.format(profile_result.is_installed))
+                sys.stdout.write('[+]           LOGSTASH.CONFIGURED: {}\n'.format(profile_result.is_configured))
+                sys.stdout.write('[+]              LOGSTASH.RUNNING: {}\n'.format(profile_result.is_running))
                 sys.exit(0)
             except Exception:
                 _fatal_exception('profile', 'elasticsearch', args.debug)

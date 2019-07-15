@@ -332,7 +332,9 @@ class LogstashProfiler:
 
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)
+        self.is_elastiflow_downloaded = self._is_elastiflow_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)
+        self.is_elastiflow_installed = self._is_elastiflow_installed(stderr=stderr)
         self.is_configured = self._is_configured(stderr=stderr)
         self.is_running = self._is_running()
 
@@ -353,12 +355,21 @@ class LogstashProfiler:
         return True
 
     @staticmethod
+    def _is_elastiflow_downloaded(stderr):
+        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME)):
+            if stderr:
+                sys.stderr.write('[-] Elastiflow installation archive could not be found.\n')
+            return False
+        return True
+
+    @staticmethod
     def _is_installed(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         ls_home = env_dict.get('LS_HOME')
         if not ls_home:
             if stderr:
                 sys.stderr.write('[-] LogStash installation directory could not be located in /etc/environment.\n')
+            return False
         ls_home_files_and_dirs = os.listdir(ls_home)
         if 'bin' not in ls_home_files_and_dirs:
             if stderr:
@@ -374,6 +385,51 @@ class LogstashProfiler:
                 sys.stderr.write('[-] Could not locate LogStash binary in {}/bin/\n'.format(ls_home))
             return False
         return True
+
+    @staticmethod
+    def _is_elastiflow_installed(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        ef_dict_path = env_dict.get('ELASTIFLOW_DICT_PATH')
+        ef_template_path = env_dict.get('ELASTIFLOW_TEMPLATE_PATH')
+        ef_geo_ip_db_path = env_dict.get('ELASTIFLOW_GEOIP_DB_PATH')
+        ef_definition_path = env_dict.get('ELASTIFLOW_DEFINITION_PATH')
+        if not ef_dict_path:
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located in /etc/environment.\n')
+            return False
+        elif not ef_template_path:
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/environment.\n')
+            return False
+        elif not ef_geo_ip_db_path:
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow geoip directory could not be located in /etc/environment.\n')
+            return False
+        elif not ef_definition_path:
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow definitions directory could not be located in /etc/environment.\n')
+            return False
+        if not os.path.exists(ef_dict_path):
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located at: {}'.format(ef_dict_path))
+            return False
+        elif not os.path.exists(ef_template_path):
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow template directory could not be located at: {}'.format(
+                    ef_template_path))
+            return False
+        elif not os.path.exists(ef_geo_ip_db_path):
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow geoip directory could not be located at: {}'.format(
+                    ef_geo_ip_db_path))
+            return False
+        elif not os.path.exists(ef_definition_path):
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow definitions directory could not be located at: {}'.format(
+                    ef_definition_path))
+            return False
+        return True
+
 
     @staticmethod
     def _is_configured(stderr=False):

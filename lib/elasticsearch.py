@@ -366,6 +366,7 @@ class ElasticProfiler:
         if not es_home:
             if stderr:
                 sys.stderr.write('[-] ElasticSearch installation directory could not be located in /etc/environment.\n')
+            return False
         es_home_files_and_dirs = os.listdir(es_home)
         if 'bin' not in es_home_files_and_dirs:
             if stderr:
