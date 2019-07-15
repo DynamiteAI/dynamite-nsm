@@ -64,7 +64,7 @@ class KibanaInstaller:
         install_paths = [
             'package.json',
             'bin/',
-            'built_assets/'
+            'built_assets/',
             'node/',
             'node_modules/',
             'optimize/',

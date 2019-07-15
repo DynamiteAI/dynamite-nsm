@@ -90,7 +90,6 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'start':
-
         if args.component == 'agent':
             try:
                 if agent.start_agent():
