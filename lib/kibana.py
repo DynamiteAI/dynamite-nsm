@@ -43,26 +43,34 @@ class KibanaAPIConfigurator:
         es_flow_installer.extract_elastiflow()
 
     def create_elastiflow_dashboards(self, stdout=False):
+
+        def chunks(l, n):
+            """Yield successive n-sized chunks from l."""
+            for i in range(0, len(l), n):
+                yield l[i:i + n]
+
         with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
                                const.ELASTIFLOW_DASHBOARDS_CONFIG)) as kibana_dashboards_obj:
-            try:
-                url_request = Request(
-                    url='http://{}:{}/api/kibana/dashboards/import'.format(
-                        self.kibana_config.get_server_host(),
-                        self.kibana_config.get_server_port()
-                    ),
-                    data=kibana_dashboards_obj.read(),
-                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
-                )
-                response = urlopen(url_request)
-            except HTTPError as e:
-                sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
-                return False
-            except URLError as e:
-                sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
-                return False
-            if stdout:
-                sys.stdout.write('[+] Successfully created dashboards. [API_RESPONSE: {}]\n'.format(response.read()))
+            kibana_objects = json.loads(kibana_dashboards_obj.read())
+            for i, k_objects in enumerate(chunks(kibana_objects, len(kibana_objects)/4)):
+                try:
+                    url_request = Request(
+                        url='http://{}:{}/api/kibana/dashboards/import'.format(
+                            self.kibana_config.get_server_host(),
+                            self.kibana_config.get_server_port()
+                        ),
+                        data=json.dumps(kibana_objects),
+                        headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
+                    )
+                    response = urlopen(url_request)
+                except HTTPError as e:
+                    sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
+                    return False
+                except URLError as e:
+                    sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
+                    return False
+                if stdout:
+                    sys.stdout.write('[+] Successfully created ElastiFlow Objects [Set: {}]. [API_RESPONSE: {}]\n'.format((i+1), response.read()))
             return True
 
     def create_elastiflow_index_patterns(self, stdout=False):
