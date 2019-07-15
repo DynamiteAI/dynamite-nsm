@@ -10,13 +10,84 @@ import subprocess
 
 from multiprocessing import Process
 
+try:
+    from urllib2 import urlopen
+    from urllib2 import URLError
+    from urllib2 import HTTPError
+    from urllib2 import Request
+except Exception:
+    from urllib.request import urlopen
+    from urllib.error import URLError
+    from urllib.error import HTTPError
+    from urllib.request import Request
+
 from lib import const
 from lib import utilities
 from lib.logstash import LogstashProfiler
+from lib.elastiflow import ElastiFlowInstaller
 
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
 CONFIGURATION_DIRECTORY = '/etc/dynamite/kibana/'
 LOG_DIRECTORY = '/var/log/dynamite/kibana/'
+
+
+class KibanaAPIConfigurator:
+
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        self.configuration_directory = configuration_directory
+        self.kibana_config = KibanaConfigurator(configuration_directory)
+        es_flow_installer = ElastiFlowInstaller()
+        if not LogstashProfiler().is_elastiflow_downloaded:
+            es_flow_installer.download_elasticflow()
+            es_flow_installer.extract_elastiflow()
+        es_flow_installer.extract_elastiflow()
+
+    def create_elastiflow_dashboards(self, stdout=False):
+        with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
+                               const.ELASTIFLOW_DASHBOARDS_CONFIG)) as kibana_dashboards_obj:
+            try:
+                url_request = Request(
+                    url='http://{}:{}/api/kibana/dashboards/import'.format(
+                        self.kibana_config.get_server_host(),
+                        self.kibana_config.get_server_port()
+                    ),
+                    data=kibana_dashboards_obj.read(),
+                    headers={'Content-Type': 'application/json'}
+                )
+                response = urlopen(url_request)
+            except HTTPError as e:
+                sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
+                return False
+            except URLError as e:
+                sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
+                return False
+            if stdout:
+                sys.stdout.write('[+] Successfully created dashboards. [API_RESPONSE: {}]\n'.format(response.read()))
+            return True
+
+    def create_elastiflow_index_patterns(self, stdout=False):
+        with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
+                               const.ELASTIFLOW_INDEX_PATTERNS)) as kibana_patterns_obj:
+            try:
+                url_request = Request(
+                    url='http://{}:{}/api/saved_objects/index-pattern/elastiflow-*'.format(
+                        self.kibana_config.get_server_host(),
+                        self.kibana_config.get_server_port()
+                    ),
+                    data=kibana_patterns_obj.read(),
+                    headers={'Content-Type': 'application/json'}
+                )
+                response = urlopen(url_request)
+            except HTTPError as e:
+                sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
+                return False
+            except URLError as e:
+                sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
+                return False
+            if stdout:
+                sys.stdout.write('[+] Successfully created index-patterns. [API_RESPONSE: {}]\n'.format(
+                    response.read()))
+            return True
 
 
 class KibanaConfigurator:
@@ -221,6 +292,10 @@ class KibanaInstaller:
                 time.sleep(5)
             if stdout:
                 sys.stdout.write('[+] Kibana API is up, creating dashboards.\n')
+                api_config = KibanaAPIConfigurator(self.configuration_directory)
+                api_config.create_elastiflow_index_patterns(stdout=stdout)
+                api_config.create_elastiflow_dashboards(stdout=stdout)
+                time.sleep(2)
                 KibanaProcess(self.configuration_directory).stop()
 
 
