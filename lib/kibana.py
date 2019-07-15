@@ -52,7 +52,7 @@ class KibanaAPIConfigurator:
                         self.kibana_config.get_server_port()
                     ),
                     data=kibana_dashboards_obj.read(),
-                    headers={'Content-Type': 'application/json'}
+                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
                 )
                 response = urlopen(url_request)
             except HTTPError as e:
@@ -75,7 +75,7 @@ class KibanaAPIConfigurator:
                         self.kibana_config.get_server_port()
                     ),
                     data=kibana_patterns_obj.read(),
-                    headers={'Content-Type': 'application/json'}
+                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
                 )
                 response = urlopen(url_request)
             except HTTPError as e:
