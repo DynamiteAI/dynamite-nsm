@@ -295,7 +295,7 @@ class KibanaProcess:
 
         :return: A dictionary containing the run status and relevant configuration options
         """
-        log_path = os.path.join(self.config.get_log_path(), self.config.get_cluster_name() + '.log')
+        log_path = os.path.join(self.config.kibana_logs, 'kibana.yml')
 
         return {
             'PID': self.pid,
