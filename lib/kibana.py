@@ -36,7 +36,11 @@ class KibanaConfigurator:
         kb_config_options = {}
         for line in open(os.path.join(self.configuration_directory, 'kibana.yml')).readlines():
             if not line.startswith('#') and ':' in line:
-                k, v = line.strip().split(':')
+                if line.startswith('elasticsearch.hosts:'):
+                    k = 'elasticsearch.hosts'
+                    v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
+                else:
+                    k, v = line.strip().split(':')
                 kb_config_options[k] = str(v).strip()
         return kb_config_options
 

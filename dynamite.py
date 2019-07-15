@@ -134,10 +134,10 @@ if __name__ == '__main__':
                                      '\'dynamite.py status kibana\'.\n')
                     sys.exit(0)
                 else:
-                    sys.stderr.write('[-] An error occurred while attempting to start LogStash.\n')
+                    sys.stderr.write('[-] An error occurred while attempting to start Kibana.\n')
                     sys.exit(1)
             except Exception:
-                _fatal_exception('start', 'logstash', args.debug)
+                _fatal_exception('start', 'kibana', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
