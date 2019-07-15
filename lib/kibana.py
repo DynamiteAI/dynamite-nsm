@@ -213,7 +213,9 @@ class KibanaInstaller:
             if stdout:
                 sys.stdout.write('[+] Installing Kibana Dashboards\n')
             KibanaProcess(self.configuration_directory).start()
-            while KibanaProfiler().is_listening:
+            if stdout:
+                sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
+            while not KibanaProfiler().is_listening:
                 if stdout:
                     sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
                 time.sleep(5)
