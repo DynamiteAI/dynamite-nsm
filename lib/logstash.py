@@ -41,7 +41,7 @@ class LogstashConfigurator:
         for line in open(os.path.join(self.configuration_directory, 'logstash.yml')).readlines():
             if not line.startswith('#') and ':' in line:
                 k, v = line.strip().split(':')
-                ls_config_options[k] = str(v).strip()
+                ls_config_options[k] = str(v).strip().replace('"','').replace("'",'')
         return ls_config_options
 
     def _parse_jvm_options(self):

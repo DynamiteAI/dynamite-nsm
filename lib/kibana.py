@@ -41,7 +41,7 @@ class KibanaConfigurator:
                     v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
                 else:
                     k, v = line.strip().split(':')
-                kb_config_options[k] = str(v).strip()
+                kb_config_options[k] = str(v).strip().replace('"','').replace("'",'')
         return kb_config_options
 
     def _parse_environment_file(self):

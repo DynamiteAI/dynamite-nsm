@@ -42,7 +42,7 @@ class ElasticConfigurator:
         for line in open(os.path.join(self.configuration_directory, 'elasticsearch.yml')).readlines():
             if not line.startswith('#') and ':' in line:
                 k, v = line.strip().split(':')
-                es_config_options[k] = str(v).strip()
+                es_config_options[k] = str(v).strip().replace('"','').replace("'",'')
         return es_config_options
 
     def _parse_jvm_options(self):
