@@ -213,10 +213,11 @@ class KibanaProcess:
         """
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "{} {}/bin/kibana '
-                            '-c {} &>/dev/null &"'.format(
+                            '-c {} -l {} &>/dev/null &"'.format(
                                 utilities.get_environment_file_str(),
                                 self.config.kibana_home,
-                                os.path.join(self.config.kibana_path_conf, 'kibana.yml')
+                                os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
+                                os.path.join(self.config.kibana_logs, 'kibana.yml')
                             ), shell=True)
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
