@@ -292,11 +292,12 @@ class KibanaInstaller:
                 time.sleep(5)
             if stdout:
                 sys.stdout.write('[+] Kibana API is up, creating dashboards.\n')
-                api_config = KibanaAPIConfigurator(self.configuration_directory)
-                api_config.create_elastiflow_index_patterns(stdout=stdout)
-                api_config.create_elastiflow_dashboards(stdout=stdout)
-                time.sleep(2)
-                KibanaProcess(self.configuration_directory).stop()
+            time.sleep(10)
+            api_config = KibanaAPIConfigurator(self.configuration_directory)
+            api_config.create_elastiflow_index_patterns(stdout=stdout)
+            api_config.create_elastiflow_dashboards(stdout=stdout)
+            time.sleep(2)
+            # KibanaProcess(self.configuration_directory).stop()
 
 
 class KibanaProfiler:
@@ -405,7 +406,7 @@ class KibanaProcess:
                                 utilities.get_environment_file_str(),
                                 self.config.kibana_home,
                                 os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
-                                os.path.join(self.config.kibana_logs, 'kibana.yml')
+                                os.path.join(self.config.kibana_logs, 'kibana.log')
                             ), shell=True)
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
@@ -483,7 +484,7 @@ class KibanaProcess:
 
         :return: A dictionary containing the run status and relevant configuration options
         """
-        log_path = os.path.join(self.config.kibana_logs, 'kibana.yml')
+        log_path = os.path.join(self.config.kibana_logs, 'kibana.log')
 
         return {
             'PID': self.pid,
