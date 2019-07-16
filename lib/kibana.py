@@ -340,6 +340,7 @@ class KibanaInstaller:
             local_config = KibanaConfigurator(self.configuration_directory)
             time.sleep(2)
             KibanaProcess(self.configuration_directory).stop()
+            ElasticProcess(self.configuration_directory).stop()
             local_config.set_elasticsearch_hosts(['{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)])
 
 
