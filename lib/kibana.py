@@ -24,6 +24,8 @@ except Exception:
 from lib import const
 from lib import utilities
 from lib.logstash import LogstashProfiler
+from lib.elasticsearch import ElasticProcess
+from lib.elasticsearch import ElasticProfiler
 from lib.elastiflow import ElastiFlowInstaller
 
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
@@ -49,6 +51,9 @@ class KibanaAPIConfigurator:
         server_host = self.kibana_config.get_server_host()
         if server_host.strip() == '0.0.0.0':
             server_host = 'localhost'
+
+        # This isn't ideal, but given there is no easy way to use the urllib/urllib2 libraries for multipart/form-data
+        # Shelling out is a reasonable workaround
         kibana_api_import_url = '{}:{}/api/saved_objects/_import'.format(server_host,
                     self.kibana_config.get_server_port())
         curl_command = 'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data" -v'.format(
@@ -87,7 +92,7 @@ class KibanaAPIConfigurator:
                 sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
                 return False
             if stdout:
-                sys.stdout.write('[+] Successfully created index-patterns. [API_RESPONSE: {}]\n')
+                sys.stdout.write('[+] Successfully created index-patterns. \n')
             return True
 
 
@@ -184,9 +189,16 @@ class KibanaConfigurator:
 
 class KibanaInstaller:
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY,
+    def __init__(self, elasticsearch_host=None,
+                 install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
+        if not elasticsearch_host:
+            if ElasticProfiler().is_installed:
+                self.elasticsearch_host = 'localhost'
+            else:
+                raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
+        self.elasticsearch_host = elasticsearch_host
         self.install_directory = install_directory
         self.configuration_directory = configuration_directory
         self.log_directory = log_directory
@@ -281,12 +293,19 @@ class KibanaInstaller:
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
-        if KibanaProfiler().is_installed:
+        if KibanaProfiler().is_installed and (ElasticProfiler().is_installed or self.elasticsearch_host != 'localhost'):
             if stdout:
                 sys.stdout.write('[+] Installing Kibana Dashboards\n')
-            KibanaProcess(self.configuration_directory).start()
+            KibanaProcess(self.configuration_directory).start(stdout=stdout)
             if stdout:
-                sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
+                sys.stdout.write('[+] Waiting for Kibana/ElasticSearch to become accessible.\n')
+            # Start ElasticSearch if it is installed locally and is not running
+            if self.elasticsearch_host == 'localhost':
+                ElasticProcess().start(stdout=stdout)
+                while not ElasticProfiler().is_listening:
+                    if stdout:
+                        sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
+                    time.sleep(5)
             while not KibanaProfiler().is_listening:
                 if stdout:
                     sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
@@ -298,7 +317,7 @@ class KibanaInstaller:
             api_config.create_elastiflow_index_patterns(stdout=stdout)
             api_config.create_elastiflow_dashboards(stdout=stdout)
             time.sleep(2)
-            # KibanaProcess(self.configuration_directory).stop()
+            KibanaProcess(self.configuration_directory).stop()
 
 
 class KibanaProfiler:
