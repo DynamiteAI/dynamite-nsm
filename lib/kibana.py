@@ -47,6 +47,9 @@ class KibanaAPIConfigurator:
                                const.ELASTIFLOW_DASHBOARDS_CONFIG)
         kibana_api_import_url = 'http://{}:{}/api/kibana/dashboards/_import'.format(self.kibana_config.get_server_host(),
                     self.kibana_config.get_server_port())
+        print('curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data"'.format(
+                kibana_api_import_url, kibana_api_objects_path
+        ))
         p = subprocess.Popen(
             'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data"'.format(
                 kibana_api_import_url, kibana_api_objects_path
