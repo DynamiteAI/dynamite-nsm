@@ -196,14 +196,18 @@ class KibanaConfigurator:
 
 class KibanaInstaller:
 
-    def __init__(self, elasticsearch_host=None,
+    def __init__(self,
+                 elasticsearch_host=None,
+                 elasticsearch_port=None,
                  install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         self.elasticsearch_host = elasticsearch_host
+        self.elasticsearch_port = elasticsearch_port
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
+                self.elasticsearch_port = 9200
             else:
                 raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
         self.install_directory = install_directory
@@ -307,7 +311,7 @@ class KibanaInstaller:
                 sys.stdout.write('[+] Waiting for ElasticSearch to become accessible.\n')
             # Start ElasticSearch if it is installed locally and is not running
             if self.elasticsearch_host == 'localhost':
-                sys.stdout.write('[+] Starting ElasticSearch.')
+                sys.stdout.write('[+] Starting ElasticSearch.\n')
                 ElasticProcess().start(stdout=stdout)
                 sys.stdout.flush()
                 while not ElasticProfiler().is_listening:
@@ -315,25 +319,28 @@ class KibanaInstaller:
                         sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
                     time.sleep(5)
                 if stdout:
-                    sys.stdout.write('[+] Kibana API is up.\n')
-                    sys.stdout.write('[+] Sleeping for 15 seconds, while ElasticSearch API finishes booting.\n')
+                    sys.stdout.write('[+] ElasticSearch API is up.\n')
+                    sys.stdout.write('[+] Sleeping for 5 seconds, while ElasticSearch API finishes booting.\n')
                     sys.stdout.flush()
-                time.sleep(15)
+                time.sleep(5)
+            sys.stdout.write('[+] Starting Kibana.\n')
             KibanaProcess(self.configuration_directory).start(stdout=stdout)
             while not KibanaProfiler().is_listening:
                 if stdout:
                     sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
-                time.sleep(15)
+                time.sleep(5)
             if stdout:
                 sys.stdout.write('[+] Kibana API is up.\n')
-                sys.stdout.write('[+] Sleeping for 15 seconds, while Kibana API finishes booting.')
+                sys.stdout.write('[+] Sleeping for 5 seconds, while Kibana API finishes booting.\n')
                 sys.stdout.flush()
-            time.sleep(15)
+            time.sleep(5)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             api_config.create_elastiflow_index_patterns(stdout=stdout)
             api_config.create_elastiflow_dashboards(stdout=stdout)
+            local_config = KibanaConfigurator(self.configuration_directory)
             time.sleep(2)
             KibanaProcess(self.configuration_directory).stop()
+            local_config.set_elasticsearch_hosts(['{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)])
 
 
 class KibanaProfiler:
