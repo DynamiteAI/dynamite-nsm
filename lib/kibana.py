@@ -58,10 +58,10 @@ class KibanaAPIConfigurator:
         out, err = p.communicate()
         if "HTTP/1.1 200" in err or "HTTP/1.1 409" in err:
             if stdout:
-                '[+] Successfully created ElastiFlow Objects. [API_RESPONSE: {}]\n'.format(out[0:50])
+                sys.stdout.write('[+] Successfully created ElastiFlow Objects.\n')
             return True
         else:
-            sys.stderr.write('[-] Failed to create ElastiFlow objects - [{}]\n'.format(out[0:50]))
+            sys.stderr.write('[-] Failed to create ElastiFlow objects - [{}]\n'.format(err))
         return False
 
     def create_elastiflow_index_patterns(self, stdout=False):
@@ -76,7 +76,7 @@ class KibanaAPIConfigurator:
                     data=kibana_patterns_obj.read(),
                     headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
                 )
-                response = urlopen(url_request)
+                urlopen(url_request)
             except HTTPError as e:
                 if e.code == 409:
                     pass
@@ -87,8 +87,7 @@ class KibanaAPIConfigurator:
                 sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
                 return False
             if stdout:
-                sys.stdout.write('[+] Successfully created index-patterns. [API_RESPONSE: {}]\n'.format(
-                    response.read()[0:50]))
+                sys.stdout.write('[+] Successfully created index-patterns. [API_RESPONSE: {}]\n')
             return True
 
 
