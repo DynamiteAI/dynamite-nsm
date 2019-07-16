@@ -49,14 +49,13 @@ class KibanaAPIConfigurator:
         server_host = self.kibana_config.get_server_host()
         if server_host.strip() == '0.0.0.0':
             server_host = 'localhost'
-        kibana_api_import_url = 'http://{}:{}/api/kibana/dashboards/_import'.format(server_host,
+        kibana_api_import_url = '{}:{}/api/kibana/dashboards/_import'.format(server_host,
                     self.kibana_config.get_server_port())
-        print(kibana_api_import_url)
-        p = subprocess.Popen(
-            'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data"'.format(
+        curl_command = 'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data"'.format(
                 kibana_api_import_url, kibana_api_objects_path
-            ),
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        )
+        print(curl_command)
+        p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
         if "200" in out or "409" in out:
             if stdout:
