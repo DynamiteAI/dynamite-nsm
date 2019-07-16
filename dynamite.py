@@ -76,13 +76,13 @@ if __name__ == '__main__':
             if elasticsearch.install_elasticsearch(stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
-                sys.stderr.write(['[-] Failed to install ElasticSearch.\n'])
+                sys.stderr.write('[-] Failed to install ElasticSearch.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
             if logstash.install_logstash(stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
-                sys.stderr.write(['[-] Failed to install Logstash.\n'])
+                sys.stderr.write('[-] Failed to install Logstash.\n')
                 sys.exit(1)
         elif args.component == 'kibana':
             if not elasticsearch.ElasticProfiler().is_installed:
