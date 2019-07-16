@@ -51,8 +51,7 @@ class KibanaAPIConfigurator:
             server_host = 'localhost'
         kibana_api_import_url = '{}:{}/api/saved_objects/_import'.format(server_host,
                     self.kibana_config.get_server_port())
-        curl_command = 'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data" ' \
-                       '-s -o/dev/null -v'.format(
+        curl_command = 'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data" -v'.format(
                 kibana_api_import_url, kibana_api_objects_path
         )
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
