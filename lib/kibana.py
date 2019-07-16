@@ -72,18 +72,16 @@ class KibanaAPIConfigurator:
 
     def create_elastiflow_index_patterns(self, stdout=False):
         with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
-                               const.ELASTIFLOW_INDEX_PATTERNS), 'rb') as kibana_patterns_obj:
-            try:
-                data = urlencode(kibana_patterns_obj.read()).encode('utf-8')
-            except AttributeError:
-                data = kibana_patterns_obj.read()
+                               const.ELASTIFLOW_INDEX_PATTERNS)) as kibana_patterns_obj:
+
+            data = kibana_patterns_obj.read()
             try:
                 url_request = Request(
                     url='http://{}:{}/api/saved_objects/index-pattern/elastiflow-*'.format(
                         self.kibana_config.get_server_host(),
                         self.kibana_config.get_server_port()
                     ),
-                    data=data,
+                    data=data.encode('utf-8'),
                     headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
                 )
                 urlopen(url_request)
