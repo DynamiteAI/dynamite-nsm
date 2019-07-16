@@ -6,8 +6,8 @@ import sys
 import crypt
 import socket
 import shutil
+import random
 import tarfile
-import mimetypes
 import subprocess
 import multiprocessing
 from contextlib import closing
@@ -20,7 +20,6 @@ except Exception:
     from urllib.error import URLError
 
 from lib import const
-
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
@@ -81,7 +80,7 @@ def create_dynamite_user(password):
 
     :param password: The password for the user
     """
-    pass_encry = crypt.crypt(password)
+    pass_encry = crypt.crypt(password, salt=str(random.randint(10, 99)))
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
