@@ -513,7 +513,7 @@ class LogstashProcess:
                       '--path.settings={} &>/dev/null & echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
                 utilities.get_environment_file_str(), self.config.ls_home, self.config.ls_path_conf)
             print(command)
-            subprocess.call(command, shell=True)
+            subprocess.call(command, shell=True, cwd=self.config.ls_home)
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
