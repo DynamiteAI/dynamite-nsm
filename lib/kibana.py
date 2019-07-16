@@ -44,34 +44,22 @@ class KibanaAPIConfigurator:
 
     def create_elastiflow_dashboards(self, stdout=False):
 
-        def chunks(l, n):
-            """Yield successive n-sized chunks from l."""
-            for i in range(0, len(l), n):
-                yield l[i:i + n]
-
-        with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
-                               const.ELASTIFLOW_DASHBOARDS_CONFIG)) as kibana_dashboards_obj:
-            kibana_objects = json.loads(kibana_dashboards_obj.read())
-            for i, k_objects_chunk in enumerate(chunks(kibana_objects, len(kibana_objects)/4)):
-                try:
-                    url_request = Request(
-                        url='http://{}:{}/api/kibana/dashboards/_import'.format(
-                            self.kibana_config.get_server_host(),
-                            self.kibana_config.get_server_port()
-                        ),
-                        data=json.dumps(k_objects_chunk),
-                        headers={'Content-Type': 'multipart/form-data', 'kbn-xsrf': True}
-                    )
-                    response = urlopen(url_request)
-                except HTTPError as e:
-                    sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
-                    return False
-                except URLError as e:
-                    sys.stderr.write('[-] Failed to create dashboards - [{}]\n'.format(e))
-                    return False
-                if stdout:
-                    sys.stdout.write('[+] Successfully created ElastiFlow Objects [Set: {}]. [API_RESPONSE: {}]\n'.format((i+1), response.read()))
+        kibana_api_objects_path = os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
+                               const.ELASTIFLOW_DASHBOARDS_CONFIG)
+        kibana_api_import_url = 'http://{}:{}/api/kibana/dashboards/_import'.format(self.kibana_config.get_server_host(),
+                    self.kibana_config.get_server_port())
+        p = subprocess.Popen('curl -X POST {} --form file=@{} -H "kbn-xsrf: true" '
+                             '-H "Content-Type: multipart/form-data"'.format(kibana_api_import_url,
+                                                                             kibana_api_objects_path),
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        out, err = p.communicate()
+        if "200" in out or "409" in out:
+            if stdout:
+                '[+] Successfully created ElastiFlow Objects. [API_RESPONSE: {}]\n'.format(out)
             return True
+        else:
+            sys.stderr.write('[-] Failed to create ElastiFlow objects - [{}]\n'.format(out))
+        return False
 
     def create_elastiflow_index_patterns(self, stdout=False):
         with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
@@ -303,7 +291,7 @@ class KibanaInstaller:
             time.sleep(10)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             api_config.create_elastiflow_index_patterns(stdout=stdout)
-            # api_config.create_elastiflow_dashboards(stdout=stdout)
+            api_config.create_elastiflow_dashboards(stdout=stdout)
             time.sleep(2)
             # KibanaProcess(self.configuration_directory).stop()
 

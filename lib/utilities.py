@@ -1,3 +1,4 @@
+import io
 import os
 import pwd
 import grp
@@ -6,6 +7,7 @@ import crypt
 import socket
 import shutil
 import tarfile
+import mimetypes
 import subprocess
 import multiprocessing
 from contextlib import closing
@@ -18,6 +20,7 @@ except Exception:
     from urllib.error import URLError
 
 from lib import const
+
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
