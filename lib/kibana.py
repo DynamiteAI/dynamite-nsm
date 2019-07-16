@@ -303,22 +303,25 @@ class KibanaInstaller:
         if KibanaProfiler().is_installed and (ElasticProfiler().is_installed or self.elasticsearch_host != 'localhost'):
             if stdout:
                 sys.stdout.write('[+] Installing Kibana Dashboards\n')
-            KibanaProcess(self.configuration_directory).start(stdout=stdout)
             if stdout:
-                sys.stdout.write('[+] Waiting for Kibana/ElasticSearch to become accessible.\n')
+                sys.stdout.write('[+] Waiting for ElasticSearch to become accessible.\n')
             # Start ElasticSearch if it is installed locally and is not running
             if self.elasticsearch_host == 'localhost':
                 ElasticProcess().start(stdout=stdout)
+                sys.stdout.flush()
                 while not ElasticProfiler().is_listening:
                     if stdout:
                         sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
                     time.sleep(5)
+                sys.stdout.flush()
+            KibanaProcess(self.configuration_directory).start(stdout=stdout)
             while not KibanaProfiler().is_listening:
                 if stdout:
                     sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
                 time.sleep(5)
             if stdout:
                 sys.stdout.write('[+] Kibana API is up, creating dashboards.\n')
+
             time.sleep(10)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             api_config.create_elastiflow_index_patterns(stdout=stdout)
