@@ -387,6 +387,10 @@ class ElasticProfiler:
     def _is_configured(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         es_path_conf = env_dict.get('ES_PATH_CONF')
+        if not es_path_conf:
+            if stderr:
+                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
             if stderr:
                 sys.stderr.write('[-] Could not locate elasticsearch.yml in {}'.format(es_path_conf))
@@ -411,6 +415,10 @@ class ElasticProfiler:
     def _is_listening(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         es_path_conf = env_dict.get('ES_PATH_CONF')
+        if not es_path_conf:
+            if stderr:
+                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
             if stderr:
                 sys.stderr.write('[-] Could not locate elasticsearch.yml in {}'.format(es_path_conf))

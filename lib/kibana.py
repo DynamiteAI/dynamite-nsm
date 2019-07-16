@@ -364,6 +364,14 @@ class KibanaProfiler:
     def _is_configured(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         kibana_path_conf = env_dict.get('KIBANA_PATH_CONF')
+        if not kibana_path_conf:
+            if stderr:
+                sys.stderr.write('[-] Kibana configuration directory could not be located in /etc/environment.\n')
+            return False
+        if not kibana_path_conf:
+            if stderr:
+                sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))
+            return False
         if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
             if stderr:
                 sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))
@@ -384,6 +392,10 @@ class KibanaProfiler:
     def _is_listening(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         kibana_path_conf = env_dict.get('KIBANA_PATH_CONF')
+        if not kibana_path_conf:
+            if stderr:
+                sys.stderr.write('[-] Kibana configuration directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
             if stderr:
                 sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))

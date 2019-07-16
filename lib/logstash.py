@@ -430,11 +430,14 @@ class LogstashProfiler:
             return False
         return True
 
-
     @staticmethod
     def _is_configured(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         ls_path_conf = env_dict.get('LS_PATH_CONF')
+        if not ls_path_conf:
+            if stderr:
+                sys.stderr.write('[-] LogStash configuration directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(os.path.join(ls_path_conf, 'logstash.yml')):
             if stderr:
                 sys.stderr.write('[-] Could not locate logstash.yml in {}'.format(ls_path_conf))
