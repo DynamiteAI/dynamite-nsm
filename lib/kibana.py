@@ -389,7 +389,10 @@ class KibanaProfiler:
 
     @staticmethod
     def _is_running():
-        return KibanaProcess().status()['RUNNING']
+        try:
+            return KibanaProcess().status()['RUNNING']
+        except Exception:
+            return False
 
     @staticmethod
     def _is_listening(stderr=False):

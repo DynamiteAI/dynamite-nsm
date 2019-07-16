@@ -462,7 +462,10 @@ class LogstashProfiler:
 
     @staticmethod
     def _is_running():
-        return LogstashProcess().status()['RUNNING']
+        try:
+            return LogstashProcess().status()['RUNNING']
+        except Exception:
+            return False
 
 
 class LogstashProcess:

@@ -415,7 +415,10 @@ class ElasticProfiler:
 
     @staticmethod
     def _is_running():
-        return ElasticProcess().status()['RUNNING']
+        try:
+            return ElasticProcess().status()['RUNNING']
+        except Exception:
+            return False
 
     @staticmethod
     def _is_listening(stderr=False):
