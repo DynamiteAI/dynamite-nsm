@@ -80,7 +80,7 @@ def create_dynamite_user(password):
 
     :param password: The password for the user
     """
-    pass_encry = crypt.crypt(password, salt=str(random.randint(10, 99)))
+    pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
