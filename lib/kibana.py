@@ -331,16 +331,31 @@ class KibanaInstaller:
                 time.sleep(5)
             if stdout:
                 sys.stdout.write('[+] Kibana API is up.\n')
-                sys.stdout.write('[+] Sleeping for 30 seconds, while Kibana API finishes booting.\n')
+                sys.stdout.write('[+] Sleeping for 15 seconds, while Kibana API finishes booting.\n')
                 sys.stdout.flush()
-            time.sleep(30)
+            time.sleep(15)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
-            api_config.create_elastiflow_index_patterns(stdout=stdout)
-            api_config.create_elastiflow_dashboards(stdout=stdout)
+
+            index_pattern_create_attempts = 1
+            kibana_object_create_attempts = 1
+            while not api_config.create_elastiflow_index_patterns():
+                if stdout:
+                    sys.stdout.write('[+] Attempting to create index-patterns [Attempt {}]\n'.format(
+                        index_pattern_create_attempts))
+                index_pattern_create_attempts += 1
+                time.sleep(10)
+            if stdout:
+                sys.stdout.write('[+] Successfully created index-patterns.\n')
+            while not api_config.create_elastiflow_dashboards():
+                if stdout:
+                    sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
+                        kibana_object_create_attempts))
+                kibana_object_create_attempts += 1
+                time.sleep(10)
+            if stdout:
+                sys.stdout.write('[+] Successfully created dashboards/visualizations.\n')
             local_config = KibanaConfigurator(self.configuration_directory)
             time.sleep(2)
-            KibanaProcess(self.configuration_directory).stop()
-            ElasticProcess(self.configuration_directory).stop()
             local_config.set_elasticsearch_hosts(['http://{}:{}'.format(self.elasticsearch_host,
                                                                         self.elasticsearch_port)])
 
