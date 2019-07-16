@@ -72,7 +72,7 @@ class KibanaAPIConfigurator:
 
     def create_elastiflow_index_patterns(self, stdout=False):
         with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
-                               const.ELASTIFLOW_INDEX_PATTERNS)) as kibana_patterns_obj:
+                               const.ELASTIFLOW_INDEX_PATTERNS), 'rb') as kibana_patterns_obj:
             try:
                 data = urlencode(kibana_patterns_obj.read()).encode('utf-8')
             except AttributeError:
