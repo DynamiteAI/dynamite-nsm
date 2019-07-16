@@ -326,6 +326,18 @@ class LogstashInstaller:
         subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-sflow'.format(
             utilities.get_environment_file_str(), self.install_directory),
                         shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-netflow'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-dns'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-geoip'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-translate'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
         subprocess.call('{} {}/bin/logstash-plugin install logstash-input-beats'.format(
             utilities.get_environment_file_str(), self.install_directory),
                         shell=True)
