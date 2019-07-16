@@ -42,7 +42,7 @@ class LogstashConfigurator:
         config_path = os.path.join(self.configuration_directory, 'logstash.yml')
         if not os.path.exists(config_path):
             return ls_config_options
-        for line in open(config_path).readlines(config_path):
+        for line in open(config_path).readlines():
             if not line.startswith('#') and ':' in line:
                 k, v = line.strip().split(':')
                 ls_config_options[k] = str(v).strip().replace('"','').replace("'",'')
