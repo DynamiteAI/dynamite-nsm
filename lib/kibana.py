@@ -62,6 +62,7 @@ class KibanaAPIConfigurator:
         )
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
+        out, err = out.decode('utf-8'), err.decode('utf-8')
         if "HTTP/1.1 200" in err or "HTTP/1.1 409" in err:
             if stdout:
                 sys.stdout.write('[+] Successfully created ElastiFlow Objects.\n')
