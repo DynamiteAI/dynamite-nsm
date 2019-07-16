@@ -39,7 +39,10 @@ class ElasticConfigurator:
         :return: A dictionary of config options and their values
         """
         es_config_options = {}
-        for line in open(os.path.join(self.configuration_directory, 'elasticsearch.yml')).readlines():
+        config_path = os.path.join(self.configuration_directory, 'elasticsearch.yml')
+        if not os.path.exists(config_path):
+            return es_config_options
+        for line in open(config_path).readlines():
             if not line.startswith('#') and ':' in line:
                 k, v = line.strip().split(':')
                 es_config_options[k] = str(v).strip().replace('"','').replace("'",'')
@@ -51,7 +54,10 @@ class ElasticConfigurator:
         :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
         jvm_options = {}
-        for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
+        config_path = os.path.join(self.configuration_directory, 'jvm.options')
+        if not os.path.exists(config_path):
+            return jvm_options
+        for line in open(config_path).readlines():
             if not line.startswith('#') and '-Xms' in line:
                 jvm_options['initial_memory'] = line.replace('-Xms', '').strip()
             elif not line.startswith('#') and '-Xmx' in line:

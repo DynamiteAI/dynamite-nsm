@@ -112,7 +112,10 @@ class KibanaConfigurator:
         :return: A dictionary of config options and their values
         """
         kb_config_options = {}
-        for line in open(os.path.join(self.configuration_directory, 'kibana.yml')).readlines():
+        config_path = os.path.join(self.configuration_directory, 'kibana.yml')
+        if not os.path.exists(config_path):
+            return kb_config_options
+        for line in open(config_path).readlines():
             if not line.startswith('#') and ':' in line:
                 if line.startswith('elasticsearch.hosts:'):
                     k = 'elasticsearch.hosts'
