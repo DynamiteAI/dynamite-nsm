@@ -331,9 +331,9 @@ class KibanaInstaller:
                 time.sleep(5)
             if stdout:
                 sys.stdout.write('[+] Kibana API is up.\n')
-                sys.stdout.write('[+] Sleeping for 5 seconds, while Kibana API finishes booting.\n')
+                sys.stdout.write('[+] Sleeping for 30 seconds, while Kibana API finishes booting.\n')
                 sys.stdout.flush()
-            time.sleep(5)
+            time.sleep(30)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             api_config.create_elastiflow_index_patterns(stdout=stdout)
             api_config.create_elastiflow_dashboards(stdout=stdout)
