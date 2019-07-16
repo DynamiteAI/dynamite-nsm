@@ -39,7 +39,6 @@ class KibanaAPIConfigurator:
         es_flow_installer = ElastiFlowInstaller()
         if not LogstashProfiler().is_elastiflow_downloaded:
             es_flow_installer.download_elasticflow()
-            es_flow_installer.extract_elastiflow()
         es_flow_installer.extract_elastiflow()
 
     def create_elastiflow_dashboards(self, stdout=False):
