@@ -356,7 +356,7 @@ class LogstashProfiler:
 
     @staticmethod
     def _is_elastiflow_downloaded(stderr):
-        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME)):
+        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_ARCHIVE_NAME)):
             if stderr:
                 sys.stderr.write('[-] Elastiflow installation archive could not be found.\n')
             return False
