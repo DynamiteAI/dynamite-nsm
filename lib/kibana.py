@@ -56,12 +56,12 @@ class KibanaAPIConfigurator:
         )
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
-        if "HTTP/1.1 200" in out or "HTTP/1.1 409" in out:
+        if "HTTP/1.1 200" in err or "HTTP/1.1 409" in err:
             if stdout:
-                '[+] Successfully created ElastiFlow Objects. [API_RESPONSE: {}]\n'.format(out)
+                '[+] Successfully created ElastiFlow Objects. [API_RESPONSE: {}]\n'.format(out[0:50])
             return True
         else:
-            sys.stderr.write('[-] Failed to create ElastiFlow objects - [{}]\n'.format(out))
+            sys.stderr.write('[-] Failed to create ElastiFlow objects - [{}]\n'.format(out[0:50]))
         return False
 
     def create_elastiflow_index_patterns(self, stdout=False):
@@ -78,14 +78,17 @@ class KibanaAPIConfigurator:
                 )
                 response = urlopen(url_request)
             except HTTPError as e:
-                sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
-                return False
+                if e.code == 409:
+                    pass
+                else:
+                    sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
+                    return False
             except URLError as e:
                 sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
                 return False
             if stdout:
                 sys.stdout.write('[+] Successfully created index-patterns. [API_RESPONSE: {}]\n'.format(
-                    response.read()))
+                    response.read()[0:50]))
             return True
 
 
