@@ -51,13 +51,12 @@ class KibanaAPIConfigurator:
             server_host = 'localhost'
         kibana_api_import_url = '{}:{}/api/saved_objects/_import'.format(server_host,
                     self.kibana_config.get_server_port())
-        curl_command = 'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data"'.format(
+        curl_command = 'curl -I -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data"'.format(
                 kibana_api_import_url, kibana_api_objects_path
         )
-        print(curl_command)
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
-        if "200" in out or "409" in out:
+        if "HTTP/1.1 200" in out or "HTTP/1.1 409" in out:
             if stdout:
                 '[+] Successfully created ElastiFlow Objects. [API_RESPONSE: {}]\n'.format(out)
             return True
