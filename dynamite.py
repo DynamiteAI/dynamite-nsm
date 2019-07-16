@@ -73,9 +73,6 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
-            if not elasticsearch.ElasticProfiler().is_installed and not (args.host or args.port):
-                sys.stdout.write('[-] Local ElasticSearch instance is not installed. '
-                                 'Install first, or specifiy a remote host.\n')
             if elasticsearch.install_elasticsearch(stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -88,11 +85,19 @@ if __name__ == '__main__':
                 sys.stderr.write(['[-] Failed to install Logstash.\n'])
                 sys.exit(1)
         elif args.component == 'kibana':
-            if kibana.install_kibana(stdout=True, create_dynamite_user=True, install_jdk=True):
-                sys.exit(0)
+            if not elasticsearch.ElasticProfiler().is_installed:
+                if kibana.install_kibana(stdout=True, create_dynamite_user=True, install_jdk=True):
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] Failed to install Kibana.\n')
+                    sys.exit(1)
             else:
-                sys.stderr.write('[-] Failed to install Kibana.\n')
-                sys.exit(1)
+                if kibana.install_kibana(elasticsearch_host=args.host, elasticsearch_port=args.port,
+                                         stdout=True, create_dynamite_user=True, install_jdk=True):
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] Failed to install Kibana.\n')
+                    sys.exit(1)
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.host, args.port))
