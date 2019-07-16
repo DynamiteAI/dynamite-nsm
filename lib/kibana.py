@@ -341,7 +341,8 @@ class KibanaInstaller:
             time.sleep(2)
             KibanaProcess(self.configuration_directory).stop()
             ElasticProcess(self.configuration_directory).stop()
-            local_config.set_elasticsearch_hosts(['{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)])
+            local_config.set_elasticsearch_hosts(['http://{}:{}'.format(self.elasticsearch_host,
+                                                                        self.elasticsearch_port)])
 
 
 class KibanaProfiler:
@@ -553,7 +554,8 @@ class KibanaProcess:
         }
 
 
-def install_kibana(install_jdk=True, create_dynamite_user=True, stdout=False):
+def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, install_jdk=True, create_dynamite_user=True,
+                   stdout=False):
     """
     Install Kibana/ElastiFlow Dashboards
 
@@ -569,7 +571,7 @@ def install_kibana(install_jdk=True, create_dynamite_user=True, stdout=False):
         ))
         return False
     try:
-        kb_installer = KibanaInstaller()
+        kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)
