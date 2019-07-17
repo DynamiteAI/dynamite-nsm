@@ -2,10 +2,7 @@ import os
 import sys
 from datetime import datetime
 
-
-from lib import zeek
-from lib import pf_ring
-from lib import filebeat
+from lib.services import filebeat, pf_ring, zeek
 
 
 def is_agent_environment_prepared():

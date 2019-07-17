@@ -11,7 +11,7 @@ except Exception:
     from configparser import ConfigParser
 
 from lib import const
-from lib import pf_ring
+from lib.services import pf_ring
 from lib import utilities
 from lib import package_manager
 

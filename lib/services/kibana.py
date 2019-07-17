@@ -24,10 +24,10 @@ except Exception:
 
 from lib import const
 from lib import utilities
-from lib.logstash import LogstashProfiler
-from lib.elasticsearch import ElasticProcess
-from lib.elasticsearch import ElasticProfiler
-from lib.elastiflow import ElastiFlowInstaller
+from lib.services.logstash import LogstashProfiler
+from lib.services.elasticsearch import ElasticProcess
+from lib.services.elasticsearch import ElasticProfiler
+from lib.services.elastiflow import ElastiFlowInstaller
 
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
 CONFIGURATION_DIRECTORY = '/etc/dynamite/kibana/'
@@ -330,6 +330,7 @@ class KibanaInstaller:
                 time.sleep(5)
             kibana_process = KibanaProcess(self.configuration_directory)
             kibana_process.optimize(stdout=stdout)
+            time.sleep(5)
             sys.stdout.write('[+] Starting Kibana.\n')
             kibana_process.start(stdout=stdout)
             while not KibanaProfiler().is_listening:

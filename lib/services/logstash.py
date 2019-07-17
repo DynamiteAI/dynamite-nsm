@@ -10,7 +10,7 @@ import subprocess
 from multiprocessing import Process
 from lib import const
 from lib import utilities
-from lib import elastiflow
+from lib.services import elastiflow
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/'
 INSTALL_DIRECTORY = '/opt/dynamite/logstash/'

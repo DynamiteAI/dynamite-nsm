@@ -8,7 +8,7 @@ import tarfile
 import subprocess
 from multiprocessing import Process
 
-from lib import zeek
+from lib.services import zeek
 from lib import const
 from lib import utilities
 

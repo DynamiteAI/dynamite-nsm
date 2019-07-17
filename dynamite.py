@@ -4,10 +4,8 @@ import argparse
 import traceback
 
 from lib import agent
-from lib import kibana
-from lib import logstash
 from lib import utilities
-from lib import elasticsearch
+from lib.services import elasticsearch, kibana, logstash
 
 
 def _parse_cmdline():
