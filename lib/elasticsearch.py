@@ -508,7 +508,7 @@ class ElasticProcess:
                 utilities.get_environment_file_str(), self.config.es_home), shell=True)
         if not os.path.exists('/var/run/dynamite/elasticsearch/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
-            utilities.set_ownership_of_file('/var/run/dynamite')
+        utilities.set_ownership_of_file('/var/run/dynamite')
 
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
