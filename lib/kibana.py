@@ -328,8 +328,10 @@ class KibanaInstaller:
                     sys.stdout.write('[+] Sleeping for 5 seconds, while ElasticSearch API finishes booting.\n')
                     sys.stdout.flush()
                 time.sleep(5)
+            kibana_process = KibanaProcess(self.configuration_directory)
+            kibana_process.optimize(stdout=stdout)
             sys.stdout.write('[+] Starting Kibana.\n')
-            KibanaProcess(self.configuration_directory).start(stdout=stdout)
+            kibana_process.start(stdout=stdout)
             while not KibanaProfiler().is_listening:
                 if stdout:
                     sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
@@ -626,6 +628,15 @@ class KibanaProcess:
             'USER': 'dynamite',
             'LOGS': log_path
         }
+
+    def optimize(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Optimizing Kibana Libraries.\n')
+
+        subprocess.call('runuser -l dynamite -c "{} {}/bin/kibana --optimize"'.format(
+            utilities.get_environment_file_str(),
+            self.config.kibana_home,
+        ), shell=True)
 
 
 def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, install_jdk=True, create_dynamite_user=True,
