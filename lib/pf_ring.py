@@ -20,6 +20,65 @@ class PFRingInstaller:
         """
         self.install_directory = install_directory
 
+    def _compile_pf_ring_modules(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].\n\n')
+            sys.stdout.flush()
+            time.sleep(2)
+        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
+                        shell=True)
+        if stdout:
+            sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n\n')
+            sys.stdout.flush()
+            time.sleep(2)
+        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
+                        shell=True)
+        if stdout:
+            sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].\n\n')
+            sys.stdout.flush()
+            time.sleep(2)
+        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
+                        shell=True)
+        if stdout:
+            sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n\n')
+            sys.stdout.flush()
+            time.sleep(2)
+        subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
+                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'))
+        subprocess.call('modprobe pf_ring min_num_slots=32768', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
+                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'))
+
+    def _create_pf_ring_environment_variables(self, stdout=False):
+        if 'PF_RING_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
+    @staticmethod
+    def _setup_pf_ring_kernel_modules(stdout=False):
+        try:
+            if 'pf_ring' not in open('/etc/modules').read():
+                if stdout:
+                    sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
+                subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
+        except IOError:
+            if os.path.exists('/etc/modules-load.d'):
+                pf_ring_module_found = False
+                for mod_conf in os.listdir('/etc/modules-load.d/'):
+                    mod_conf_path = os.path.join('/etc/modules-load.d', mod_conf)
+                    if 'pf_ring' in open(mod_conf_path).read():
+                        pf_ring_module_found = True
+                        break
+                if not pf_ring_module_found:
+                    subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules-load.d/pf_ring.conf', shell=True)
+            else:
+                sys.stderr.write('[-] Could not determine a method to enable pf_ring kernel module. '
+                                 'You must enable manually using a tool such as \'modprobe\'.\n')
+
     @staticmethod
     def download_pf_ring(stdout=False):
         """
@@ -67,63 +126,20 @@ class PFRingInstaller:
         return False
 
     def setup_pf_ring(self, stdout=False):
-        if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].\n\n')
-            sys.stdout.flush()
-            time.sleep(2)
-        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
-                        shell=True)
-        if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n\n')
-            sys.stdout.flush()
-            time.sleep(2)
-        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
-                        shell=True)
-        if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].\n\n')
-            sys.stdout.flush()
-            time.sleep(2)
-        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
-                        shell=True)
-        if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n\n')
-            sys.stdout.flush()
-            time.sleep(2)
-        subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
-                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'))
-        subprocess.call('modprobe pf_ring min_num_slots=32768', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
-                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'))
-        try:
-            if 'pf_ring' not in open('/etc/modules').read():
-                if stdout:
-                    sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
-                subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
-        except IOError:
-            if os.path.exists('/etc/modules-load.d'):
-                pf_ring_module_found = False
-                for mod_conf in os.listdir('/etc/modules-load.d/'):
-                    mod_conf_path = os.path.join('/etc/modules-load.d', mod_conf)
-                    if 'pf_ring' in open(mod_conf_path).read():
-                        pf_ring_module_found = True
-                        break
-                if not pf_ring_module_found:
-                    subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules-load.d/pf_ring.conf', shell=True)
-            else:
-                sys.stderr.write('[-] Could not determine a method to enable pf_ring kernel module. '
-                                 'You must enable manually using a tool such as \'modprobe\'.\n')
-        if 'PF_RING_HOME' not in open('/etc/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
-                    self.install_directory))
-            subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
-                            shell=True)
+        """
+        Compile and setup required binaries and kernel modules
+
+        :param stdout: Print output to console
+        """
+        self._compile_pf_ring_modules(stdout=stdout)
+        self._setup_pf_ring_kernel_modules(stdout=stdout)
+        self._create_pf_ring_environment_variables(stdout=stdout)
 
 
 class PFRingProfiler:
-
+    """
+    Interface for determining whether PF_RING is installed/configured/running properly.
+    """
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)

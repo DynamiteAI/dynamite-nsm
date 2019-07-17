@@ -217,8 +217,13 @@ class FileBeatProfiler:
 
 
 class FileBeatProcess:
-
+    """
+    An interface for start|stop|status|restart of the Filebeat process
+    """
     def __init__(self, install_directory=INSTALL_DIRECTORY):
+        """
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/filebeat/)
+        """
         self.install_directory = install_directory
         self.config = FileBeatConfigurator(self.install_directory)
 
@@ -302,7 +307,8 @@ class FileBeatProcess:
                 else:
                     sig_command = signal.SIGTERM
                 attempts += 1
-                os.kill(self.pid, sig_command)
+                if self.pid != -1:
+                    os.kill(self.pid, sig_command)
                 time.sleep(1)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:

@@ -415,7 +415,9 @@ class KibanaInstaller:
 
 
 class KibanaProfiler:
-
+    """
+    Interface for determining whether Kibana is installed/configured/running properly.
+    """
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)
@@ -511,6 +513,9 @@ class KibanaProfiler:
 
 
 class KibanaProcess:
+    """
+    An interface for start|stop|status|restart of the Kibana process
+    """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
@@ -588,9 +593,9 @@ class KibanaProcess:
                     # Kill the zombie after the third attempt of asking it to kill itself
                     sig_command = signal.SIGTERM
                 attempts += 1
-                os.kill(self.pid, sig_command)
+                if self.pid != -1:
+                    os.kill(self.pid, sig_command)
                 time.sleep(1)
-
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
                 sys.stderr.write('[-] An error occurred while attempting to stop Kibana: {}\n'.format(e))
@@ -628,6 +633,8 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
     """
     Install Kibana/ElastiFlow Dashboards
 
+    :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
+    :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run
     Logstash/ElasticSearch/Kibana

@@ -597,7 +597,8 @@ class LogstashProcess:
                 else:
                     sig_command = signal.SIGTERM
                 attempts += 1
-                os.kill(self.pid, sig_command)
+                if self.pid != -1:
+                    os.kill(self.pid, sig_command)
                 time.sleep(1)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:

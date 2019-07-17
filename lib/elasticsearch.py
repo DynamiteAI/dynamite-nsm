@@ -364,7 +364,9 @@ class ElasticInstaller:
 
 
 class ElasticProfiler:
-
+    """
+    Interface for determining whether ElasticSearch is installed/configured/running properly.
+    """
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)
@@ -550,7 +552,8 @@ class ElasticProcess:
                     # Kill the zombie after the third attempt of asking it to kill itself
                     sig_command = signal.SIGTERM
                 attempts += 1
-                os.kill(self.pid, sig_command)
+                if self.pid != -1:
+                    os.kill(self.pid, sig_command)
                 time.sleep(1)
 
                 alive = utilities.check_pid(self.pid)
