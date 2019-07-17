@@ -442,6 +442,10 @@ class KibanaProfiler:
         if not kibana_home:
             if stderr:
                 sys.stderr.write('[-] Kibana installation directory could not be located in /etc/environment.\n')
+        if not os.path.exists(kibana_home):
+            if stderr:
+                sys.stderr.write('[-] Kibana installation directory could not be located at {}.\n'.format(
+                    kibana_home))
         kibana_home_files_and_dirs = os.listdir(kibana_home)
         if 'bin' not in kibana_home_files_and_dirs:
             if stderr:

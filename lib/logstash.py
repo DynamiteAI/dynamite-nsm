@@ -426,6 +426,10 @@ class LogstashProfiler:
             if stderr:
                 sys.stderr.write('[-] LogStash installation directory could not be located in /etc/environment.\n')
             return False
+        if not os.path.exists(ls_home):
+            if stderr:
+                sys.stderr.write('[-] LogStash installation directory could not be located at {}.\n'.format(ls_home))
+            return False
         ls_home_files_and_dirs = os.listdir(ls_home)
         if 'bin' not in ls_home_files_and_dirs:
             if stderr:
