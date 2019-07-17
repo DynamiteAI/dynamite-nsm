@@ -198,7 +198,9 @@ class LogstashConfigurator:
 
 
 class LogstashInstaller:
-
+    """
+    Provides a simple interface for installing a new Logstash collector with ElastiFlow pipelines
+    """
     def __init__(self,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
@@ -212,6 +214,123 @@ class LogstashInstaller:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
+
+    def _copy_logstash_files_and_directories(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Copying required LogStash files and directories.\n')
+        config_paths = [
+            'config/logstash.yml',
+            'config/jvm.options',
+            'config/log4j2.properties'
+        ]
+        install_paths = [
+            'Gemfile',
+            'Gemfile.lock',
+            'bin/',
+            'lib/',
+            'logstash-core/',
+            'logstash-core-plugin-api/',
+            'modules/',
+            'tools/',
+            'vendor/',
+            'x-pack/'
+        ]
+        for path in config_paths:
+            if stdout:
+                sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
+                    self.configuration_directory))
+            try:
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
+                            self.configuration_directory)
+
+            except shutil.Error as e:
+                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+        for path in install_paths:
+            if stdout:
+                sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
+                    self.install_directory))
+            try:
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
+                            self.install_directory)
+            except shutil.Error as e:
+                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+
+    def _create_logstash_directories(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating logstash install|configuration|logging directories.\n')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
+
+    def _create_logstash_environment_variables(self, stdout=False):
+        if 'LS_PATH_CONF' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating LogStash default configuration path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo LS_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
+                            shell=True)
+        if 'LS_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating LogStash default home path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo LS_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
+
+    def _install_logstash_plugins(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Installing Logstash plugins\n')
+            sys.stdout.flush()
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-sflow'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+                        shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-netflow'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-dns'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-geoip'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-translate'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+            shell=True)
+        subprocess.call('{} {}/bin/logstash-plugin install logstash-input-beats'.format(
+            utilities.get_environment_file_str(), self.install_directory),
+                        shell=True)
+
+    def _setup_default_logstash_configs(self, stdout=False):
+        sys.stdout.write('[+] Overwriting default configuration.\n')
+        sys.stdout.flush()
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'logstash.yml'),
+                    self.configuration_directory)
+        ls_config = LogstashConfigurator(configuration_directory=self.configuration_directory)
+        if stdout:
+            sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
+            sys.stdout.flush()
+        ls_config.set_jvm_initial_memory(4)
+        ls_config.set_jvm_maximum_memory(4)
+        ls_config.write_configs()
+
+    def _setup_elastiflow(self, stdout=False):
+        ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
+                                                    os.path.join(self.configuration_directory, 'elastiflow'))
+
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
+                    os.path.join(self.configuration_directory, 'pipelines.yml'))
+        ef_install.download_elasticflow(stdout=stdout)
+        ef_install.extract_elastiflow(stdout=stdout)
+        ef_install.setup_logstash_elastiflow(stdout=stdout)
+
+    @staticmethod
+    def _update_sysctl(stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
+        utilities.update_user_file_handle_limits()
+        utilities.update_sysctl()
 
     @staticmethod
     def download_logstash(stdout=False):
@@ -245,110 +364,29 @@ class LogstashInstaller:
     def setup_logstash(self, stdout=False):
         """
         Create required directories, files, and variables to run LogStash successfully;
-        Setup Java environment
 
         :param stdout: Print output to console
         """
-        if stdout:
-            sys.stdout.write('[+] Creating logstash install|configuration|logging directories.\n')
-        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
-        config_paths = [
-            'config/logstash.yml',
-            'config/jvm.options',
-            'config/log4j2.properties'
-        ]
-        install_paths = [
-            'Gemfile',
-            'Gemfile.lock',
-            'bin/',
-            'lib/',
-            'logstash-core/',
-            'logstash-core-plugin-api/',
-            'modules/',
-            'tools/',
-            'vendor/',
-            'x-pack/'
-        ]
-        for path in config_paths:
-            try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
-                            self.configuration_directory)
-
-            except shutil.Error as e:
-                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
-        for path in install_paths:
-            try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
-                            self.install_directory)
-            except shutil.Error as e:
-                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
-        if 'LS_PATH_CONF' not in open('/etc/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating LogStash default configuration path [{}]\n'.format(
-                    self.configuration_directory))
-            subprocess.call('echo LS_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
-                            shell=True)
-        if 'LS_HOME' not in open('/etc/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating LogStash default home path [{}]\n'.format(
-                    self.configuration_directory))
-            subprocess.call('echo LS_HOME="{}" >> /etc/environment'.format(self.install_directory),
-                            shell=True)
-        sys.stdout.write('[+] Overwriting default configuration.\n')
-        sys.stdout.flush()
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'logstash.yml'),
-                    self.configuration_directory)
-        ls_config = LogstashConfigurator(configuration_directory=self.configuration_directory)
-        if stdout:
-            sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
-            sys.stdout.flush()
-        ls_config.set_jvm_initial_memory(4)
-        ls_config.set_jvm_maximum_memory(4)
-        ls_config.write_configs()
-        if stdout:
-            sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
-        utilities.update_user_file_handle_limits()
-        utilities.update_sysctl()
-        ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
-                                                    os.path.join(self.configuration_directory, 'elastiflow'))
-
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
-                    os.path.join(self.configuration_directory, 'pipelines.yml'))
-        ef_install.download_elasticflow(stdout=stdout)
-        ef_install.extract_elastiflow(stdout=stdout)
-        ef_install.setup_logstash_elastiflow(stdout=stdout)
-        if stdout:
-            sys.stdout.write('[+] Installing Logstash plugins\n')
-            sys.stdout.flush()
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-sflow'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-                        shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-netflow'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-dns'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-geoip'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-translate'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-input-beats'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-                        shell=True)
+        self._create_logstash_directories(stdout=stdout)
+        self._copy_logstash_files_and_directories(stdout=stdout)
+        self._create_logstash_environment_variables(stdout=stdout)
+        self._setup_default_logstash_configs(stdout=stdout)
+        self._update_sysctl(stdout=stdout)
+        self._setup_elastiflow(stdout=stdout)
+        self._install_logstash_plugins(stdout=stdout)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
 
 
 class LogstashProfiler:
-
+    """
+    Interface for determining whether Logstash is installed/configured/running properly.
+    """
     def __init__(self, stderr=False):
+        """
+        :param stderr: Print error messages to console
+        """
         self.is_downloaded = self._is_downloaded(stderr=stderr)
         self.is_elastiflow_downloaded = self._is_elastiflow_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)

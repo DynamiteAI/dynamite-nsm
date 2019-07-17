@@ -239,6 +239,84 @@ class ElasticInstaller:
         self.install_directory = install_directory
         self.log_directory = log_directory
 
+    def _create_elasticsearch_directories(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
+
+    def _copy_elasticsearch_files_and_directories(self, stdout=False):
+        config_paths = [
+            'config/elasticsearch.yml',
+            'config/jvm.options',
+            'config/log4j2.properties'
+        ]
+        install_paths = [
+            'bin/',
+            'lib/',
+            'logs/',
+            'modules/',
+            'plugins/'
+        ]
+        for path in config_paths:
+            if stdout:
+                sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                    self.configuration_directory))
+            try:
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                            self.configuration_directory)
+
+            except shutil.Error as e:
+                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+        for path in install_paths:
+            if stdout:
+                sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                    self.install_directory))
+            try:
+                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                            self.install_directory)
+            except shutil.Error as e:
+                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+
+    def _create_elasticsearch_environment_variables(self, stdout=False):
+        if 'ES_PATH_CONF' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating ElasticSearch default configuration path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
+                            shell=True)
+        if 'ES_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
+
+    def _setup_default_elasticsearch_configs(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Overwriting default configuration.\n')
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
+                    self.configuration_directory)
+        es_config = ElasticConfigurator(configuration_directory=self.configuration_directory)
+        if stdout:
+            sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
+        es_config.set_jvm_initial_memory(4)
+        es_config.set_jvm_maximum_memory(4)
+        es_config.set_network_host('0.0.0.0')
+        es_config.set_network_port(9200)
+        es_config.write_configs()
+
+    def _update_sysctl(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
+        utilities.update_user_file_handle_limits()
+        utilities.update_sysctl()
+
+
     @staticmethod
     def download_elasticsearch(stdout=False):
         """
@@ -275,68 +353,14 @@ class ElasticInstaller:
 
         :param stdout: Print output to console
         """
-        if stdout:
-            sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
-        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
-        config_paths = [
-            'config/elasticsearch.yml',
-            'config/jvm.options',
-            'config/log4j2.properties'
-        ]
-        install_paths = [
-            'bin/',
-            'lib/',
-            'logs/',
-            'modules/',
-            'plugins/'
-        ]
-        for path in config_paths:
-            try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                            self.configuration_directory)
-
-            except shutil.Error as e:
-                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
-        for path in install_paths:
-            try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                            self.install_directory)
-            except shutil.Error as e:
-                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
-        if 'ES_PATH_CONF' not in open('/etc/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating ElasticSearch default configuration path [{}]\n'.format(
-                    self.configuration_directory))
-            subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
-                            shell=True)
-        if 'ES_HOME' not in open('/etc/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
-                    self.install_directory))
-            subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
-                            shell=True)
-        if stdout:
-            sys.stdout.write('[+] Overwriting default configuration.\n')
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
-                    self.configuration_directory)
+        self._create_elasticsearch_directories(stdout=stdout)
+        self._copy_elasticsearch_files_and_directories(stdout=stdout)
+        self._create_elasticsearch_environment_variables(stdout=stdout)
+        self._setup_default_elasticsearch_configs(stdout=stdout)
+        self._update_sysctl(stdout=stdout)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
-        es_config = ElasticConfigurator(configuration_directory=self.configuration_directory)
-        if stdout:
-            sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
-        es_config.set_jvm_initial_memory(4)
-        es_config.set_jvm_maximum_memory(4)
-        es_config.set_network_host('0.0.0.0')
-        es_config.set_network_port(9200)
-        es_config.write_configs()
-        if stdout:
-            sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
-        utilities.update_user_file_handle_limits()
-        utilities.update_sysctl()
 
 
 class ElasticProfiler:

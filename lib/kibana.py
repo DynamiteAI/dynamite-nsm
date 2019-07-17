@@ -35,7 +35,9 @@ LOG_DIRECTORY = '/var/log/dynamite/kibana/'
 
 
 class KibanaAPIConfigurator:
-
+    """
+    Provides an interface for interacting with the Kibana APIs
+    """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         self.configuration_directory = configuration_directory
         self.kibana_config = KibanaConfigurator(configuration_directory)
@@ -45,6 +47,12 @@ class KibanaAPIConfigurator:
         es_flow_installer.extract_elastiflow()
 
     def create_elastiflow_dashboards(self, stdout=False):
+        """
+        Creates ElastiFlow dashboards, visualizations, and searches
+
+        :param stdout: Print output to console
+        :return: True, if created successfully
+        """
 
         kibana_api_objects_path = os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
                                const.ELASTIFLOW_DASHBOARDS_CONFIG)
@@ -72,6 +80,12 @@ class KibanaAPIConfigurator:
         return False
 
     def create_elastiflow_index_patterns(self, stdout=False):
+        """
+        Creates ElastiFlow index-pattern
+
+        :param stdout: Print output to console
+        :return: True, if created successfully
+        """
         with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
                                const.ELASTIFLOW_INDEX_PATTERNS)) as kibana_patterns_obj:
 
@@ -101,8 +115,13 @@ class KibanaAPIConfigurator:
 
 
 class KibanaConfigurator:
-
+    """
+    Wrapper for configuring kibana.yml
+    """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
+        """
         self.configuration_directory = configuration_directory
         self.kb_config_options = self._parse_kibanayaml()
         self.kibana_home = None
@@ -195,13 +214,22 @@ class KibanaConfigurator:
 
 
 class KibanaInstaller:
-
+    """
+    Provides a simple interface for installing a new Kibana interface with ElastiFlow dashboards
+    """
     def __init__(self,
                  elasticsearch_host=None,
                  elasticsearch_port=None,
                  install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
+        """
+        :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
+        :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
+        """
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
         if not elasticsearch_host:
@@ -214,42 +242,15 @@ class KibanaInstaller:
         self.configuration_directory = configuration_directory
         self.log_directory = log_directory
 
-    @staticmethod
-    def download_kibana(stdout=False):
-        """
-        Download Kibana archive
-
-        :param stdout: Print output to console
-        """
-        for url in open(const.KIBANA_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.KIBANA_ARCHIVE_NAME, stdout=stdout):
-                break
-
-    @staticmethod
-    def extract_kibana(stdout=False):
-        """
-        Extract Kibana to local install_cache
-
-        :param stdout: Print output to console
-        """
-        if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(const.KIBANA_ARCHIVE_NAME))
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-            if stdout:
-                sys.stdout.write('[+] Complete!\n')
-                sys.stdout.flush()
-        except IOError as e:
-            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-
-    def setup_kibana(self, stdout=False):
+    def _create_kibana_directories(self, stdout=False):
         if stdout:
             sys.stdout.write('[+] Creating kibana install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
+
+    def _copy_kibana_files_and_directories(self, stdout=False):
         config_paths = [
             'config/kibana.yml',
         ]
@@ -266,6 +267,10 @@ class KibanaInstaller:
             'webpackShims/'
         ]
         for path in config_paths:
+            if stdout:
+                sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
+                    self.configuration_directory))
             try:
                 shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
                             self.configuration_directory)
@@ -273,11 +278,17 @@ class KibanaInstaller:
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
+            if stdout:
+                sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
+                    self.install_directory))
             try:
                 shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
                             self.install_directory)
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+
+    def _create_kibana_environment_variables(self, stdout=False):
         if 'KIBANA_PATH_CONF' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Kibana default configuration path [{}]\n'.format(
@@ -296,14 +307,8 @@ class KibanaInstaller:
                     self.install_directory))
             subprocess.call('echo KIBANA_LOGS="{}" >> /etc/environment'.format(self.log_directory),
                             shell=True)
-        if stdout:
-            sys.stdout.write('[+] Overwriting default configuration.\n')
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'kibana', 'kibana.yml'),
-                    self.configuration_directory)
 
-        utilities.set_ownership_of_file('/etc/dynamite/')
-        utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/log/dynamite')
+    def _install_elastiflow_dashboards(self, stdout=False):
         if KibanaProfiler().is_installed and (ElasticProfiler().is_installed or self.elasticsearch_host != 'localhost'):
             if stdout:
                 sys.stdout.write('[+] Installing Kibana Dashboards\n')
@@ -354,10 +359,59 @@ class KibanaInstaller:
                 time.sleep(10)
             if stdout:
                 sys.stdout.write('[+] Successfully created dashboards/visualizations.\n')
-            local_config = KibanaConfigurator(self.configuration_directory)
-            time.sleep(2)
-            local_config.set_elasticsearch_hosts(['http://{}:{}'.format(self.elasticsearch_host,
-                                                                        self.elasticsearch_port)])
+
+    def _setup_default_kibana_configs(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Overwriting default configuration.\n')
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'kibana', 'kibana.yml'),
+                    self.configuration_directory)
+        local_config = KibanaConfigurator(self.configuration_directory)
+        local_config.set_elasticsearch_hosts(['http://{}:{}'.format(self.elasticsearch_host,
+                                                                    self.elasticsearch_port)])
+
+    @staticmethod
+    def download_kibana(stdout=False):
+        """
+        Download Kibana archive
+
+        :param stdout: Print output to console
+        """
+        for url in open(const.KIBANA_MIRRORS, 'r').readlines():
+            if utilities.download_file(url, const.KIBANA_ARCHIVE_NAME, stdout=stdout):
+                break
+
+    @staticmethod
+    def extract_kibana(stdout=False):
+        """
+        Extract Kibana to local install_cache
+
+        :param stdout: Print output to console
+        """
+        if stdout:
+            sys.stdout.write('[+] Extracting: {} \n'.format(const.KIBANA_ARCHIVE_NAME))
+        try:
+            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME))
+            tf.extractall(path=const.INSTALL_CACHE)
+            if stdout:
+                sys.stdout.write('[+] Complete!\n')
+                sys.stdout.flush()
+        except IOError as e:
+            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+    def setup_kibana(self, stdout=False):
+        """
+        Create required directories, files, and variables to run ElasticSearch successfully;
+
+        :param stdout: Print output to console
+        """
+        self._create_kibana_directories(stdout=stdout)
+        self._copy_kibana_files_and_directories(stdout=stdout)
+        self._create_kibana_environment_variables(stdout=stdout)
+        self._setup_default_kibana_configs(stdout=stdout)
+        utilities.set_ownership_of_file('/etc/dynamite/')
+        utilities.set_ownership_of_file('/opt/dynamite/')
+        utilities.set_ownership_of_file('/var/log/dynamite')
+        self._install_elastiflow_dashboards(stdout=stdout)
 
 
 class KibanaProfiler:
