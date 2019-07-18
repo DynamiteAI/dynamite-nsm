@@ -461,11 +461,11 @@ class ElasticProfiler:
             return False
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
             if stderr:
-                sys.stderr.write('[-] Could not locate elasticsearch.yml in {}'.format(es_path_conf))
+                sys.stderr.write('[-] Could not locate elasticsearch.yml in {}\n'.format(es_path_conf))
             return False
         if not os.path.exists(os.path.join(es_path_conf, 'jvm.options')):
             if stderr:
-                sys.stderr.write('[-] Could not locate jvm.options in {}'.format(es_path_conf))
+                sys.stderr.write('[-] Could not locate jvm.options in {}\n'.format(es_path_conf))
             return False
         try:
             es_config = ElasticConfigurator(configuration_directory=es_path_conf)

@@ -444,10 +444,12 @@ class KibanaProfiler:
         if not kibana_home:
             if stderr:
                 sys.stderr.write('[-] Kibana installation directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(kibana_home):
             if stderr:
                 sys.stderr.write('[-] Kibana installation directory could not be located at {}.\n'.format(
                     kibana_home))
+            return False
         kibana_home_files_and_dirs = os.listdir(kibana_home)
         if 'bin' not in kibana_home_files_and_dirs:
             if stderr:
@@ -474,11 +476,11 @@ class KibanaProfiler:
             return False
         if not kibana_path_conf:
             if stderr:
-                sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))
+                sys.stderr.write('[-] Could not locate kibana.yml in {}\n'.format(kibana_path_conf))
             return False
         if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
             if stderr:
-                sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))
+                sys.stderr.write('[-] Could not locate kibana.yml in {}\n'.format(kibana_path_conf))
             return False
         try:
             KibanaConfigurator(configuration_directory=kibana_path_conf)
@@ -505,7 +507,7 @@ class KibanaProfiler:
             return False
         if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
             if stderr:
-                sys.stderr.write('[-] Could not locate kibana.yml in {}'.format(kibana_path_conf))
+                sys.stderr.write('[-] Could not locate kibana.yml in {}\n'.format(kibana_path_conf))
             return False
         try:
             kibana_config = KibanaConfigurator(configuration_directory=kibana_path_conf)

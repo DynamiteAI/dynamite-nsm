@@ -471,21 +471,21 @@ class LogstashProfiler:
             return False
         if not os.path.exists(ef_dict_path):
             if stderr:
-                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located at: {}'.format(ef_dict_path))
+                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located at: {}\n'.format(ef_dict_path))
             return False
         elif not os.path.exists(ef_template_path):
             if stderr:
-                sys.stderr.write('[-] ElastiFlow template directory could not be located at: {}'.format(
+                sys.stderr.write('[-] ElastiFlow template directory could not be located at: {}\n'.format(
                     ef_template_path))
             return False
         elif not os.path.exists(ef_geo_ip_db_path):
             if stderr:
-                sys.stderr.write('[-] ElastiFlow geoip directory could not be located at: {}'.format(
+                sys.stderr.write('[-] ElastiFlow geoip directory could not be located at: {}\n'.format(
                     ef_geo_ip_db_path))
             return False
         elif not os.path.exists(ef_definition_path):
             if stderr:
-                sys.stderr.write('[-] ElastiFlow definitions directory could not be located at: {}'.format(
+                sys.stderr.write('[-] ElastiFlow definitions directory could not be located at: {}\n'.format(
                     ef_definition_path))
             return False
         return True
@@ -500,11 +500,11 @@ class LogstashProfiler:
             return False
         if not os.path.exists(os.path.join(ls_path_conf, 'logstash.yml')):
             if stderr:
-                sys.stderr.write('[-] Could not locate logstash.yml in {}'.format(ls_path_conf))
+                sys.stderr.write('[-] Could not locate logstash.yml in {}\n'.format(ls_path_conf))
             return False
         if not os.path.exists(os.path.join(ls_path_conf, 'jvm.options')):
             if stderr:
-                sys.stderr.write('[-] Could not locate jvm.options in {}'.format(ls_path_conf))
+                sys.stderr.write('[-] Could not locate jvm.options in {}\n'.format(ls_path_conf))
             return False
         try:
             LogstashConfigurator(configuration_directory=ls_path_conf)
