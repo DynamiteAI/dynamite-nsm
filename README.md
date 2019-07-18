@@ -49,25 +49,6 @@ dynamite install monitor
 dynamite start monitor
 ```
 
-##### Setup
-- Prepare the agent, this installs any required kernel-headers needed to install the PF_RING kernel module. 
-
-```bash
-dynamite prepare agent
-```
-
-- Reboot, and install the agent. This process can take between 10 and 40 minutes depending on your specs.
-
-```bash
-dynamite install agent --interface en01 --agent-label VLAN-001 --host my-monitor-host-or-ip.local --port 5044
-```
-
-- Start the agent
-```bash
-dynamite start agent
-```
-
-
 #### Agent
 
 ##### Specs
@@ -89,3 +70,7 @@ dynamite prepare agent
 dynamite install agent --interface en01 --agent-label VLAN-001 --host my-monitor-host-or-ip.local --port 5044
 ```
 
+- Start the agent
+```bash
+dynamite start agent
+```
