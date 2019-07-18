@@ -30,7 +30,7 @@ Dynamite-NSM is offered as standalone commandline utility implemented in pure Py
 
 While there are quite a few components that are a part of Dynamite-NSM. Standing up a standalone agent/monitor deployment is very simple.
 
-##### Monitor (Standalone all components installed)
+#### Monitor (Standalone all components installed)
 
 ##### Specs
 ```
@@ -68,7 +68,7 @@ dynamite start agent
 ```
 
 
-##### Agent Machine
+#### Agent
 
 ##### Specs
 ```
