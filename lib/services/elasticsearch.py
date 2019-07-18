@@ -506,6 +506,8 @@ class ElasticProcess:
             subprocess.call('runuser -l dynamite -c "{} {}/bin/elasticsearch '
                             '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &>/dev/null &"'.format(
                 utilities.get_environment_file_str(), self.config.es_home), shell=True)
+        if not ElasticProfiler().is_installed:
+            sys.stderr.write('[-] ElasticSearch is not installed. \'dynamite.py install elasticsearch\'\n')
         if not os.path.exists('/var/run/dynamite/elasticsearch/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
         utilities.set_ownership_of_file('/var/run/dynamite')
@@ -547,6 +549,8 @@ class ElasticProcess:
         """
         alive = True
         attempts = 0
+        if not ElasticProfiler().is_installed:
+            sys.stderr.write('[-] ElasticSearch is not installed. \'dynamite.py install elasticsearch\'\n')
         while alive:
             try:
                 if stdout:
@@ -574,6 +578,8 @@ class ElasticProcess:
         :param stdout: Print output to console
         :return: True if started successfully
         """
+        if not ElasticProfiler().is_installed:
+            sys.stderr.write('[-] ElasticSearch is not installed. \'dynamite.py install elasticsearch\'\n')
         self.stop(stdout=stdout)
         return self.start(stdout=stdout)
 
@@ -583,8 +589,9 @@ class ElasticProcess:
 
         :return: A dictionary containing the run status and relevant configuration options
         """
+        if not ElasticProfiler().is_installed:
+            sys.stderr.write('[-] ElasticSearch is not installed. \'dynamite.py install elasticsearch\'\n')
         log_path = os.path.join(self.config.get_log_path(), self.config.get_cluster_name() + '.log')
-
         return {
             'PID': self.pid,
             'RUNNING': utilities.check_pid(self.pid),
