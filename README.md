@@ -1,0 +1,91 @@
+## Dynamite Network Security Monitor
+
+Dynamite-NSM is an open-source network monitor and log-management solution with an emphasis on *very* fast deployment 
+and intuitive management. 
+
+Dynamite-NSM is offered as standalone commandline utility implemented in pure Python.
+
+### What's in the Box?
+
+#### Agent
+| Component   | Description                                                                                                                                       |
+|-------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is much different from your typical IDS.                                       |
+| Suricata    | A powerful rule-based IDS, inspects the network traffic using an extensive rules and signature language.                                          |
+| PF_RING     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the above components.            |
+| Filebeat    | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol to prevent that works in conjunction with Logstash. |
+
+
+#### Monitor
+
+| Component                                              | Description                                                                                                         |
+|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Logstash [7.2.0]                                       | A server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it. |
+| Elasticsearch [7.2.0]                                  | A is a distributed, RESTful search and analytics engine.                                                            |
+| Kibana [7.2.0]                                         | A web-app that allows you to visualize your Elasticsearch data                                                      |
+| [ElastiFlow™](https://github.com/robcowart/elastiflow) | Provides network flow data collection and visualization using the Elastic Stack.                                    |
+
+
+### Getting Started
+
+While there are quite a few components that are a part of Dynamite-NSM. Standing up a standalone agent/monitor deployment is very simple.
+
+##### Monitor (Standalone all components installed)
+
+##### Specs
+```
+Linux Kernel: 2.6.32+
+16 GB of RAM at least 4 CPU
+```
+##### Setup
+
+- Install the monitoring components all on the same machine.
+```bash
+dynamite install monitor
+```
+
+- Start the monitor. The Kibana UI can be at: http://localhost:5601
+```bash
+dynamite start monitor
+```
+
+##### Setup
+- Prepare the agent, this installs any required kernel-headers needed to install the PF_RING kernel module. 
+
+```bash
+dynamite prepare agent
+```
+
+- Reboot, and install the agent. This process can take between 10 and 40 minutes depending on your specs.
+
+```bash
+dynamite install agent --interface en01 --agent-label VLAN-001 --host my-monitor-host-or-ip.local --port 5044
+```
+
+- Start the agent
+```bash
+dynamite start agent
+```
+
+
+##### Agent Machine
+
+##### Specs
+```
+Linux Kernel: 2.6.32+
+4+ GB of RAM at least 2 CPU
+```
+
+##### Setup
+- Prepare the agent, this installs any required kernel-headers needed to install the PF_RING kernel module. 
+
+```bash
+dynamite prepare agent
+```
+
+- Reboot, and install the agent. This process can take between 10 and 40 minutes depending on your specs.
+
+```bash
+dynamite install agent --interface en01 --agent-label VLAN-001 --host my-monitor-host-or-ip.local --port 5044
+```
+
