@@ -543,7 +543,7 @@ class KibanaProcess:
         """
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "{} {}/bin/kibana '
-                            '-c {} -l {} &>/dev/null &"'.format(
+                            '-c {} -l {} &"'.format(
                                 utilities.get_environment_file_str(),
                                 self.config.kibana_home,
                                 os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
