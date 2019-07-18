@@ -639,7 +639,7 @@ class KibanaProcess:
         if stdout:
             sys.stdout.write('[+] Optimizing Kibana Libraries.\n')
 
-        subprocess.call('{} {}/bin/kibana --optimize --allow-root"'.format(
+        subprocess.call('{} {}/bin/kibana --optimize --allow-root'.format(
             utilities.get_environment_file_str(),
             self.config.kibana_home,
         ), shell=True)
