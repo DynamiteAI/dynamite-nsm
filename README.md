@@ -13,7 +13,7 @@ Dynamite-NSM is offered as standalone commandline utility implemented in pure Py
 | Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is much different from your typical IDS.                                       |
 | Suricata    | A powerful rule-based IDS, inspects the network traffic using an extensive rules and signature language.                                          |
 | PF_RING     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the above components.            |
-| Filebeat    | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol to prevent that works in conjunction with Logstash. |
+| Filebeat    | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash. |
 
 
 #### Monitor
