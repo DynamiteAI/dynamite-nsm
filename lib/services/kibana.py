@@ -330,6 +330,7 @@ class KibanaInstaller:
                 time.sleep(5)
             kibana_process = KibanaProcess(self.configuration_directory)
             kibana_process.optimize(stdout=stdout)
+            utilities.set_ownership_of_file('/opt/dynamite/')
             time.sleep(5)
             sys.stdout.write('[+] Starting Kibana.\n')
             kibana_process.start(stdout=stdout)
@@ -411,10 +412,10 @@ class KibanaInstaller:
         self._copy_kibana_files_and_directories(stdout=stdout)
         self._create_kibana_environment_variables(stdout=stdout)
         self._setup_default_kibana_configs(stdout=stdout)
+        self._install_elastiflow_dashboards(stdout=stdout)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
-        self._install_elastiflow_dashboards(stdout=stdout)
 
 
 class KibanaProfiler:
@@ -638,7 +639,7 @@ class KibanaProcess:
         if stdout:
             sys.stdout.write('[+] Optimizing Kibana Libraries.\n')
 
-        subprocess.call('runuser -l dynamite -c "{} {}/bin/kibana --optimize"'.format(
+        subprocess.call('{} {}/bin/kibana --optimize --allow-root"'.format(
             utilities.get_environment_file_str(),
             self.config.kibana_home,
         ), shell=True)
