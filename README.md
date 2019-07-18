@@ -1,6 +1,6 @@
 ## Dynamite Network Security Monitor
 
-Dynamite-NSM is an open-source network monitor and log-management solution with an emphasis on *very* fast deployment 
+Dynamite-NSM is an open-source network security monitor and log-management solution with an emphasis on *very* fast deployment 
 and intuitive management. 
 
 Dynamite-NSM is offered as standalone commandline utility implemented in pure Python.
@@ -21,7 +21,7 @@ Dynamite-NSM is offered as standalone commandline utility implemented in pure Py
 | Component                                              | Description                                                                                                         |
 |--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
 | Logstash [7.2.0]                                       | A server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it. |
-| Elasticsearch [7.2.0]                                  | A is a distributed, RESTful search and analytics engine.                                                            |
+| Elasticsearch [7.2.0]                                  | A distributed, RESTful search and analytics engine.                                                            |
 | Kibana [7.2.0]                                         | A web-app that allows you to visualize your Elasticsearch data                                                      |
 | [ElastiFlow™](https://github.com/robcowart/elastiflow) | Provides network flow data collection and visualization using the Elastic Stack.                                    |
 
@@ -44,7 +44,7 @@ Install the monitoring components all on the same machine.
 dynamite install monitor
 ```
 
-Start the monitor. The Kibana UI can be at: http://localhost:5601
+Start the monitor. The Kibana UI can be found at: http://localhost:5601
 ```bash
 dynamite start monitor
 ```
