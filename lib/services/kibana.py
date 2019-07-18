@@ -550,8 +550,6 @@ class KibanaProcess:
                                 os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
                                 os.path.join(self.config.kibana_logs, 'kibana.log')
                             ), shell=True)
-        if not KibanaProfiler().is_installed:
-            sys.stderr.write('[-] Kibana is not installed. \'dynamite.py install kibana\'\n')
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
         utilities.set_ownership_of_file('/var/run/dynamite')
@@ -593,8 +591,6 @@ class KibanaProcess:
         """
         alive = True
         attempts = 0
-        if not KibanaProfiler().is_installed:
-            sys.stderr.write('[-] Kibana is not installed. \'dynamite.py install kibana\'\n')
         while alive:
             try:
                 if stdout:
@@ -621,8 +617,6 @@ class KibanaProcess:
         :param stdout: Print output to console
         :return: True if started successfully
         """
-        if not KibanaProfiler().is_installed:
-            sys.stderr.write('[-] Kibana is not installed. \'dynamite.py install kibana\'\n')
         self.stop(stdout=stdout)
         return self.start(stdout=stdout)
 
@@ -632,9 +626,8 @@ class KibanaProcess:
 
         :return: A dictionary containing the run status and relevant configuration options
         """
-        if not KibanaProfiler().is_installed:
-            sys.stderr.write('[-] Kibana is not installed. \'dynamite.py install kibana\'\n')
         log_path = os.path.join(self.config.kibana_logs, 'kibana.log')
+
         return {
             'PID': self.pid,
             'RUNNING': utilities.check_pid(self.pid),

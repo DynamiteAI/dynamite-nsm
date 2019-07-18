@@ -555,8 +555,6 @@ class LogstashProcess:
                       '--path.settings={} &>/dev/null & echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
                 utilities.get_environment_file_str(), self.config.ls_home, self.config.ls_path_conf)
             subprocess.call(command, shell=True, cwd=self.config.ls_home)
-        if not LogstashProfiler().is_installed:
-            sys.stderr.write('[-] LogStash is not installed. \'dynamite.py install logstash\'\n')
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
@@ -591,8 +589,6 @@ class LogstashProcess:
         :param stdout: Print output to console
         :return: True if stopped successfully
         """
-        if not LogstashProfiler().is_installed:
-            sys.stderr.write('[-] LogStash is not installed. \'dynamite.py install logstash\'\n')
         alive = True
         attempts = 0
         while alive:
@@ -620,8 +616,6 @@ class LogstashProcess:
         :param stdout: Print output to console
         :return: True if started successfully
         """
-        if not LogstashProfiler().is_installed:
-            sys.stderr.write('[-] LogStash is not installed. \'dynamite.py install logstash\'\n')
         self.stop(stdout=stdout)
         return self.start(stdout=stdout)
 
@@ -631,9 +625,8 @@ class LogstashProcess:
 
         :return: A dictionary containing the run status and relevant configuration options
         """
-        if not LogstashProfiler().is_installed:
-            sys.stderr.write('[-] LogStash is not installed. \'dynamite.py install logstash\'\n')
         log_path = os.path.join(self.config.get_log_path(), 'logstash-plain.log')
+
         return {
             'PID': self.pid,
             'RUNNING': utilities.check_pid(self.pid),

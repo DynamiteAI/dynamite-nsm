@@ -50,6 +50,9 @@ def _fatal_exception(action, component, debug=False):
         traceback.print_exc(file=sys.stderr)
     sys.exit(1)
 
+def _not_installed(action, component):
+    _fatal_exception(action, component, debug=False)
+
 
 if __name__ == '__main__':
     if not utilities.is_root():
@@ -120,6 +123,9 @@ if __name__ == '__main__':
                     sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
                                      '\'dynamite.py status elasticsearch\'.\n')
                     sys.exit(0)
+                elif not elasticsearch.ElasticProfiler(stderr=False).is_installed:
+                    _not_installed('start', 'elasticsearch')
+                    sys.exit(0)
                 else:
                     sys.stdout.write('[-] An error occurred while attempting to start ElasticSearch.\n')
                     sys.exit(1)
@@ -132,6 +138,9 @@ if __name__ == '__main__':
                 if started:
                     sys.stdout.write('[+] LogStash started successfully. Check its status at any time with: '
                                      '\'dynamite.py status logstash\'.\n')
+                    sys.exit(0)
+                elif not logstash.LogstashProfiler(stderr=False).is_installed:
+                    _not_installed('start', 'logstash')
                     sys.exit(0)
                 else:
                     sys.stderr.write('[-] An error occurred while attempting to start LogStash.\n')
@@ -146,6 +155,9 @@ if __name__ == '__main__':
                     sys.stdout.write('[+] Kibana started successfully. Check its status at any time with: '
                                      '\'dynamite.py status kibana\'.\n')
                     sys.exit(0)
+                elif not kibana.KibanaProfiler(stderr=False).is_installed:
+                    _not_installed('start', 'kibana')
+                    sys.exit(0)
                 else:
                     sys.stderr.write('[-] An error occurred while attempting to start Kibana.\n')
                     sys.exit(1)
@@ -156,17 +168,26 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'status':
             if args.component == 'elasticsearch':
+                if not elasticsearch.ElasticProfiler(stderr=False).is_installed:
+                    _not_installed('start', 'elasticsearch')
+                    sys.exit(0)
                 try:
                     sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
                     sys.exit(0)
                 except Exception:
                     _fatal_exception('status', 'elasticsearch', args.debug)
             elif args.component == 'logstash':
+                if not logstash.LogstashProfiler(stderr=False).is_installed:
+                    _not_installed('status', 'elasticsearch')
+                    sys.exit(0)
                 try:
                     sys.stdout.write(json.dumps(logstash.LogstashProcess().status(), indent=1) + '\n')
                 except Exception:
                     _fatal_exception('status', 'logstash', args.debug)
             elif args.component == 'kibana':
+                if not kibana.KibanaProfiler(stderr=False).is_installed:
+                    _not_installed('status', 'kibana')
+                    sys.exit(0)
                 try:
                     sys.stdout.write(json.dumps(kibana.KibanaProcess().status(), indent=1) + '\n')
                 except Exception:
@@ -184,12 +205,14 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
                 sys.exit(1)
     elif args.command == 'stop':
-
         if args.component == 'elasticsearch':
             try:
                 sys.stdout.write('[+] Stopping ElasticSearch.\n')
                 stopped = elasticsearch.ElasticProcess().stop(stdout=True)
-                if stopped:
+                if not elasticsearch.ElasticProfiler(stderr=False).is_installed:
+                    _not_installed('stop', 'kibana')
+                    sys.exit(0)
+                elif stopped:
                     sys.stdout.write('[+] ElasticSearch stopped successfully.\n')
                     sys.exit(0)
                 else:
@@ -201,7 +224,10 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Stopping LogStash.\n')
                 stopped = logstash.LogstashProcess().stop(stdout=True)
-                if stopped:
+                if not logstash.LogstashProfiler(stderr=False).is_installed:
+                    _not_installed('stop', 'logstash')
+                    sys.exit(0)
+                elif stopped:
                     sys.stdout.write('[+] LogStash stopped successfully.\n')
                     sys.exit(0)
                 else:
@@ -213,7 +239,10 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Stopping Kibana.\n')
                 stopped = kibana.KibanaProcess().stop(stdout=True)
-                if stopped:
+                if not kibana.KibanaProfiler(stderr=False).is_installed:
+                    _not_installed('stop', 'kibana')
+                    sys.exit(0)
+                elif stopped:
                     sys.stdout.write('[+] Kibana stopped successfully.\n')
                     sys.exit(0)
                 else:
@@ -237,7 +266,10 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Restarting ElasticSearch.\n')
                 restarted = elasticsearch.ElasticProcess().restart(stdout=True)
-                if restarted:
+                if not elasticsearch.ElasticProfiler(stderr=False).is_installed:
+                    _not_installed('restart', 'kibana')
+                    sys.exit(0)
+                elif restarted:
                     sys.stdout.write('[+] ElasticSearch restarted successfully.\n')
                     sys.exit(0)
                 else:
@@ -249,7 +281,10 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Restarting LogStash.\n')
                 restarted = logstash.LogstashProcess().restart(stdout=True)
-                if restarted:
+                if not logstash.LogstashProfiler(stderr=False).is_installed:
+                    _not_installed('restart', 'logstash')
+                    sys.exit(0)
+                elif restarted:
                     sys.stdout.write('[+] LogStash restarted successfully.\n')
                     sys.exit(0)
                 else:
@@ -261,7 +296,10 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Restarting Kibana.\n')
                 restarted = kibana.KibanaProcess().restart(stdout=True)
-                if restarted:
+                if not kibana.KibanaProfiler(stderr=False).is_installed:
+                    _not_installed('restart', 'logstash')
+                    sys.exit(0)
+                elif restarted:
                     sys.stdout.write('[+] Kibana restarted successfully.\n')
                     sys.exit(0)
                 else:
