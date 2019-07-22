@@ -160,7 +160,7 @@ if __name__ == '__main__':
                 _fatal_exception('start', 'kibana', args.debug)
         elif args.component == 'monitor':
             try:
-                if agent.start_agent():
+                if monitor.start_monitor():
                     sys.exit(0)
                 else:
                     sys.stderr.write('[-] Failed to start monitor.')
