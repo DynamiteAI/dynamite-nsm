@@ -4,6 +4,7 @@ import argparse
 import traceback
 
 from lib import agent
+from lib import monitor
 from lib import utilities
 from lib.services import elasticsearch, kibana, logstash
 
@@ -106,16 +107,7 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'start':
-        if args.component == 'agent':
-            try:
-                if agent.start_agent():
-                    sys.exit(0)
-                else:
-                    sys.stderr.write('[-] Failed to start agent.')
-                    sys.exit(1)
-            except Exception:
-                _fatal_exception('start', 'agent', args.debug)
-        elif args.component == 'elasticsearch':
+        if args.component == 'elasticsearch':
             try:
                 sys.stdout.write('[+] Starting ElasticSearch.\n')
                 started = elasticsearch.ElasticProcess().start(stdout=True)
@@ -163,6 +155,24 @@ if __name__ == '__main__':
                     sys.exit(1)
             except Exception:
                 _fatal_exception('start', 'kibana', args.debug)
+        elif args.component == 'monitor':
+            try:
+                if agent.start_agent():
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] Failed to start monitor.')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('start', 'monitor', args.debug)
+        elif args.component == 'agent':
+            try:
+                if agent.start_agent():
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] Failed to start agent.')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('start', 'agent', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
@@ -192,6 +202,18 @@ if __name__ == '__main__':
                     sys.stdout.write(json.dumps(kibana.KibanaProcess().status(), indent=1) + '\n')
                 except Exception:
                     _fatal_exception('status', 'kibana', args.debug)
+            elif args.component == 'monitor':
+                try:
+                    es_status, ls_status, kb_status = monitor.status_monitor()
+                    sys.stdout.write(json.dumps(dict(
+                        ElasticSearch=es_status,
+                        LogStash=ls_status,
+                        Kibana=kb_status
+                    ), indent=1))
+                    sys.stdout.flush()
+                    sys.exit(0)
+                except Exception:
+                    _fatal_exception('status', 'monitor', args.debug)
             elif args.component == 'agent':
                 try:
                     zeek_status, other_processes = agent.status_agent()
@@ -250,6 +272,14 @@ if __name__ == '__main__':
                     sys.exit(1)
             except Exception:
                 _fatal_exception('stop', 'kibana', args.debug)
+        elif args.component == 'monitor':
+            try:
+                if monitor.stop_monitor():
+                    sys.exit(0)
+                else:
+                    sys.stderr.write('[-] Failed to stop monitor.')
+            except Exception:
+                _fatal_exception('stop', 'monitor', args.debug)
         elif args.component == 'agent':
             try:
                 if agent.stop_agent():
@@ -307,6 +337,20 @@ if __name__ == '__main__':
                     sys.exit(1)
             except Exception:
                 _fatal_exception('restart', 'kibana', args.debug)
+        elif args.component == 'monitor':
+            try:
+                if monitor.stop_monitor():
+                    if agent.start_agent():
+                        sys.stdout.write('[+] Monitor restarted successfully.\n')
+                        sys.exit(0)
+                    else:
+                        sys.stdout.write('[-] Monitor failed to start.\n')
+                        sys.exit(1)
+                else:
+                    sys.stdout.write('[-] Monitor failed to stop.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('restart', 'monitor', args.debug)
         elif args.component == 'agent':
             try:
                 if agent.stop_agent():
