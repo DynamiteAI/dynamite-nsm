@@ -321,18 +321,18 @@ class ZeekInstaller:
 
     @staticmethod
     def install_dependencies():
-        pkt_mng = package_manager.OSPackageManager()
-        if not pkt_mng.refresh_package_indexes():
+        pacman = package_manager.OSPackageManager()
+        if not pacman.refresh_package_indexes():
             return False
         packages = None
-        if pkt_mng.package_manager == 'apt-get':
+        if pacman.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
                         'python-dev', 'swig', 'zlib1g-dev']
-        elif pkt_mng.package_manager == 'yum':
+        elif pacman.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
                         'python-devel', 'swig', 'zlib-devel']
         if packages:
-            return pkt_mng.install_packages(packages)
+            return pacman.install_packages(packages)
         return False
 
     def setup_zeek(self, network_interface=None, stdout=False):

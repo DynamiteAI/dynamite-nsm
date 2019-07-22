@@ -24,6 +24,7 @@ except Exception:
 
 from lib import const
 from lib import utilities
+from lib.package_manager import OSPackageManager
 from lib.services.logstash import LogstashProfiler
 from lib.services.elasticsearch import ElasticProcess
 from lib.services.elasticsearch import ElasticProfiler
@@ -408,6 +409,9 @@ class KibanaInstaller:
 
         :param stdout: Print output to console
         """
+        pacman = OSPackageManager()
+        pacman.refresh_package_indexes()
+        pacman.install_packages('curl')
         self._create_kibana_directories(stdout=stdout)
         self._copy_kibana_files_and_directories(stdout=stdout)
         self._create_kibana_environment_variables(stdout=stdout)
