@@ -411,7 +411,7 @@ class KibanaInstaller:
         """
         pacman = OSPackageManager()
         pacman.refresh_package_indexes()
-        pacman.install_packages('curl')
+        pacman.install_packages(['curl'])
         self._create_kibana_directories(stdout=stdout)
         self._copy_kibana_files_and_directories(stdout=stdout)
         self._create_kibana_environment_variables(stdout=stdout)

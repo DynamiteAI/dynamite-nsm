@@ -1,6 +1,5 @@
 import sys
 from lib import utilities
-from package_manager import OSPackageManager
 from lib.services import elasticsearch, logstash, kibana
 
 
@@ -16,9 +15,6 @@ def install_monitor():
             utilities.get_memory_available_bytes() / (1024 ** 3)
         ))
         return False
-    pacman = OSPackageManager()
-    pacman.refresh_package_indexes()
-    pacman.install_packages('curl')
     utilities.create_dynamite_user('password')
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
