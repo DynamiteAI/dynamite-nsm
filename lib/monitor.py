@@ -10,6 +10,12 @@ def install_monitor():
 
     :return: True, if installation succeeded
     """
+    if utilities.get_memory_available_bytes() < 10 * (1000 ** 3):
+        sys.stderr.write('[-] Dynamite standalone monitor requires '
+                         'at-least 10GB to run currently available [{} GB]\n'.format(
+            utilities.get_memory_available_bytes() / (1024 ** 3)
+        ))
+        return False
     utilities.create_dynamite_user('password')
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
