@@ -325,12 +325,13 @@ class KibanaInstaller:
                     time.sleep(5)
                 if stdout:
                     sys.stdout.write('[+] ElasticSearch API is up.\n')
-                    sys.stdout.write('[+] Sleeping for 5 seconds, while ElasticSearch API finishes booting.\n')
+                    sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
                     sys.stdout.flush()
-                time.sleep(5)
+                time.sleep(10)
             kibana_process = KibanaProcess(self.configuration_directory)
             kibana_process.optimize(stdout=stdout)
             utilities.set_ownership_of_file('/opt/dynamite/')
+            utilities.set_ownership_of_file('/etc/dynamite/')
             time.sleep(5)
             sys.stdout.write('[+] Starting Kibana.\n')
             kibana_process.start(stdout=stdout)
@@ -344,7 +345,6 @@ class KibanaInstaller:
                 sys.stdout.flush()
             time.sleep(15)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
-
             index_pattern_create_attempts = 1
             kibana_object_create_attempts = 1
             while not api_config.create_elastiflow_index_patterns():
