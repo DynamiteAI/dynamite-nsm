@@ -315,7 +315,7 @@ class KibanaInstaller:
             if stdout:
                 sys.stdout.write('[+] Waiting for ElasticSearch to become accessible.\n')
             # Start ElasticSearch if it is installed locally and is not running
-            if self.elasticsearch_host == 'localhost':
+            if self.elasticsearch_host in ['localhost', '127.0.0.1', '0.0.0.0', '::1', '::/128']:
                 sys.stdout.write('[+] Starting ElasticSearch.\n')
                 ElasticProcess().start(stdout=stdout)
                 sys.stdout.flush()
