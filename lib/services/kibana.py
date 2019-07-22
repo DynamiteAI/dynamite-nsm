@@ -640,10 +640,14 @@ class KibanaProcess:
         if stdout:
             sys.stdout.write('[+] Optimizing Kibana Libraries.\n')
 
+        # Kibana initially has to be called as root due to a process forking issue when using runuser
+        # builtin
         subprocess.call('{} {}/bin/kibana --optimize --allow-root'.format(
             utilities.get_environment_file_str(),
             self.config.kibana_home,
         ), shell=True)
+        # Pass permissions back to dynamite user
+        utilities.set_ownership_of_file('/var/log/dynamite')
 
 
 def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, install_jdk=True, create_dynamite_user=True,
