@@ -51,6 +51,7 @@ def _fatal_exception(action, component, debug=False):
         traceback.print_exc(file=sys.stderr)
     sys.exit(1)
 
+
 def _not_installed(action, component):
     _fatal_exception(action, component, debug=False)
 
@@ -100,6 +101,8 @@ if __name__ == '__main__':
                 else:
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
+        elif args.component == 'monitor':
+            monitor.install_monitor()
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.host, args.port))
