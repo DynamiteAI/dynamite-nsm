@@ -634,6 +634,9 @@ class KibanaProcess:
         }
 
     def optimize(self, stdout=False):
+        if not os.path.exists('/var/run/dynamite/kibana/'):
+            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
+        utilities.set_ownership_of_file('/var/run/dynamite')
         if stdout:
             sys.stdout.write('[+] Optimizing Kibana Libraries.\n')
 
