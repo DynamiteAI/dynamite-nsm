@@ -11,8 +11,8 @@ def install_monitor():
     :return: True, if installation succeeded
     """
     utilities.create_dynamite_user('password')
-    utilities.download_java()
-    utilities.extract_java()
+    utilities.download_java(stdout=True)
+    utilities.extract_java(stdout=True)
     utilities.setup_java()
     es_installer = elasticsearch.ElasticInstaller()
     es_pre_profiler = elasticsearch.ElasticProfiler()
