@@ -44,7 +44,7 @@
 @load protocols/http/software
 # The detect-webapps script could possibly cause performance trouble when
 # running on live traffic.  Enable it cautiously.
-#@load protocols/http/detect-webapps
+@load protocols/http/detect-webapps
 
 # This script detects DNS results pointing toward your Site::local_nets
 # where the name is not part of your local DNS zone and is being hosted
@@ -93,12 +93,13 @@
 
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling
 # this might impact performance a bit.
-# @load policy/protocols/ssl/heartbleed
+@load policy/protocols/ssl/heartbleed
 
 # Uncomment the following line to enable logging of connection VLANs. Enabling
 # this adds two VLAN fields to the conn.log file.
-# @load policy/protocols/conn/vlan-logging
+@load policy/protocols/conn/vlan-logging
 
 # Uncomment the following line to enable logging of link-layer addresses. Enabling
 # this adds the link-layer address for each connection endpoint to the conn.log file.
 # @load policy/protocols/conn/mac-logging
+redef ignore_checksums = T;

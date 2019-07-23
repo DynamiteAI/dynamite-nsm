@@ -53,6 +53,7 @@ def install_agent(network_interface, agent_label, logstash_target):
         filebeat_config = filebeat.FileBeatConfigurator()
         filebeat_config.set_logstash_targets([logstash_target])
         filebeat_config.set_agent_tag(agent_label)
+        filebeat_config.write_config()
     else:
         sys.stdout.write('[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
 
