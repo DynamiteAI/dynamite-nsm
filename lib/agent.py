@@ -135,7 +135,8 @@ def start_agent():
     filebeat_p = filebeat.FileBeatProcess()
     zeek_p = zeek.ZeekProcess()
     if not pf_ring_profiler.is_running:
-        sys.stderr.write('[-] PF_RING kernel modules were not loaded. You may need to re-install the agent.\n')
+        sys.stderr.write('[-] PF_RING kernel modules were not loaded. Try running '
+                         '\'modprobe pf_ring min_num_slots=32768\' as root.\n')
         return False
     sys.stdout.write('[+] Starting agent processes.\n')
     if not zeek_p.start(stdout=True):

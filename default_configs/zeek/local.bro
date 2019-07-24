@@ -12,8 +12,8 @@
 @load misc/scan
 
 # Conn Protocol Scripts
-@load @load policy/protocols/conn/vlan-logging
-@load @load policy/protocols/conn/mac-logging
+@load policy/protocols/conn/vlan-logging
+@load policy/protocols/conn/mac-logging
 
 # FTP Protocol Scripts
 @load protocols/ftp/detect
@@ -71,7 +71,7 @@
 @load protocols/ssl/extract-certs-pem
 @load protocols/ssl/heartbleed
 @load protocols/ssl/known-certs
-@load protocols/ssl/log-hostcerts-only
+# @load protocols/ssl/log-hostcerts-only
 @load protocols/ssl/notary
 @load protocols/ssl/validate-ocsp
 @load protocols/ssl/validate-sct
@@ -89,3 +89,4 @@
 
 # Notice Framework
 @load policy/frameworks/notice/extend-email/hostnames
+redef ignore_checksums = T;
