@@ -82,10 +82,13 @@ def get_fields_and_types(ndjson_file):
 
 def create_index_template(name, ndjson_file):
     field_mappings = []
+    default_fields = []
     for k, v in get_fields_and_types(ndjson_file).items():
+        default_fields.append('zeek.' + k)
         field_mappings.append(
             {
                 'zeek.' + k: {
+                    "path_match": 'zeek.' + k,
                     "mapping": {
                         "type": v
                     }
@@ -93,14 +96,25 @@ def create_index_template(name, ndjson_file):
             }
         )
     base_template = {
+        'settings': {
+            'index': {
+                'number_of_shards': 3,
+                'number_of_replicas': 1,
+                'refresh_interval': '10s',
+                'codec': 'best_compression'
+            },
+            'query': {
+                'default_field': default_fields
+            }
+        },
         'order': 0,
-        'index-patterns': name,
+        'index_patterns': name,
         'mappings': {
             'dynamic_templates': field_mappings
         }
     }
     return base_template
 
-print(json.dumps(create_index_template('ssh-events-*',
-                                       '/Users/jaminbecker/PycharmProjects/dynamite-nsm/utils/log_samples/ssh.log.ndjson'
+print(json.dumps(create_index_template('http-events-*',
+                                       '/Users/jaminbecker/PycharmProjects/dynamite-nsm/utils/log_samples/http.log.ndjson'
                                        ), indent=2))

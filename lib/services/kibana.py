@@ -47,7 +47,7 @@ class KibanaAPIConfigurator:
             es_flow_installer.download_elasticflow()
         es_flow_installer.extract_elastiflow()
 
-    def create_elastiflow_dashboards(self, stdout=False):
+    def create_elastiflow_saved_objects(self, stdout=False):
         """
         Creates ElastiFlow dashboards, visualizations, and searches
 
@@ -79,40 +79,6 @@ class KibanaAPIConfigurator:
         else:
             sys.stderr.write('[-] Failed to create ElastiFlow objects - [{}]\n'.format(err))
         return False
-
-    def create_elastiflow_index_patterns(self, stdout=False):
-        """
-        Creates ElastiFlow index-pattern
-
-        :param stdout: Print output to console
-        :return: True, if created successfully
-        """
-        with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
-                               const.ELASTIFLOW_INDEX_PATTERNS)) as kibana_patterns_obj:
-
-            data = kibana_patterns_obj.read()
-            try:
-                url_request = Request(
-                    url='http://{}:{}/api/saved_objects/index-pattern/elastiflow-*'.format(
-                        self.kibana_config.get_server_host(),
-                        self.kibana_config.get_server_port()
-                    ),
-                    data=data.encode('utf-8'),
-                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
-                )
-                urlopen(url_request)
-            except HTTPError as e:
-                if e.code == 409:
-                    pass
-                else:
-                    sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
-                    return False
-            except URLError as e:
-                sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
-                return False
-            if stdout:
-                sys.stdout.write('[+] Successfully created index-patterns. \n')
-            return True
 
 
 class KibanaConfigurator:
@@ -346,17 +312,8 @@ class KibanaInstaller:
                 sys.stdout.flush()
             time.sleep(15)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
-            index_pattern_create_attempts = 1
             kibana_object_create_attempts = 1
-            while not api_config.create_elastiflow_index_patterns():
-                if stdout:
-                    sys.stdout.write('[+] Attempting to create index-patterns [Attempt {}]\n'.format(
-                        index_pattern_create_attempts))
-                index_pattern_create_attempts += 1
-                time.sleep(10)
-            if stdout:
-                sys.stdout.write('[+] Successfully created index-patterns.\n')
-            while not api_config.create_elastiflow_dashboards():
+            while not api_config.create_elastiflow_saved_objects():
                 if stdout:
                     sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
                         kibana_object_create_attempts))
