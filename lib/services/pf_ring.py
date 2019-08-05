@@ -111,6 +111,7 @@ class PFRingInstaller:
     def install_dependencies():
         """
         Install required PF_RING dependencies
+
         :return: True, if packages were successfully installed
         """
         pkt_mng = package_manager.OSPackageManager()

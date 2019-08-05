@@ -15,30 +15,43 @@ def _parse_cmdline():
     )
     parser.add_argument('command', metavar='command', type=str,
                         help='An action to perform [prepare|install|start|stop|status]')
+
     parser.add_argument('component', metavar='component', type=str,
                         help='The component to perform an action against [agent|logstash|elasticsearch]')
+
     parser.add_argument('--interface', type=str, dest='network_interface', required='install' in sys.argv
                                                                             and 'agent' in sys.argv,
                         help='A network interface to analyze traffic on.')
-    parser.add_argument('--host', type=str, dest='host', required=('point' in sys.argv)
-                                                                  or ('install' in sys.argv and 'agent' in sys.argv)
-                                                                  or (not elasticsearch.ElasticProfiler().is_installed
-                                                                      and 'install' in sys.argv and 'kibana' in sys.argv
-                                                                      ),
-                        help='A valid Ipv4/Ipv6 address or hostname')
+
     parser.add_argument('--agent-label', type=str, dest='agent_label', required='install' in sys.argv and 'agent' in
                                                                                 sys.argv,
                         help='A descriptive label associated with the agent. '
                              'This could be a location on your network (VLAN01),'
                              'or the types of servers on a segment (E.G Workstations-US-1).')
-    parser.add_argument('--port', type=int, dest='port', required=('point' in sys.argv)
-                                                                  or ('install' in sys.argv and 'agent' in sys.argv)
-                                                                  or (not elasticsearch.ElasticProfiler().is_installed
-                                                                      and 'install' in sys.argv and 'kibana' in sys.argv)
 
-                        , help='A valid port [1-65535]')
+    parser.add_argument('--host', type=str, dest='host', required=('point' in sys.argv)
+                                                                  or ('install' in sys.argv and 'agent' in sys.argv),
+                        help='A valid Ipv4/Ipv6 address or hostname')
+
+    parser.add_argument('--port', type=int, dest='port', required=('point' in sys.argv)
+                                                                  or ('install' in sys.argv and 'agent' in sys.argv),
+                        help='A valid port [1-65535]')
+
+    parser.add_argument('--es-host', type=str, dest='es_host',
+                        required=(not elasticsearch.ElasticProfiler().is_installed
+                                  and 'install' in sys.argv and ('kibana' in sys.argv or 'logstash' in sys.argv)
+                                  ),
+                        help='Target ES cluster; A valid Ipv4/Ipv6 address or hostname')
+
+    parser.add_argument('--es-port', type=int, dest='es_port',
+                        required=(not elasticsearch.ElasticProfiler().is_installed
+                                  and 'install' in sys.argv and ('kibana' in sys.argv or 'logstash' in sys.argv)
+                                  ),
+                        help='Target ES cluster; A valid port [1-65535]')
+
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
+
     return parser.parse_args()
 
 
@@ -82,20 +95,22 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] Failed to install ElasticSearch.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
-            if logstash.install_logstash(stdout=True, create_dynamite_user=True, install_jdk=True):
+            if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to install Logstash.\n')
                 sys.exit(1)
         elif args.component == 'kibana':
             if not elasticsearch.ElasticProfiler().is_installed:
-                if kibana.install_kibana(stdout=True, create_dynamite_user=True, install_jdk=True):
+                if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
             else:
-                if kibana.install_kibana(elasticsearch_host=args.host, elasticsearch_port=args.port,
+                if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:

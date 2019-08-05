@@ -218,18 +218,24 @@ class KibanaInstaller:
     Provides a simple interface for installing a new Kibana interface with ElastiFlow dashboards
     """
     def __init__(self,
+                 host='0.0.0.0',
+                 port=5601,
                  elasticsearch_host=None,
                  elasticsearch_port=None,
                  install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
+        :param host: The IP address to listen on (E.G "0.0.0.0")
+        :param port: The port that the Kibana UI/API is bound to (E.G 5601)
         :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
         :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
         """
+        self.host = host
+        self.port = port
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
         if not elasticsearch_host:
@@ -372,6 +378,9 @@ class KibanaInstaller:
         local_config = KibanaConfigurator(self.configuration_directory)
         local_config.set_elasticsearch_hosts(['http://{}:{}'.format(self.elasticsearch_host,
                                                                     self.elasticsearch_port)])
+        local_config.set_server_host(self.host)
+        local_config.set_server_port(self.port)
+        local_config.write_configs()
 
     @staticmethod
     def download_kibana(stdout=False):

@@ -226,15 +226,21 @@ class ElasticInstaller:
     """
 
     def __init__(self,
+                 host='0.0.0.0',
+                 port=9200,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
+        :param: host: The IP address to listen on (E.G "0.0.0.0")
+        :param: port: The port that the ES API is bound to (E.G 9200)
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
         """
 
+        self.host = host
+        self.port = port
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
@@ -306,8 +312,8 @@ class ElasticInstaller:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
-        es_config.set_network_host('0.0.0.0')
-        es_config.set_network_port(9200)
+        es_config.set_network_host(self.host)
+        es_config.set_network_port(self.port)
         es_config.write_configs()
 
     def _update_sysctl(self, stdout=False):
