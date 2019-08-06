@@ -206,7 +206,7 @@ if __name__ == '__main__':
                     _fatal_exception('status', 'elasticsearch', args.debug)
             elif args.component == 'logstash':
                 if not logstash.LogstashProfiler(stderr=False).is_installed:
-                    _not_installed('status', 'elasticsearch')
+                    _not_installed('status', 'logstash')
                     sys.exit(0)
                 try:
                     sys.stdout.write(json.dumps(logstash.LogstashProcess().status(), indent=1) + '\n')
