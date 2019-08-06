@@ -108,7 +108,7 @@ class ElastiflowConfigurator:
             elif line.startswith('ELASTIFLOW_IPFIX_UDP_RCV_BUFF'):
                 self.ipfix_udp_rcv_buff = line.split('=')[1].strip()
             elif line.startswith('ELASTIFLOW_ES_HOST'):
-                self.elastiflow_es_host = line.split('=')[1].strip()
+                self.es_host = line.split('=')[1].strip()
 
     def write_environment_variables(self):
         """
