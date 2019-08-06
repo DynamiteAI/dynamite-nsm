@@ -45,7 +45,7 @@ class LogstashConfigurator:
         for line in open(config_path).readlines():
             if not line.startswith('#') and ':' in line:
                 k, v = line.strip().split(':')
-                ls_config_options[k] = str(v).strip().replace('"','').replace("'",'')
+                ls_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
         return ls_config_options
 
     def _parse_jvm_options(self):
@@ -203,17 +203,23 @@ class LogstashInstaller:
     """
     def __init__(self,
                  host='0.0.0.0',
+                 elasticsearch_host='localhost',
+                 elasticsearch_port=9200,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
+        :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
         """
 
         self.host = host
+        self.elasticsearch_host = elasticsearch_host
+        self.elasticsearch_port = elasticsearch_port
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
@@ -330,7 +336,8 @@ class LogstashInstaller:
         ef_config.ipfix_tcp_ipv4_host = self.host
         ef_config.netflow_ipv4_port = self.host
         ef_config.sflow_ipv4_host = self.host
-        ef_config.zeek_ipv4_port = self.host
+        ef_config.zeek_ipv4_host = self.host
+        ef_config.elastiflow_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         ef_config.write_environment_variables()
 
     @staticmethod
@@ -643,7 +650,7 @@ class LogstashProcess:
         }
 
 
-def install_logstash(elasticsearch_host='localhost', elasticsearch_port=9200,
+def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsearch_port=9200,
                      install_jdk=True, create_dynamite_user=True, stdout=False):
     """
     Install Logstash/ElastiFlow
@@ -661,7 +668,8 @@ def install_logstash(elasticsearch_host='localhost', elasticsearch_port=9200,
         ))
         return False
     try:
-        ls_installer = LogstashInstaller()
+        ls_installer = LogstashInstaller(host=host,
+                                         elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)
