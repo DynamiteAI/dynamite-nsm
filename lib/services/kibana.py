@@ -675,9 +675,9 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
     :param stdout: Print the output to console
     :return: True, if installation succeeded
     """
-    if utilities.get_memory_available_bytes() < 3 * (1000 ** 3):
-        sys.stderr.write('[-] Dynamite Kibana requires at-least 3GB to run currently available [{} GB]\n'.format(
-            utilities.get_memory_available_bytes()/(1024 ** 3)
+    if utilities.get_memory_available_bytes() < 2 * (1000 ** 3):
+        sys.stderr.write('[-] Dynamite Kibana requires at-least 2GB to run currently available [{} GB]\n'.format(
+            utilities.get_memory_available_bytes()/(1000 ** 3)
         ))
         return False
     try:
