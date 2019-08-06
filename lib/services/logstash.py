@@ -334,7 +334,7 @@ class LogstashInstaller:
         ef_install.setup_logstash_elastiflow(stdout=stdout)
         ef_config = elastiflow.ElastiflowConfigurator()
         ef_config.ipfix_tcp_ipv4_host = self.host
-        ef_config.netflow_ipv4_port = self.host
+        ef_config.netflow_ipv4_host = self.host
         ef_config.sflow_ipv4_host = self.host
         ef_config.zeek_ipv4_host = self.host
         ef_config.elastiflow_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
