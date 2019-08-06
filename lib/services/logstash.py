@@ -662,7 +662,7 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsear
     :param stdout: Print the output to console
     :return: True, if installation succeeded
     """
-    if utilities.get_memory_available_bytes() < 4 * (1000 ** 3):
+    if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1000 ** 3)
         ))
