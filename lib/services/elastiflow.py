@@ -46,6 +46,7 @@ class ElastiflowConfigurator:
         self.ipfix_udp_rcv_buff = 33554432
 
         self.es_host = '127.0.0.1:9200'
+        self._parse_environment_file()
 
     def _parse_environment_file(self):
         """
