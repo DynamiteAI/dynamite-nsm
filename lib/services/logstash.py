@@ -337,7 +337,7 @@ class LogstashInstaller:
         ef_config.netflow_ipv4_host = self.host
         ef_config.sflow_ipv4_host = self.host
         ef_config.zeek_ipv4_host = self.host
-        ef_config.elastiflow_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
+        ef_config.es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         ef_config.write_environment_variables()
 
     @staticmethod
