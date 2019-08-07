@@ -1,4 +1,3 @@
-import io
 import os
 import pwd
 import grp
@@ -71,7 +70,7 @@ def check_socket(host, port):
 
 def create_dynamite_root_directory():
     subprocess.call('mkdir -p /opt/dynamite/', shell=True)
-    subprocess.call('mkdir -p /tmp/dynamite/', shell=True)
+    subprocess.call('mkdir -p /tmp/dynamite/install_cache/', shell=True)
 
 
 def create_dynamite_user(password):
