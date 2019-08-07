@@ -432,6 +432,20 @@ if __name__ == '__main__':
                 sys.stdout.flush()
             except Exception:
                 _fatal_exception('profile', 'agent', args.debug)
+        elif args.component == 'monitor':
+            try:
+                profile_result = monitor.profile_monitor()
+                sys.stdout.write('[+]  ELASTICSEARCH.INSTALLED: {}\n'.format(profile_result['ELASTICSEARCH']['INSTALLED']))
+                sys.stdout.write('[+]    ELASTICSEARCH.RUNNING: {}\n'.format(profile_result['ELASTICSEARCH']['RUNNING']))
+                sys.stdout.write('[+]  ELASTICSEARCH.LISTENING: {}\n'.format(profile_result['ELASTICSEARCH']['LISTENING']))
+                sys.stdout.write('[+]       LOGSTASH.INSTALLED: {}\n'.format(profile_result['LOGSTASH']['INSTALLED']))
+                sys.stdout.write('[+]         LOGSTASH.RUNNING: {}\n'.format(profile_result['LOGSTASH']['RUNNING']))
+                sys.stdout.write('[+]         KIBANA.INSTALLED: {}\n'.format(profile_result['KIBANA']['INSTALLED']))
+                sys.stdout.write('[+]           KIBANA.RUNNING: {}\n'.format(profile_result['KIBANA']['RUNNING']))
+                sys.stdout.write('[+]         KIBANA.LISTENING: {}\n'.format(profile_result['KIBANA']['LISTENING']))
+                sys.stdout.flush()
+            except Exception:
+                _fatal_exception('profile', 'agent', args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

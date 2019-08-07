@@ -1,19 +1,19 @@
 ## Dynamite Network Security Monitor
 
-Dynamite-NSM is an open-source network security monitor and log-management solution with an emphasis on *very* fast deployment 
-and intuitive management. 
+[dynamite-logo]: img/dynamite_182x44.png
 
-Dynamite-NSM is offered as standalone commandline utility implemented in pure Python.
+##### Dynamite-NSM is an network security monitor and log-management solution with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
+
+Unlike other NSMs Dynamite can be installed without the need of downloading an ISO image. It is offered as standalone commandline utility implemented in pure Python 2/3.
 
 ### What's in the Box?
 
 #### Agent
-| Component   | Description                                                                                                                                       |
-|-------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is much different from your typical IDS.                                       |
-| Suricata    | A powerful rule-based IDS, inspects the network traffic using an extensive rules and signature language.                                          |
-| PF_RING     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the above components.            |
-| Filebeat    | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash. |
+| Component   | Description                                                                                                                                                                                                           |
+|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is much different from your typical IDS, capable of enumerating detailed information surrounding network connections and their underlying protocols.                                      |
+| PF_RING     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the above components.                                                                                |
+| Filebeat    | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash.                                                                                |
 
 
 #### Monitor

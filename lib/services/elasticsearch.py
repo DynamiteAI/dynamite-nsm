@@ -485,6 +485,14 @@ class ElasticProfiler:
             host = 'localhost'
         return utilities.check_socket(host, port)
 
+    def get_profile(self):
+        return {
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running,
+            'LISTENING': self.is_listening
+        }
+
 
 class ElasticProcess:
     """

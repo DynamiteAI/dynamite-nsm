@@ -536,6 +536,13 @@ class LogstashProfiler:
         except Exception:
             return False
 
+    def get_profile(self):
+        return {
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running
+        }
+
 
 class LogstashProcess:
     """

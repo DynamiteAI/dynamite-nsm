@@ -60,6 +60,22 @@ def install_monitor():
     return True
 
 
+def profile_monitor():
+    """
+    Get information about installation/running processes within the monitor stack
+
+    :return: A dictionary containing the status of each component
+    """
+    es_profiler = elasticsearch.ElasticProfiler()
+    ls_profiler = logstash.LogstashProfiler()
+    kb_profiler = kibana.KibanaProfiler()
+    return dict(
+        ELASTICSEARCH=es_profiler.get_profile(),
+        LOGSTASH=ls_profiler.get_profile(),
+        KIBANA=kb_profiler.get_profile()
+    )
+
+
 def start_monitor():
     """
     Starts ElasticSearch, Logstash, and Kibana on localhost

@@ -98,7 +98,7 @@ def prepare_agent():
         return False
     pf_ring_install = pf_ring.PFRingInstaller()
     if not pf_ring_install.install_dependencies():
-        sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
+        sys.stderr.write('\n[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         return False
     with open('/opt/dynamite/.agent_environment_prepared', 'w') as f:
         f.write(str(datetime.utcnow()))
@@ -109,6 +109,11 @@ def prepare_agent():
 
 
 def profile_agent():
+    """
+    Get information about installation/running processes within the agent stack
+
+    :return: A dictionary containing the status of each component
+    """
     pf_ring_profiler = pf_ring.PFRingProfiler()
     filebeat_profiler = filebeat.FileBeatProfiler()
     zeek_profiler = zeek.ZeekProfiler()
