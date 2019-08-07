@@ -8,6 +8,9 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 ### What's in the Box?
 
 #### Agent
+
+##### Agents are scattered throughout your environment, and bind to a network interface (typically a mirrored port), after which traffic is forwarded to the monitor for enrichment and indexing.
+
 | Component   | Description                                                                                                                                                                                                           |
 |-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is differs from your typical IDS. It is capable of enumerating detailed information surrounding network connections and their underlying protocols.|
@@ -16,6 +19,8 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 
 
 #### Monitor
+
+##### Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.
 
 | Component                                              | Description                                                                                                         |
 |--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
@@ -68,10 +73,16 @@ dynamite prepare agent
 Reboot, and install the agent. This process can take between 10 and 40 minutes depending on your specs.
 
 ```bash
-dynamite install agent --interface en01 --agent-label VLAN-001 --host my-monitor-host-or-ip.local --port 5044
+dynamite install agent --interface en01 --agent-label VLAN-001 --host <my-monitor-host> --port 5044
 ```
 
 Start the agent
 ```bash
 dynamite start agent
+```
+
+If you need to point the agent to a new monitor, this can be accomplished using the below command.
+
+```bash
+dynamite point agent --host <my-monitor-host> --port 5044
 ```
