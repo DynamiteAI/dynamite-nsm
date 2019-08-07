@@ -1,6 +1,6 @@
 ## Dynamite Network Security Monitor
 
-![dynamite-logo]: img/dynamite_182x44.png
+![dynamite-logo]: raw/master/img/dynamite_182x44.png
 
 ##### Dynamite-NSM is an network security monitor and log-management solution with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
 
