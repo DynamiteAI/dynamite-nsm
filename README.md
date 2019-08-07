@@ -1,7 +1,7 @@
 ![dynamite-logo](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_182x44.png)
 ## Dynamite Network Security Monitor
 
-#### Dynamite-NSM is an network security monitor and solution with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
+#### Dynamite-NSM is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
 
 Unlike other NSMs Dynamite can be installed without the need of downloading an ISO image. It is offered as standalone commandline utility implemented in pure Python 2/3.
 
