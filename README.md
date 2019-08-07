@@ -10,8 +10,8 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 #### Agent
 | Component   | Description                                                                                                                                                                                                           |
 |-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is much different from your typical IDS, capable of enumerating detailed information surrounding network connections and their underlying protocols.                                      |
-| PF_RING     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the above components.                                                                                |
+| Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is differs from your typical IDS. It is capable of enumerating detailed information surrounding network connections and their underlying protocols.|
+| PF_RING     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the Zeek to improve packet analysis.                                                                 |
 | Filebeat    | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash.                                                                                |
 
 
