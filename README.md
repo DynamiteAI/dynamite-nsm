@@ -29,12 +29,14 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 
 While there are quite a few components that are a part of Dynamite-NSM. Standing up a standalone agent/monitor deployment is very simple.
 
+Double check to ensure you are running on a [supported operating system](Supported_OSs.md).
+
 #### Monitor (Standalone all components installed)
 
 ##### Specs
 ```
 Linux Kernel: 2.6.32+
-16 GB of RAM at least 4 CPU
+14 GB of RAM at least 4 CPU
 ```
 ##### Setup
 
