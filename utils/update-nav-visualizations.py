@@ -1,6 +1,6 @@
 import json
-proto = 'HTTP'
-link = '#test'
+proto = 'SSH'
+link = '#/dashboard/c66577a0-babb-11e9-9323-33f42755b777'
 path = '/Users/jaminbecker/PycharmProjects/dynamite-nsm/utils/saved_object_templates/elastiflow.kibana.api.7.2.X.ndjson'
 
 for line in open(path, 'r').readlines():
