@@ -641,3 +641,35 @@ def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=Fa
         sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
     sys.stdout.flush()
     return True
+
+
+def uninstall_elasticsearch(stdout=False, prompt_user=True):
+    es_profiler = ElasticProfiler()
+    es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
+        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting')
+            return False
+    if not es_profiler.is_installed:
+        sys.stderr.write('[-] ElasticSearch is not installed.')
+    if es_profiler.is_running:
+        ElasticProcess().stop(stdout=stdout)
+    shutil.rmtree(es_config.configuration_directory)
+    shutil.rmtree(es_config.es_home)
+    shutil.rmtree(es_config.get_log_path())
+    env_lines = ''
+    for line in open('/etc/environment').readlines():
+        if 'ES_PATH_CONF' in line:
+            continue
+        elif 'ES_HOME' in line:
+            continue
+        env_lines += line.strip() + '\n'
+    open('/etc/environment', 'w').write(env_lines)
+    if stdout:
+        sys.stdout.write('[+] ElasticSearch uninstall successfully.')
+    return True

@@ -14,7 +14,7 @@ def _parse_cmdline():
         description='Install/Configure the Dynamite Analysis Framework.'
     )
     parser.add_argument('command', metavar='command', type=str,
-                        help='An action to perform [prepare|install|start|stop|status]')
+                        help='An action to perform [prepare|install|uninstall|start|stop|status|profile]')
 
     parser.add_argument('component', metavar='component', type=str,
                         help='The component to perform an action against [agent|logstash|elasticsearch]')
@@ -121,6 +121,16 @@ if __name__ == '__main__':
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.host, args.port))
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
+    elif args.command == 'uninstall':
+        if args.component == 'elasticsearch':
+            if elasticsearch.uninstall_elasticsearch(stdout=True, prompt_user=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to uninstall ElasticSearch.\n')
+                sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

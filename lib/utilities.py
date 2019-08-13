@@ -172,6 +172,8 @@ def get_memory_available_bytes():
 
 def get_network_interface_names():
     """
+    Returns a list of network interfaces available on the system
+
     :return: A list of network interfaces
     """
     return os.listdir('/sys/class/net')
