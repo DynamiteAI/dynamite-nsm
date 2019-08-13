@@ -2,4 +2,4 @@
 
 cwd=`pwd`
 echo $cwd
-python3 $cwd/dynamite.py || python $cwd/dynamite.py
+python3 $cwd/dynamite.py $@ || python $cwd/dynamite.py $@
