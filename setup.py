@@ -1,11 +1,11 @@
 from setuptools import setup
 
 setup(
-    name='dynamite-nsm',
+    name='dls'
+         'ynamite-nsm',
     version='0.0.9',
     packages=['lib', 'lib.services'],
     include_package_data=True,
-    package_data={'dynamite': ['mirrors/*', 'default_configs/*']},
     scripts=['scripts/dynamite', 'scripts/python/dynamite.py'],
     url='http://vlabs.io',
     license='',

@@ -1,0 +1,3 @@
+recursive-include default_configs
+recursive-include mirrors
+include README.md
