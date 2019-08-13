@@ -708,3 +708,42 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
         sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start kibana\'.\n')
         sys.stdout.flush()
     return True
+
+
+def uninstall_kibana(stdout=False, prompt_user=True):
+    kb_profiler = KibanaProfiler()
+    kb_config = KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    if not kb_profiler.is_installed:
+        sys.stderr.write('[-] Kibana is not installed.\n')
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! REMOVING KIBANA WILL PREVENT YOU FROM VIEWING NETWORK EVENTS.\n')
+        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            return False
+    if kb_profiler.is_running:
+        KibanaProcess().stop(stdout=stdout)
+    try:
+        shutil.rmtree(kb_config.kibana_path_conf)
+        shutil.rmtree(kb_config.kibana_home)
+        shutil.rmtree(kb_config.kibana_logs)
+        env_lines = ''
+        for line in open('/etc/environment').readlines():
+            if 'KIBANA_PATH_CONF' in line:
+                continue
+            elif 'KIBANA_HOME' in line:
+                continue
+            elif 'KIBANA_LOGS' in line:
+                continue
+            env_lines += line.strip() + '\n'
+        open('/etc/environment', 'w').write(env_lines)
+        if stdout:
+            sys.stdout.write('[+] Kibana uninstall successfully.\n')
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to uninstall Kibana: ')
+        traceback.print_exc(file=sys.stderr)
+        return False
+    return True

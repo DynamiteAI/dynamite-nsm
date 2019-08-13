@@ -131,6 +131,18 @@ if __name__ == '__main__':
             else:
                 sys.stderr.write('[-] Failed to uninstall ElasticSearch.\n')
                 sys.exit(1)
+        elif args.component == 'logstash':
+            if logstash.uninstall_logstash(stdout=True, prompt_user=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to uninstall LogStash.\n')
+                sys.exit(1)
+        elif args.component == 'kibana':
+            if kibana.uninstall_kibana(stdout=True, prompt_user=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to uninstall Kibana.\n')
+                sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

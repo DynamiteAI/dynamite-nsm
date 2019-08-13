@@ -616,6 +616,10 @@ def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=Fa
     :param stdout: Print the output to console
     :return: True, if installation succeeded
     """
+    es_profiler = ElasticProfiler()
+    if es_profiler.is_installed:
+        sys.stderr.write('[-] ElasticSearch is already installed. If you wish to re-install, first uninstall.\n')
+        return False
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1000 ** 3)
@@ -646,6 +650,8 @@ def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=Fa
 def uninstall_elasticsearch(stdout=False, prompt_user=True):
     es_profiler = ElasticProfiler()
     es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    if not es_profiler.is_installed:
+        sys.stderr.write('[-] ElasticSearch is not installed.\n')
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
         resp = input('Are you sure you wish to continue? ([no]|yes): ')
@@ -653,23 +659,26 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
             resp = input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting')
+                sys.stdout.write('[+] Exiting\n')
             return False
-    if not es_profiler.is_installed:
-        sys.stderr.write('[-] ElasticSearch is not installed.')
     if es_profiler.is_running:
         ElasticProcess().stop(stdout=stdout)
-    shutil.rmtree(es_config.configuration_directory)
-    shutil.rmtree(es_config.es_home)
-    shutil.rmtree(es_config.get_log_path())
-    env_lines = ''
-    for line in open('/etc/environment').readlines():
-        if 'ES_PATH_CONF' in line:
-            continue
-        elif 'ES_HOME' in line:
-            continue
-        env_lines += line.strip() + '\n'
-    open('/etc/environment', 'w').write(env_lines)
-    if stdout:
-        sys.stdout.write('[+] ElasticSearch uninstall successfully.')
+    try:
+        shutil.rmtree(es_config.configuration_directory)
+        shutil.rmtree(es_config.es_home)
+        shutil.rmtree(es_config.get_log_path())
+        env_lines = ''
+        for line in open('/etc/environment').readlines():
+            if 'ES_PATH_CONF' in line:
+                continue
+            elif 'ES_HOME' in line:
+                continue
+            env_lines += line.strip() + '\n'
+        open('/etc/environment', 'w').write(env_lines)
+        if stdout:
+            sys.stdout.write('[+] ElasticSearch uninstall successfully.\n')
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to uninstall ElasticSearch: ')
+        traceback.print_exc(file=sys.stderr)
+        return False
     return True

@@ -670,6 +670,10 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsear
     :param stdout: Print the output to console
     :return: True, if installation succeeded
     """
+    ls_profiler = LogstashProfiler()
+    if ls_profiler.is_installed:
+        sys.stderr.write('[-] LogStash is already installed. If you wish to re-install, first uninstall.\n')
+        return False
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1000 ** 3)
@@ -695,4 +699,43 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsear
         sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
         sys.stdout.flush()
+    return True
+
+
+def uninstall_logstash(stdout=False, prompt_user=True):
+    ls_profiler = LogstashProfiler()
+    ls_config = LogstashConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    if not ls_profiler.is_installed:
+        sys.stderr.write('[-] LogStash is not installed.\n')
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! REMOVING LOGSTASH WILL PREVENT ELASTICSEARCH FROM RECEIVING EVENTS.\n')
+        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            return False
+    if ls_profiler.is_running:
+        LogstashProcess().stop(stdout=stdout)
+    try:
+        shutil.rmtree(ls_config.ls_path_conf)
+        shutil.rmtree(ls_config.ls_home)
+        shutil.rmtree(ls_config.get_log_path())
+        env_lines = ''
+        for line in open('/etc/environment').readlines():
+            if 'LS_PATH_CONF' in line:
+                continue
+            elif 'LS_HOME' in line:
+                continue
+            elif 'ELASTIFLOW_' in line:
+                continue
+            env_lines += line.strip() + '\n'
+        open('/etc/environment', 'w').write(env_lines)
+        if stdout:
+            sys.stdout.write('[+] LogStash uninstall successfully.\n')
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to uninstall LogStash: ')
+        traceback.print_exc(file=sys.stderr)
+        return False
     return True
