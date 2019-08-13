@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 from datetime import datetime
 
 from lib.services import filebeat, pf_ring, zeek
@@ -72,6 +73,8 @@ def install_agent(network_interface, agent_label, logstash_target):
 
 def point_agent(host, port):
     """
+    Point the agent to a new logstash host
+
     :param host: The logstash host to forward logs too
     :param port: The service port the logstash host is listening on [5044 standard]
     """
@@ -181,6 +184,7 @@ def status_agent():
 def stop_agent():
     """
     Stop the Zeek (BroCtl) and FileBeats processes
+
     :return: True, if stopped successfully
     """
     sys.stdout.write('[+] Stopping agent processes.\n')
@@ -198,4 +202,41 @@ def stop_agent():
     elif not filebeat_p.stop(stdout=True):
         sys.stderr.write('[-] Could not stop agent.filebeat.\n')
         return False
+    return True
+
+
+def uninstall_agent(prompt_user=True):
+    """
+    Uninstall the agent
+
+    :param prompt_user: Print a warning before continuing
+    :return: True, if uninstall succeeded
+    """
+    filebeat_config = filebeat.FileBeatConfigurator()
+    pf_profiler = pf_ring.PFRingProfiler()
+    filebeat_profiler = filebeat.FileBeatProfiler()
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! REMOVING THE AGENT WILL RESULT IN EVENTS NO LONGER BEING SENT TO {}.\n'.format(
+            filebeat_config.get_logstash_targets()))
+        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            sys.stdout.write('[+] Exiting\n')
+            return False
+    if filebeat_profiler.is_running:
+        filebeat.FileBeatProcess().stop(stdout=True)
+    if pf_profiler.is_installed:
+        shutil.rmtree(pf_ring.INSTALL_DIRECTORY)
+        shutil.rmtree('/opt/dynamite/.agent_environment_prepared')
+    if filebeat_profiler.is_installed:
+        shutil.rmtree(filebeat_config.install_directory)
+    env_lines = ''
+    for line in open('/etc/environment').readlines():
+        if 'FILEBEAT_HOME' in line:
+            continue
+        elif 'PF_RING_HOME' in line:
+            continue
+        env_lines += line.strip() + '\n'
+    open('/etc/environment', 'w').write(env_lines)
     return True

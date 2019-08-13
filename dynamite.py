@@ -143,6 +143,18 @@ if __name__ == '__main__':
             else:
                 sys.stderr.write('[-] Failed to uninstall Kibana.\n')
                 sys.exit(1)
+        elif args.component == 'monitor':
+            if monitor.uninstall_monitor(prompt_user=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to uninstall Monitor.\n')
+                sys.exit(1)
+        elif args.component == 'agent':
+            if agent.uninstall_agent(prompt_user=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to uninstall Agent.\n')
+                sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
