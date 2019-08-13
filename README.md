@@ -11,11 +11,11 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 
 ##### Agents are scattered throughout your environment, and bind to a network interface (typically a mirrored port), after which traffic is forwarded to the monitor for enrichment and indexing.
 
-| Component   | Description                                                                                                                                                                                                           |
-|-------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Zeek        | Previously Bro, Zeek is a powerful network analysis framework that is differs from your typical IDS. It is capable of enumerating detailed information surrounding network connections and their underlying protocols.|
-| PF_RING     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the Zeek to improve packet analysis.                                                                 |
-| Filebeat    | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash.                                                                                |
+| Component   | Description                                                                                                                                                                                                                                                      |
+|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Zeek [2.6.1]](https://github.com/zeek/zeek)           | Previously Bro, Zeek is a powerful network analysis framework that is differs from your typical IDS. It is capable of enumerating detailed information surrounding network connections and their underlying protocols.|
+| [PF_RING [7.4.0]](https://github.com/ntop/PF_RING)     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the Zeek to improve packet analysis.                                                                 |
+| [Filebeat [7.2.0]](https://github.com/elastic/beats)   | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash.                                                                                |
 
 
 #### Monitor
@@ -24,12 +24,12 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 
 ##### Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.
 
-| Component                                              | Description                                                                                                         |
-|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| Logstash [7.2.0]                                       | A server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it. |
-| Elasticsearch [7.2.0]                                  | A distributed, RESTful search and analytics engine.                                                            |
-| Kibana [7.2.0]                                         | A web-app that allows you to visualize your Elasticsearch data                                                      |
-| [ElastiFlow™](https://github.com/robcowart/elastiflow) | Provides network flow data collection and visualization using the Elastic Stack.                                    |
+| Component                                              | Description                                                                                                                     |
+|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| [Logstash [7.2.0]](https://github.com/elastic/logstash)            | A server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it. |
+| [Elasticsearch [7.2.0]](https://github.com/elastic/elasticsearch)  | A distributed, RESTful search and analytics engine.                                                                 |
+| [Kibana [7.2.0]](https://github.com/elastic/kibana)                | A web-app that allows you to visualize your Elasticsearch data                                                      |
+| [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow data collection and visualization using the Elastic Stack.                                        |
 
 
 ### Getting Started
