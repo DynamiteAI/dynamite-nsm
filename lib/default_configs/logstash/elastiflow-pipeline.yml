@@ -1,0 +1,2 @@
+- pipeline.id: elastiflow
+  path.config: "/etc/dynamite/logstash/elastiflow/conf.d/*.conf"
