@@ -1,1 +1,0 @@
-{"ts":1563988605.137185,"uids":["CBgD7S37Kd95899ZWg"],"client_addr":"172.31.0.144","server_addr":"172.31.0.1","mac":"02:09:99:5b:71:1a","host_name":"ip-172-31-0-144","domain":"us-gov-west-1.compute.internal","assigned_addr":"172.31.0.144","lease_time":3600.0,"msg_types":["REQUEST","ACK"],"duration":0.00052,"msg_orig":["172.31.0.144","172.31.0.1"]}
