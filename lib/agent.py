@@ -212,9 +212,12 @@ def uninstall_agent(prompt_user=True):
     :param prompt_user: Print a warning before continuing
     :return: True, if uninstall succeeded
     """
+    filebeat_profiler = filebeat.FileBeatProfiler()
+    if not filebeat_profiler.is_installed:
+        sys.stderr.write('[-] No agent installation detected.\n')
+        return False
     filebeat_config = filebeat.FileBeatConfigurator()
     pf_profiler = pf_ring.PFRingProfiler()
-    filebeat_profiler = filebeat.FileBeatProfiler()
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING THE AGENT WILL RESULT IN EVENTS NO LONGER BEING SENT TO {}.\n'.format(
             filebeat_config.get_logstash_targets()))

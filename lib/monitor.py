@@ -172,6 +172,10 @@ def uninstall_monitor(prompt_user=True):
     es_profiler = elasticsearch.ElasticProfiler()
     ls_profiler = logstash.LogstashProfiler()
     kb_profiler = kibana.KibanaProfiler()
+    if not (es_profiler.is_installed and ls_profiler.is_installed and kb_profiler.is_installed):
+        sys.stderr.write('[-] A standalone monitor installation was not detected on this system. Please uninstall '
+                         'ElasticSearch, Logstash, or Kibana individually.\n')
+        return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! UNINSTALLING THE MONITOR WILL PREVENT EVENTS FROM BEING PROCESSED/VISUALIZED.\n')
         resp = input('Are you sure you wish to continue? ([no]|yes): ')
@@ -180,10 +184,6 @@ def uninstall_monitor(prompt_user=True):
         if resp != 'yes':
             sys.stdout.write('[+] Exiting\n')
             return False
-    if not (es_profiler.is_installed and ls_profiler.is_installed and kb_profiler.is_installed):
-        sys.stderr.write('[-] A standalone monitor installation was not detected on this system. Please uninstall '
-                         'ElasticSearch, Logstash, or Kibana individually.\n')
-        return False
     es_uninstall = elasticsearch.uninstall_elasticsearch(stdout=True, prompt_user=False)
     ls_uninstall = logstash.uninstall_logstash(stdout=True, prompt_user=False)
     kb_uninstall = kibana.uninstall_kibana(stdout=True, prompt_user=False)
