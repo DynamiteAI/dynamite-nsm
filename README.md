@@ -1,4 +1,4 @@
-![dynamite-logo](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-elastiflow.png)
+![dynamite-logo](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png)
 ## Dynamite Network Security Monitor
 
 #### Dynamite-NSM is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
