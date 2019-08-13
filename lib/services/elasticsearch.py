@@ -652,6 +652,7 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
     es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
     if not es_profiler.is_installed:
         sys.stderr.write('[-] ElasticSearch is not installed.\n')
+        return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
         resp = input('Are you sure you wish to continue? ([no]|yes): ')

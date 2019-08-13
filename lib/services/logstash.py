@@ -707,6 +707,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
     ls_config = LogstashConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
     if not ls_profiler.is_installed:
         sys.stderr.write('[-] LogStash is not installed.\n')
+        return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING LOGSTASH WILL PREVENT ELASTICSEARCH FROM RECEIVING EVENTS.\n')
         resp = input('Are you sure you wish to continue? ([no]|yes): ')

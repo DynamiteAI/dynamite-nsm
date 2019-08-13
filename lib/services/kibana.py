@@ -715,6 +715,7 @@ def uninstall_kibana(stdout=False, prompt_user=True):
     kb_config = KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
     if not kb_profiler.is_installed:
         sys.stderr.write('[-] Kibana is not installed.\n')
+        return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING KIBANA WILL PREVENT YOU FROM VIEWING NETWORK EVENTS.\n')
         resp = input('Are you sure you wish to continue? ([no]|yes): ')
