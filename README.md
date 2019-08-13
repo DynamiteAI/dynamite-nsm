@@ -1,4 +1,4 @@
-![dynamite-logo](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_182x44.png)
+![dynamite-logo](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-elastiflow.png)
 ## Dynamite Network Security Monitor
 
 #### Dynamite-NSM is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
@@ -45,6 +45,10 @@ Linux Kernel: 2.6.32+
 ```
 ##### Setup
 
+```
+!!! DYNAMITE MUST BE RUN AS ROOT !!!
+```
+
 Install the monitoring components all on the same machine.
 ```bash
 dynamite install monitor
@@ -64,6 +68,10 @@ Linux Kernel: 2.6.32+
 ```
 
 ##### Setup
+```
+!!! DYNAMITE MUST BE RUN AS ROOT !!!
+```
+
 Prepare the agent, this installs any required kernel-headers needed to install the PF_RING kernel module. 
 
 ```bash

@@ -703,6 +703,13 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsear
 
 
 def uninstall_logstash(stdout=False, prompt_user=True):
+    """
+    Uninstall Logstash/ElastiFlow
+
+    :param stdout: Print the output to console
+    :param prompt_user: Print a warning before continuing
+    :return: True, if uninstall succeeded
+    """
     ls_profiler = LogstashProfiler()
     ls_config = LogstashConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
     if not ls_profiler.is_installed:

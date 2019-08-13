@@ -648,6 +648,13 @@ def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=Fa
 
 
 def uninstall_elasticsearch(stdout=False, prompt_user=True):
+    """
+    Uninstall ElasticSearch
+
+    :param stdout: Print the output to console
+    :param prompt_user: Print a warning before continuing
+    :return: True, if uninstall succeeded
+    """
     es_profiler = ElasticProfiler()
     es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
     if not es_profiler.is_installed:

@@ -683,6 +683,10 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
     :param stdout: Print the output to console
     :return: True, if installation succeeded
     """
+    kb_profiler = KibanaProfiler()
+    if kb_profiler.is_installed:
+        sys.stderr.write('[-] Kibana is already installed. If you wish to re-install, first uninstall.\n')
+        return False
     if utilities.get_memory_available_bytes() < 2 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite Kibana requires at-least 2GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes()/(1000 ** 3)
@@ -711,6 +715,13 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
 
 
 def uninstall_kibana(stdout=False, prompt_user=True):
+    """
+    Uninstall Kibana/ElastiFlow Dashboards
+
+    :param stdout: Print the output to console
+    :param prompt_user: Print a warning before continuing
+    :return: True, if uninstall succeeded
+    """
     kb_profiler = KibanaProfiler()
     kb_config = KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
     if not kb_profiler.is_installed:
