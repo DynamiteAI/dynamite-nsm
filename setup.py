@@ -22,7 +22,7 @@ setup(
      'ynamite-nsm',
     version='0.0.9',
     packages=find_packages(),
-    scripts=['scripts/dynamite', 'scripts/python/dynamite.py'],
+    scripts=['scripts/dynamite.py'],
     url='http://vlabs.io',
     license='',
     author='Jamin Becker',
