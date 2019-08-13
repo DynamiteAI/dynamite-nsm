@@ -55,7 +55,7 @@ def install_monitor():
         if not kibana.KibanaProfiler().is_installed:
             sys.stderr.write('[-] Kibana failed to install on localhost.\n')
             return False
-        sys.stdout.write('[+] Monitor installation complete. Start the monitor: \'dynamite.py start monitor\'.\n')
+        sys.stdout.write('[+] Monitor installation complete. Start the monitor: \'dynamite start monitor\'.\n')
         sys.stdout.flush()
     return True
 
@@ -90,7 +90,7 @@ def start_monitor():
     kb_process = kibana.KibanaProcess()
     if not (es_profiler.is_installed or ls_profiler.is_installed or kb_profiler.is_installed):
         sys.stderr.write('[-] Could not start monitor. Is it installed?\n')
-        sys.stderr.write('[-] dynamite.py install monitor\n')
+        sys.stderr.write('[-] dynamite install monitor\n')
         return False
     sys.stdout.write('[+] Starting monitor processes.\n')
     if not es_profiler.is_running:
@@ -129,7 +129,7 @@ def status_monitor():
     kb_process = kibana.KibanaProcess()
     if not (es_profiler.is_installed or ls_profiler.is_installed or kb_profiler.is_installed):
         sys.stderr.write('[-] Could not start monitor. Is it installed?\n')
-        sys.stderr.write('[-] dynamite.py install monitor\n')
+        sys.stderr.write('[-] dynamite install monitor\n')
         return False
     return es_process.status(), ls_process.status(), kb_process.status()
 
@@ -148,7 +148,7 @@ def stop_monitor():
     kb_process = kibana.KibanaProcess()
     if not (es_profiler.is_installed or ls_profiler.is_installed or kb_profiler.is_installed):
         sys.stderr.write('[-] Could not start monitor. Is it installed?\n')
-        sys.stderr.write('[-] dynamite.py install monitor\n')
+        sys.stderr.write('[-] dynamite install monitor\n')
         return False
     sys.stdout.write('[+] Stopping monitor processes.\n')
     if not es_process.stop(stdout=True):

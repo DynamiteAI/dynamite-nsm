@@ -22,7 +22,7 @@ def install_agent(network_interface, agent_label, logstash_target):
         sys.stderr.write('[-] The environment must first be prepared prior to agent installation. \n')
         sys.stderr.write('[-] This includes the installation of kernel development headers, '
                          'required for PF_RING kernel modules to be loaded. \n')
-        sys.stderr.write('[-] To prepare the agent environment run \'dynamite.py prepare agent\'.\n')
+        sys.stderr.write('[-] To prepare the agent environment run \'dynamite prepare agent\'.\n')
         sys.stderr.flush()
         return False
     zeek_installer = zeek.ZeekInstaller()
@@ -65,7 +65,7 @@ def install_agent(network_interface, agent_label, logstash_target):
         sys.stderr.write('[-] PF_RING kernel module was not loaded properly.\n')
         return False
     if zeek_post_install_profiler.is_installed and filebeat_post_install_profiler.is_installed:
-        sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite.py start agent\'.\n')
+        sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
         sys.stdout.flush()
         return True
     return False
@@ -96,7 +96,7 @@ def prepare_agent():
         agent_preparation_date = open('/opt/dynamite/.agent_environment_prepared').read()
         sys.stderr.write('[-] This environment has already been prepared ({}). '
                          'You can proceed with agent installation.\n'.format(agent_preparation_date))
-        sys.stderr.write('[-] \'dynamite.py install agent\'.\n')
+        sys.stderr.write('[-] \'dynamite install agent\'.\n')
         sys.stderr.flush()
         return False
     pf_ring_install = pf_ring.PFRingInstaller()
@@ -106,7 +106,7 @@ def prepare_agent():
     with open('/opt/dynamite/.agent_environment_prepared', 'w') as f:
         f.write(str(datetime.utcnow()))
     sys.stdout.write('[+] *** Development Kernel Packages & Build Tools Installed. Please Reboot ***\n\n')
-    sys.stdout.write('[+] After reboot, continue installation with: \'dynamite.py install monitor\'.\n')
+    sys.stdout.write('[+] After reboot, continue installation with: \'dynamite install monitor\'.\n')
     sys.stdout.flush()
     return True
 
@@ -138,7 +138,7 @@ def start_agent():
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
-        sys.stderr.write('[-] dynamite.py install agent\n')
+        sys.stderr.write('[-] dynamite install agent\n')
         return False
     filebeat_p = filebeat.FileBeatProcess()
     zeek_p = zeek.ZeekProcess()
@@ -170,7 +170,7 @@ def status_agent():
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
-        sys.stderr.write('[-] dynamite.py install agent\n')
+        sys.stderr.write('[-] dynamite install agent\n')
         return False
     agent_status = dict(
         agent_processes={
@@ -194,7 +194,7 @@ def stop_agent():
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
-        sys.stderr.write('[-] dynamite.py install agent\n')
+        sys.stderr.write('[-] dynamite install agent\n')
         return False
     if not zeek_p.stop(stdout=True):
         sys.stderr.write('[-] Could not stop agent.zeek_process.\n')

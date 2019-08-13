@@ -57,7 +57,7 @@ def _parse_cmdline():
 
 def _fatal_exception(action, component, debug=False):
     message = '[-] {}.{} failed. Is it installed?\n' \
-              '[-] \'dynamite.py install {}\'\n'.format(action, component, component)
+              '[-] \'dynamite install {}\'\n'.format(action, component, component)
     sys.stderr.write(message)
     if debug:
         sys.stderr.write('\n\n========== DEBUG ==========\n\n')
@@ -165,7 +165,7 @@ if __name__ == '__main__':
                 started = elasticsearch.ElasticProcess().start(stdout=True)
                 if started:
                     sys.stdout.write('[+] ElasticSearch started successfully. Check its status at any time with: '
-                                     '\'dynamite.py status elasticsearch\'.\n')
+                                     '\'dynamite status elasticsearch\'.\n')
                     sys.exit(0)
                 elif not elasticsearch.ElasticProfiler(stderr=False).is_installed:
                     _not_installed('start', 'elasticsearch')
@@ -181,7 +181,7 @@ if __name__ == '__main__':
                 started = logstash.LogstashProcess().start(stdout=True)
                 if started:
                     sys.stdout.write('[+] LogStash started successfully. Check its status at any time with: '
-                                     '\'dynamite.py status logstash\'.\n')
+                                     '\'dynamite status logstash\'.\n')
                     sys.exit(0)
                 elif not logstash.LogstashProfiler(stderr=False).is_installed:
                     _not_installed('start', 'logstash')
@@ -197,7 +197,7 @@ if __name__ == '__main__':
                 started = kibana.KibanaProcess().start(stdout=True)
                 if started:
                     sys.stdout.write('[+] Kibana started successfully. Check its status at any time with: '
-                                     '\'dynamite.py status kibana\'.\n')
+                                     '\'dynamite status kibana\'.\n')
                     sys.exit(0)
                 elif not kibana.KibanaProfiler(stderr=False).is_installed:
                     _not_installed('start', 'kibana')

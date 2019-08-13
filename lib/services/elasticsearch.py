@@ -642,7 +642,7 @@ def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=Fa
         return False
     if stdout:
         sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
-        sys.stdout.write('[+] Next, Start your cluster: \'dynamite.py start elasticsearch\'.\n')
+        sys.stdout.write('[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
     sys.stdout.flush()
     return True
 

@@ -697,7 +697,7 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsear
         return False
     if stdout:
         sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
-        sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start logstash\'.\n')
+        sys.stdout.write('[+] Next, Start your collector: \'dynamite start logstash\'.\n')
         sys.stdout.flush()
     return True
 

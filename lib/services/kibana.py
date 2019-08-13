@@ -709,7 +709,7 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
         return False
     if stdout:
         sys.stdout.write('[+] *** Kibana + Dashboards installed successfully. ***\n\n')
-        sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start kibana\'.\n')
+        sys.stdout.write('[+] Next, Start your collector: \'dynamite start kibana\'.\n')
         sys.stdout.flush()
     return True
 

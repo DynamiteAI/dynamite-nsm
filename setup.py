@@ -6,7 +6,7 @@ setup(
     packages=['lib', 'lib.services'],
     include_package_data=True,
     package_data={'dynamite': ['mirrors/*', 'default_configs/*']},
-    scripts=['scripts/dynamite'],
+    scripts=['scripts/dynamite', 'scripts/dynamite/d001.py'],
     url='http://vlabs.io',
     license='',
     author='Jamin Becker',
