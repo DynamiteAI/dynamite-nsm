@@ -323,7 +323,7 @@ class KibanaInstaller:
             # Start ElasticSearch if it is installed locally and is not running
             if self.elasticsearch_host in ['localhost', '127.0.0.1', '0.0.0.0', '::1', '::/128']:
                 sys.stdout.write('[+] Starting ElasticSearch.\n')
-                ElasticProcess().start(stdout=stdout)
+                ElasticProcess().restart(stdout=stdout)
                 sys.stdout.flush()
                 while not ElasticProfiler().is_listening:
                     if stdout:
@@ -340,7 +340,7 @@ class KibanaInstaller:
             utilities.set_ownership_of_file('/etc/dynamite/')
             time.sleep(5)
             sys.stdout.write('[+] Starting Kibana.\n')
-            kibana_process.start(stdout=stdout)
+            kibana_process.start(stdout=stdout, as_root=True)
             while not KibanaProfiler().is_listening:
                 if stdout:
                     sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
@@ -369,6 +369,8 @@ class KibanaInstaller:
                 time.sleep(10)
             if stdout:
                 sys.stdout.write('[+] Successfully created dashboards/visualizations.\n')
+            kibana_process.stop()
+
 
     def _setup_default_kibana_configs(self, stdout=False):
         if stdout:
@@ -554,15 +556,19 @@ class KibanaProcess:
         except (IOError, ValueError):
             self.pid = -1
 
-    def start(self, stdout=False):
+    def start(self, stdout=False, as_root=False):
         """
         Start the Kibana process
         :param stdout: Print output to console
         :return: True, if started successfully
         """
         def start_shell_out():
-            subprocess.call('runuser -l dynamite -c "{} {}/bin/kibana '
+            user = 'dynamite'
+            if as_root:
+                user = 'root'
+            subprocess.call('runuser -l {} -c "{} {}/bin/kibana '
                             '-c {} -l {} & > /dev/null &"'.format(
+                                user,
                                 utilities.get_environment_file_str(),
                                 self.config.kibana_home,
                                 os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
