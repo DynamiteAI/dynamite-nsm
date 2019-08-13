@@ -20,6 +20,8 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 
 #### Monitor
 
+![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dashboards.png)
+
 ##### Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.
 
 | Component                                              | Description                                                                                                         |
@@ -34,7 +36,7 @@ Unlike other NSMs Dynamite can be installed without the need of downloading an I
 
 While there are quite a few components that are a part of Dynamite-NSM. Standing up a standalone agent/monitor deployment is very simple.
 
-Double check to ensure you are running on a [supported operating system](SUPPORTED_OSs.md).
+Check to see if your operating system is [supported](SUPPORTED_OSs.md).
 
 #### Monitor (Standalone all components installed)
 
