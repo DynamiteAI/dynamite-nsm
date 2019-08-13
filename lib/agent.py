@@ -231,7 +231,7 @@ def uninstall_agent(prompt_user=True):
         filebeat.FileBeatProcess().stop(stdout=True)
     if pf_profiler.is_installed:
         shutil.rmtree(pf_ring.INSTALL_DIRECTORY)
-        shutil.rmtree('/opt/dynamite/.agent_environment_prepared')
+        os.remove('/opt/dynamite/.agent_environment_prepared')
     if filebeat_profiler.is_installed:
         shutil.rmtree(filebeat_config.install_directory)
     env_lines = ''
