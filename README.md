@@ -78,7 +78,6 @@ Linux Kernel: 2.6.32+
 
 ##### Setup
 
-
 Grab the the release, and install through PIP.
 
 ```bash
@@ -107,3 +106,8 @@ If you need to point the agent to a new monitor, this can be accomplished using 
 ```bash
 dynamite point agent --host <my-monitor-host> --port 5044
 ```
+
+
+### Additional Usage
+
+Additional usage information is available [here](https://github.com/vlabsio/dynamite-nsm/tree/master/scripts/README.md).
