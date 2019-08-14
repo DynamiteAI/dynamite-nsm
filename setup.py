@@ -15,23 +15,22 @@ except Exception:
     from urllib.error import URLError
 
 
-def download_file(url, filename, download_path, stdout=True):
+def download_file(url, download_path, stdout=True):
     """
     Given a URL and destination file name, download the file to local install_cache
 
     :param url: The url to the file to download
-    :param filename: The name of the file to store
     :param download_path: destination file path
     :return: None
     """
     response = urlopen(url)
     CHUNK = 16 * 1024
     if stdout:
-        sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
+        sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, download_path))
         sys.stdout.write('[+] Progress: ')
         sys.stdout.flush()
     try:
-        with open(os.path.join(download_path, filename), 'wb') as f:
+        with open(os.path.join(download_path, download_path), 'wb') as f:
             chunk_num = 0
             while True:
                 chunk = response.read(CHUNK)
