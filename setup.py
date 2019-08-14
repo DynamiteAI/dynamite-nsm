@@ -112,6 +112,5 @@ setup(
     cmdclass={
         'install': PostInstallCommand,
         'develop': PostDevelopCommand,
-        'egg_info': PostEggInfoCommand
     }
 )
