@@ -5,6 +5,10 @@
 
 Unlike other NSMs Dynamite can be installed without the need of downloading an ISO image. It is offered as standalone commandline utility implemented in pure Python 2/3.
 
+```bash
+$ pip install dist/dynamite-nsm-0.0.9.tar.gz
+```
+
 ### What's in the Box?
 
 #### Agent
@@ -47,8 +51,11 @@ Linux Kernel: 2.6.32+
 ```
 ##### Setup
 
-```
-!!! DYNAMITE MUST BE RUN AS ROOT !!!
+
+Grab the the release, and install through PIP.
+
+```bash
+$ pip install dist/dynamite-nsm-0.0.9.tar.gz
 ```
 
 Install the monitoring components all on the same machine.
@@ -70,8 +77,12 @@ Linux Kernel: 2.6.32+
 ```
 
 ##### Setup
-```
-!!! DYNAMITE MUST BE RUN AS ROOT !!!
+
+
+Grab the the release, and install through PIP.
+
+```bash
+$ pip install dist/dynamite-nsm-0.0.9.tar.gz
 ```
 
 Prepare the agent, this installs any required kernel-headers needed to install the PF_RING kernel module. 
