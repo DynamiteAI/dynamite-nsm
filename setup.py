@@ -30,7 +30,7 @@ def download_file(url, download_path, stdout=True):
         sys.stdout.write('[+] Progress: ')
         sys.stdout.flush()
     try:
-        with open(os.path.join(download_path, download_path), 'wb') as f:
+        with open(download_path, 'wb') as f:
             chunk_num = 0
             while True:
                 chunk = response.read(CHUNK)
