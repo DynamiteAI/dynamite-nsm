@@ -3,27 +3,45 @@ import time
 import shutil
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
+
+
+def post_install_cmds():
+    try:
+        os.mkdir('/tmp/dynamite')
+    except OSError:
+        pass
+    shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
+    shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
+    shutil.rmtree('/etc/dynamite/default_configs/', ignore_errors=True)
+    time.sleep(1)
+    try:
+        print('Copying default_configs -> /etc/dynamite/default_configs')
+        shutil.copytree('default_configs/', '/etc/dynamite/default_configs')
+        print('Copying mirrors -> /etc/dynamite/mirrors')
+        shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
+    except Exception:
+        print('[-] config directories already exist')
 
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
-        try:
-            os.mkdir('/tmp/dynamite')
-        except OSError:
-            pass
-        shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
-        shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
-        shutil.rmtree('/etc/dynamite/default_configs/', ignore_errors=True)
-        time.sleep(1)
-        try:
-            print('Copying default_configs -> /etc/dynamite/default_configs')
-            shutil.copytree('default_configs/', '/etc/dynamite/default_configs')
-            print('Copying mirrors -> /etc/dynamite/mirrors')
-            shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
-        except Exception:
-            print('[-] config directories already exist')
         install.run(self)
+        post_install_cmds()
+
+
+class PostDevelopCommand(develop):
+    def run(self):
+        develop.run(self)
+        post_install_cmds()
+
+
+class PostEggInfoCommand(egg_info):
+    def run(self):
+        egg_info.run(self)
+        post_install_cmds()
 
 
 setup(
@@ -39,6 +57,8 @@ setup(
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
     cmdclass={
-        'install': PostInstallCommand
+        'install': PostInstallCommand,
+        'develop': PostDevelopCommand,
+        'egg_info': PostEggInfoCommand
     }
 )
