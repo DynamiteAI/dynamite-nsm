@@ -11,8 +11,8 @@ class PostInstallCommand(install):
         except OSError:
             pass
         try:
-            shutil.copytree('mirrors/', '/tmp/dynamite/mirrors')
-            shutil.copytree('default_configs/', '/tmp/dynamite/default_configs')
+            shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
+            shutil.copytree('default_configs/', '/etc/dynamite/default_configs')
         except Exception:
             print('[-] config directories already exist')
         install.run(self)
