@@ -11,6 +11,9 @@ class PostInstallCommand(install):
             os.mkdir('/tmp/dynamite')
         except OSError:
             pass
+        shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
+        shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
+        shutil.rmtree('/etc/dynamite/default_configs/', ignore_errors=True)
         try:
             shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
             shutil.copytree('default_configs/', '/etc/dynamite/default_configs')
