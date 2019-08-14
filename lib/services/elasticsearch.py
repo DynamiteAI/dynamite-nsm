@@ -675,6 +675,7 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
         shutil.rmtree(es_config.configuration_directory)
         shutil.rmtree(es_config.es_home)
         shutil.rmtree(es_config.get_log_path())
+        shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
         for line in open('/etc/environment').readlines():
             if 'ES_PATH_CONF' in line:

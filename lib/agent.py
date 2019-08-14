@@ -234,6 +234,7 @@ def uninstall_agent(prompt_user=True):
         os.remove('/opt/dynamite/.agent_environment_prepared')
     if filebeat_profiler.is_installed:
         shutil.rmtree(filebeat_config.install_directory)
+    shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
     env_lines = ''
     for line in open('/etc/environment').readlines():
         if 'FILEBEAT_HOME' in line:
