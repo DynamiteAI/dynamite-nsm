@@ -69,8 +69,10 @@ def post_install_cmds():
         os.mkdir('/tmp/dynamite')
     except OSError:
         pass
-    download_file('https://github.com/vlabsio/dynamite-nsm/raw/master/dist/data/default_configs.tar.gz')
-    download_file('https://github.com/vlabsio/dynamite-nsm/raw/master/dist/data/mirrors.tar.gz')
+    download_file('https://github.com/vlabsio/dynamite-nsm/raw/master/dist/data/default_configs.tar.gz',
+                  'default_configs.tar.gz')
+    download_file('https://github.com/vlabsio/dynamite-nsm/raw/master/dist/data/mirrors.tar.gz',
+                  'mirrors.tar.gz')
     shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
     shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
     shutil.rmtree('/etc/dynamite/default_configs/', ignore_errors=True)
