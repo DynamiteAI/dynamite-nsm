@@ -1,4 +1,5 @@
 import os
+import time
 import shutil
 from setuptools import setup, find_packages
 from setuptools.command.install import install
@@ -14,9 +15,12 @@ class PostInstallCommand(install):
         shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
         shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
         shutil.rmtree('/etc/dynamite/default_configs/', ignore_errors=True)
+        time.sleep(1)
         try:
-            shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
+            print('Copying default_configs -> /etc/dynamite/default_configs')
             shutil.copytree('default_configs/', '/etc/dynamite/default_configs')
+            print('Copying mirrors -> /etc/dynamite/mirrors')
+            shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
         except Exception:
             print('[-] config directories already exist')
         install.run(self)
