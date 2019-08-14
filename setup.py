@@ -78,9 +78,9 @@ def post_install_cmds():
     time.sleep(1)
     try:
         print('Copying default_configs -> /etc/dynamite/default_configs')
-        extract_archive('default_configs.tar.gz', '/etc/dynamite/default_configs')
+        extract_archive('default_configs.tar.gz', '/etc/dynamite/')
         print('Copying mirrors -> /etc/dynamite/mirrors')
-        extract_archive('mirrors.tar.gz', '/etc/dynamite/mirrors')
+        extract_archive('mirrors.tar.gz', '/etc/dynamite/')
         shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
     except Exception:
         print('[-] config directories already exist')
