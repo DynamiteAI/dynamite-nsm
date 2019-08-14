@@ -3,6 +3,7 @@ import shutil
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
+
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
@@ -17,9 +18,9 @@ class PostInstallCommand(install):
             print('[-] config directories already exist')
         install.run(self)
 
+
 setup(
-    name='dls'
-     'ynamite-nsm',
+    name='dynamite-nsm',
     version='0.0.9',
     packages=find_packages(),
     scripts=['scripts/dynamite', 'scripts/dynamite.py'],
