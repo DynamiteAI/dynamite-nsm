@@ -10,7 +10,7 @@ positional arguments:
   command               An action to perform
                         [prepare|install|uninstall|start|stop|status|profile]
   component             The component to perform an action against
-                        [agent|logstash|elasticsearch]
+                        [agent|monitor|logstash|elasticsearch|kibana]
 
 optional arguments:
   -h, --help            show this help message and exit
