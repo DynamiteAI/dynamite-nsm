@@ -60,7 +60,7 @@ output.logstash:
 
 processors:
  - add_fields:
-   fields: ["originating_agent_tag": "monitor001"]
+   fields: {"originating_agent_tag": "monitor001"}
 
 #================================ Logging =====================================
 

@@ -394,7 +394,7 @@ if __name__ == '__main__':
         elif args.component == 'monitor':
             try:
                 if monitor.stop_monitor():
-                    if agent.start_agent():
+                    if monitor.start_monitor():
                         sys.stdout.write('[+] Monitor restarted successfully.\n')
                         sys.exit(0)
                     else:
