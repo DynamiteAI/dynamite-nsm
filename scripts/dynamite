@@ -17,4 +17,4 @@ else
     exit 127
   fi
 fi
-$pycmd $bin_path/dynamite.py $@ || python3 $bin_path/dynamite.py $@
+$pycmd $bin_path/dynamite.py $@
