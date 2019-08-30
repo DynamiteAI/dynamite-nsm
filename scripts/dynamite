@@ -1,3 +1,20 @@
 #! /bin/bash
 bin_path=`realpath "$0" | sed 's|\(.*\)/.*|\1|'`
-python $bin_path/dynamite.py $@ || python3 $bin_path/dynamite.py $@
+python3 --version &>/dev/null
+p3=$?
+python --version &>/dev/null
+p2=$?
+pycmd=python
+if [ $p3 -eq 0 ]
+then
+  pycmd=python3
+else
+  if [ $p2 -eq 0 ]
+  then
+    pycmd=python
+  else
+    echo Please install Python to continue...
+    exit 127
+  fi
+fi
+$pycmd $bin_path/dynamite.py $@ || python3 $bin_path/dynamite.py $@
