@@ -347,14 +347,15 @@ class ZeekInstaller:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        if stdout:
-            sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
-            sys.stdout.flush()
-            time.sleep(1)
-        pf_ring_install = pf_ring.PFRingInstaller()
-        pf_ring_install.download_pf_ring(stdout=True)
-        pf_ring_install.extract_pf_ring(stdout=True)
-        pf_ring_install.setup_pf_ring(stdout=True)
+        if not pf_ring.PFRingProfiler().is_installed:
+            if stdout:
+                sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
+                sys.stdout.flush()
+                time.sleep(1)
+            pf_ring_install = pf_ring.PFRingInstaller()
+            pf_ring_install.download_pf_ring(stdout=True)
+            pf_ring_install.extract_pf_ring(stdout=True)
+            pf_ring_install.setup_pf_ring(stdout=True)
         if stdout:
             sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.'
                              '\n\n')

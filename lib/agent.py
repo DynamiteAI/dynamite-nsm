@@ -41,7 +41,9 @@ def install_agent(network_interface, agent_label, logstash_target):
         if not zeek_installer.install_dependencies():
             sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
             return False
-        zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
+        agent_install_result = zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
+        if not agent_install_result:
+            return False
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
     if not filebeat_profiler.is_downloaded:
