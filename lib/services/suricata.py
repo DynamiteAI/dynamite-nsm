@@ -40,7 +40,7 @@ class SuricataInstaller:
 
         :param stdout: Print output to console
         """
-        for url in open(const.ZEEK_MIRRORS, 'r').readlines():
+        for url in open(const.SURICATA_MIRRORS, 'r').readlines():
             if utilities.download_file(url, const.SURICATA_ARCHIVE_NAME, stdout=stdout):
                 break
 
