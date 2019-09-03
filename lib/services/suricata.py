@@ -112,7 +112,7 @@ class SuricataInstaller:
             sys.stdout.flush()
             time.sleep(5)
         subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
-                        '--enable-pfring --with-libpfring-includes={} -with-libpfring-libraries='.format(
+                        '--enable-pfring --with-libpfring-includes={} -with-libpfring-libraries={}'.format(
             self.install_directory, '/'.join(self.configuration_directory.split('/')[:-1]),
             os.path.join(pf_ring_install.install_directory, 'include'),
             os.path.join(pf_ring_install.install_directory, 'lib')
