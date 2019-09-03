@@ -98,8 +98,14 @@ class SuricataInstaller:
             pf_ring_install.download_pf_ring(stdout=True)
             pf_ring_install.extract_pf_ring(stdout=True)
             pf_ring_install.setup_pf_ring(stdout=True)
-        os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so'), '/lib/libpcap.so.1')
-        os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib/libpfring.so.1')
+        try:
+            os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so'), '/lib/libpcap.so.1')
+        except:
+            pass
+        try:
+            os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib/libpfring.so.1')
+        except:
+            pass
         if stdout:
             sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.'
                              '\n\n')
