@@ -68,18 +68,58 @@ class SuricataInstaller:
             return False
         packages = None
         if pacman.package_manager == 'apt-get':
-            packages = ['cmake', 'make', 'gcc', 'g++', 'automake', 'pkg-config', 'libpcre3-dev', 'libyaml-dev',
-                        'libjansson-dev', 'rustc', 'cargo']
+            packages = ['cmake', 'make', 'gcc', 'g++', 'libtool', 'automake', 'pkg-config', 'libpcre3-dev',
+                        'libyaml-dev','libjansson-dev', 'rustc', 'cargo', 'python-pip']
         elif pacman.package_manager == 'yum':
-            packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'automake', 'pkgconfig', 'pcre-devel', 'libyaml-devel',
-                        'jansson-devel', 'rustc', 'cargo']
+            packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'libtool', 'automake', 'pkgconfig', 'pcre-devel',
+                        'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip']
         if packages:
             return pacman.install_packages(packages)
         return False
+
+    def setup_suricata(self, network_interface=None, stdout=False):
+        if not network_interface:
+            network_interface = utilities.get_network_interface_names()[0]
+        if network_interface not in utilities.get_network_interface_names():
+            sys.stderr.write(
+                '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
+                    network_interface, utilities.get_network_interface_names()))
+            return False
+        if stdout:
+            sys.stdout.write('[+] Creating suricata install|configuration|logging directories.\n')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        pf_ring_install = pf_ring.PFRingInstaller()
+        if not pf_ring.PFRingProfiler().is_installed:
+            if stdout:
+                sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
+                sys.stdout.flush()
+                time.sleep(1)
+            pf_ring_install.download_pf_ring(stdout=True)
+            pf_ring_install.extract_pf_ring(stdout=True)
+            pf_ring_install.setup_pf_ring(stdout=True)
+        os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so'), '/lib/libpcap.so.1')
+        os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib/libpfring.so.1')
+        if stdout:
+            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.'
+                             '\n\n')
+            sys.stdout.flush()
+            time.sleep(5)
+        subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
+                        '--enable-pfring --with-libpfring-includes={}'.format(
+            self.install_directory, '/'.join(self.configuration_directory.split('/')[:-1]),
+            pf_ring_install.install_directory
+        ), shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
+
+        subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
+            const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)
+        )
+
 
 install_test = SuricataInstaller()
 install_test.download_suricata(stdout=True)
 install_test.extract_suricata(stdout=True)
 install_test.install_dependencies()
+install_test.setup_suricata('ens33', stdout=True)
 
 
