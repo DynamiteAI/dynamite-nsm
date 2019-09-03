@@ -108,7 +108,7 @@ class SuricataInstaller:
         subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
                         '--enable-pfring --with-libpfring-includes={}'.format(
             self.install_directory, '/'.join(self.configuration_directory.split('/')[:-1]),
-            pf_ring_install.install_directory
+            os.path.join(pf_ring_install.install_directory, 'lib')
         ), shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
 
         subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
