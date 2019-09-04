@@ -52,9 +52,9 @@ class OinkmasterInstaller:
 
     def setup_oinkmaster(self, stdout=False):
         if stdout:
-            sys.stdout.write('[+] Copying oinkmaster files.')
+            sys.stdout.write('[+] Copying oinkmaster files.\n')
         try:
-            shutil.copy(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME), self.install_directory)
+            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME), self.install_directory)
         except Exception as e:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME), self.install_directory, e))
