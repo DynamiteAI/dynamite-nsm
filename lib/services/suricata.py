@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-import shutil
 import tarfile
 import subprocess
 
@@ -11,9 +10,10 @@ except Exception:
     from configparser import ConfigParser
 
 from lib import const
-from lib.services import pf_ring
 from lib import utilities
 from lib import package_manager
+from lib.services import pf_ring
+from lib.services import oinkmaster
 
 
 INSTALL_DIRECTORY = '/opt/dynamite/suricata/'
@@ -26,8 +26,8 @@ class SuricataInstaller:
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY):
         """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
         """
 
         self.configuration_directory = configuration_directory
@@ -78,6 +78,7 @@ class SuricataInstaller:
         return False
 
     def setup_suricata(self, network_interface=None, stdout=False):
+        '''
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
         if network_interface not in utilities.get_network_interface_names():
@@ -100,15 +101,14 @@ class SuricataInstaller:
             pf_ring_install.setup_pf_ring(stdout=True)
         try:
             os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so'), '/lib/libpcap.so.1')
-        except:
-            pass
+        except Exception as e:
+            sys.stderr.write('[-] Failed to re-link libpcap.so -> /lib/libpcap.so.1: {}\n'.format(e))
         try:
             os.link(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib/libpfring.so.1')
-        except:
-            pass
+        except Exception as e:
+            sys.stderr.write('[-] Failed to re-link libpfring.so -> /lib/libpfring.so.1: {}\n'.format(e))
         if stdout:
-            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.'
-                             '\n\n')
+            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
             sys.stdout.flush()
             time.sleep(5)
         subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
@@ -121,6 +121,16 @@ class SuricataInstaller:
         subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
             const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)
         )
+        '''
+        oink_installer = oinkmaster.OinkmasterInstaller(
+            install_directory=os.path.join(self.install_directory, 'oinkmaster'))
+        oink_installer.download_oinkmaster(stdout=stdout)
+        oink_installer.extract_oinkmaster(stdout=stdout)
+        oink_installer.setup_oinkmaster(stdout=stdout)
+        oinkmaster.update_suricata_rules(self.install_directory, os.path.join(self.install_directory, 'oinkmaster'))
+
+
+
 
 
 install_test = SuricataInstaller()

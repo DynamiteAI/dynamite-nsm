@@ -685,7 +685,7 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
         if stdout:
-            sys.stdout.write('[+] ElasticSearch uninstall successfully.\n')
+            sys.stdout.write('[+] ElasticSearch uninstalled successfully.\n')
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall ElasticSearch: ')
         traceback.print_exc(file=sys.stderr)

@@ -758,7 +758,7 @@ def uninstall_kibana(stdout=False, prompt_user=True):
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
         if stdout:
-            sys.stdout.write('[+] Kibana uninstall successfully.\n')
+            sys.stdout.write('[+] Kibana uninstalled successfully.\n')
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall Kibana: ')
         traceback.print_exc(file=sys.stderr)

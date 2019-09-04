@@ -742,7 +742,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
         if stdout:
-            sys.stdout.write('[+] LogStash uninstall successfully.\n')
+            sys.stdout.write('[+] LogStash uninstalled successfully.\n')
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall LogStash: ')
         traceback.print_exc(file=sys.stderr)
