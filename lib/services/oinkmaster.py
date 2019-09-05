@@ -51,6 +51,7 @@ class OinkmasterInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     def setup_oinkmaster(self, stdout=False):
+        os.mkdir(self.install_directory)
         if stdout:
             sys.stdout.write('[+] Copying oinkmaster files.\n')
         try:
@@ -58,6 +59,11 @@ class OinkmasterInstaller:
         except Exception as e:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))
+        if stdout:
+            sys.stdout.write('[+] Updating oinkmaster.conf with emerging-threats URL.')
+        with open(os.path.join(self.install_directory, 'oinkmaster.conf'), 'a') as f:
+            f.write('\nurl = http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz')
+
 
 
 def update_suricata_rules(suricata_config_directory, oinkmaster_install_directory=INSTALL_DIRECTORY):
