@@ -65,7 +65,6 @@ class OinkmasterInstaller:
             f.write('\nurl = http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz')
 
 
-
 def update_suricata_rules(suricata_config_directory, oinkmaster_install_directory=INSTALL_DIRECTORY):
-    subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(suricata_config_directory),
+    subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(os.path.join(suricata_config_directory, 'rules')),
                     cwd=oinkmaster_install_directory, shell=True)

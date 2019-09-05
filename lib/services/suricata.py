@@ -127,7 +127,8 @@ class SuricataInstaller:
         oink_installer.download_oinkmaster(stdout=stdout)
         oink_installer.extract_oinkmaster(stdout=stdout)
         oink_installer.setup_oinkmaster(stdout=stdout)
-        oinkmaster.update_suricata_rules(self.install_directory, os.path.join(self.install_directory, 'oinkmaster'))
+        oinkmaster.update_suricata_rules(self.configuration_directory,
+                                         os.path.join(self.install_directory, 'oinkmaster'))
 
 
 
