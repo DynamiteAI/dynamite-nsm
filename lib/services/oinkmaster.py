@@ -54,10 +54,10 @@ class OinkmasterInstaller:
         if stdout:
             sys.stdout.write('[+] Copying oinkmaster files.\n')
         try:
-            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME), self.install_directory)
+            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory)
         except Exception as e:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
-                os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME), self.install_directory, e))
+                os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))
 
 
 def update_suricata_rules(suricata_config_directory, oinkmaster_install_directory=INSTALL_DIRECTORY):
