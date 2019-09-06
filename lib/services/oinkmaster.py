@@ -55,7 +55,8 @@ class OinkmasterInstaller:
         if stdout:
             sys.stdout.write('[+] Copying oinkmaster files.\n')
         try:
-            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory)
+            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME),
+                               self.install_directory)
         except Exception as e:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))

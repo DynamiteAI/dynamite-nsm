@@ -1,6 +1,6 @@
 import os
 import sys
-import time
+import shutil
 import tarfile
 import subprocess
 
@@ -78,7 +78,6 @@ class SuricataInstaller:
         return False
 
     def setup_suricata(self, network_interface=None, stdout=False):
-        '''
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
         if network_interface not in utilities.get_network_interface_names():
@@ -121,7 +120,12 @@ class SuricataInstaller:
         subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
             const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)
         )
-        '''
+
+        os.mkdir(os.path.join(self.configuration_directory, 'rules'))
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'),
+                    os.path.join(self.configuration_directory, 'suricata.yaml'))
+        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
+                           self.configuration_directory)
         oink_installer = oinkmaster.OinkmasterInstaller(
             install_directory=os.path.join(self.install_directory, 'oinkmaster'))
         oink_installer.download_oinkmaster(stdout=stdout)
@@ -129,8 +133,6 @@ class SuricataInstaller:
         oink_installer.setup_oinkmaster(stdout=stdout)
         oinkmaster.update_suricata_rules(self.configuration_directory,
                                          os.path.join(self.install_directory, 'oinkmaster'))
-
-
 
 
 
