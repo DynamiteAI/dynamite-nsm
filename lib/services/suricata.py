@@ -100,9 +100,9 @@ class SuricataInstaller:
             pf_ring_install.extract_pf_ring(stdout=True)
             pf_ring_install.setup_pf_ring(stdout=True)
         try:
-            os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so'), '/lib/libpcap.so.1')
+            os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so.1'), '/lib/libpcap.so.1')
         except Exception as e:
-            sys.stderr.write('[-] Failed to re-link libpcap.so -> /lib/libpcap.so.1: {}\n'.format(e))
+            sys.stderr.write('[-] Failed to re-link libpcap.so.1 -> /lib/libpcap.so.1: {}\n'.format(e))
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib/libpfring.so.1')
         except Exception as e:
