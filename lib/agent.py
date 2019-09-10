@@ -3,7 +3,7 @@ import sys
 import shutil
 from datetime import datetime
 
-from lib.services import filebeat, pf_ring, zeek
+from lib.services import filebeat, pf_ring, zeek, suricata
 
 
 def is_agent_environment_prepared():
@@ -59,7 +59,6 @@ def install_agent(network_interface, agent_label, logstash_target):
         filebeat_config.write_config()
     else:
         sys.stdout.write('[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
-
     pf_ring_post_install_profiler = pf_ring.PFRingProfiler()
     zeek_post_install_profiler = zeek.ZeekProfiler()
     filebeat_post_install_profiler = filebeat.FileBeatProfiler()

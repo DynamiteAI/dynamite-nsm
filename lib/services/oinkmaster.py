@@ -60,12 +60,19 @@ class OinkmasterInstaller:
         except Exception as e:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))
+            return False
         if stdout:
-            sys.stdout.write('[+] Updating oinkmaster.conf with emerging-threats URL.')
-        with open(os.path.join(self.install_directory, 'oinkmaster.conf'), 'a') as f:
-            f.write('\nurl = http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz')
+            sys.stdout.write('[+] Updating oinkmaster.conf with emerging-threats URL.\n')
+        try:
+            with open(os.path.join(self.install_directory, 'oinkmaster.conf'), 'a') as f:
+                f.write('\nurl = http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz')
+        except Exception as e:
+            sys.stderr.write('[-] Failed to update oinkmaster.conf: {}.\n'.format(e))
+            return False
+        return True
 
 
 def update_suricata_rules(suricata_config_directory, oinkmaster_install_directory=INSTALL_DIRECTORY):
-    subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(os.path.join(suricata_config_directory, 'rules')),
-                    cwd=oinkmaster_install_directory, shell=True)
+    exit_code = subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(
+        os.path.join(suricata_config_directory, 'rules')), cwd=oinkmaster_install_directory, shell=True)
+    return exit_code == 0

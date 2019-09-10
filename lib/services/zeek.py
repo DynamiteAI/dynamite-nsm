@@ -321,6 +321,11 @@ class ZeekInstaller:
 
     @staticmethod
     def install_dependencies():
+        """
+        Install the required dependencies required by Zeek
+
+        :return: True, if all packages installed successfully
+        """
         pacman = package_manager.OSPackageManager()
         if not pacman.refresh_package_indexes():
             return False
