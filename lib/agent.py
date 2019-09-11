@@ -10,7 +10,7 @@ def is_agent_environment_prepared():
     return os.path.exists('/opt/dynamite/.agent_environment_prepared')
 
 
-def install_agent(network_interface, agent_label, logstash_target):
+def install_agent(network_interface, agent_label, logstash_target, install_suricata=True):
     """
     :param network_interface: The network interface that the agent should analyze traffic on
     :param agent_label: A descriptive label representing the
@@ -25,6 +25,11 @@ def install_agent(network_interface, agent_label, logstash_target):
         sys.stderr.write('[-] To prepare the agent environment run \'dynamite prepare agent\'.\n')
         sys.stderr.flush()
         return False
+    if install_suricata:
+        suricata_installer = suricata.SuricataInstaller()
+        suricata_installer.download_suricata(stdout=True)
+        suricata_installer.extract_suricata(stdout=True)
+        suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
     zeek_installer = zeek.ZeekInstaller()
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
     filebeat_installer = filebeat.FileBeatInstaller()

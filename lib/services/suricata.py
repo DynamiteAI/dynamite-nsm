@@ -6,11 +6,6 @@ import shutil
 import tarfile
 import subprocess
 
-try:
-    from ConfigParser import ConfigParser
-except Exception:
-    from configparser import ConfigParser
-
 from lib import const
 from lib import utilities
 from lib import package_manager
@@ -51,15 +46,23 @@ class SuricataConfigurator:
 
             # rule classifications
             'classification-file',
-            'reference-config-file'
+            'reference-config-file',
+
+            '- interface'
 
         ]
         for line in open(os.path.join(self.configuration_directory, 'suricata.yaml')).readlines():
             token = line.split(':')[0].strip()
             if token in parsable_tokens:
                 value = line.split(':')[1].strip()
+                if token == '- interface' and value == 'default':
+                    continue
                 suricata_config[token] = value
+
         return suricata_config
+
+    def get_monitor_interface(self):
+        return self.suricata_config['- interface']
 
     def get_log_directory(self):
         return self.suricata_config['default-log-dir']
@@ -141,6 +144,9 @@ class SuricataConfigurator:
 
     def get_telnet_servers_group(self):
         return self.suricata_config['TELNET_SERVERS']
+
+    def set_monitor_interface(self, interface):
+        self.suricata_config['- interface'] = interface
 
     def set_log_directory(self, log_directory):
         log_directory = log_directory.replace('"', '').replace("'", '')
@@ -297,21 +303,19 @@ class SuricataConfigurator:
         """
         Overwrite the existing suricata.yaml config with changed values
         """
-        """
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'site', 'local.bro'), suricata_config_backup)
-        """
+        shutil.copy(os.path.join(self.configuration_directory, 'suricata.yaml'), suricata_config_backup)
         suricata_config_content = open(os.path.join(self.configuration_directory, 'suricata.yaml')).readlines()
         output_str = ''
         for line in suricata_config_content:
-            line = line.strip()
+            padding = ' ' * (len(line) - len(line.lstrip()))
             token = line.split(':')[0].strip()
             if token in self.suricata_config.keys():
-                line = '{}: {}'.format(token, self.suricata_config[token])
-            output_str += line + '\n'
+                line = '{}{}: {}'.format(padding, token, self.suricata_config[token]) + '\n'
+            output_str += line
 
         with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'w') as f:
             f.write(output_str)
@@ -329,6 +333,66 @@ class SuricataInstaller:
 
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
+
+    def _configure_and_compile_suricata(self, pf_ring_installer, stdout=False):
+        configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
+                        '--enable-pfring --with-libpfring-includes={} -with-libpfring-libraries={}'.format(
+            self.install_directory, '/'.join(self.configuration_directory.split('/')[:-1]),
+            os.path.join(pf_ring_installer.install_directory, 'include'),
+            os.path.join(pf_ring_installer.install_directory, 'lib')
+        ), shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
+        if configure_result != 0:
+            sys.stderr.write('[-] Unable to configure Suricata installation files: {}\n')
+            return False
+        compile_result = subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
+            const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)
+        )
+        if compile_result != 0:
+            sys.stderr.write('[-] Unable to compile Suricata installation package: {}\n')
+            return False
+
+    def _copy_suricata_files_and_directories(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating suricata install|configuration|logging directories.\n')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        try:
+            os.mkdir(os.path.join(self.configuration_directory, 'rules'))
+            shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'),
+                        os.path.join(self.configuration_directory, 'suricata.yaml'))
+            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
+                               os.path.join(self.configuration_directory, 'rules'))
+        except Exception as e:
+            sys.stderr.write('[-] Unable to re-create Suricata rules directory: {}\n'.format(e))
+            return False
+        return True
+
+    def _setup_suricata_rules(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Installing Oinkmaster.\n')
+        oink_installer = oinkmaster.OinkmasterInstaller(
+            install_directory=os.path.join(self.install_directory, 'oinkmaster')
+        )
+        try:
+            oink_installer.download_oinkmaster(stdout=stdout)
+        except Exception as e:
+            sys.stderr.write('[-] Unable to download Oinkmaster: {}\n'.format(e))
+            return False
+        try:
+            oink_installer.extract_oinkmaster(stdout=stdout)
+        except Exception as e:
+            sys.stderr.write('[-] Unable to extract Oinkmaster: {}'.format(e))
+            return False
+        try:
+            oink_install_res = oink_installer.setup_oinkmaster(stdout=stdout)
+        except Exception as e:
+            sys.stderr.write('[-] Unable to setup Oinkmaster: {}'.format(e))
+            return False
+
+        oinkmaster.update_suricata_rules(self.configuration_directory,
+                                         os.path.join(self.install_directory, 'oinkmaster'))
+        return oink_install_res
+
 
     @staticmethod
     def download_suricata(stdout=False):
@@ -387,10 +451,7 @@ class SuricataInstaller:
                 '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
                     network_interface, utilities.get_network_interface_names()))
             return False
-        if stdout:
-            sys.stdout.write('[+] Creating suricata install|configuration|logging directories.\n')
-        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        self._copy_suricata_files_and_directories(stdout=stdout)
         pf_ring_install = pf_ring.PFRingInstaller()
         if not pf_ring.PFRingProfiler().is_installed:
             if stdout:
@@ -416,55 +477,19 @@ class SuricataInstaller:
             sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
             sys.stdout.flush()
             time.sleep(5)
-        subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
-                        '--enable-pfring --with-libpfring-includes={} -with-libpfring-libraries={}'.format(
-            self.install_directory, '/'.join(self.configuration_directory.split('/')[:-1]),
-            os.path.join(pf_ring_install.install_directory, 'include'),
-            os.path.join(pf_ring_install.install_directory, 'lib')
-        ), shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
-
-        subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
-            const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)
-        )
-        if stdout:
-            sys.stdout.write('[+] Installing Oinkmaster.\n')
-        try:
-            os.mkdir(os.path.join(self.configuration_directory, 'rules'))
-            shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'),
-                        os.path.join(self.configuration_directory, 'suricata.yaml'))
-            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
-                               os.path.join(self.configuration_directory, 'rules'))
-        except Exception as e:
-            sys.stderr.write('[-] Unable to re-create Suricata rules directory: {}\n'.format(e))
+        suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
+        if not suricata_compiled:
             return False
-        oink_installer = oinkmaster.OinkmasterInstaller(
-            install_directory=os.path.join(self.install_directory, 'oinkmaster')
-        )
-        oink_install_res = False
-        try:
-            oink_installer.download_oinkmaster(stdout=stdout)
-        except Exception as e:
-            sys.stderr.write('[-] Unable to download Oinkmaster: {}\n'.format(e))
+        suricata_rules_installed = self._setup_suricata_rules(stdout=stdout)
+        if not suricata_rules_installed:
             return False
-        try:
-            oink_installer.extract_oinkmaster(stdout=stdout)
-        except Exception as e:
-            sys.stderr.write('[-] Unable to extract Oinkmaster: {}'.format(e))
-            return False
-        try:
-            oink_install_res = oink_installer.setup_oinkmaster(stdout=stdout)
-        except Exception as e:
-            sys.stderr.write('[-] Unable to setup Oinkmaster: {}'.format(e))
+        config = SuricataConfigurator(self.configuration_directory)
+        config.set_monitor_interface(network_interface)
+        config.set_rules_directory(os.path.join(self.configuration_directory, 'rules'))
+        config.set_reference_config_file(os.path.join(self.configuration_directory, 'reference.config'))
+        config.set_classification_file(os.path.join(self.configuration_directory, 'rules', 'classification.config'))
+        config.write_config()
+        return True
 
-        oinkmaster.update_suricata_rules(self.configuration_directory,
-                                         os.path.join(self.install_directory, 'oinkmaster'))
-        return oink_install_res
-
-
-config  = SuricataConfigurator('/Users/jaminbecker/PycharmProjects/dynamite-nsm/default_configs/suricata')
-config._parse_suricatayaml()
-
-config.set_aim_servers_group('192.168.0.1')
-config.write_config()
 
 
