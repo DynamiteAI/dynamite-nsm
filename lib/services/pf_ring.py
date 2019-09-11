@@ -168,6 +168,7 @@ class PFRingProfiler:
         if not pf_ring_home:
             if stderr:
                 sys.stderr.write('[-] PF_RING installation directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(pf_ring_home):
             if stderr:
                 sys.stderr.write('[-] PF_RING installation directory could not be located on disk at: {}.\n'.format(

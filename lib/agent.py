@@ -113,7 +113,7 @@ def prepare_agent():
     with open('/opt/dynamite/.agent_environment_prepared', 'w') as f:
         f.write(str(datetime.utcnow()))
     sys.stdout.write('[+] *** Development Kernel Packages & Build Tools Installed. Please Reboot ***\n\n')
-    sys.stdout.write('[+] After reboot, continue installation with: \'dynamite install monitor\'.\n')
+    sys.stdout.write('[+] After reboot, continue installation with: \'dynamite install agent\'.\n')
     sys.stdout.flush()
     return True
 

@@ -338,12 +338,14 @@ class SuricataInstaller:
         if stdout:
             sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
             sys.stdout.flush()
-        configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
-                        '--enable-pfring --with-libpfring-includes={} -with-libpfring-libraries={}'.format(
-            self.install_directory, '/'.join(self.configuration_directory.split('/')[:-1]),
-            os.path.join(pf_ring_installer.install_directory, 'include'),
-            os.path.join(pf_ring_installer.install_directory, 'lib')
-        ), shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
+        configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
+                                           '--localstatedir=/var/dynamite/suricata --enable-pfring '
+                                           '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
+                                                self.install_directory,
+                                                '/'.join(self.configuration_directory.split('/')[:-1]),
+                                                os.path.join(pf_ring_installer.install_directory, 'include'),
+                                                os.path.join(pf_ring_installer.install_directory, 'lib')),
+            shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
         if configure_result != 0:
             sys.stderr.write('[-] Unable to configure Suricata installation files: {}\n')
             return False
@@ -491,6 +493,3 @@ class SuricataInstaller:
         config.set_classification_file(os.path.join(self.configuration_directory, 'rules', 'classification.config'))
         config.write_config()
         return True
-
-
-
