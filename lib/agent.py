@@ -29,6 +29,7 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         suricata_installer = suricata.SuricataInstaller()
         suricata_installer.download_suricata(stdout=True)
         suricata_installer.extract_suricata(stdout=True)
+        suricata_installer.install_dependencies()
         suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
     zeek_installer = zeek.ZeekInstaller()
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
