@@ -350,6 +350,7 @@ class SuricataInstaller:
         if compile_result != 0:
             sys.stderr.write('[-] Unable to compile Suricata installation package: {}\n')
             return False
+        return True
 
     def _copy_suricata_files_and_directories(self, stdout=False):
         if stdout:
