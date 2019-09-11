@@ -335,6 +335,9 @@ class SuricataInstaller:
         self.install_directory = install_directory
 
     def _configure_and_compile_suricata(self, pf_ring_installer, stdout=False):
+        if stdout:
+            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
+            sys.stdout.flush()
         configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} --localstatedir=/var/dynamite/suricata '
                         '--enable-pfring --with-libpfring-includes={} -with-libpfring-libraries={}'.format(
             self.install_directory, '/'.join(self.configuration_directory.split('/')[:-1]),
@@ -474,10 +477,7 @@ class SuricataInstaller:
             sys.stderr.write('[-] Failed to re-link libpfring.so -> /lib/libpfring.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
                 return False
-        if stdout:
-            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
-            sys.stdout.flush()
-            time.sleep(5)
+        time.sleep(5)
         suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
         if not suricata_compiled:
             return False
