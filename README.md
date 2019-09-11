@@ -1,7 +1,9 @@
 [![Dynamite-AI](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png)](http://dynamite.ai)
 ## Dynamite Network Security Monitor
 
-#### Dynamite-NSM is a free Network Security Monitor (NSM) developed by [Dynamite Analytics](http://dynamite.ai) on top of several leading, enterprise-grade technologies. The tool provides network and cybersecurity operators with holistic insights into their networks while giving them the ability to deep-dive into lower-level activities. Dynamite-NSM separates itself from other tools by combining Zeek/Bro and Flow data and placing emphasis on *very* fast deployment, minimal configuration, and intuitive management. 
+#### Dynamite-NSM is a free Network Security Monitor (NSM) developed by [Dynamite Analytics](http://dynamite.ai) on top of several leading, enterprise-grade technologies.
+
+The tool provides network and cybersecurity operators with holistic insights into their networks while giving them the ability to deep-dive into lower-level activities. Dynamite-NSM separates itself from other tools by combining Zeek/Bro and Flow data and placing emphasis on *very* fast deployment, minimal configuration, and intuitive management. 
 
 Unlike other NSMs Dynamite can be installed without the need of downloading an ISO image. It is offered as standalone commandline utility implemented in pure Python 2/3.
 
