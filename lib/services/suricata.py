@@ -539,8 +539,6 @@ class SuricataProcess:
             self.pid = -1
 
     def start(self, stdout=False):
-        if stdout:
-            sys.stdout.write('[+] Attempting to start Suricata IDS.\n')
         p = subprocess.Popen('bin/suricata -i {} '
                              '--pfring-int={} --pfring-cluster-type=cluster_flow -D '
                              '--pidfile /var/dynamite/suricata/suricata.pid '
@@ -550,7 +548,26 @@ class SuricataProcess:
                                             os.path.join(self.configuration_directory, 'suricata.yaml')
         ), shell=True, cwd=self.install_directory)
         p.communicate()
-        return p.returncode == 0
+        retry = 0
+        while retry < 6:
+            start_message = '[+] [Attempt: {}] Starting Suricata on PID [{}]\n'.format(retry + 1, self.pid)
+            try:
+                with open('/var/run/dynamite/suricata/suricata.pid') as f:
+                    self.pid = int(f.read())
+                start_message = '[+] [Attempt: {}] Starting Suricata on PID [{}]\n'.format(retry + 1, self.pid)
+                if stdout:
+                    sys.stdout.write(start_message)
+                if not utilities.check_pid(self.pid):
+                    retry += 1
+                    time.sleep(5)
+                else:
+                    return True
+            except IOError:
+                if stdout:
+                    sys.stdout.write(start_message)
+                retry += 1
+                time.sleep(3)
+        return False
 
     def stop(self, stdout=False):
         alive = True
