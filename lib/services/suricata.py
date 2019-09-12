@@ -543,7 +543,7 @@ class SuricataProcess:
             sys.stdout.write('[+] Attempting to start Suricata IDS.\n')
         p = subprocess.Popen('bin/suricata -i {} '
                              '--pfring-int={} --pfring-cluster-type=cluster_flow -D '
-                             '--pidfile /var/dynamite/suricata/suricata.pid'
+                             '--pidfile /var/dynamite/suricata/suricata.pid '
                              '-c {}'.format(
                                             self.config.get_monitor_interface(),
                                             self.config.get_monitor_interface(),
