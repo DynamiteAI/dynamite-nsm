@@ -121,7 +121,7 @@ class PFRingInstaller:
         if pkt_mng.package_manager == 'apt-get':
             packages = ['make', 'gcc', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
-            packages = ['make', 'gcc', '"kernel-devel-uname-r == $(uname -r)"']
+            packages = ['make', 'gcc', 'kernel-devel-$(uname -r)']
         if packages:
             return pkt_mng.install_packages(packages)
         return False

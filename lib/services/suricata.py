@@ -3,6 +3,7 @@ import sys
 import time
 import json
 import shutil
+import signal
 import tarfile
 import subprocess
 
@@ -444,7 +445,7 @@ class SuricataInstaller:
                         'libyaml-dev','libjansson-dev', 'rustc', 'cargo', 'python-pip']
         elif pacman.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'libtool', 'automake', 'pkgconfig', 'pcre-devel',
-                        'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip']
+                        'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip', 'libpcap-devel', 'wireshark']
         if packages:
             return pacman.install_packages(packages)
         return False
@@ -479,6 +480,21 @@ class SuricataInstaller:
             sys.stderr.write('[-] Failed to re-link libpfring.so -> /lib/libpfring.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
                 return False
+        # CentOS linker libraries
+        try:
+            os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so.1'),
+                       '/usr/local/lib/libpcap.so.1')
+        except Exception as e:
+            sys.stderr.write('[-] Failed to re-link libpcap.so.1 -> /usr/local/lib/libpcap.so.1: {}\n'.format(e))
+            if 'exists' not in str(e).lower():
+                return False
+        try:
+            os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'),
+                       '/usr/local/lib/libpfring.so.1')
+        except Exception as e:
+            sys.stderr.write('[-] Failed to re-link libpfring.so -> /usr/local/lib/libpfring.so.1: {}\n'.format(e))
+            if 'exists' not in str(e).lower():
+                return False
         time.sleep(5)
         suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
         if not suricata_compiled:
@@ -486,6 +502,18 @@ class SuricataInstaller:
         suricata_rules_installed = self._setup_suricata_rules(stdout=stdout)
         if not suricata_rules_installed:
             return False
+        if 'SURICATA_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Suricata default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo SURICATA_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
+        if 'SURICATA_CONFIG' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Suricata default config path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo SURICATA_CONFIG="{}" >> /etc/environment'.format(self.configuration_directory),
+                            shell=True)
         config = SuricataConfigurator(self.configuration_directory)
         config.set_monitor_interface(network_interface)
         config.set_rules_directory(os.path.join(self.configuration_directory, 'rules'))
@@ -493,3 +521,67 @@ class SuricataInstaller:
         config.set_classification_file(os.path.join(self.configuration_directory, 'rules', 'classification.config'))
         config.write_config()
         return True
+
+
+class SuricataProcess:
+
+    def __init__(self, install_directory=INSTALL_DIRECTORY, configuration_directory=CONFIGURATION_DIRECTORY):
+        """
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
+        """
+        self.install_directory = install_directory
+        self.configuration_directory = configuration_directory
+        self.config = SuricataConfigurator(self.configuration_directory)
+
+        try:
+            self.pid = int(open('/var/run/dynamite/suricata/suricata.pid').read())
+        except (IOError, ValueError):
+            self.pid = -1
+
+    def start(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Attempting to start Suricata IDS.\n')
+        p = subprocess.Popen('bin/suricata -i {} '
+                             '--pfring-int={} --pfring-cluster-type=cluster_flow -D '
+                             '--pidfile /var/dynamite/suricata/ '
+                             '-c {}'.format(
+                                            self.config.get_monitor_interface(),
+                                            self.config.get_monitor_interface(),
+                                            os.path.join(self.configuration_directory, 'suricata.yaml')
+        ), shell=True, cwd=self.install_directory)
+        p.communicate()
+        return p.returncode == 0
+
+    def stop(self, stdout=False):
+        alive = True
+        attempts = 0
+        while alive:
+            try:
+                if stdout:
+                    sys.stdout.write('[+] Attempting to stop Suricata [{}]\n'.format(self.pid))
+                if attempts > 3:
+                    sig_command = signal.SIGKILL
+                else:
+                    # Kill the zombie after the third attempt of asking it to kill itself
+                    sig_command = signal.SIGTERM
+                attempts += 1
+                if self.pid != -1:
+                    os.kill(self.pid, sig_command)
+                time.sleep(1)
+                alive = utilities.check_pid(self.pid)
+            except Exception as e:
+                sys.stderr.write('[-] An error occurred while attempting to stop Suricata: {}\n'.format(e))
+                return False
+        return True
+
+    def status(self):
+        return {
+            'PID': self.pid,
+            'RUNNING': utilities.check_pid(self.pid),
+        }
+
+    def restart(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Attempting to restart Suricata IDS.\n')
+        self.stop(stdout=stdout)
+        return self.start(stdout=stdout)

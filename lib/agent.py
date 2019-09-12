@@ -149,11 +149,15 @@ def start_agent():
         return False
     filebeat_p = filebeat.FileBeatProcess()
     zeek_p = zeek.ZeekProcess()
+    suricata_p = suricata.SuricataProcess()
     if not pf_ring_profiler.is_running:
         sys.stderr.write('[-] PF_RING kernel modules were not loaded. Try running '
                          '\'modprobe pf_ring min_num_slots=32768\' as root.\n')
         return False
     sys.stdout.write('[+] Starting agent processes.\n')
+    if not suricata_p.start(stdout=True):
+        sys.stderr.write('[-] Could not start agent.suricata_process.\n')
+        return False
     if not zeek_p.start(stdout=True):
         sys.stderr.write('[-] Could not start agent.zeek_process.\n')
         return False
@@ -196,12 +200,16 @@ def stop_agent():
     """
     sys.stdout.write('[+] Stopping agent processes.\n')
     zeek_p = zeek.ZeekProcess()
+    suricata_p = suricata.SuricataProcess()
     filebeat_p = filebeat.FileBeatProcess()
     filebeat_profiler = filebeat.FileBeatProfiler(stderr=True)
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
         sys.stderr.write('[-] dynamite install agent\n')
+        return False
+    if not suricata_p.stop(stdout=True):
+        sys.stderr.write('[-] Could not stop agent.suricata_process.\n')
         return False
     if not zeek_p.stop(stdout=True):
         sys.stderr.write('[-] Could not stop agent.zeek_process.\n')
