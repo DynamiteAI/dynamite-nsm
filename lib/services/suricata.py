@@ -539,6 +539,8 @@ class SuricataProcess:
             self.pid = -1
 
     def start(self, stdout=False):
+        if not os.path.exists('/var/run/dynamite/kibana/'):
+            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/suricata/'), shell=True)
         p = subprocess.Popen('bin/suricata -i {} '
                              '--pfring-int={} --pfring-cluster-type=cluster_flow -D '
                              '--pidfile /var/run/dynamite/suricata/suricata.pid '
