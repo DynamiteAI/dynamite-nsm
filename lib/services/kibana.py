@@ -558,6 +558,7 @@ class KibanaProcess:
     def start(self, stdout=False):
         """
         Start the Kibana process
+
         :param stdout: Print output to console
         :return: True, if started successfully
         """

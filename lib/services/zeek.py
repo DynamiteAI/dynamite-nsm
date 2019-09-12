@@ -491,6 +491,12 @@ class ZeekProcess:
         self.install_directory = install_directory
 
     def start(self, stdout=False):
+        """
+        Start Zeek cluster via broctl
+
+        :param stdout: Print output to console
+        :return: True, if started successfully
+        """
         if stdout:
             sys.stdout.write('[+] Attempting to start Zeek cluster.\n')
         p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
@@ -498,6 +504,12 @@ class ZeekProcess:
         return p.returncode == 0
 
     def stop(self, stdout=False):
+        """
+        Stop Zeek cluster via broctl
+
+        :param stdout: Print output to console
+        :return: True, if stopped successfully
+        """
         if stdout:
             sys.stdout.write('[+] Attempting to stop Zeek cluster.\n')
         p = subprocess.Popen('{} stop'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
@@ -505,12 +517,23 @@ class ZeekProcess:
         return p.returncode == 0
 
     def status(self):
+        """
+        Check the status of all workers, proxies, and manager in Zeek cluster
+
+        :return: A string containing the results outputted from 'broctl status'
+        """
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         return out.decode('utf-8')
 
     def restart(self, stdout=False):
+        """
+        Restart the Zeek process via broctl
+
+        :param stdout: Print output to console
+        :return: True if restarted successfully
+        """
         if stdout:
             sys.stdout.write('[+] Attempting to restart Zeek cluster.\n')
         p = subprocess.Popen('{} restart'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)

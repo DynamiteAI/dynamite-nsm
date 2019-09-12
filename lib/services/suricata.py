@@ -524,10 +524,14 @@ class SuricataInstaller:
 
 
 class SuricataProcess:
+    """
+    An interface for start|stop|status|restart of the Suricata process
+    """
 
     def __init__(self, install_directory=INSTALL_DIRECTORY, configuration_directory=CONFIGURATION_DIRECTORY):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata/)
         """
         self.install_directory = install_directory
         self.configuration_directory = configuration_directory
@@ -539,7 +543,13 @@ class SuricataProcess:
             self.pid = -1
 
     def start(self, stdout=False):
-        if not os.path.exists('/var/run/dynamite/kibana/'):
+        """
+        Start Suricata IDS process in daemon mode
+
+        :param stdout: Print output to console
+        :return: True, if started successfully
+        """
+        if not os.path.exists('/var/run/dynamite/suricata/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/suricata/'), shell=True)
         p = subprocess.Popen('bin/suricata -i {} '
                              '--pfring-int={} --pfring-cluster-type=cluster_flow -D '
@@ -572,6 +582,13 @@ class SuricataProcess:
         return False
 
     def stop(self, stdout=False):
+        """
+        Stop the Suricata process
+
+        :param stdout: Print output to console
+        :return: True if stopped successfully
+        """
+
         alive = True
         attempts = 0
         while alive:
@@ -593,14 +610,26 @@ class SuricataProcess:
                 return False
         return True
 
-    def status(self):
-        return {
-            'PID': self.pid,
-            'RUNNING': utilities.check_pid(self.pid),
-        }
-
     def restart(self, stdout=False):
+        """
+        Restart the Suricata process
+
+        :param stdout: Print output to console
+        :return: True if restarted successfully
+        """
         if stdout:
             sys.stdout.write('[+] Attempting to restart Suricata IDS.\n')
         self.stop(stdout=stdout)
         return self.start(stdout=stdout)
+
+    def status(self):
+        """
+        Check the status of the Suricata process
+
+        :return: A dictionary containing the run status and relevant configuration options
+        """
+        return {
+            'PID': self.pid,
+            'RUNNING': utilities.check_pid(self.pid),
+            'LOG': os.path.join(self.config.get_log_directory(), 'suricata.log')
+        }
