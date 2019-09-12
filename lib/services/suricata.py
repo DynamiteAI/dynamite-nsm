@@ -541,7 +541,7 @@ class SuricataProcess:
     def start(self, stdout=False):
         p = subprocess.Popen('bin/suricata -i {} '
                              '--pfring-int={} --pfring-cluster-type=cluster_flow -D '
-                             '--pidfile /var/dynamite/suricata/suricata.pid '
+                             '--pidfile /var/run/dynamite/suricata/suricata.pid '
                              '-c {}'.format(
                                             self.config.get_monitor_interface(),
                                             self.config.get_monitor_interface(),
