@@ -21,6 +21,10 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
     :param install_suricata: If True, installs Suricata IDS alongside Zeek NSM
     :return: True, if install succeeded
     """
+    zeek_installer = zeek.ZeekInstaller()
+    zeek_profiler = zeek.ZeekProfiler(stderr=True)
+    filebeat_installer = filebeat.FileBeatInstaller()
+    filebeat_profiler = filebeat.FileBeatProfiler()
     if not is_agent_environment_prepared():
         sys.stderr.write('[-] The environment must first be prepared prior to agent installation. \n')
         sys.stderr.write('[-] This includes the installation of kernel development headers, '
@@ -34,11 +38,6 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         suricata_installer.extract_suricata(stdout=True)
         suricata_installer.install_dependencies()
         suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
-    """
-    zeek_installer = zeek.ZeekInstaller()
-    zeek_profiler = zeek.ZeekProfiler(stderr=True)
-    filebeat_installer = filebeat.FileBeatInstaller()
-    filebeat_profiler = filebeat.FileBeatProfiler()
     if not filebeat_profiler.is_downloaded:
         filebeat_installer.download_filebeat(stdout=True)
         filebeat_installer.extract_filebeat(stdout=True)
@@ -66,6 +65,7 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
             return False
         agent_install_result = zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
         if not agent_install_result:
+            sys.stderr.write('[-] An error occurred while installing Zeek.\n')
             return False
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
