@@ -165,10 +165,12 @@ def profile_agent():
     """
     pf_ring_profiler = pf_ring.PFRingProfiler()
     filebeat_profiler = filebeat.FileBeatProfiler()
+    suricata_profiler = suricata.SuricataProfiler()
     zeek_profiler = zeek.ZeekProfiler()
     return dict(
         PF_RING=pf_ring_profiler.get_profile(),
         FILEBEAT=filebeat_profiler.get_profile(),
+        SURICATA=suricata_profiler.get_profile(),
         ZEEK=zeek_profiler.get_profile()
     )
 

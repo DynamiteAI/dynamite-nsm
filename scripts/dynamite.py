@@ -463,6 +463,8 @@ if __name__ == '__main__':
                 sys.stdout.write('[+]    PF_RING.RUNNING: {}\n'.format(profile_result['PF_RING']['RUNNING']))
                 sys.stdout.write('[+]     ZEEK.INSTALLED: {}\n'.format(profile_result['ZEEK']['INSTALLED']))
                 sys.stdout.write('[+]       ZEEK.RUNNING: {}\n'.format(profile_result['ZEEK']['RUNNING']))
+                sys.stdout.write('[+] SURICATA.INSTALLED: {}\n'.format(profile_result['SURICATA']['INSTALLED']))
+                sys.stdout.write('[+] SURICATA.RUNNING: {}\n'.format(profile_result['SURICATA']['RUNNING']))
                 sys.stdout.write('[+] FILEBEAT.INSTALLED: {}\n'.format(profile_result['FILEBEAT']['INSTALLED']))
                 sys.stdout.write('[+]   FILEBEAT.RUNNING: {}\n'.format(profile_result['FILEBEAT']['RUNNING']))
                 sys.stdout.flush()
