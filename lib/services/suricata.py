@@ -620,10 +620,10 @@ class SuricataInstaller:
         packages = None
         if pacman.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config', 'libpcre3-dev',
-                        'libyaml-dev','libjansson-dev', 'rustc', 'cargo', 'python-pip', 'wireshark']
+                        'libyaml-dev','libjansson-dev', 'rustc', 'cargo', 'python-pip', 'wireshark', 'zlib1g-dev']
         elif pacman.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig', 'pcre-devel',
-                        'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip', 'wireshark']
+                        'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip', 'wireshark', 'zlib-devel']
         if packages:
             return pacman.install_packages(packages)
         return False
