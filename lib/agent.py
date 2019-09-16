@@ -2,8 +2,10 @@ import os
 import sys
 import shutil
 from datetime import datetime
-
+from lib import utilities
 from lib.services import filebeat, pf_ring, zeek, suricata
+
+ENV_VARS = utilities.get_environment_file_dict()
 
 
 def is_agent_environment_prepared():
@@ -16,6 +18,7 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
     :param agent_label: A descriptive label representing the
     segment/location on your network that your agent is monitoring
     :param logstash_target: The host port combination for the target Logstash server (E.G "localhost:5044")
+    :param install_suricata: If True, installs Suricata IDS alongside Zeek NSM
     :return: True, if install succeeded
     """
     if not is_agent_environment_prepared():
@@ -140,24 +143,33 @@ def start_agent():
 
     :return: True, if started successfully
     """
-    pf_ring_profiler = pf_ring.PFRingProfiler(stderr=True)
-    filebeat_profiler = filebeat.FileBeatProfiler(stderr=True)
-    zeek_profiler = zeek.ZeekProfiler(stderr=True)
+
+    # Load service profilers
+    pf_ring_profiler = pf_ring.PFRingProfiler(stderr=False)
+    filebeat_profiler = filebeat.FileBeatProfiler(stderr=False)
+    zeek_profiler = zeek.ZeekProfiler(stderr=False)
+    suricata_profiler = suricata.SuricataProfiler(stderr=False)
+
+    # Load service processes
+    filebeat_p = filebeat.FileBeatProcess(install_directory=ENV_VARS.get('FILEBEAT_HOME'))
+    zeek_p = zeek.ZeekProcess(install_directory=ENV_VARS.get('ZEEK_HOME'))
+
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
         sys.stderr.write('[-] dynamite install agent\n')
         return False
-    filebeat_p = filebeat.FileBeatProcess()
-    zeek_p = zeek.ZeekProcess()
-    suricata_p = suricata.SuricataProcess()
     if not pf_ring_profiler.is_running:
         sys.stderr.write('[-] PF_RING kernel modules were not loaded. Try running '
                          '\'modprobe pf_ring min_num_slots=32768\' as root.\n')
         return False
     sys.stdout.write('[+] Starting agent processes.\n')
-    if not suricata_p.start(stdout=True):
-        sys.stderr.write('[-] Could not start agent.suricata_process.\n')
-        return False
+    if suricata_profiler.is_installed:
+        # Load Suricata process
+        suricata_p = suricata.SuricataProcess(install_directory=ENV_VARS.get('SURICATA_HOME'),
+                                              configuration_directory=ENV_VARS.get('SURICATA_CONFIG'))
+        if not suricata_p.start(stdout=True):
+            sys.stderr.write('[-] Could not start agent.suricata_process.\n')
+            return False
     if not zeek_p.start(stdout=True):
         sys.stderr.write('[-] Could not start agent.zeek_process.\n')
         return False
@@ -174,21 +186,32 @@ def status_agent():
     :return: A tuple, where the first element is the zeek process status (string), and second element are
              the FileBeats and PF_RING status
     """
-    zeek_p = zeek.ZeekProcess()
-    filebeat_p = filebeat.FileBeatProcess()
-    pf_ring_prof = pf_ring.PFRingProfiler()
-    filebeat_profiler = filebeat.FileBeatProfiler(stderr=True)
-    zeek_profiler = zeek.ZeekProfiler(stderr=True)
+
+    # Load service processes
+    zeek_p = zeek.ZeekProcess(install_directory=ENV_VARS.get('ZEEK_HOME'))
+    filebeat_p = filebeat.FileBeatProcess(ENV_VARS.get('FILEBEAT_HOME'))
+
+    # Load service profilers
+    pf_ring_profiler = pf_ring.PFRingProfiler(stderr=False)
+    filebeat_profiler = filebeat.FileBeatProfiler(stderr=False)
+    zeek_profiler = zeek.ZeekProfiler(stderr=False)
+    suricata_profiler = suricata.SuricataProfiler(stderr=False)
+
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
         sys.stderr.write('[-] dynamite install agent\n')
         return False
     agent_status = dict(
         agent_processes={
-            'pf_ring': pf_ring_prof.get_profile(),
+            'pf_ring': pf_ring_profiler.get_profile(),
             'filebeat': filebeat_p.status()
         }
     )
+    if suricata_profiler.is_installed:
+        # Load Suricata process
+        suricata_p = suricata.SuricataProcess(install_directory=ENV_VARS.get('SURICATA_HOME'),
+                                              configuration_directory=ENV_VARS.get('SURICATA_CONFIG'))
+        agent_status['agent_processes']['suricata'] = suricata_p.status()
     return zeek_p.status(), agent_status
 
 
@@ -199,18 +222,27 @@ def stop_agent():
     :return: True, if stopped successfully
     """
     sys.stdout.write('[+] Stopping agent processes.\n')
-    zeek_p = zeek.ZeekProcess()
-    suricata_p = suricata.SuricataProcess()
-    filebeat_p = filebeat.FileBeatProcess()
+
+    # Load service profilers
     filebeat_profiler = filebeat.FileBeatProfiler(stderr=True)
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
+    suricata_profiler = suricata.SuricataProfiler()
+
+    # Load service processes
+    zeek_p = zeek.ZeekProcess()
+    filebeat_p = filebeat.FileBeatProcess(install_directory=ENV_VARS.get('FILEBEAT_HOME'))
+
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
         sys.stderr.write('[-] dynamite install agent\n')
         return False
-    if not suricata_p.stop(stdout=True):
-        sys.stderr.write('[-] Could not stop agent.suricata_process.\n')
-        return False
+    if suricata_profiler.is_installed:
+        # Load Suricata process
+        suricata_p = suricata.SuricataProcess(install_directory=ENV_VARS.get('SURICATA_HOME'),
+                                              configuration_directory=ENV_VARS.get('SURICATA_CONFIG'))
+        if not suricata_p.stop(stdout=True):
+            sys.stderr.write('[-] Could not stop agent.suricata_process.\n')
+            return False
     if not zeek_p.stop(stdout=True):
         sys.stderr.write('[-] Could not stop agent.zeek_process.\n')
         return False
@@ -231,7 +263,7 @@ def uninstall_agent(prompt_user=True):
     if not filebeat_profiler.is_installed:
         sys.stderr.write('[-] No agent installation detected.\n')
         return False
-    filebeat_config = filebeat.FileBeatConfigurator()
+    filebeat_config = filebeat.FileBeatConfigurator(install_directory=ENV_VARS.get('FILEBEAT_HOME'))
     pf_profiler = pf_ring.PFRingProfiler()
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING THE AGENT WILL RESULT IN EVENTS NO LONGER BEING SENT TO {}.\n'.format(
@@ -243,12 +275,14 @@ def uninstall_agent(prompt_user=True):
             sys.stdout.write('[+] Exiting\n')
             return False
     if filebeat_profiler.is_running:
-        filebeat.FileBeatProcess().stop(stdout=True)
+        filebeat.FileBeatProcess(install_directory=ENV_VARS.get(
+            'FILEBEAT_HOME')
+        ).stop(stdout=True)
     if pf_profiler.is_installed:
-        shutil.rmtree(pf_ring.INSTALL_DIRECTORY)
+        shutil.rmtree(ENV_VARS.get('PF_RING_HOME'))
         os.remove('/opt/dynamite/.agent_environment_prepared')
     if filebeat_profiler.is_installed:
-        shutil.rmtree(filebeat_config.install_directory)
+        shutil.rmtree(ENV_VARS.get('FILEBEAT_HOME'))
     shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
     env_lines = ''
     for line in open('/etc/environment').readlines():

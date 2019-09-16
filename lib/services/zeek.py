@@ -341,6 +341,13 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, network_interface=None, stdout=False):
+        """
+        Setup Zeek NSM with PF_RING support
+
+        :param stdout: Print output to console
+        :param network_interface: The interface to listen on
+        :return: True, if setup successful
+        """
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
         if network_interface not in utilities.get_network_interface_names():
@@ -408,7 +415,9 @@ class ZeekInstaller:
 
 
 class ZeekProfiler:
-
+    """
+    An interface for profiling Zeek NSM
+    """
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)

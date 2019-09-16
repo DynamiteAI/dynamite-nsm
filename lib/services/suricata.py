@@ -19,7 +19,9 @@ CONFIGURATION_DIRECTORY = '/etc/dynamite/suricata'
 
 
 class SuricataConfigurator:
-
+    """
+    Wrapper for configuring suricata.yml
+    """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
@@ -63,109 +65,285 @@ class SuricataConfigurator:
         return suricata_config
 
     def get_monitor_interface(self):
+        """
+        Get the network interface being monitored
+
+        :return: The name of the network interface (E.G eth0, mon1)
+        """
         return self.suricata_config['- interface']
 
     def get_log_directory(self):
+        """
+        Get the location that logs are being written
+
+        :return: Path to logs directory
+        """
         return self.suricata_config['default-log-dir']
 
     def get_rules_directory(self):
+        """
+        Get the location that rules are being written
+
+        :return: Path to rules directory
+        """
         return self.suricata_config['default-rule-path']
 
     def get_classification_file(self):
+        """
+        Get the file used for alert classifications
+
+        :return: Path to the classification file
+        """
         return self.suricata_config['classification-file']
 
     def get_reference_config_file(self):
+        """
+        Get the file used for rule references
+
+        :return: Path to the rule-reference-config file
+        """
         return self.suricata_config['reference-config-file']
 
     def get_aim_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with AIM (Instant Messaging) servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['AIM_SERVERS']
 
     def get_dnp3_clients_group(self):
+        """
+        Get the group of hosts/IPs associated with DNP3 clients
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['DNP3_CLIENT']
 
     def get_dnp3_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with DNP3 servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['DNP3_SERVER']
 
     def get_dnp3_port_group(self):
+        """
+        Get the group of ports associated with the DNP3 protocol
+
+        :return: port list, string or variable string/expression
+        """
         return self.suricata_config['DNP3_PORTS']
 
     def get_dns_servers_group(self):
-        return self.suricata_config['DNP3_PORTS']
+        """
+        Get the group of hosts/IPs associated with DNS servers
+
+        :return: host/IPs list or variable string/expression
+        """
+        return self.suricata_config['DNS_SERVERS']
 
     def get_domain_controller_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with Domain Controller servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['DC_SERVERS']
 
     def get_enip_clients_group(self):
+        """
+        Get the group of hosts/IPs associated with ENIP clients
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['ENIP_CLIENT']
 
     def get_enip_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with ENIP servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['ENIP_SERVER']
 
     def get_external_net_group(self):
+        """
+        Get the group of hosts/IPs associated with External (WAN) devices
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['EXTERNAL_NET']
 
     def get_filedata_port_group(self):
+        """
+        Get the group of ports associated with file-serving protocols
+
+        :return: port list, string or variable string/expression
+        """
         return self.suricata_config['FILE_DATA_PORTS']
 
     def get_ftp_port_group(self):
+        """
+        Get the group of ports associated with FTP protocols
+
+        :return: port list, string or variable string/expression
+        """
         return self.suricata_config['FTP_PORTS']
 
     def get_home_net_group(self):
+        """
+        Get the group of hosts/IPs associated with Internal (LAN) devices
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['HOME_NET']
 
     def get_http_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with HTTP servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['HTTP_SERVERS']
 
     def get_http_port_group(self):
+        """
+        Get the group of ports associated with HTTP protocols
+
+        :return: port list, string or variable string/expression
+        """
         return self.suricata_config['HTTP_PORTS']
 
     def get_modbus_clients_group(self):
+        """
+        Get the group of hosts/IPs associated with Modbus clients
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['MODBUS_CLIENT']
 
     def get_modbus_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with Modbus servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['MODBUS_SERVER']
 
     def get_modbus_ports_group(self):
+        """
+        Get the group of ports associated with Modbus ports
+
+        :return: port list, string or variable string/expression
+        """
         return self.suricata_config['MODBUS_PORTS']
 
     def get_oracle_port_group(self):
+        """
+        Get the group of ports associated with Oracle ports
+
+        :return: port list, string or variable string/expression
+        """
         return self.suricata_config['ORACLE_PORTS']
 
     def get_smtp_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with SMTP servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['SMTP_SERVERS']
 
     def get_shellcode_port_group(self):
+        """
+        Get the group of ports associated from shellcode payloads are commonly sent
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['SHELLCODE_PORTS']
 
     def get_ssh_port_group(self):
+        """
+        Get the group of ports associated with SSH ports
+
+        :return: port list, string or variable string/expression
+        """
         return self.suricata_config['SSH_PORTS']
 
     def get_sql_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with SQL servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['SQL_SERVERS']
 
     def get_telnet_servers_group(self):
+        """
+        Get the group of hosts/IPs associated with Telnet servers
+
+        :return: host/IPs list or variable string/expression
+        """
         return self.suricata_config['TELNET_SERVERS']
 
     def set_monitor_interface(self, interface):
+        """
+        Set the interface to monitor
+
+        :param interface: The interface to monitor (E.G eth0, mon1)
+        :return: None
+        """
         self.suricata_config['- interface'] = interface
 
     def set_log_directory(self, log_directory):
+        """
+        Set the path to the log directory
+
+        :param log_directory: The full path to the log directory
+        :return: None
+        """
         log_directory = log_directory.replace('"', '').replace("'", '')
         self.suricata_config['default-log-dir'] = '"{}"'.format(log_directory)
 
     def set_rules_directory(self, rules_directory):
+        """
+        Set the path to the rules directory
+
+        :param rules_directory: The path to the rules directory
+        :return: None
+        """
         rules_directory = rules_directory.replace('"', '').replace("'", '')
         self.suricata_config['default-rule-path'] = '"{}"'.format(rules_directory)
 
     def set_classification_file(self, classification_file):
+        """
+        Set the path to the alert classification file
+
+        :param classification_file: The full path to the alert classification configuration
+        :return: None
+        """
         classification_file = classification_file.replace('"', '').replace("'", '')
         self.suricata_config['classification-file'] = '"{}"'.format(classification_file)
 
     def set_reference_config_file(self, reference_file):
+        """
+        Set the path to the rules reference file
+
+        :param reference_file: The full path to the rules reference configuration
+        :return: None
+        """
         reference_file = reference_file.replace('"', '').replace("'", '')
         self.suricata_config['reference-config-file'] = '"{}"'.format(reference_file)
 
     def set_aim_servers_group(self, var_or_ips='EXTERNAL_NET'):
+        """
+        Set the group association with AIM (Instant Messaging) group
+
+        :param var_or_ips:
+        :return:
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['AIM_SERVERS'] = json.dumps(list(var_or_ips))
         else:
@@ -451,6 +629,13 @@ class SuricataInstaller:
         return False
 
     def setup_suricata(self, network_interface=None, stdout=False):
+        """
+        Setup Suricata IDS with PF_RING support
+
+        :param stdout: Print output to console
+        :param network_interface: The interface to listen on
+        :return: True, if setup successful
+        """
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
         if network_interface not in utilities.get_network_interface_names():
@@ -523,6 +708,85 @@ class SuricataInstaller:
         return True
 
 
+class SuricataProfiler:
+    """
+    An interface for profiling Suricata IDS
+    """
+    def __init__(self, stderr=False):
+        self.is_downloaded = self._is_downloaded(stderr=stderr)
+        self.is_installed = self._is_installed(stderr=stderr)
+        self.is_running = self._is_running()
+
+    @staticmethod
+    def _is_downloaded(stderr=False):
+        if not os.path.exists(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)):
+            if stderr:
+                sys.stderr.write('[-] Zeek installation archive could not be found.\n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_installed(stderr=False):
+        env_dict = utilities.get_environment_file_dict()
+        suricata_home = env_dict.get('SURICATA_HOME')
+        suricata_config = env_dict.get('SURICATA_CONFIG')
+        if not suricata_home:
+            if stderr:
+                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located in /etc/environment.\n')
+            return False
+        if not suricata_config:
+            if stderr:
+                sys.stderr.write('[-] SURICATA_CONFIG directory could not be located in /etc/environment.\n')
+            return False
+        if not os.path.exists(suricata_home):
+            if stderr:
+                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located on disk at: {}.\n'.format(
+                    suricata_home))
+            return False
+        if not os.path.exists(suricata_config):
+            if stderr:
+                sys.stderr.write('[-] SURICATA_CONFIG directory could not be located on disk at: {}.\n'.format(
+                    suricata_config))
+            return False
+        suricata_home_directories = os.listdir(suricata_home)
+        suricata_config_directories = os.listdir(suricata_config)
+        if 'bin' not in suricata_home_directories:
+            if stderr:
+                sys.stderr.write('[-] Could not locate SURICATA_HOME {}/bin directory.\n'.format(suricata_home))
+            return False
+        elif 'lib' not in suricata_home_directories:
+            if stderr:
+                sys.stderr.write('[-] Could not locate SURICATA_HOME {}/lib directory.\n'.format(suricata_home))
+            return False
+        elif 'include' not in suricata_home_directories:
+            if stderr:
+                sys.stderr.write('[-] Could not locate SURICATA_HOME {}/include directory.\n'.format(suricata_home))
+            return False
+        if 'rules' not in suricata_config_directories:
+            if stderr:
+                sys.stderr.write('[-] Could not locate SURICATA_CONFIG {}/rules directory.\n'.format(suricata_config))
+            return False
+        return True
+
+    @staticmethod
+    def _is_running():
+        env_dict = utilities.get_environment_file_dict()
+        suricata_home = env_dict.get('SURICATA_HOME')
+        suricata_config = env_dict.get('SURICATA_CONFIG')
+        if suricata_home and suricata_config:
+            if 'running' in SuricataProcess(install_directory=suricata_home,
+                                            configuration_directory=suricata_config).status():
+                return True
+        return False
+
+    def get_profile(self):
+        return {
+            'DOWNLOADED': self.is_downloaded,
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running,
+        }
+
+
 class SuricataProcess:
     """
     An interface for start|stop|status|restart of the Suricata process
@@ -588,7 +852,6 @@ class SuricataProcess:
         :param stdout: Print output to console
         :return: True if stopped successfully
         """
-
         alive = True
         attempts = 0
         while alive:
