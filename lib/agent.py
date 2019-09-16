@@ -80,7 +80,6 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         sys.stdout.flush()
         return True
     return False
-    """
 
 
 def point_agent(host, port):
