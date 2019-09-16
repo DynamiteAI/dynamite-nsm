@@ -156,7 +156,8 @@ class FileBeatInstaller:
         if 'FILEBEAT_HOME' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating FileBeat default script path [{}]\n'.format(
-                    self.install_directory))
+                    self.install_directory)
+                )
             subprocess.call('echo FILEBEAT_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
 

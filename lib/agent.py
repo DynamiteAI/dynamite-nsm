@@ -34,10 +34,24 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         suricata_installer.extract_suricata(stdout=True)
         suricata_installer.install_dependencies()
         suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
+    """
     zeek_installer = zeek.ZeekInstaller()
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
     filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_profiler = filebeat.FileBeatProfiler()
+    if not filebeat_profiler.is_downloaded:
+        filebeat_installer.download_filebeat(stdout=True)
+        filebeat_installer.extract_filebeat(stdout=True)
+    else:
+        sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
+    if not filebeat_profiler.is_installed:
+        filebeat_installer.setup_filebeat(stdout=True)
+        filebeat_config = filebeat.FileBeatConfigurator()
+        filebeat_config.set_logstash_targets([logstash_target])
+        filebeat_config.set_agent_tag(agent_label)
+        filebeat_config.write_config()
+    else:
+        sys.stdout.write('[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
     if zeek_profiler.is_running or filebeat_profiler.is_running:
         sys.stderr.write('[-] Please stop the agent before attempting re-installation.\n')
         return False
@@ -55,19 +69,6 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
             return False
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
-    if not filebeat_profiler.is_downloaded:
-        filebeat_installer.download_filebeat(stdout=True)
-        filebeat_installer.extract_filebeat(stdout=True)
-    else:
-        sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
-    if not filebeat_profiler.is_installed:
-        filebeat_installer.setup_filebeat(stdout=True)
-        filebeat_config = filebeat.FileBeatConfigurator()
-        filebeat_config.set_logstash_targets([logstash_target])
-        filebeat_config.set_agent_tag(agent_label)
-        filebeat_config.write_config()
-    else:
-        sys.stdout.write('[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
     pf_ring_post_install_profiler = pf_ring.PFRingProfiler()
     zeek_post_install_profiler = zeek.ZeekProfiler()
     filebeat_post_install_profiler = filebeat.FileBeatProfiler()
@@ -79,6 +80,7 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         sys.stdout.flush()
         return True
     return False
+    """
 
 
 def point_agent(host, port):
