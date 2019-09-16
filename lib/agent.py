@@ -23,8 +23,11 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
     """
     zeek_installer = zeek.ZeekInstaller()
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
+    suricata_profiler = suricata.SuricataProfiler()
     filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_profiler = filebeat.FileBeatProfiler()
+
+    # === Check running processes/prerequisites
     if not is_agent_environment_prepared():
         sys.stderr.write('[-] The environment must first be prepared prior to agent installation. \n')
         sys.stderr.write('[-] This includes the installation of kernel development headers, '
@@ -32,28 +35,29 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         sys.stderr.write('[-] To prepare the agent environment run \'dynamite prepare agent\'.\n')
         sys.stderr.flush()
         return False
-    if install_suricata:
-        suricata_installer = suricata.SuricataInstaller()
-        suricata_installer.download_suricata(stdout=True)
-        suricata_installer.extract_suricata(stdout=True)
-        suricata_installer.install_dependencies()
-        suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
-    if not filebeat_profiler.is_downloaded:
-        filebeat_installer.download_filebeat(stdout=True)
-        filebeat_installer.extract_filebeat(stdout=True)
-    else:
-        sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
-    if not filebeat_profiler.is_installed:
-        filebeat_installer.setup_filebeat(stdout=True)
-        filebeat_config = filebeat.FileBeatConfigurator()
-        filebeat_config.set_logstash_targets([logstash_target])
-        filebeat_config.set_agent_tag(agent_label)
-        filebeat_config.write_config()
-    else:
-        sys.stdout.write('[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
     if zeek_profiler.is_running or filebeat_profiler.is_running:
         sys.stderr.write('[-] Please stop the agent before attempting re-installation.\n')
         return False
+    elif install_suricata and suricata_profiler.is_running:
+        sys.stderr.write('[-] Please stop the agent before attempting re-installation.\n')
+        return False
+
+    # === Install Suricata ===
+    if install_suricata:
+        suricata_installer = suricata.SuricataInstaller()
+        if not suricata_profiler.is_downloaded:
+            suricata_installer.download_suricata(stdout=True)
+            suricata_installer.extract_suricata(stdout=True)
+        else:
+            sys.stdout.write('[+] Suricata has already been downloaded to local cache. Skipping Suricata Download.\n')
+        if not suricata_profiler.is_installed:
+            suricata_installer.install_dependencies()
+            suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
+        else:
+            sys.stdout.write('[+] Suricata has already been installed on this system. '
+                             'Skipping Suricata Installation.\n')
+
+    # === Install Zeek ===
     if not zeek_profiler.is_downloaded:
         zeek_installer.download_zeek(stdout=True)
         zeek_installer.extract_zeek(stdout=True)
@@ -63,19 +67,49 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         if not zeek_installer.install_dependencies():
             sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
             return False
-        agent_install_result = zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
-        if not agent_install_result:
-            sys.stderr.write('[-] An error occurred while installing Zeek.\n')
-            return False
+        zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
+
+    # === Install Filebeat ===
+    if not filebeat_profiler.is_downloaded:
+        filebeat_installer.download_filebeat(stdout=True)
+        filebeat_installer.extract_filebeat(stdout=True)
+    else:
+        sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
+    if not filebeat_profiler.is_installed:
+        monitored_paths = [os.path.join(ENV_VARS.get('ZEEK_HOME'), 'logs/current/*.log')]
+        if install_suricata:
+            suricata_config = suricata.SuricataConfigurator(ENV_VARS.get('SURICATA_HOME'))
+            monitored_paths.append(os.path.join(suricata_config.get_log_directory(), 'eve.json'))
+        filebeat_installer.setup_filebeat(stdout=True)
+        filebeat_config = filebeat.FileBeatConfigurator()
+        filebeat_config.set_logstash_targets([logstash_target])
+        filebeat_config.set_monitor_target_paths(monitored_paths)
+        filebeat_config.set_agent_tag(agent_label)
+        filebeat_config.write_config()
+    else:
+        sys.stdout.write(
+            '[+] FileBeat has already been installed on this system. Skipping FileBeat Installation.\n')
+
+    # === Post installation checks ===
     pf_ring_post_install_profiler = pf_ring.PFRingProfiler()
     zeek_post_install_profiler = zeek.ZeekProfiler()
+    suricata_post_profiler = suricata.SuricataProfiler()
     filebeat_post_install_profiler = filebeat.FileBeatProfiler()
     if not pf_ring_post_install_profiler.is_running:
         sys.stderr.write('[-] PF_RING kernel module was not loaded properly.\n')
         return False
     if zeek_post_install_profiler.is_installed and filebeat_post_install_profiler.is_installed:
+        if install_suricata:
+            if suricata_post_profiler.is_installed:
+                sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
+                sys.stdout.flush()
+                return True
+            else:
+                sys.stderr.write('[-] Agent installation failed. Suricata did not install properly.\n')
+                sys.stderr.flush()
+                return False
         sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
         sys.stdout.flush()
         return True
