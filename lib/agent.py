@@ -262,8 +262,8 @@ def stop_agent():
     sys.stdout.write('[+] Stopping agent processes.\n')
 
     # Load service profilers
-    filebeat_profiler = filebeat.FileBeatProfiler(stderr=True)
-    zeek_profiler = zeek.ZeekProfiler(stderr=True)
+    filebeat_profiler = filebeat.FileBeatProfiler()
+    zeek_profiler = zeek.ZeekProfiler()
     suricata_profiler = suricata.SuricataProfiler()
 
     # Load service processes

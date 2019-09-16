@@ -51,7 +51,11 @@ class OinkmasterInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     def setup_oinkmaster(self, stdout=False):
-        os.mkdir(self.install_directory)
+        try:
+            os.mkdir(self.install_directory)
+        except Exception as e:
+            if 'exists' not in str(e).lower():
+                return False
         if stdout:
             sys.stdout.write('[+] Copying oinkmaster files.\n')
         try:
