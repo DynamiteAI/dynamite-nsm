@@ -78,6 +78,7 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
     else:
         sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
     if not filebeat_profiler.is_installed:
+        ENV_VARS = utilities.get_environment_file_dict()
         monitored_paths = [os.path.join(ENV_VARS.get('ZEEK_HOME'), 'logs/current/*.log')]
         if install_suricata:
             suricata_config = suricata.SuricataConfigurator(ENV_VARS.get('SURICATA_HOME'))
