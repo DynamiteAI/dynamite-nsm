@@ -772,14 +772,10 @@ class SuricataProfiler:
 
     @staticmethod
     def _is_running():
-        env_dict = utilities.get_environment_file_dict()
-        suricata_home = env_dict.get('SURICATA_HOME')
-        suricata_config = env_dict.get('SURICATA_CONFIG')
-        if suricata_home and suricata_config:
-            if 'running' in SuricataProcess(install_directory=suricata_home,
-                                            configuration_directory=suricata_config).status():
-                return True
-        return False
+        try:
+            return SuricataProcess().status()['RUNNING']
+        except Exception:
+            return False
 
     def get_profile(self):
         return {
