@@ -71,3 +71,71 @@ class SynesisConfigurator:
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
         with open('/etc/environment', 'w') as f:
             f.write(new_env_content)
+
+
+class SynesisInstaller:
+
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, install_directory=INSTALL_DIRECTORY):
+        """
+        :param configuration_directory: Path to the configuration directory
+        (E.G /etc/dynamite/logstash/synlite_suricata/conf.d/)
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/synlite_suricata/)
+        """
+        self.configuration_directory = configuration_directory
+        self.install_directory = install_directory
+
+    @staticmethod
+    def download_synesis(stdout=False):
+        """
+        Download SynesisLite (Suricata) archive
+
+        :param stdout: Print output to console
+        """
+        for url in open(const.SYNESIS_MIRRORS, 'r').readlines():
+            if utilities.download_file(url, const.SYNESIS_ARCHIVE_NAME, stdout=stdout):
+                break
+
+    @staticmethod
+    def extract_elastiflow(stdout=False):
+        """
+        Extract SynesisLite (Suricata) archive to local install_cache
+
+        :param stdout: Print output to console
+        """
+        if stdout:
+            sys.stdout.write('[+] Extracting: {} \n'.format(const.SYNESIS_ARCHIVE_NAME))
+        try:
+            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.SYNESIS_ARCHIVE_NAME))
+            tf.extractall(path=const.INSTALL_CACHE)
+            sys.stdout.write('[+] Complete!\n')
+            sys.stdout.flush()
+        except IOError as e:
+            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+    def setup_logstash_synesis(self, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating synesis install|configuration directories.\n')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        if stdout:
+            sys.stdout.write('[+] Copying synesis configurations\n')
+        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SYNESIS_DIRECTORY_NAME, 'logstash',
+                                        'synlite_suricata'),
+                           self.install_directory)
+        utilities.set_ownership_of_file(self.install_directory)
+        utilities.set_ownership_of_file(self.configuration_directory)
+        if 'SYNLITE_SURICATA_DICT_PATH' not in open('/etc/environment').read():
+            dict_path = os.path.join(self.install_directory, 'dictionaries')
+            if stdout:
+                sys.stdout.write('[+] Updating Synesis dictionary configuration path [{}]\n'.format(dict_path))
+            subprocess.call('echo SYNLITE_SURICATA_DICT_PATH="{}" >> /etc/environment'.format(dict_path), shell=True)
+        if 'SYNLITE_SURICATA_TEMPLATE_PATH' not in open('/etc/environment').read():
+            template_path = os.path.join(self.install_directory, 'templates')
+            if stdout:
+                sys.stdout.write('[+] Updating Synesis template configuration path [{}]\n'.format(template_path))
+            subprocess.call('echo SYNLITE_SURICATA_TEMPLATE_PATH="{}" >> /etc/environment'.format(template_path), shell=True)
+        if 'SYNLITE_SURICATA_GEOIP_DB_PATH' not in open('/etc/environment').read():
+            geo_path = os.path.join(self.install_directory, 'geoipdbs')
+            if stdout:
+                sys.stdout.write('[+] Updating Synesis geodb configuration path [{}]\n'.format(geo_path))
+            subprocess.call('echo SYNLITE_SURICATA_GEOIP_DB_PATH="{}" >> /etc/environment'.format(geo_path), shell=True)
