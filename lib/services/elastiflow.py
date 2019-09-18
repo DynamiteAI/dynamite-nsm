@@ -50,7 +50,7 @@ class ElastiflowConfigurator:
 
     def _parse_environment_file(self):
         """
-        Parses the /etc/environment file and returns results for JAVA_HOME, LS_PATH_CONF, LS_HOME;
+        Parses the /etc/environment file and returns ElastiFlow configurations;
         stores the results in class variables of the same name
         """
         for line in open('/etc/environment').readlines():
@@ -137,9 +137,7 @@ class ElastiflowConfigurator:
 
 class ElastiFlowInstaller:
 
-    def __init__(self,
-                 configuration_directory=CONFIGURATION_DIRECTORY,
-                 install_directory=INSTALL_DIRECTORY):
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, install_directory=INSTALL_DIRECTORY):
         """
         :param configuration_directory: Path to the configuration directory
         (E.G /etc/dynamite/logstash/elastiflow/conf.d/)
