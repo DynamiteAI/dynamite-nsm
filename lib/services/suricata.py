@@ -339,10 +339,10 @@ class SuricataConfigurator:
 
     def set_aim_servers_group(self, var_or_ips='EXTERNAL_NET'):
         """
-        Set the group association with AIM (Instant Messaging) group
+        Set the group associated with AIM (Instant Messaging) servers
 
-        :param var_or_ips:
-        :return:
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
         """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['AIM_SERVERS'] = json.dumps(list(var_or_ips))
@@ -350,129 +350,261 @@ class SuricataConfigurator:
             self.suricata_config['AIM_SERVERS'] = var_or_ips
 
     def set_dnp3_clients_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with DNP3 clients
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['DNP3_CLIENT'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['DNP3_CLIENT'] = var_or_ips
 
     def set_dnp3_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with DNP3 servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['DNP3_SERVER'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['DNP3_SERVER'] = var_or_ips
 
     def set_dnp3_port_group(self, var_or_ports="20000"):
+        """
+        Set the group associated with DNP3 servers
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['DNP3_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['DNP3_PORTS'] = var_or_ports
 
     def set_dns_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with DNS servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['DNS_SERVERS'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['DNS_SERVERS'] = var_or_ips
 
     def set_domain_controller_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with Windows Domain Controllers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['DC_SERVERS'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['DC_SERVERS'] = var_or_ips
 
     def set_enip_clients_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with ENIP clients
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['ENIP_CLIENT'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['ENIP_CLIENT'] = var_or_ips
 
     def set_enip_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with ENIP servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['ENIP_SERVER'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['ENIP_SERVER'] = var_or_ips
 
     def set_external_net_group(self, var_or_ips='!$HOME_NET'):
+        """
+        Set the group associated with WAN (Internet) devices
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['EXTERNAL_NET'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['EXTERNAL_NET'] = var_or_ips
 
     def set_filedata_port_group(self, var_or_ports=("$HTTP_PORTS", 110, 143)):
+        """
+        Set the group associated with common file-transfer ports
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['FILE_DATA_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['FILE_DATA_PORTS'] = var_or_ports
 
     def set_ftp_port_group(self, var_or_ports="21"):
+        """
+        Set the group associated with FTP ports
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['FTP_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['FTP_PORTS'] = var_or_ports
 
-    def set_home_net_group(self, ips=('192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12')):
-        self.suricata_config['HOME_NET'] = json.dumps(list(ips))
+    def set_home_net_group(self, var_or_ips=('192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12')):
+        """
+        Set the group associated with LAN (local) devices
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
+        self.suricata_config['HOME_NET'] = json.dumps(list(var_or_ips))
 
     def set_http_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with HTTP servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['HTTP_SERVERS'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['HTTP_SERVERS'] = var_or_ips
 
     def set_http_port_group(self, var_or_ports="80"):
+        """
+        Set the group associated with HTTP ports
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['HTTP_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['HTTP_PORTS'] = var_or_ports
 
     def set_modbus_clients_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with Modbus clients
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['MODBUS_CLIENT'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['MODBUS_CLIENT'] = var_or_ips
 
     def set_modbus_port_group(self, var_or_ports="502"):
+        """
+        Set the group associated with Modbus ports
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['MODBUS_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['MODBUS_PORTS'] = var_or_ports
 
     def set_modbus_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with Modbus servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['MODBUS_SERVER'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['MODBUS_SERVER'] = var_or_ips
 
     def set_oracle_port_group(self, var_or_ports="1521"):
+        """
+        Set the group associated with Oracle ports
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['ORACLE_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['ORACLE_PORTS'] = var_or_ports
 
     def set_smtp_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with SMTP servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['SMTP_SERVERS'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['SMTP_SERVERS'] = var_or_ips
 
     def set_shellcode_port_group(self, var_or_ports="!80"):
+        """
+        Set the group from which shellcode payloads are commonly sent
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['SHELLCODE_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['SHELLCODE_PORTS'] = var_or_ports
 
     def set_ssh_port_group(self, var_or_ports="22"):
+        """
+        Set the group associated with SSH ports
+
+        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
+        :return: None
+        """
         if isinstance(var_or_ports, tuple):
             self.suricata_config['SSH_PORTS'] = json.dumps(list(var_or_ports))
         else:
             self.suricata_config['SSH_PORTS'] = var_or_ports
 
     def set_sql_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with SQL servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['SQL_SERVERS'] = json.dumps(list(var_or_ips))
         else:
             self.suricata_config['SQL_SERVERS'] = var_or_ips
 
     def set_telnet_servers_group(self, var_or_ips='$HOME_NET'):
+        """
+        Set the group associated with Telnet servers
+
+        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
+        :return: None
+        """
         if isinstance(var_or_ips, tuple):
             self.suricata_config['TELNET_SERVERS'] = json.dumps(list(var_or_ips))
         else:
