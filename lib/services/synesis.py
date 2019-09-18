@@ -139,3 +139,4 @@ class SynesisInstaller:
             if stdout:
                 sys.stdout.write('[+] Updating Synesis geodb configuration path [{}]\n'.format(geo_path))
             subprocess.call('echo SYNLITE_SURICATA_GEOIP_DB_PATH="{}" >> /etc/environment'.format(geo_path), shell=True)
+        SynesisConfigurator().write_environment_variables()

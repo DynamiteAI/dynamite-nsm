@@ -11,6 +11,7 @@ from multiprocessing import Process
 
 from lib import const
 from lib import utilities
+from lib.services import synesis
 from lib.services import elastiflow
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/'
@@ -327,9 +328,7 @@ class LogstashInstaller:
 
     def _setup_elastiflow(self, stdout=False):
         ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
-                                                    os.path.join(self.configuration_directory, 'elastiflow'))
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
-                    os.path.join(self.configuration_directory, 'pipelines.yml'))
+                                                    os.path.join(self.configuration_directory, 'elastiflow', 'conf.d'))
         ef_install.download_elasticflow(stdout=stdout)
         ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)
@@ -340,6 +339,11 @@ class LogstashInstaller:
         ef_config.zeek_ipv4_host = self.host
         ef_config.es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         ef_config.write_environment_variables()
+
+    def _setup_synesis(self, stdout=False):
+        syn_install = synesis.SynesisInstaller(configuration_directory=os.path.join(self.configuration_directory,
+                                                                                    'synesis', 'conf.d'))
+
 
     @staticmethod
     def _update_sysctl(stdout=False):
@@ -383,6 +387,8 @@ class LogstashInstaller:
 
         :param stdout: Print output to console
         """
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
+                    os.path.join(self.configuration_directory, 'pipelines.yml'))
         self._create_logstash_directories(stdout=stdout)
         self._copy_logstash_files_and_directories(stdout=stdout)
         self._create_logstash_environment_variables(stdout=stdout)
