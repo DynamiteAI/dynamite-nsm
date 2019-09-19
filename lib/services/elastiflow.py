@@ -139,12 +139,9 @@ class ElastiFlowInstaller:
 
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, install_directory=INSTALL_DIRECTORY):
         """
-        :param configuration_directory: Path to the configuration directory
-        (E.G /etc/dynamite/logstash/elastiflow/conf.d/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/elastiflow/)
+        :param install_directory: Path to the install directory (E.G /etc/dynamite/logstash/elastiflow/)
         """
 
-        self.configuration_directory = configuration_directory
         self.install_directory = install_directory
 
     @staticmethod
@@ -179,13 +176,11 @@ class ElastiFlowInstaller:
         if stdout:
             sys.stdout.write('[+] Creating elastiflow install|configuration directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         if stdout:
             sys.stdout.write('[+] Copying elastiflow configurations\n')
         utilities.copytree(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'logstash', 'elastiflow'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
-        utilities.set_ownership_of_file(self.configuration_directory)
         if 'ELASTIFLOW_DICT_PATH' not in open('/etc/environment').read():
             dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:

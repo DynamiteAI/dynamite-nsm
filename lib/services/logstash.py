@@ -327,8 +327,8 @@ class LogstashInstaller:
         ls_config.write_configs()
 
     def _setup_elastiflow(self, stdout=False):
-        ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
-                                                    os.path.join(self.configuration_directory, 'elastiflow', 'conf.d'))
+        ef_install = elastiflow.ElastiFlowInstaller(install_directory=
+                                                    os.path.join(self.configuration_directory, 'elastiflow'))
         ef_install.download_elasticflow(stdout=stdout)
         ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)
