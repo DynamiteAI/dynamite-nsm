@@ -254,7 +254,8 @@ def update_sysctl():
         new_output += 'vm.max_map_count=262144\n'
     if not fs_found:
         new_output += 'fs.file-max=65535\n'
-    open('/etc/sysctl.conf', 'w').write(new_output)
+    with open('/etc/sysctl.conf', 'w') as f:
+        f.write(new_output)
     subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
     subprocess.call('sysctl -w fs.file-max=65535', shell=True)
     subprocess.call('sysctl -p', shell=True)
