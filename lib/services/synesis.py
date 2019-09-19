@@ -6,8 +6,7 @@ import subprocess
 from lib import const
 from lib import utilities
 
-CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/synlite_suricata/conf.d/'
-INSTALL_DIRECTORY = '/etc/dynamite/logstash/synlite_suricata/'
+INSTALL_DIRECTORY = '/etc/dynamite/logstash/synesis/'
 
 
 class SynesisConfigurator:

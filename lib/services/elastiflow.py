@@ -6,8 +6,6 @@ import subprocess
 from lib import const
 from lib import utilities
 
-
-CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/elastiflow/conf.d/'
 INSTALL_DIRECTORY = '/etc/dynamite/logstash/elastiflow/'
 
 

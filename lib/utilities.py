@@ -296,8 +296,9 @@ def update_user_file_handle_limits():
             new_output += 'dynamite    -   nofile   65535'
             limit_found = True
         else:
-            new_output += line
+            new_output += line.strip()
         new_output += '\n'
     if not limit_found:
         new_output += '\ndynamite    -   nofile   65535\n'
-    open('/etc/security/limits.conf', 'a').write(new_output)
+    with open('/etc/security/limits.conf', 'w') as f:
+        f.write(new_output)
