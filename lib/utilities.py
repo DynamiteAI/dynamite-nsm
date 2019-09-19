@@ -248,7 +248,7 @@ def update_sysctl():
             new_output += 'fs.file-max=65535'
             fs_found = True
         else:
-            new_output += line
+            new_output += line.strip()
         new_output += '\n'
     if not vm_found:
         new_output += 'vm.max_map_count=262144\n'

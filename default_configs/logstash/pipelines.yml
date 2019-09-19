@@ -1,0 +1,26 @@
+- pipeline.id: beats_pipeline
+  config.string: |
+    input {
+      beats {
+        port => "5044"
+      }
+    }
+    filter {
+       ruby {
+         code => "event.set('[event_type]', event.get('[log][file][path]').split('/').last.split('.').first)"
+       }
+    }
+    output {
+      if[event_type] != "eve" {
+         pipeline { send_to => elastiflow }
+      }
+      else {
+        pipeline { send_to => synesis }
+      }
+    }
+
+- pipeline.id: elastiflow_pipeline
+  path.config: "/etc/dynamite/logstash/elastiflow/conf.d/*.conf"
+
+- pipeline.id: synesis_pipeline
+  path.config: "/etc/dynamite/logstash/synesis/conf.d/*.conf"
