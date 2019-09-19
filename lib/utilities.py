@@ -242,14 +242,13 @@ def update_sysctl():
     fs_found = False
     for line in open('/etc/sysctl.conf').readlines():
         if not line.startswith('#') and 'vm.max_map_count' in line:
-            new_output += 'vm.max_map_count=262144'
+            new_output += 'vm.max_map_count=262144\n'
             vm_found = True
         elif not line.startswith('#') and 'fs.file-max' in line:
-            new_output += 'fs.file-max=65535'
+            new_output += 'fs.file-max=65535\n'
             fs_found = True
         else:
-            new_output += line.strip()
-        new_output += '\n'
+            new_output += line.strip() + '\n'
     if not vm_found:
         new_output += 'vm.max_map_count=262144\n'
     if not fs_found:
