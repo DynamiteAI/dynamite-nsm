@@ -398,6 +398,7 @@ class LogstashInstaller:
         self._setup_default_logstash_configs(stdout=stdout)
         self._update_sysctl(stdout=stdout)
         self._setup_elastiflow(stdout=stdout)
+        self._setup_synesis(stdout=stdout)
         self._install_logstash_plugins(stdout=stdout)
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
                     os.path.join(self.configuration_directory, 'pipelines.yml'))

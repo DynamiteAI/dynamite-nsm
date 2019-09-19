@@ -31,21 +31,21 @@ def _parse_cmdline():
                              'This could be a location on your network (VLAN01),'
                              'or the types of servers on a segment (E.G Workstations-US-1).')
 
-    parser.add_argument('--host', type=str, dest='host', required=('point' in sys.argv)
+    parser.add_argument('--ls-host', type=str, dest='ls_host', required=('point' in sys.argv)
                                                                   or ('install' in sys.argv and 'agent' in sys.argv),
-                        help='A valid Ipv4/Ipv6 address or hostname')
+                        help='Target Logstash instance; A valid Ipv4/Ipv6 address or hostname')
 
-    parser.add_argument('--port', type=int, dest='port', default=5044,
-                        help='A valid port [1-65535]')
+    parser.add_argument('--ls-port', type=int, dest='ls_port', default=5044,
+                        help='Target Logstash instance; A valid port [1-65535]')
 
     parser.add_argument('--es-host', type=str, dest='es_host',
                         required=(not elasticsearch.ElasticProfiler().is_installed
                                   and 'install' in sys.argv and ('kibana' in sys.argv or 'logstash' in sys.argv)
                                   ),
-                        help='Target ES cluster; A valid Ipv4/Ipv6 address or hostname')
+                        help='Target ElasticSearch cluster; A valid Ipv4/Ipv6 address or hostname')
 
     parser.add_argument('--es-port', type=int, dest='es_port', default=9200,
-                        help='Target ES cluster; A valid port [1-65535]')
+                        help='Target ElasticSearch cluster; A valid port [1-65535]')
 
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     args = _parse_cmdline()
     if args.command == 'point':
         if args.component == 'agent':
-            agent.point_agent(args.host, args.port)
+            agent.point_agent(args.host, args.ls_port)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
@@ -118,7 +118,7 @@ if __name__ == '__main__':
             monitor.install_monitor()
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
-                                logstash_target='{}:{}'.format(args.host, args.port))
+                                logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

@@ -24,7 +24,8 @@ def install_monitor():
     es_process = elasticsearch.ElasticProcess()
     ls_installer = logstash.LogstashInstaller(host='0.0.0.0')
     ls_pre_profiler = logstash.LogstashProfiler()
-    kb_installer = kibana.KibanaInstaller(host='0.0.0.0', port=5601, elasticsearch_host='localhost')
+    kb_installer = kibana.KibanaInstaller(host='0.0.0.0', port=5601,
+                                          elasticsearch_host='localhost', elasticsearch_port=9200)
     kb_pre_profiler = kibana.KibanaProfiler()
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
