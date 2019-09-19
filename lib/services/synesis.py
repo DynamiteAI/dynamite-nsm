@@ -75,13 +75,10 @@ class SynesisConfigurator:
 
 class SynesisInstaller:
 
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, install_directory=INSTALL_DIRECTORY):
+    def __init__(self, install_directory=INSTALL_DIRECTORY):
         """
-        :param configuration_directory: Path to the configuration directory
-        (E.G /etc/dynamite/logstash/synlite_suricata/conf.d/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/synlite_suricata/)
+        :param install_directory: Path to the install directory (E.G /etc/dynamite/logstash/synlite_suricata/)
         """
-        self.configuration_directory = configuration_directory
         self.install_directory = install_directory
 
     @staticmethod
@@ -116,14 +113,12 @@ class SynesisInstaller:
         if stdout:
             sys.stdout.write('[+] Creating synesis install|configuration directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         if stdout:
             sys.stdout.write('[+] Copying synesis configurations\n')
         utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SYNESIS_DIRECTORY_NAME, 'logstash',
                                         'synlite_suricata'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
-        utilities.set_ownership_of_file(self.configuration_directory)
         if 'SYNLITE_SURICATA_DICT_PATH' not in open('/etc/environment').read():
             dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:
