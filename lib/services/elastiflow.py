@@ -137,9 +137,9 @@ class ElastiflowConfigurator:
 
 class ElastiFlowInstaller:
 
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, install_directory=INSTALL_DIRECTORY):
+    def __init__(self, install_directory=INSTALL_DIRECTORY):
         """
-        :param install_directory: Path to the install directory (E.G /etc/dynamite/logstash/elastiflow/)
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/elastiflow/)
         """
 
         self.install_directory = install_directory

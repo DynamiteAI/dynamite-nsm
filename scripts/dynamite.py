@@ -35,8 +35,7 @@ def _parse_cmdline():
                                                                   or ('install' in sys.argv and 'agent' in sys.argv),
                         help='A valid Ipv4/Ipv6 address or hostname')
 
-    parser.add_argument('--port', type=int, dest='port', required=('point' in sys.argv)
-                                                                  or ('install' in sys.argv and 'agent' in sys.argv),
+    parser.add_argument('--port', type=int, dest='port', default=5044,
                         help='A valid port [1-65535]')
 
     parser.add_argument('--es-host', type=str, dest='es_host',
@@ -44,6 +43,9 @@ def _parse_cmdline():
                                   and 'install' in sys.argv and ('kibana' in sys.argv or 'logstash' in sys.argv)
                                   ),
                         help='Target ES cluster; A valid Ipv4/Ipv6 address or hostname')
+
+    parser.add_argument('--es-port', type=int, dest='es_port', default=9200,
+                        help='Target ES cluster; A valid port [1-65535]')
 
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
@@ -91,7 +93,7 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] Failed to install ElasticSearch.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
-            if logstash.install_logstash(elasticsearch_host=args.es_host,
+            if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -99,14 +101,14 @@ if __name__ == '__main__':
                 sys.exit(1)
         elif args.component == 'kibana':
             if not elasticsearch.ElasticProfiler().is_installed:
-                if kibana.install_kibana(elasticsearch_host=args.es_host,
+                if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
             else:
-                if kibana.install_kibana(elasticsearch_host=args.es_host,
+                if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:

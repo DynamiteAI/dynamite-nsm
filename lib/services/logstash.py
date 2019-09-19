@@ -206,12 +206,14 @@ class LogstashInstaller:
     def __init__(self,
                  host='0.0.0.0',
                  elasticsearch_host='localhost',
+                 elasticsearch_port=9200,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
         :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
@@ -219,6 +221,7 @@ class LogstashInstaller:
 
         self.host = host
         self.elasticsearch_host = elasticsearch_host
+        self.elasticsearch_port = elasticsearch_port
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
@@ -334,7 +337,7 @@ class LogstashInstaller:
         ef_config.netflow_ipv4_host = self.host
         ef_config.sflow_ipv4_host = self.host
         ef_config.zeek_ipv4_host = self.host
-        ef_config.es_host = self.elasticsearch_host + ':9200'
+        ef_config.es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         ef_config.write_environment_variables()
 
     def _setup_synesis(self, stdout=False):
@@ -343,8 +346,9 @@ class LogstashInstaller:
         syn_install.extract_synesis(stdout=stdout)
         syn_install.setup_logstash_synesis(stdout=stdout)
         syn_config = synesis.SynesisConfigurator()
-        syn_config.suricata_es_host = self.elasticsearch_host
+        syn_config.suricata_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         syn_config.suricata_resolve_ip2host = True
+        syn_config.write_environment_variables()
 
     @staticmethod
     def _update_sysctl(stdout=False):
@@ -665,12 +669,13 @@ class LogstashProcess:
         }
 
 
-def install_logstash(host='0.0.0.0', elasticsearch_host='localhost',
+def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsearch_port=9200,
                      install_jdk=True, create_dynamite_user=True, stdout=False):
     """
     Install Logstash/ElastiFlow
 
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
+    :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
@@ -687,7 +692,7 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost',
         return False
     try:
         ls_installer = LogstashInstaller(host=host,
-                                         elasticsearch_host=elasticsearch_host)
+                                         elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)

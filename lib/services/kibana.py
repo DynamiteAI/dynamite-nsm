@@ -145,7 +145,7 @@ class KibanaConfigurator:
                     v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
                 else:
                     k, v = line.strip().split(':')
-                kb_config_options[k] = str(v).strip().replace('"','').replace("'",'')
+                kb_config_options[k] = str(v).strip().replace('"','').replace("'", '')
         return kb_config_options
 
     def _parse_environment_file(self):
@@ -221,6 +221,7 @@ class KibanaInstaller:
                  host='0.0.0.0',
                  port=5601,
                  elasticsearch_host=None,
+                 elasticsearch_port=None,
                  install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
@@ -228,6 +229,7 @@ class KibanaInstaller:
         :param host: The IP address to listen on (E.G "0.0.0.0")
         :param port: The port that the Kibana UI/API is bound to (E.G 5601)
         :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
@@ -235,9 +237,11 @@ class KibanaInstaller:
         self.host = host
         self.port = port
         self.elasticsearch_host = elasticsearch_host
+        self.elasticsearch_port = elasticsearch_port
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
+                self.elasticsearch_port = 9200
             else:
                 raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
         self.install_directory = install_directory
@@ -365,6 +369,7 @@ class KibanaInstaller:
                 time.sleep(10)
             if stdout:
                 sys.stdout.write('[+] Successfully created dashboards/visualizations.\n')
+            kibana_process.stop()
 
     def _setup_default_kibana_configs(self, stdout=False):
         if stdout:
@@ -372,7 +377,8 @@ class KibanaInstaller:
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'kibana', 'kibana.yml'),
                     self.configuration_directory)
         local_config = KibanaConfigurator(self.configuration_directory)
-        local_config.set_elasticsearch_hosts(['http://{}:9200'.format(self.elasticsearch_host)])
+        local_config.set_elasticsearch_hosts(['http://{}:{}'.format(self.elasticsearch_host,
+                                                                    self.elasticsearch_port)])
         local_config.set_server_host(self.host)
         local_config.set_server_port(self.port)
         local_config.write_configs()
@@ -552,11 +558,15 @@ class KibanaProcess:
     def start(self, stdout=False):
         """
         Start the Kibana process
+
         :param stdout: Print output to console
         :return: True, if started successfully
         """
         def start_shell_out():
-            subprocess.call('runuser -l dynamite -c "{} {}/bin/kibana '
+
+            # We use su instead of runuser here because of nodes' weird dependency on PAM
+            # when calling from within a sub-shell
+            subprocess.call('su -l dynamite -c "{} {}/bin/kibana '
                             '-c {} -l {} & > /dev/null &"'.format(
                                 utilities.get_environment_file_str(),
                                 self.config.kibana_home,
@@ -665,12 +675,13 @@ class KibanaProcess:
         utilities.set_ownership_of_file('/var/log/dynamite')
 
 
-def install_kibana(elasticsearch_host='localhost', install_jdk=True, create_dynamite_user=True,
+def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, install_jdk=True, create_dynamite_user=True,
                    stdout=False):
     """
     Install Kibana/ElastiFlow Dashboards
 
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
+    :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run
     Logstash/ElasticSearch/Kibana
@@ -687,7 +698,7 @@ def install_kibana(elasticsearch_host='localhost', install_jdk=True, create_dyna
         ))
         return False
     try:
-        kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host)
+        kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)
@@ -703,7 +714,7 @@ def install_kibana(elasticsearch_host='localhost', install_jdk=True, create_dyna
         return False
     if stdout:
         sys.stdout.write('[+] *** Kibana + Dashboards installed successfully. ***\n\n')
-        sys.stdout.write('[+] Next, Start your collector: \'dynamite.py start kibana\'.\n')
+        sys.stdout.write('[+] Next, Start your collector: \'dynamite start kibana\'.\n')
         sys.stdout.flush()
     return True
 
@@ -736,6 +747,7 @@ def uninstall_kibana(stdout=False, prompt_user=True):
         shutil.rmtree(kb_config.kibana_path_conf)
         shutil.rmtree(kb_config.kibana_home)
         shutil.rmtree(kb_config.kibana_logs)
+        shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
         for line in open('/etc/environment').readlines():
             if 'KIBANA_PATH_CONF' in line:
@@ -747,7 +759,7 @@ def uninstall_kibana(stdout=False, prompt_user=True):
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
         if stdout:
-            sys.stdout.write('[+] Kibana uninstall successfully.\n')
+            sys.stdout.write('[+] Kibana uninstalled successfully.\n')
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall Kibana: ')
         traceback.print_exc(file=sys.stderr)
