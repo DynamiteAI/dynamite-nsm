@@ -387,8 +387,6 @@ class LogstashInstaller:
 
         :param stdout: Print output to console
         """
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
-                    os.path.join(self.configuration_directory, 'pipelines.yml'))
         self._create_logstash_directories(stdout=stdout)
         self._copy_logstash_files_and_directories(stdout=stdout)
         self._create_logstash_environment_variables(stdout=stdout)
@@ -396,6 +394,8 @@ class LogstashInstaller:
         self._update_sysctl(stdout=stdout)
         self._setup_elastiflow(stdout=stdout)
         self._install_logstash_plugins(stdout=stdout)
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
+                    os.path.join(self.configuration_directory, 'pipelines.yml'))
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')

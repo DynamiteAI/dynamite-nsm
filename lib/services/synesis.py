@@ -96,7 +96,7 @@ class SynesisInstaller:
                 break
 
     @staticmethod
-    def extract_elastiflow(stdout=False):
+    def extract_synesis(stdout=False):
         """
         Extract SynesisLite (Suricata) archive to local install_cache
 
