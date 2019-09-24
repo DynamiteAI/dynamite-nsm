@@ -114,7 +114,7 @@ class SynesisInstaller:
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         if stdout:
             sys.stdout.write('[+] Copying synesis configurations\n')
-        utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, const.SYNESIS_DIRECTORY_NAME, 'logstash',
+        utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, 'logstash',
                                         'suricata'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
