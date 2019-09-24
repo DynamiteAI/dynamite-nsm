@@ -176,7 +176,7 @@ class ElastiFlowInstaller:
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         if stdout:
             sys.stdout.write('[+] Copying elastiflow configurations\n')
-        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'logstash', 'elastiflow'),
+        utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'zeek'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
         if 'ELASTIFLOW_DICT_PATH' not in open('/etc/environment').read():
