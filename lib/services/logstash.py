@@ -329,8 +329,8 @@ class LogstashInstaller:
     def _setup_elastiflow(self, stdout=False):
         ef_install = elastiflow.ElastiFlowInstaller(install_directory=
                                                     os.path.join(self.configuration_directory, 'elastiflow'))
-        ef_install.download_elasticflow(stdout=stdout)
-        ef_install.extract_elastiflow(stdout=stdout)
+        # ef_install.download_elasticflow(stdout=stdout)
+        # ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)
         ef_config = elastiflow.ElastiflowConfigurator()
         ef_config.ipfix_tcp_ipv4_host = self.host
@@ -342,8 +342,8 @@ class LogstashInstaller:
 
     def _setup_synesis(self, stdout=False):
         syn_install = synesis.SynesisInstaller(install_directory=os.path.join(self.configuration_directory, 'synesis'))
-        syn_install.download_synesis(stdout=stdout)
-        syn_install.extract_synesis(stdout=stdout)
+        # syn_install.download_synesis(stdout=stdout)
+        # syn_install.extract_synesis(stdout=stdout)
         syn_install.setup_logstash_synesis(stdout=stdout)
         syn_config = synesis.SynesisConfigurator()
         syn_config.suricata_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
