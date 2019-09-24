@@ -75,7 +75,7 @@ if __name__ == '__main__':
     args = _parse_cmdline()
     if args.command == 'point':
         if args.component == 'agent':
-            agent.point_agent(args.host, args.ls_port)
+            agent.point_agent(args.ls_host, args.ls_port)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
