@@ -24,7 +24,7 @@ filebeat.inputs:
   enabled: true
 
   # Paths that should be crawled and fetched. Glob based paths.
-  paths: ["/opt/dynamite/zeek/logs/current/*.log"]
+  paths: ["/opt/dynamite/zeek/logs/current/*.log", "/var/dynamite/suricata/log/suricata/eve.json"]
 
 #============================= Filebeat modules ===============================
 

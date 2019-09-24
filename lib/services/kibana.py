@@ -88,8 +88,8 @@ class KibanaAPIConfigurator:
         :return: True, if created successfully
         """
 
-        kibana_api_objects_path = os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
-                               const.ELASTIFLOW_DASHBOARDS_CONFIG)
+        kibana_api_objects_path = os.path.join(const.INSTALL_CACHE, const.DEFAULT_CONFIGS, 'kibana', 'objects',
+                                               'saved_objects.ndjson')
 
         server_host = self.kibana_config.get_server_host()
         if server_host.strip() == '0.0.0.0':
@@ -352,6 +352,7 @@ class KibanaInstaller:
             time.sleep(15)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             kibana_object_create_attempts = 1
+            """
             index_pattern_create_attempts = 1
             while not api_config.create_elastiflow_index_patterns():
                 if stdout:
@@ -361,6 +362,7 @@ class KibanaInstaller:
                 time.sleep(10)
             if stdout:
                 sys.stdout.write('[+] Successfully created index-patterns.\n')
+            """
             while not api_config.create_elastiflow_saved_objects():
                 if stdout:
                     sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
