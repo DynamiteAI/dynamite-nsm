@@ -662,9 +662,9 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
         return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
-        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')

@@ -729,9 +729,9 @@ def uninstall_logstash(stdout=False, prompt_user=True):
         return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING LOGSTASH WILL PREVENT ELASTICSEARCH FROM RECEIVING EVENTS.\n')
-        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')

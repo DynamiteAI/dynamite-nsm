@@ -178,9 +178,9 @@ def uninstall_monitor(prompt_user=True):
         return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! UNINSTALLING THE MONITOR WILL PREVENT EVENTS FROM BEING PROCESSED/VISUALIZED.\n')
-        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             sys.stdout.write('[+] Exiting\n')
             return False
