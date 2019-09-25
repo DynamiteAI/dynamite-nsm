@@ -209,12 +209,15 @@ def is_root():
 def prompt_input(message):
     """
     Compatibility function for Python2/3 for taking in input
+
     :param message: The message appearing next to the input prompt.
+    return: The inputted text
     """
     try:
-        raw_input(message)
+        res = raw_input(message)
     except NameError:
-        input(message)
+        res =input(message)
+    return res
 
 
 def setup_java():
