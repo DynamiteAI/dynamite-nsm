@@ -706,7 +706,7 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
             utilities.extract_java(stdout=True)
             utilities.setup_java()
         if create_dynamite_user:
-            utilities.create_dynamite_user('password')
+            utilities.create_dynamite_user(utilities.generate_random_password(50))
         kb_installer.download_kibana(stdout=True)
         kb_installer.extract_kibana(stdout=True)
         kb_installer.setup_kibana(stdout=True)

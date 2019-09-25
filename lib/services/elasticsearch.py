@@ -632,7 +632,7 @@ def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=Fa
             utilities.extract_java(stdout=True)
             utilities.setup_java()
         if create_dynamite_user:
-            utilities.create_dynamite_user('password')
+            utilities.create_dynamite_user(utilities.generate_random_password(50))
         es_installer.download_elasticsearch(stdout=True)
         es_installer.extract_elasticsearch(stdout=True)
         es_installer.setup_elasticsearch(stdout=True)

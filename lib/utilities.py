@@ -5,6 +5,7 @@ import sys
 import crypt
 import socket
 import shutil
+import string
 import random
 import tarfile
 import subprocess
@@ -135,6 +136,16 @@ def extract_java(stdout=False):
         sys.stdout.flush()
     except IOError as e:
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+
+def generate_random_password(length=30):
+    """
+    Generate a random password containing alphanumeric and symbolic characters
+    :param length: The length of the password
+    :return: The string representation of the password
+    """
+    tokens = string.ascii_lowercase + string.ascii_uppercase + '0123456789' + '!@#$%^&*()_+'
+    return ''.join(random.choice(tokens) for i in range(length))
 
 
 def get_environment_file_str():

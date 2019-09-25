@@ -58,6 +58,7 @@ class PFRingInstaller:
                     self.install_directory))
             subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
+
     @staticmethod
     def _setup_pf_ring_kernel_modules(stdout=False):
         try:
