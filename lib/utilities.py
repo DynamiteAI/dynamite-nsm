@@ -206,6 +206,17 @@ def is_root():
     return os.getuid() == 0
 
 
+def prompt_input(message):
+    """
+    Compatibility function for Python2/3 for taking in input
+    :param message: The message appearing next to the input prompt.
+    """
+    try:
+        raw_input(message)
+    except NameError:
+        input(message)
+
+
 def setup_java():
     """
     Installs the latest version of OpenJDK

@@ -306,9 +306,9 @@ def uninstall_agent(prompt_user=True):
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING THE AGENT WILL RESULT IN EVENTS NO LONGER BEING SENT TO {}.\n'.format(
             filebeat_config.get_logstash_targets()))
-        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             sys.stdout.write('[+] Exiting\n')
             return False
