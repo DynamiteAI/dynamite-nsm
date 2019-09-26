@@ -91,3 +91,9 @@ indices.query.bool.max_clause_count: 8192
 search.max_buckets: 100000
 
 cluster.initial_master_nodes: ["es-1"]
+
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: config/elastic-certificates.p12
+xpack.security.transport.ssl.truststore.path: config/elastic-certificates.p12
