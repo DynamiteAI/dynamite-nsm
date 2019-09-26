@@ -312,24 +312,6 @@ class ElasticInstaller:
         self.install_directory = install_directory
         self.log_directory = log_directory
 
-    def _is_valid_auth(self):
-        base64string = base64.b64encode('%s:%s' % ('elastic', self.password))
-        try:
-            url_request = Request(
-                url='http://{}:{}/'.format(
-                    self.host,
-                    self.port,
-                ),
-                headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
-            )
-            url_request.add_header("Authorization", "Basic %s" % base64string)
-            urlopen(url_request)
-
-        except HTTPError as e:
-            if e.code != 200:
-                return False
-        return True
-
     def _create_elasticsearch_directories(self, stdout=False):
         if stdout:
             sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
