@@ -339,6 +339,7 @@ class ElasticInstaller:
         cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         cert_p.communicate(input=b'Y\n')
+        utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
         if not ElasticProfiler().is_running:
             ElasticProcess().start(stdout=stdout)
             sys.stdout.flush()
