@@ -397,17 +397,19 @@ class ElasticInstaller:
                     _, user, _, password = line.split(' ')
                     bootstrap_users_and_passwords[user] = password
             es_pass_config = ElasticPasswordConfigurator(current_password=bootstrap_users_and_passwords['elastic'])
-            es_pass_config.set_apm_system_password(self.password)
+            ls_system_pass_config = ElasticPasswordConfigurator(
+                current_password=bootstrap_users_and_passwords['logstash_system'])
+            es_pass_config.set_apm_system_password(self.password, stdout=True)
             time.sleep(1)
-            es_pass_config.set_beats_password(self.password)
+            es_pass_config.set_beats_password(self.password, stdout=True)
             time.sleep(1)
-            es_pass_config.set_kibana_password(self.password)
+            es_pass_config.set_kibana_password(self.password, stdout=True)
             time.sleep(1)
-            es_pass_config.set_logstash_system_password(self.password)
+            ls_system_pass_config.set_logstash_system_password(self.password, stdout=True)
             time.sleep(1)
-            es_pass_config.set_remote_monitoring_password(self.password)
+            es_pass_config.set_remote_monitoring_password(self.password, stdout=True)
             time.sleep(1)
-            es_pass_config.set_elastic_password(self.password)
+            es_pass_config.set_elastic_password(self.password, stdout=True)
 
         if not ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
