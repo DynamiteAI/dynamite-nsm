@@ -237,7 +237,8 @@ class ElasticConfigurator:
 
 class ElasticPasswordConfigurator:
 
-    def __init__(self, current_password):
+    def __init__(self, auth_user, current_password):
+        self.auth_user = auth_user
         self.current_password = current_password
         self.env_vars = utilities.get_environment_file_dict()
 
@@ -246,7 +247,7 @@ class ElasticPasswordConfigurator:
             sys.stdout.write('[+] Updating password for {}\n'.format(user))
         es_config = ElasticConfigurator(configuration_directory=self.env_vars.get('ES_PATH_CONF'))
         try:
-            base64string = base64.b64encode('%s:%s' % ('elastic', self.current_password))
+            base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
             url_request = Request(
                 url='http://{}:{}/_xpack/security/user/{}/_password'.format(
                     es_config.get_network_host(),
@@ -396,8 +397,11 @@ class ElasticInstaller:
                 if 'PASSWORD' in line:
                     _, user, _, password = line.split(' ')
                     bootstrap_users_and_passwords[user] = password
-            es_pass_config = ElasticPasswordConfigurator(current_password=bootstrap_users_and_passwords['elastic'])
+            es_pass_config = ElasticPasswordConfigurator(
+                auth_user='elastic',
+                current_password=bootstrap_users_and_passwords['elastic'])
             ls_system_pass_config = ElasticPasswordConfigurator(
+                auth_user='logstash_system',
                 current_password=bootstrap_users_and_passwords['logstash_system'])
             es_pass_config.set_apm_system_password(self.password, stdout=True)
             time.sleep(1)
