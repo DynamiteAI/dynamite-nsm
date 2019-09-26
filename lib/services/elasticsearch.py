@@ -239,9 +239,10 @@ class ElasticPasswordConfigurator:
 
     def __init__(self, current_password):
         self.current_password = current_password
+        self.env_vars = utilities.get_environment_file_dict()
 
     def _set_user_password(self, user, password):
-        es_config = ElasticConfigurator(configuration_directory=ENV_VARS.get('ES_PATH_CONF'))
+        es_config = ElasticConfigurator(configuration_directory=self.env_vars.get('ES_PATH_CONF'))
         try:
             base64string = base64.b64encode('%s:%s' % ('elastic', self.current_password))
             url_request = Request(
@@ -469,7 +470,6 @@ class ElasticInstaller:
         self._create_elasticsearch_environment_variables(stdout=stdout)
         self._setup_default_elasticsearch_configs(stdout=stdout)
         self._update_sysctl(stdout=stdout)
-        ENV_VARS = utilities.get_environment_file_dict()
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
