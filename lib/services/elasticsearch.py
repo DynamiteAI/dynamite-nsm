@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import base64
 import signal
 import shutil
 import tarfile
@@ -12,9 +13,23 @@ from multiprocessing import Process
 from lib import const
 from lib import utilities
 
+try:
+    from urllib2 import urlopen
+    from urllib2 import URLError
+    from urllib2 import HTTPError
+    from urllib2 import Request
+except Exception:
+    from urllib.request import urlopen
+    from urllib.error import URLError
+    from urllib.error import HTTPError
+    from urllib.request import Request
+    from urllib.parse import urlencode
+
 CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
 INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
 LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
+
+ENV_VARS = utilities.get_environment_file_dict()
 
 
 class ElasticConfigurator:
@@ -220,6 +235,51 @@ class ElasticConfigurator:
         self._overwrite_jvm_options()
 
 
+class ElasticPasswordConfigurator:
+
+    def __init__(self, current_password):
+        self.current_password = current_password
+
+    def _set_user_password(self, user, password):
+        es_config = ElasticConfigurator(configuration_directory=ENV_VARS.get('ES_PATH_CONF'))
+        try:
+            base64string = base64.b64encode('%s:%s' % ('elastic', self.current_password))
+            url_request = Request(
+                url='http://{}:{}/_xpack/security/user/{}/_password'.format(
+                    es_config.get_network_host(),
+                    es_config.get_network_port(),
+                    user
+                ),
+                data=json.dumps({'password': password}),
+                headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
+            )
+            url_request.add_header("Authorization", "Basic %s" % base64string)
+            urlopen(url_request)
+        except HTTPError as e:
+            if e.code != 200:
+                sys.stderr.write('[-] Failed to update {} password - [{}]\n'.format(user, e))
+                return False
+            return True
+
+    def set_apm_system_password(self, new_password):
+        return self._set_user_password('apm_system', new_password)
+
+    def set_beats_password(self, new_password):
+        return self._set_user_password('beats_system', new_password)
+
+    def set_elastic_password(self, new_password):
+        return self._set_user_password('elastic', new_password)
+
+    def set_kibana_password(self, new_password):
+        return self._set_user_password('kibana', new_password)
+
+    def set_logstash_system_password(self, new_password):
+        return self._set_user_password('logstash', new_password)
+
+    def set_remote_monitoring_password(self, new_password):
+        return self._set_user_password('remote_monitoring_user', new_password)
+
+
 class ElasticInstaller:
     """
     Provides a simple interface for installing a new ElasticSearch node
@@ -228,12 +288,14 @@ class ElasticInstaller:
     def __init__(self,
                  host='0.0.0.0',
                  port=9200,
+                 password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
         :param: host: The IP address to listen on (E.G "0.0.0.0")
         :param: port: The port that the ES API is bound to (E.G 9200)
+        :param: password: The password used for authentication across all builtin users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/f/)
@@ -241,6 +303,7 @@ class ElasticInstaller:
 
         self.host = host
         self.port = port
+        self.password = password
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
@@ -325,10 +388,18 @@ class ElasticInstaller:
     def bootstrap_passwords(self, stdout=False):
 
         def parse_passwords_output(s):
+            bootstrap_users_and_passwords = {}
             for line in s.split('\n'):
                 if 'PASSWORD' in line:
                     _, user, _, password = line.split(' ')
-                    print(user, password)
+                    bootstrap_users_and_passwords[user] = password
+            es_pass_config = ElasticPasswordConfigurator(current_password=bootstrap_users_and_passwords['elastic'])
+            es_pass_config.set_apm_system_password(self.password)
+            es_pass_config.set_beats_password(self.password)
+            es_pass_config.set_kibana_password(self.password)
+            es_pass_config.set_logstash_system_password(self.password)
+            es_pass_config.set_remote_monitoring_password(self.password)
+            es_pass_config.set_elastic_password(self.password)
 
         if not ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
@@ -398,6 +469,7 @@ class ElasticInstaller:
         self._create_elasticsearch_environment_variables(stdout=stdout)
         self._setup_default_elasticsearch_configs(stdout=stdout)
         self._update_sysctl(stdout=stdout)
+        ENV_VARS = utilities.get_environment_file_dict()
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
