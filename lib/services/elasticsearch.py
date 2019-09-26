@@ -266,7 +266,7 @@ class ElasticPasswordConfigurator:
             return True
 
     def set_apm_system_password(self, new_password, stdout=False):
-        return self._set_user_password('apm_system', new_password)
+        return self._set_user_password('apm_system', new_password, stdout=stdout)
 
     def set_beats_password(self, new_password, stdout=False):
         return self._set_user_password('beats_system', new_password, stdout=stdout)
@@ -278,7 +278,7 @@ class ElasticPasswordConfigurator:
         return self._set_user_password('kibana', new_password, stdout=stdout)
 
     def set_logstash_system_password(self, new_password, stdout=False):
-        return self._set_user_password('logstash', new_password, stdout=stdout)
+        return self._set_user_password('logstash_system', new_password, stdout=stdout)
 
     def set_remote_monitoring_password(self, new_password, stdout=False):
         return self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
@@ -389,9 +389,9 @@ class ElasticInstaller:
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
 
-    def bootstrap_passwords(self, stdout=False):
+    def setup_passwords(self, stdout=False):
 
-        def parse_passwords_output(s):
+        def setup_from_bootstrap(s):
             bootstrap_users_and_passwords = {}
             for line in s.split('\n'):
                 if 'PASSWORD' in line:
@@ -400,20 +400,19 @@ class ElasticInstaller:
             es_pass_config = ElasticPasswordConfigurator(
                 auth_user='elastic',
                 current_password=bootstrap_users_and_passwords['elastic'])
-            ls_system_pass_config = ElasticPasswordConfigurator(
-                auth_user='logstash_system',
-                current_password=bootstrap_users_and_passwords['logstash_system'])
-            es_pass_config.set_apm_system_password(self.password, stdout=True)
+            resets = list()
+            resets.append(es_pass_config.set_apm_system_password(self.password, stdout=True))
             time.sleep(1)
-            es_pass_config.set_beats_password(self.password, stdout=True)
+            resets.append(es_pass_config.set_beats_password(self.password, stdout=True))
             time.sleep(1)
-            es_pass_config.set_kibana_password(self.password, stdout=True)
+            resets.append(es_pass_config.set_kibana_password(self.password, stdout=True))
             time.sleep(1)
-            ls_system_pass_config.set_logstash_system_password(self.password, stdout=True)
+            resets.append(es_pass_config.set_logstash_system_password(self.password, stdout=True))
             time.sleep(1)
-            es_pass_config.set_remote_monitoring_password(self.password, stdout=True)
+            resets.append(es_pass_config.set_remote_monitoring_password(self.password, stdout=True))
             time.sleep(1)
-            es_pass_config.set_elastic_password(self.password, stdout=True)
+            resets.append(es_pass_config.set_elastic_password(self.password, stdout=True))
+            return all(resets)
 
         if not ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
@@ -424,6 +423,9 @@ class ElasticInstaller:
         cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         cert_p.communicate(input=b'Y\n')
+        if cert_p.returncode != 0:
+            sys.stderr.write('[-] Failed to setup SSL certificate keystore\n - {}\n'.format(cert_p.stderr.read()))
+            return False
         utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
         if not ElasticProfiler().is_running:
             ElasticProcess().start(stdout=stdout)
@@ -440,7 +442,10 @@ class ElasticInstaller:
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
         bootstrap_p = subprocess.Popen([es_password_util, 'auto'],  cwd=self.configuration_directory,
                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
-        parse_passwords_output(bootstrap_p.communicate(input=b'y\n')[0])
+        if bootstrap_p.returncode != 0:
+            sys.stderr.write('[-] Failed to setup SSL certificate keystore\n - {}\n'.format(bootstrap_p.stderr.read()))
+            return False
+        return setup_from_bootstrap(bootstrap_p.communicate(input=b'y\n')[0])
 
     @staticmethod
     def download_elasticsearch(stdout=False):
@@ -486,7 +491,7 @@ class ElasticInstaller:
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
-        self.bootstrap_passwords(stdout=stdout)
+        self.setup_passwords(stdout=stdout)
 
 
 class ElasticProfiler:
