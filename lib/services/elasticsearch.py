@@ -346,9 +346,11 @@ class ElasticInstaller:
                 sys.stdout.flush()
         es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
+        sys.stdout.write('[+] Creating certificate keystore\n')
         cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
-        cert_p.communicate(b'Y\n')
+        cert_p.communicate(input=b'Y\n')
+        sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
         bootstrap_p = subprocess.Popen([es_password_util, 'auto'],  cwd=self.configuration_directory,
                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
@@ -398,7 +400,7 @@ class ElasticInstaller:
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
-        self.bootstrap_passwords()
+        self.bootstrap_passwords(stdout=stdout)
 
 
 class ElasticProfiler:
