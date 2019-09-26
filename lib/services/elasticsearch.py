@@ -389,6 +389,52 @@ class ElasticInstaller:
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
 
+    @staticmethod
+    def download_elasticsearch(stdout=False):
+        """
+        Download ElasticSearch archive
+
+        :param stdout: Print output to console
+        """
+        for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
+            if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
+                break
+
+    @staticmethod
+    def extract_elasticsearch(stdout=False):
+        """
+        Extract ElasticSearch to local install_cache
+
+        :param stdout: Print output to console
+        """
+        if stdout:
+            sys.stdout.write('[+] Extracting: {} \n'.format(const.ELASTICSEARCH_ARCHIVE_NAME))
+        try:
+            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
+            tf.extractall(path=const.INSTALL_CACHE)
+            if stdout:
+                sys.stdout.write('[+] Complete!\n')
+                sys.stdout.flush()
+        except IOError as e:
+            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+    def setup_elasticsearch(self, stdout=False):
+        """
+        Create required directories, files, and variables to run ElasticSearch successfully;
+        Setup Java environment
+
+        :param stdout: Print output to console
+        """
+        self._create_elasticsearch_directories(stdout=stdout)
+        self._copy_elasticsearch_files_and_directories(stdout=stdout)
+        self._create_elasticsearch_environment_variables(stdout=stdout)
+        self._setup_default_elasticsearch_configs(stdout=stdout)
+        self._update_sysctl(stdout=stdout)
+        utilities.set_ownership_of_file('/etc/dynamite/')
+        utilities.set_ownership_of_file('/opt/dynamite/')
+        utilities.set_ownership_of_file('/var/log/dynamite')
+        self.setup_passwords(stdout=stdout)
+
     def setup_passwords(self, stdout=False):
 
         def setup_from_bootstrap(s):
@@ -446,52 +492,6 @@ class ElasticInstaller:
             sys.stderr.write('[-] Failed to setup SSL certificate keystore\n - {}\n'.format(bootstrap_p.stderr.read()))
             return False
         return setup_from_bootstrap(bootstrap_p.communicate(input=b'y\n')[0])
-
-    @staticmethod
-    def download_elasticsearch(stdout=False):
-        """
-        Download ElasticSearch archive
-
-        :param stdout: Print output to console
-        """
-        for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
-                break
-
-    @staticmethod
-    def extract_elasticsearch(stdout=False):
-        """
-        Extract ElasticSearch to local install_cache
-
-        :param stdout: Print output to console
-        """
-        if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(const.ELASTICSEARCH_ARCHIVE_NAME))
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-            if stdout:
-                sys.stdout.write('[+] Complete!\n')
-                sys.stdout.flush()
-        except IOError as e:
-            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-
-    def setup_elasticsearch(self, stdout=False):
-        """
-        Create required directories, files, and variables to run ElasticSearch successfully;
-        Setup Java environment
-
-        :param stdout: Print output to console
-        """
-        self._create_elasticsearch_directories(stdout=stdout)
-        self._copy_elasticsearch_files_and_directories(stdout=stdout)
-        self._create_elasticsearch_environment_variables(stdout=stdout)
-        self._setup_default_elasticsearch_configs(stdout=stdout)
-        self._update_sysctl(stdout=stdout)
-        utilities.set_ownership_of_file('/etc/dynamite/')
-        utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/log/dynamite')
-        self.setup_passwords(stdout=stdout)
 
 
 class ElasticProfiler:
