@@ -322,6 +322,37 @@ class ElasticInstaller:
         utilities.update_user_file_handle_limits()
         utilities.update_sysctl()
 
+    def bootstrap_passwords(self, stdout=False):
+
+        def parse_passwords_output(s):
+            for line in s.split('\n'):
+                if 'PASSWORD' in line:
+                    _, user, _, password = line.split(' ')
+                    print(user, password)
+
+        if not ElasticProfiler().is_installed:
+            sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
+            return False
+        if not ElasticProfiler().is_running:
+            ElasticProcess().start(stdout=stdout)
+            sys.stdout.flush()
+            while not ElasticProfiler().is_listening:
+                if stdout:
+                    sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
+                time.sleep(5)
+            if stdout:
+                sys.stdout.write('[+] ElasticSearch API is up.\n')
+                sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
+                sys.stdout.flush()
+        es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
+        es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
+        cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+        cert_p.communicate(b'Y\n')
+        es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
+        bootstrap_p = subprocess.Popen([es_password_util, 'auto'],  cwd=self.configuration_directory,
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+        parse_passwords_output(bootstrap_p.communicate(input=b'y\n')[0])
 
     @staticmethod
     def download_elasticsearch(stdout=False):
@@ -367,6 +398,7 @@ class ElasticInstaller:
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
+        self.bootstrap_passwords()
 
 
 class ElasticProfiler:
