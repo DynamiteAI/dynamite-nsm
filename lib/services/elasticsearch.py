@@ -469,8 +469,8 @@ class ElasticInstaller:
         cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         cert_p.communicate(input=b'Y\n')
-        if cert_p.returncode != 0:
-            sys.stderr.write('[-] Failed to setup SSL certificate keystore\n - {}\n'.format(cert_p.returncode))
+        if not os.path.exists(es_cert_keystore):
+            sys.stderr.write('[-] Failed to setup SSL certificate keystore\n')
             return False
         utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
         if not ElasticProfiler().is_running:
