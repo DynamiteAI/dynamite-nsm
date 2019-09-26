@@ -312,6 +312,24 @@ class ElasticInstaller:
         self.install_directory = install_directory
         self.log_directory = log_directory
 
+    def _is_valid_auth(self):
+        base64string = base64.b64encode('%s:%s' % ('elastic', self.password))
+        try:
+            url_request = Request(
+                url='http://{}:{}/'.format(
+                    self.host,
+                    self.port,
+                ),
+                headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
+            )
+            url_request.add_header("Authorization", "Basic %s" % base64string)
+            urlopen(url_request)
+
+        except HTTPError as e:
+            if e.code != 200:
+                return False
+        return True
+
     def _create_elasticsearch_directories(self, stdout=False):
         if stdout:
             sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
@@ -488,10 +506,10 @@ class ElasticInstaller:
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
         bootstrap_p = subprocess.Popen([es_password_util, 'auto'],  cwd=self.configuration_directory,
                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
-        if bootstrap_p.returncode != 0:
-            sys.stderr.write('[-] Failed to setup SSL certificate keystore\n - {}\n'.format(bootstrap_p.returncode))
-            return False
-        return setup_from_bootstrap(bootstrap_p.communicate(input=b'y\n')[0])
+        bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
+        if not bootstrap_p_res:
+            sys.stderr.write('[-] Failed to setup new passwords\n')
+        return setup_from_bootstrap(bootstrap_p_res[0])
 
 
 class ElasticProfiler:
