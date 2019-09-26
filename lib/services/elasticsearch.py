@@ -241,7 +241,9 @@ class ElasticPasswordConfigurator:
         self.current_password = current_password
         self.env_vars = utilities.get_environment_file_dict()
 
-    def _set_user_password(self, user, password):
+    def _set_user_password(self, user, password, stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Updating password for {}\n'.format(user))
         es_config = ElasticConfigurator(configuration_directory=self.env_vars.get('ES_PATH_CONF'))
         try:
             base64string = base64.b64encode('%s:%s' % ('elastic', self.current_password))
@@ -262,23 +264,23 @@ class ElasticPasswordConfigurator:
                 return False
             return True
 
-    def set_apm_system_password(self, new_password):
+    def set_apm_system_password(self, new_password, stdout=False):
         return self._set_user_password('apm_system', new_password)
 
-    def set_beats_password(self, new_password):
-        return self._set_user_password('beats_system', new_password)
+    def set_beats_password(self, new_password, stdout=False):
+        return self._set_user_password('beats_system', new_password, stdout=stdout)
 
-    def set_elastic_password(self, new_password):
-        return self._set_user_password('elastic', new_password)
+    def set_elastic_password(self, new_password, stdout=False):
+        return self._set_user_password('elastic', new_password, stdout=stdout)
 
-    def set_kibana_password(self, new_password):
-        return self._set_user_password('kibana', new_password)
+    def set_kibana_password(self, new_password, stdout=False):
+        return self._set_user_password('kibana', new_password, stdout=stdout)
 
-    def set_logstash_system_password(self, new_password):
-        return self._set_user_password('logstash', new_password)
+    def set_logstash_system_password(self, new_password, stdout=False):
+        return self._set_user_password('logstash', new_password, stdout=stdout)
 
-    def set_remote_monitoring_password(self, new_password):
-        return self._set_user_password('remote_monitoring_user', new_password)
+    def set_remote_monitoring_password(self, new_password, stdout=False):
+        return self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
 
 
 class ElasticInstaller:
@@ -396,10 +398,15 @@ class ElasticInstaller:
                     bootstrap_users_and_passwords[user] = password
             es_pass_config = ElasticPasswordConfigurator(current_password=bootstrap_users_and_passwords['elastic'])
             es_pass_config.set_apm_system_password(self.password)
+            time.sleep(1)
             es_pass_config.set_beats_password(self.password)
+            time.sleep(1)
             es_pass_config.set_kibana_password(self.password)
+            time.sleep(1)
             es_pass_config.set_logstash_system_password(self.password)
+            time.sleep(1)
             es_pass_config.set_remote_monitoring_password(self.password)
+            time.sleep(1)
             es_pass_config.set_elastic_password(self.password)
 
         if not ElasticProfiler().is_installed:
