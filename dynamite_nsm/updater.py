@@ -4,17 +4,13 @@ import time
 import shutil
 from dynamite_nsm.utilities import download_file
 from dynamite_nsm.utilities import extract_archive
+from dynamite_nsm.utilities import create_dynamite_root_directory
 
 
 def update_default_configurations():
-    try:
-        os.mkdir('/tmp/dynamite')
-        os.mkdir('/tmp/dynamite/install_cache')
-    except OSError:
-        pass
+    create_dynamite_root_directory()
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/default_configs.tar.gz',
                   'default_configs.tar.gz', stdout=True)
-    shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
     shutil.rmtree('/etc/dynamite/default_configs/', ignore_errors=True)
     time.sleep(1)
     try:
@@ -26,14 +22,9 @@ def update_default_configurations():
 
 
 def update_mirrors():
-    try:
-        os.mkdir('/tmp/dynamite')
-        os.mkdir('/tmp/dynamite/install_cache')
-    except OSError:
-        pass
+    create_dynamite_root_directory()
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/mirrors.tar.gz',
                   'mirrors.tar.gz', stdout=True)
-    shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
     shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
     try:
         print('Copying mirrors -> /etc/dynamite/mirrors')
