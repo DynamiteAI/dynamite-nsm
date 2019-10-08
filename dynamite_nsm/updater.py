@@ -17,8 +17,10 @@ def update_default_configurations():
     try:
         print('Copying default_configs -> /etc/dynamite/default_configs')
         extract_archive(os.path.join(const.INSTALL_CACHE, 'default_configs.tar.gz'), '/etc/dynamite/')
+        return True
     except IOError as e:
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+    return False
 
 
 def update_mirrors():
@@ -29,5 +31,7 @@ def update_mirrors():
     try:
         print('Copying mirrors -> /etc/dynamite/mirrors')
         extract_archive(os.path.join(const.INSTALL_CACHE, 'mirrors.tar.gz'), '/etc/dynamite/')
+        return True
     except IOError as e:
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+    return False

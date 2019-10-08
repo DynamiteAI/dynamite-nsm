@@ -329,14 +329,6 @@ class KibanaInstaller:
             subprocess.call('echo KIBANA_LOGS="{}" >> /etc/environment'.format(self.log_directory),
                             shell=True)
 
-    def _install_kibana_plugins(self, stdout=False):
-        if stdout:
-            sys.stdout.write('[+] Installing Kibana plugins\n')
-            sys.stdout.flush()
-        subprocess.call('{} {}/bin/kibana-plugin install x-pack'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-                        shell=True)
-
     def _install_elastiflow_dashboards(self, stdout=False):
         if KibanaProfiler().is_installed and (ElasticProfiler().is_installed or self.elasticsearch_host != 'localhost'):
             if stdout:
@@ -450,7 +442,6 @@ class KibanaInstaller:
         self._copy_kibana_files_and_directories(stdout=stdout)
         self._create_kibana_environment_variables(stdout=stdout)
         self._setup_default_kibana_configs(stdout=stdout)
-        self._install_kibana_plugins(stdout=stdout)
         self._install_elastiflow_dashboards(stdout=stdout)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
