@@ -283,6 +283,15 @@ class ElasticPasswordConfigurator:
     def set_remote_monitoring_password(self, new_password, stdout=False):
         return self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
 
+    def set_all_passwords(self, new_password, stdout=False):
+        r = self.set_apm_system_password(new_password, stdout=stdout)
+        r2 = self.set_remote_monitoring_password(new_password, stdout=stdout)
+        r3 = self.set_logstash_system_password(new_password, stdout=stdout)
+        r4 = self.set_kibana_password(new_password, stdout=stdout)
+        r5 = self.set_beats_password(new_password, stdout=stdout)
+        r6 = self.set_elastic_password(new_password, stdout=stdout)
+        return r and r2 and r3 and r4 and r5 and r6
+
 
 class ElasticInstaller:
     """
@@ -446,19 +455,7 @@ class ElasticInstaller:
             es_pass_config = ElasticPasswordConfigurator(
                 auth_user='elastic',
                 current_password=bootstrap_users_and_passwords['elastic'])
-            resets = list()
-            resets.append(es_pass_config.set_apm_system_password(self.password, stdout=True))
-            time.sleep(1)
-            resets.append(es_pass_config.set_beats_password(self.password, stdout=True))
-            time.sleep(1)
-            resets.append(es_pass_config.set_kibana_password(self.password, stdout=True))
-            time.sleep(1)
-            resets.append(es_pass_config.set_logstash_system_password(self.password, stdout=True))
-            time.sleep(1)
-            resets.append(es_pass_config.set_remote_monitoring_password(self.password, stdout=True))
-            time.sleep(1)
-            resets.append(es_pass_config.set_elastic_password(self.password, stdout=True))
-            return all(resets)
+            return es_pass_config.set_all_passwords(new_password=self.password, stdout=True)
 
         if not ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
@@ -732,10 +729,11 @@ class ElasticProcess:
         }
 
 
-def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=False):
+def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):
     """
     Install ElasticSearch
 
+    :param: password: The password used for authentication across all builtin users
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
@@ -751,7 +749,7 @@ def install_elasticsearch(install_jdk=True, create_dynamite_user=True, stdout=Fa
         ))
         return False
     try:
-        es_installer = ElasticInstaller()
+        es_installer = ElasticInstaller(password=elasticsearch_password)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)

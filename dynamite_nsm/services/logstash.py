@@ -207,13 +207,15 @@ class LogstashInstaller:
                  host='0.0.0.0',
                  elasticsearch_host='localhost',
                  elasticsearch_port=9200,
+                 elasticsearch_password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
-        :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
-        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+        :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: A port number for the target elasticsearch instance
+        :param elasticsearch_password: The password used for authentication across all builtin ES users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
@@ -224,6 +226,7 @@ class LogstashInstaller:
         self.elasticsearch_port = elasticsearch_port
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
+        self.elasticsearch_password = elasticsearch_password
         self.log_directory = log_directory
 
     def _copy_logstash_files_and_directories(self, stdout=False):
@@ -338,6 +341,7 @@ class LogstashInstaller:
         ef_config.sflow_ipv4_host = self.host
         ef_config.zeek_ipv4_host = self.host
         ef_config.es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
+        ef_config.es_passwd = self.elasticsearch_password
         ef_config.write_environment_variables()
 
     def _setup_synesis(self, stdout=False):
@@ -348,6 +352,7 @@ class LogstashInstaller:
         syn_config = synesis.SynesisConfigurator()
         syn_config.suricata_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         syn_config.suricata_resolve_ip2host = True
+        syn_config.suricata_es_passwd = self.elasticsearch_password
         syn_config.write_environment_variables()
 
     @staticmethod
@@ -671,10 +676,11 @@ class LogstashProcess:
 
 
 def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsearch_port=9200,
-                     install_jdk=True, create_dynamite_user=True, stdout=False):
+                     elasticsearch_password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):
     """
     Install Logstash/ElastiFlow
 
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
@@ -693,7 +699,9 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsear
         return False
     try:
         ls_installer = LogstashInstaller(host=host,
-                                         elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
+                                         elasticsearch_host=elasticsearch_host,
+                                         elasticsearch_port=elasticsearch_port,
+                                         elasticsearch_password=elasticsearch_password)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)

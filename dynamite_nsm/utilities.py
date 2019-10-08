@@ -7,6 +7,7 @@ import socket
 import shutil
 import string
 import random
+import getpass
 import tarfile
 import subprocess
 import multiprocessing
@@ -230,6 +231,15 @@ def prompt_input(message):
     except NameError:
         res =input(message)
     return res
+
+
+def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm Password: '):
+    password = 0
+    confirm_password = 1
+    while password != confirm_password:
+        password = getpass.getpass(prompt)
+        confirm_password = getpass.getpass(confirm_prompt)
+    return password
 
 
 def setup_java():

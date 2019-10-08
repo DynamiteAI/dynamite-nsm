@@ -16,7 +16,7 @@ COMPONENTS = [
 ]
 
 COMMANDS = [
-    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'point'
+    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'point', 'chpasswd'
 ]
 
 
@@ -118,13 +118,15 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
-            if elasticsearch.install_elasticsearch(stdout=True, create_dynamite_user=True, install_jdk=True):
+            if elasticsearch.install_elasticsearch(password=utilities.prompt_password(),
+                                                   stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to install ElasticSearch.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
             if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         elasticsearch_password=utilities.prompt_password(),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -133,6 +135,7 @@ if __name__ == '__main__':
         elif args.component == 'kibana':
             if not elasticsearch.ElasticProfiler().is_installed:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         elasticsearch_password=utilities.prompt_password(),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:
@@ -146,7 +149,7 @@ if __name__ == '__main__':
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
         elif args.component == 'monitor':
-            monitor.install_monitor()
+            monitor.install_monitor(elasticsearch_password=utilities.prompt_password())
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
