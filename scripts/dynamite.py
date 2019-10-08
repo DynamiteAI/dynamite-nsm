@@ -6,14 +6,17 @@ import argparse
 import traceback
 
 from dynamite_nsm import utilities, updater
-from dynamite_nsm.services import elasticsearch, kibana, logstash, agent, monitor
+from dynamite_nsm.services import suricata
+from dynamite_nsm.services import agent, monitor, oinkmaster
+from dynamite_nsm.services import elasticsearch, kibana, logstash
+
 
 COMPONENTS = [
     'agent', 'monitor', 'elasticsearch', 'logstash', 'kibana', 'suricata-rules', 'mirrors', 'default-configs'
 ]
 
 COMMANDS = [
-    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update'
+    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'point'
 ]
 
 
@@ -22,10 +25,10 @@ def _get_parser():
         description='Install/Configure the Dynamite Network Monitor.'
     )
     parser.add_argument('command', metavar='command', type=str,
-                        help='An action to perform [{}]'.format('|'.join(COMPONENTS)))
+                        help='An action to perform [{}]'.format('|'.join(COMMANDS)))
 
     parser.add_argument('component', metavar='component', type=str,
-                        help='The component to perform an action against [{}]'.format('|'.join(COMMANDS)))
+                        help='The component to perform an action against [{}]'.format('|'.join(COMPONENTS)))
 
     parser.add_argument('--interface', type=str, dest='network_interface', required='install' in sys.argv
                                                                             and 'agent' in sys.argv,
@@ -511,6 +514,19 @@ if __name__ == '__main__':
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
+    elif args.command == 'update':
+        if args.component == 'default-configs':
+            updater.update_default_configurations()
+        elif args.component == 'mirrors':
+            updater.update_mirrors()
+        elif args.component == 'suricata-rules':
+            suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
+            oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
+        else:
+            updater.update_default_configurations()
+            updater.update_mirrors()
+            suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
+            oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
     else:
         sys.stderr.write('[-] Unrecognized command - {}\n'.format(args.command))
         sys.exit(1)
