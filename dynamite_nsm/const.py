@@ -24,6 +24,7 @@ ZEEK_DIRECTORY_NAME = 'bro-2.6.1'
 
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
+MIRRORS = "/etc/dynamite/mirrors/"
 
 ELASTIFLOW_MIRRORS = "/etc/dynamite/mirrors/elastiflow-3.5.0"
 ELASTICSEARCH_MIRRORS = "/etc/dynamite/mirrors/elasticsearch-7.2.0"
