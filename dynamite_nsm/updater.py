@@ -12,7 +12,7 @@ def update_default_configurations():
     except OSError:
         pass
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/default_configs.tar.gz',
-                  'default_configs.tar.gz')
+                  'default_configs.tar.gz', stdout=True)
     shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
     shutil.rmtree('/etc/dynamite/default_configs/', ignore_errors=True)
     time.sleep(1)
@@ -26,7 +26,7 @@ def update_default_configurations():
 
 def update_mirrors():
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/mirrors.tar.gz',
-                  'mirrors.tar.gz')
+                  'mirrors.tar.gz', stdout=True)
     shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
     shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
     try:
