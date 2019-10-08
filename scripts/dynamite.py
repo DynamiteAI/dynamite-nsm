@@ -9,7 +9,7 @@ from dynamite_nsm import utilities, updater
 from dynamite_nsm.services import elasticsearch, kibana, logstash, agent, monitor
 
 
-def _parse_cmdline():
+def _get_parser():
     parser = argparse.ArgumentParser(
         description='Install/Configure the Dynamite Analysis Framework.'
     )
@@ -48,7 +48,7 @@ def _parse_cmdline():
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
 
-    return parser.parse_args()
+    return parser
 
 
 def _fatal_exception(action, component, debug=False):
@@ -80,12 +80,19 @@ if __name__ == '__main__':
     if not utilities.is_root():
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
+    parser = _get_parser()
+    args = parser.parse_args()
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(1)
     if is_first_install():
-        updater.update_default_configurations()
-        updater.update_mirrors()
-        mark_first_install()
+        config_update_successful = updater.update_default_configurations()
+        mirror_update_successful = updater.update_mirrors()
+        if config_update_successful and mirror_update_successful:
+            mark_first_install()
+        else:
+            sys.exit(1)
     utilities.create_dynamite_root_directory()
-    args = _parse_cmdline()
     if args.command == 'point':
         if args.component == 'agent':
             agent.point_agent(args.ls_host, args.ls_port)
