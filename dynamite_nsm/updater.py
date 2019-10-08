@@ -9,6 +9,7 @@ from dynamite_nsm.utilities import extract_archive
 def update_default_configurations():
     try:
         os.mkdir('/tmp/dynamite')
+        os.mkdir('/tmp/dynamite/install_cache')
     except OSError:
         pass
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/default_configs.tar.gz',
@@ -25,6 +26,11 @@ def update_default_configurations():
 
 
 def update_mirrors():
+    try:
+        os.mkdir('/tmp/dynamite')
+        os.mkdir('/tmp/dynamite/install_cache')
+    except OSError:
+        pass
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/mirrors.tar.gz',
                   'mirrors.tar.gz', stdout=True)
     shutil.rmtree('/tmp/dynamite/', ignore_errors=True)
