@@ -78,4 +78,5 @@ class OinkmasterInstaller:
 def update_suricata_rules(suricata_config_directory, oinkmaster_install_directory=INSTALL_DIRECTORY):
     exit_code = subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(
         os.path.join(suricata_config_directory, 'rules')), cwd=oinkmaster_install_directory, shell=True)
+    sys.stdout.write('[+] Agent must be restarted for changes to take effect.\n')
     return exit_code == 0
