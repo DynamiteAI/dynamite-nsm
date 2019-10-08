@@ -3,7 +3,7 @@ from dynamite_nsm import utilities
 from dynamite_nsm.services import elasticsearch, logstash, kibana
 
 
-def install_monitor(elasticsearch_password):
+def install_monitor(elasticsearch_password='changeme'):
     """
     Installs Logstash (with ElastiFlow templates modified to work with Zeek), ElasticSearch, and Kibana.
 
@@ -19,7 +19,7 @@ def install_monitor(elasticsearch_password):
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
     utilities.setup_java()
-    es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0', port=9200, password=es_password)
+    es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0', port=9200, password=elasticsearch_password)
     es_pre_profiler = elasticsearch.ElasticProfiler()
     es_process = elasticsearch.ElasticProcess()
     ls_installer = logstash.LogstashInstaller(host='0.0.0.0')
