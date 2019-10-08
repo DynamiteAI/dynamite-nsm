@@ -515,18 +515,28 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'update':
+        suricata_profiler = suricata.SuricataProfiler()
         if args.component == 'default-configs':
             updater.update_default_configurations()
+            sys.exit(0)
         elif args.component == 'mirrors':
             updater.update_mirrors()
+            sys.exit(0)
         elif args.component == 'suricata-rules':
-            suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
-            oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
+            if suricata_profiler.is_installed:
+                suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
+                oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
+                sys.exit(0)
+            else:
+                sys.stderr.write("[-] Suricata is not installed. You must install the agent before you can update "
+                                 "rulesets.\n 'dynamite install agent'\n")
+                sys.exit(1)
         else:
             updater.update_default_configurations()
             updater.update_mirrors()
-            suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
-            oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
+            if suricata_profiler.is_installed:
+                suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
+                oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
     else:
         sys.stderr.write('[-] Unrecognized command - {}\n'.format(args.command))
         sys.exit(1)
