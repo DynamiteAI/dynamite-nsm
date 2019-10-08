@@ -9,10 +9,10 @@ import traceback
 import subprocess
 from multiprocessing import Process
 
-from lib import const
-from lib import utilities
-from lib.services import synesis
-from lib.services import elastiflow
+from dynamite_nsm import const
+from dynamite_nsm import utilities
+from dynamite_nsm.services import synesis
+from dynamite_nsm.services import elastiflow
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/'
 INSTALL_DIRECTORY = '/opt/dynamite/logstash/'

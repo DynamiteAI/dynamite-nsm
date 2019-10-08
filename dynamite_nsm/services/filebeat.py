@@ -8,9 +8,9 @@ import tarfile
 import subprocess
 from multiprocessing import Process
 
-from lib.services import zeek
-from lib import const
-from lib import utilities
+from dynamite_nsm.services import zeek
+from dynamite_nsm import const
+from dynamite_nsm import utilities
 
 INSTALL_DIRECTORY = '/opt/dynamite/filebeat/'
 

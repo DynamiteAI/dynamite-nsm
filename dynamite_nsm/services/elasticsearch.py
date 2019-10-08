@@ -10,8 +10,8 @@ import traceback
 import subprocess
 from multiprocessing import Process
 
-from lib import const
-from lib import utilities
+from dynamite_nsm import const
+from dynamite_nsm import utilities
 
 try:
     from urllib2 import urlopen

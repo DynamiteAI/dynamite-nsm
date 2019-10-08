@@ -22,13 +22,13 @@ except Exception:
     from urllib.request import Request
     from urllib.parse import urlencode
 
-from lib import const
-from lib import utilities
-from lib.package_manager import OSPackageManager
-from lib.services.logstash import LogstashProfiler
-from lib.services.elasticsearch import ElasticProcess
-from lib.services.elasticsearch import ElasticProfiler
-from lib.services.elastiflow import ElastiFlowInstaller
+from dynamite_nsm import const
+from dynamite_nsm import utilities
+from dynamite_nsm.package_manager import OSPackageManager
+from dynamite_nsm.services.logstash import LogstashProfiler
+from dynamite_nsm.services.elasticsearch import ElasticProcess
+from dynamite_nsm.services.elasticsearch import ElasticProfiler
+from dynamite_nsm.services.elastiflow import ElastiFlowInstaller
 
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
 CONFIGURATION_DIRECTORY = '/etc/dynamite/kibana/'

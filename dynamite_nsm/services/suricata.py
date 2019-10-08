@@ -7,11 +7,11 @@ import signal
 import tarfile
 import subprocess
 
-from lib import const
-from lib import utilities
-from lib import package_manager
-from lib.services import pf_ring
-from lib.services import oinkmaster
+from dynamite_nsm import const
+from dynamite_nsm import utilities
+from dynamite_nsm import package_manager
+from dynamite_nsm.services import pf_ring
+from dynamite_nsm.services import oinkmaster
 
 
 INSTALL_DIRECTORY = '/opt/dynamite/suricata/'

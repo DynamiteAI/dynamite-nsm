@@ -10,10 +10,10 @@ try:
 except Exception:
     from configparser import ConfigParser
 
-from lib import const
-from lib.services import pf_ring
-from lib import utilities
-from lib import package_manager
+from dynamite_nsm import const
+from dynamite_nsm.services import pf_ring
+from dynamite_nsm import utilities
+from dynamite_nsm import package_manager
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/zeek/'

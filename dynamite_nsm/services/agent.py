@@ -2,8 +2,8 @@ import os
 import sys
 import shutil
 from datetime import datetime
-from lib import utilities
-from lib.services import filebeat, pf_ring, zeek, suricata
+from dynamite_nsm import utilities
+from dynamite_nsm.services import filebeat, pf_ring, zeek, suricata
 
 ENV_VARS = utilities.get_environment_file_dict()
 

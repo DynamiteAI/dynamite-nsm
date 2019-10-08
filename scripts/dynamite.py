@@ -1,14 +1,12 @@
 #! /usr/bin/python
-
+import os
 import sys
 import json
 import argparse
 import traceback
 
-from lib import agent
-from lib import monitor
-from lib import utilities
-from lib.services import elasticsearch, kibana, logstash
+from dynamite_nsm import utilities, updater
+from dynamite_nsm.services import elasticsearch, kibana, logstash, agent, monitor
 
 
 def _parse_cmdline():
@@ -67,10 +65,25 @@ def _not_installed(action, component):
     _fatal_exception(action, component, debug=False)
 
 
+def is_first_install():
+    if not os.path.exists('/root/.dynamite'):
+        return True
+    return False
+
+
+def mark_first_install():
+    with open('/root/.dynamite', 'w') as f:
+        f.write('')
+
+
 if __name__ == '__main__':
     if not utilities.is_root():
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
+    if is_first_install():
+        updater.update_default_configurations()
+        updater.update_mirrors()
+        mark_first_install()
     utilities.create_dynamite_root_directory()
     args = _parse_cmdline()
     if args.command == 'point':

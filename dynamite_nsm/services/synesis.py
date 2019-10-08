@@ -3,8 +3,8 @@ import sys
 import tarfile
 import subprocess
 
-from lib import const
-from lib import utilities
+from dynamite_nsm import const
+from dynamite_nsm import utilities
 
 INSTALL_DIRECTORY = '/etc/dynamite/logstash/synesis/'
 

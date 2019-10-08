@@ -19,7 +19,7 @@ except Exception:
     from urllib.request import urlopen
     from urllib.error import URLError
 
-from lib import const
+from dynamite_nsm import const
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
@@ -124,6 +124,18 @@ def download_java(stdout=False):
     for url in open(const.JAVA_MIRRORS, 'r').readlines():
         if download_file(url, const.JAVA_ARCHIVE_NAME, stdout):
             break
+
+
+def extract_archive(archive_path, destination_path, stdout=True):
+    if stdout:
+        sys.stdout.write('[+] Extracting: {} \n'.format(archive_path))
+    try:
+        tf = tarfile.open(archive_path)
+        tf.extractall(path=destination_path)
+        sys.stdout.write('[+] Complete!\n')
+        sys.stdout.flush()
+    except IOError as e:
+        sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
 
 def extract_java(stdout=False):

@@ -1,6 +1,6 @@
 import sys
-from lib import utilities
-from lib.services import elasticsearch, logstash, kibana
+from dynamite_nsm import utilities
+from dynamite_nsm.services import elasticsearch, logstash, kibana
 
 
 def install_monitor():
