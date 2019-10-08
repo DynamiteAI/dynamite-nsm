@@ -237,14 +237,16 @@ class KibanaInstaller:
                  port=5601,
                  elasticsearch_host=None,
                  elasticsearch_port=None,
+                 elasticsearch_password='changeme',
                  install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
         :param port: The port that the Kibana UI/API is bound to (E.G 5601)
-        :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
-        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+        :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: A port number for the target elasticsearch instance
+        :param elasticsearch_password: The password used for authentication across all builtin ES users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
@@ -253,6 +255,7 @@ class KibanaInstaller:
         self.port = port
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
+        self.elasticsearch_password = elasticsearch_password
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
@@ -398,6 +401,7 @@ class KibanaInstaller:
                                                                     self.elasticsearch_port)])
         local_config.set_server_host(self.host)
         local_config.set_server_port(self.port)
+        local_config.set_elasticsearch_password(self.elasticsearch_password)
         local_config.write_configs()
 
     @staticmethod
@@ -692,13 +696,15 @@ class KibanaProcess:
         utilities.set_ownership_of_file('/var/log/dynamite')
 
 
-def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, install_jdk=True, create_dynamite_user=True,
+def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
+                   install_jdk=True, create_dynamite_user=True,
                    stdout=False):
     """
     Install Kibana/ElastiFlow Dashboards
 
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run
     Logstash/ElasticSearch/Kibana
@@ -715,7 +721,9 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
         ))
         return False
     try:
-        kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
+        kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host,
+                                       elasticsearch_port=elasticsearch_port,
+                                       elasticsearch_password=elasticsearch_password)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)
