@@ -525,7 +525,10 @@ if __name__ == '__main__':
         elif args.component == 'suricata-rules':
             if suricata_profiler.is_installed:
                 suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
-                oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
+                suricata_install_dir = agent.ENV_VARS.get('SURICATA_HOME')
+                oinkmaster_install_dir = os.path.join(suricata_install_dir, 'oinkmaster')
+                oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir,
+                                                 oinkmaster_install_directory=oinkmaster_install_dir)
                 sys.exit(0)
             else:
                 sys.stderr.write("[-] Suricata is not installed. You must install the agent before you can update "
