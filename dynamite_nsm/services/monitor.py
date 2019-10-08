@@ -22,10 +22,12 @@ def install_monitor(elasticsearch_password='changeme'):
     es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0', port=9200, password=elasticsearch_password)
     es_pre_profiler = elasticsearch.ElasticProfiler()
     es_process = elasticsearch.ElasticProcess()
-    ls_installer = logstash.LogstashInstaller(host='0.0.0.0')
+    ls_installer = logstash.LogstashInstaller(host='0.0.0.0', elasticsearch_password=elasticsearch_password)
     ls_pre_profiler = logstash.LogstashProfiler()
     kb_installer = kibana.KibanaInstaller(host='0.0.0.0', port=5601,
-                                          elasticsearch_host='localhost', elasticsearch_port=9200)
+                                          elasticsearch_host='localhost',
+                                          elasticsearch_port=9200,
+                                          elasticsearch_password=elasticsearch_password)
     kb_pre_profiler = kibana.KibanaProfiler()
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
