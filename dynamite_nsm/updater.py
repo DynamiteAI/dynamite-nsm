@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import shutil
+from dynamite_nsm import const
 from dynamite_nsm.utilities import download_file
 from dynamite_nsm.utilities import extract_archive
 from dynamite_nsm.utilities import create_dynamite_root_directory
@@ -15,7 +16,7 @@ def update_default_configurations():
     time.sleep(1)
     try:
         print('Copying default_configs -> /etc/dynamite/default_configs')
-        extract_archive('default_configs.tar.gz', '/etc/dynamite/')
+        extract_archive(os.path.join(const.INSTALL_CACHE, 'default_configs.tar.gz'), '/etc/dynamite/')
 
     except IOError as e:
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
@@ -28,7 +29,7 @@ def update_mirrors():
     shutil.rmtree('/etc/dynamite/mirrors/', ignore_errors=True)
     try:
         print('Copying mirrors -> /etc/dynamite/mirrors')
-        extract_archive('mirrors.tar.gz', '/etc/dynamite/')
+        extract_archive(os.path.join(const.INSTALL_CACHE, 'mirrors.tar.gz'), '/etc/dynamite/')
         shutil.copytree('mirrors/', '/etc/dynamite/mirrors')
     except IOError as e:
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
