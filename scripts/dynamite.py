@@ -532,11 +532,8 @@ if __name__ == '__main__':
                                  "rulesets.\n 'dynamite install agent'\n")
                 sys.exit(1)
         else:
-            updater.update_default_configurations()
-            updater.update_mirrors()
-            if suricata_profiler.is_installed:
-                suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
-                oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir)
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
     else:
         sys.stderr.write('[-] Unrecognized command - {}\n'.format(args.command))
         sys.exit(1)
