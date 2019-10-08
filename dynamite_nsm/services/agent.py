@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 from datetime import datetime
+from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services import filebeat, pf_ring, zeek, suricata
 
@@ -298,11 +299,13 @@ def uninstall_agent(prompt_user=True):
     :return: True, if uninstall succeeded
     """
     filebeat_profiler = filebeat.FileBeatProfiler()
-    if not filebeat_profiler.is_installed:
-        sys.stderr.write('[-] No agent installation detected.\n')
-        return False
     filebeat_config = filebeat.FileBeatConfigurator(install_directory=ENV_VARS.get('FILEBEAT_HOME'))
     pf_profiler = pf_ring.PFRingProfiler()
+    zeek_profiler = zeek.ZeekProfiler()
+    suricata_profiler = suricata.SuricataProfiler()
+    if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
+        sys.stderr.write('[-] No agent installation detected.\n')
+        return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING THE AGENT WILL RESULT IN EVENTS NO LONGER BEING SENT TO {}.\n'.format(
             filebeat_config.get_logstash_targets()))
@@ -313,21 +316,36 @@ def uninstall_agent(prompt_user=True):
             sys.stdout.write('[+] Exiting\n')
             return False
     if filebeat_profiler.is_running:
-        filebeat.FileBeatProcess(install_directory=ENV_VARS.get(
-            'FILEBEAT_HOME')
-        ).stop(stdout=True)
+        filebeat.FileBeatProcess(install_directory=ENV_VARS.get('FILEBEAT_HOME')).stop(stdout=True)
+    if zeek_profiler.is_running:
+        zeek.ZeekProcess(install_directory=ENV_VARS.get('ZEEK_HOME')).stop()
     if pf_profiler.is_installed:
         shutil.rmtree(ENV_VARS.get('PF_RING_HOME'))
         os.remove('/opt/dynamite/.agent_environment_prepared')
     if filebeat_profiler.is_installed:
-        shutil.rmtree(ENV_VARS.get('FILEBEAT_HOME'))
-    shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
+        shutil.rmtree(ENV_VARS.get('FILEBEAT_HOME'), ignore_errors=True)
+    if zeek_profiler.is_installed:
+        shutil.rmtree(ENV_VARS.get('ZEEK_HOME'), ignore_errors=True)
+        shutil.rmtree(ENV_VARS.get('ZEEK_SCRIPTS'), ignore_errors=True)
+    if suricata_profiler.is_installed:
+        shutil.rmtree(ENV_VARS.get('SURICATA_HOME'), ignore_errors=True)
+        shutil.rmtree(ENV_VARS.get('SURICATA_CONFIG'), ignore_errors=True)
+    shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     env_lines = ''
     for line in open('/etc/environment').readlines():
         if 'FILEBEAT_HOME' in line:
             continue
+        elif 'ZEEK_HOME' in line:
+            continue
+        elif 'ZEEK_SCRIPTS' in line:
+            continue
+        elif 'SURICATA_HOME' in line:
+            continue
+        elif 'SURICATA_CONFIG' in line:
+            continue
         elif 'PF_RING_HOME' in line:
             continue
         env_lines += line.strip() + '\n'
-    open('/etc/environment', 'w').write(env_lines)
+    with open('/etc/environment', 'w') as f:
+        f.write(env_lines)
     return True

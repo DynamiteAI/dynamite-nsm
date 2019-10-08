@@ -8,16 +8,24 @@ import traceback
 from dynamite_nsm import utilities, updater
 from dynamite_nsm.services import elasticsearch, kibana, logstash, agent, monitor
 
+COMPONENTS = [
+    'agent', 'monitor', 'elasticsearch', 'logstash', 'kibana', 'suricata-rules', 'mirrors', 'default-configs'
+]
+
+COMMANDS = [
+    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update'
+]
+
 
 def _get_parser():
     parser = argparse.ArgumentParser(
-        description='Install/Configure the Dynamite Analysis Framework.'
+        description='Install/Configure the Dynamite Network Monitor.'
     )
     parser.add_argument('command', metavar='command', type=str,
-                        help='An action to perform [prepare|install|uninstall|start|stop|status|profile]')
+                        help='An action to perform [{}]'.format('|'.join(COMPONENTS)))
 
     parser.add_argument('component', metavar='component', type=str,
-                        help='The component to perform an action against [agent|logstash|elasticsearch]')
+                        help='The component to perform an action against [{}]'.format('|'.join(COMMANDS)))
 
     parser.add_argument('--interface', type=str, dest='network_interface', required='install' in sys.argv
                                                                             and 'agent' in sys.argv,
