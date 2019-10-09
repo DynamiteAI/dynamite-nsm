@@ -143,6 +143,7 @@ if __name__ == '__main__':
                     sys.exit(1)
             else:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         elasticsearch_password=utilities.prompt_password(),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:
