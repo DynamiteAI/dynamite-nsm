@@ -5,11 +5,12 @@
 
 #### [Dynamite-NSM](http://dynamite.ai) is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
 
-Unlike other NSMs Dynamite can be installed without the need of installing an entire operating-system.
+Dynamite NSM can be installed and managed through a standalone commandline utility implemented in pure Python.
 
-It is offered as standalone commandline utility implemented in pure Python. 
+No need to download a huge ISO image or install a dedicated operating system! 
 
 **It is compatible with both Python2 and 3.**
+
 
 ```bash
 python setup.py install
