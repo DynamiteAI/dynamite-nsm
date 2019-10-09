@@ -262,7 +262,10 @@ class ElasticPasswordConfigurator:
                 headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
             )
             url_request.add_header("Authorization", "Basic %s" % base64string)
-            urlopen(url_request)
+            try:
+                urlopen(url_request)
+            except TypeError:
+                urlopen(url_request, data=json.dumps({'password': password}).encode('utf-8'))
         except HTTPError as e:
             if e.code != 200:
                 sys.stderr.write('[-] Failed to update {} password - [{}]\n'.format(user, e))
