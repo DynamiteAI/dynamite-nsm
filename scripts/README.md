@@ -189,7 +189,7 @@ ElasticSearch functions as the main location for indexing normalized log files.
 
 #### LogStash
 
-ElasticSearch functions as the main location for indexing normalized log files.
+LogStash is responsible for raw log normalization and enrichment.
 
 | Config                               | Location                                   |
 |--------------------------------------|--------------------------------------------|
@@ -202,4 +202,17 @@ ElasticSearch functions as the main location for indexing normalized log files.
 
 | Log         | Location                                             |
 |-------------|------------------------------------------------------|
-| LogStash Log | /var/log/dynamite/logstash/logstash-plain.log        |
+| LogStash Log | /var/log/dynamite/logstash/logstash-plain.log       |
+
+
+#### Kibana
+
+Kibana is responsible for the visualization of Zeek/Suricata logs, and to provide a simple interface for searching these logs.
+
+| Config               | Location                          |
+|----------------------|-----------------------------------|
+| Kibana Configuration | `/etc/dynamite/kibana/kibana.yml` |
+
+| Log         | Location                                 |
+|-------------|------------------------------------------|
+| Kibana Log | /var/log/dynamite/kibana/kibana.log       |

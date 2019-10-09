@@ -3,10 +3,14 @@
 
 #### [Dynamite-NSM](http://dynamite.ai) is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
 
-Unlike other NSMs Dynamite can be installed without the need of downloading an ISO image. It is offered as standalone commandline utility implemented in pure Python 2/3.
+Unlike other NSMs Dynamite can be installed without the need of installing an entire operating-system.
+
+It is offered as standalone commandline utility implemented in pure Python. 
+
+**It is compatible with both Python2 and 3.**
 
 ```bash
-$ pip install dist/dynamite-nsm-0.0.9.tar.gz
+python setup.py install
 ```
 
 ### What's in the Box?
@@ -18,13 +22,21 @@ $ pip install dist/dynamite-nsm-0.0.9.tar.gz
 | Component   | Description                                                                                                                                                                                                                                                      |
 |-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Zeek [2.6.1]](https://github.com/zeek/zeek)           | Previously Bro, Zeek is a powerful network analysis framework that is differs from your typical IDS. It is capable of enumerating detailed information surrounding network connections and their underlying protocols.|
+| [Suricata [4.1.4]](https://github.com/OISF/suricata)   | Suricata is an Intrusion Detection System (IDS), powered by the latest open [EmergingThreat](https://doc.emergingthreats.net/) rule-sets.
+| [Oinkmaster [2.0]](http://oinkmaster.sourceforge.net/download.shtml)| A script to automate management of Suricata rule-sets, and keep rules up-to-date.
 | [PF_RING [7.4.0]](https://github.com/ntop/PF_RING)     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the Zeek to improve packet analysis.                                                                 |
 | [Filebeat [7.2.0]](https://github.com/elastic/beats)   | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash.                                                                                |
 
 
 #### Monitor
 
-![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dashboards.png)
+![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png)
+
+![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png)
+
+![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png)
+
+![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png)
 
 ##### Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.
 
@@ -33,8 +45,8 @@ $ pip install dist/dynamite-nsm-0.0.9.tar.gz
 | [Logstash [7.2.0]](https://github.com/elastic/logstash)            | A server-side data processing pipeline that ingests data from a multitude of sources simultaneously, transforms it. |
 | [Elasticsearch [7.2.0]](https://github.com/elastic/elasticsearch)  | A distributed, RESTful search and analytics engine.                                                                 |
 | [Kibana [7.2.0]](https://github.com/elastic/kibana)                | A web-app that allows you to visualize your Elasticsearch data                                                      |
-| [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow data collection and visualization using the Elastic Stack.                                        |
-
+| [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow (**and now Zeek!**) data collection and visualization.                                                                |
+| [Synesis [1.1.0]](https://github.com/robcowart/synesis_lite_suricata)| Provides Suricata data normalization and visualization.                                                           |
 
 ### Getting Started
 
@@ -93,7 +105,7 @@ dynamite prepare agent
 Reboot, and install the agent. This process can take between 10 and 40 minutes depending on your specs.
 
 ```bash
-dynamite install agent --interface en01 --agent-label VLAN-001 --host <my-monitor-host> --port 5044
+dynamite install agent --interface mon01 --agent-label honeypot1 --ls-host <logstash-host> --ls-port 5044
 ```
 
 Start the agent
@@ -104,10 +116,13 @@ dynamite start agent
 If you need to point the agent to a new monitor, this can be accomplished using the below command.
 
 ```bash
-dynamite point agent --host <my-monitor-host> --port 5044
+dynamite point agent --ls-host <new-logstash-host> --ls-port 5044
 ```
 
 
 ### Additional Usage
 
-Additional usage information is available [here](https://github.com/vlabsio/dynamite-nsm/tree/master/scripts/README.md).
+In addition to being able to stand up the monitor as a single instance (ElasticSearch, Logstash, and Kibana all installed) 
+This tool can also be used to install these components separately.
+
+Check out the advanced guide [here](https://github.com/vlabsio/dynamite-nsm/tree/master/scripts/README.md).
