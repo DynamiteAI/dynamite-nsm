@@ -1,4 +1,5 @@
-[![Dynamite-AI](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png)](http://dynamite.ai)
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png"  width="50%" height="auto">
+
 ## Dynamite Network Security Monitor
 
 #### [Dynamite-NSM](http://dynamite.ai) is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
