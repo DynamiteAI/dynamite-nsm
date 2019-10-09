@@ -15,11 +15,9 @@ It is offered as standalone commandline utility implemented in pure Python.
 python setup.py install
 ```
 
-### What's in the Box?
+### The Agent
 
-#### Agent
-
-##### Agents are scattered throughout your environment, and bind to a network interface (typically a mirrored port), after which traffic is forwarded to the monitor for enrichment and indexing.
+**Agents are scattered throughout your environment, and bind to a network interface (typically a mirrored port), after which traffic is forwarded to the monitor for enrichment and indexing.**
 
 | Component   | Description                                                                                                                                                                                                                                                      |
 |-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -29,10 +27,9 @@ python setup.py install
 | [PF_RING [7.4.0]](https://github.com/ntop/PF_RING)     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the Zeek to improve packet analysis.                                                                 |
 | [Filebeat [7.2.0]](https://github.com/elastic/beats)   | A powerful log forwarder, with a built in queue mechanisms, and a pressure sensitive protocol that works in conjunction with Logstash.                                                                                |
 
+### The Monitor
 
-#### Monitor
-
-##### Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.
+**Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.**
 
 | Component                                              | Description                                                                                                                     |
 |--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
@@ -42,14 +39,18 @@ python setup.py install
 | [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow (**and now Zeek!**) data collection and visualization.                                                                |
 | [Synesis [1.1.0]](https://github.com/robcowart/synesis_lite_suricata)| Provides Suricata data normalization and visualization.                                                           |
 
-<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
-
-<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
-
-
-<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
-
-<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+<p align="center">
+  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
+</p>
+<p align="center">
+  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
+</p>
+<p align="center">
+  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
+</p>
+<p align="center">
+  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+</p>
 
 ### Getting Started
 
@@ -65,7 +66,7 @@ Linux Kernel: 2.6.32+
 14 GB of RAM at least 4 CPU
 ```
 
-##### Setup
+##### Installation
 
 Grab the the release, and install.
 
@@ -82,7 +83,7 @@ Start the monitor. The Kibana UI can be found at: http://localhost:5601
 ```bash
 dynamite start monitor
 ```
-<br><br><br><br>
+
 #### Agent
 
 ##### Specs
@@ -91,7 +92,7 @@ Linux Kernel: 2.6.32+
 4+ GB of RAM at least 2 CPU
 ```
 
-##### Setup
+##### Installation
 
 Grab the the release, and install.
 
