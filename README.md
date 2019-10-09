@@ -1,4 +1,4 @@
-<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png"  width="50%" height="auto">
+<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png"  width="100" height="auto">
 
 
 ## Dynamite Network Security Monitor
