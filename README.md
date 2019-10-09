@@ -30,7 +30,7 @@ python setup.py install
 
 ### The Monitor
 
-**Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.**
+**Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents or NetFlow exporters.**
 
 | Component                                              | Description                                                                                                                     |
 |--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
