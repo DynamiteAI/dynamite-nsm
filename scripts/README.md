@@ -1,5 +1,7 @@
 ## Usage
 
+<p style="color:red" Script MUST be run as root!</p>
+
 ```
 usage: dynamite.py [-h] [--interface NETWORK_INTERFACE]
                    [--agent-label AGENT_LABEL] [--ls-host LS_HOST]

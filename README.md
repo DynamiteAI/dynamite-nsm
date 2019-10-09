@@ -9,7 +9,7 @@ Dynamite NSM can be installed and managed through a standalone commandline utili
 
 No need to download a huge ISO image or install a dedicated operating system! 
 
-**It is compatible with both Python2 and 3.**
+**It is compatible with both Python2 and 3, across these [Linux distributions](SUPPORTED_OSs.md).**
 
 
 ```bash
