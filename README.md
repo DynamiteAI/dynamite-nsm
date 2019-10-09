@@ -1,6 +1,5 @@
-<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png"  width="50%" height="auto">
+<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-analytics.png"  width="50%" height="auto">
 
-_____
 
 ## Dynamite Network Security Monitor
 
@@ -47,18 +46,18 @@ python setup.py install
 ### Sample Dashboards
 
 #### Traffic Flows 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
+<img align="left" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
 
 
 #### GeoIp Enrichment 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
+<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
 
 
 #### Signature Alerting 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
+<img align="left" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
 
 #### Threat Deep-Dive 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
 
 #### ...over 20 more dashboards!
 
