@@ -40,6 +40,25 @@ python setup.py install
 | [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow (**and now Zeek!**) data collection and visualization.                                                                |
 | [Synesis [1.1.0]](https://github.com/robcowart/synesis_lite_suricata)| Provides Suricata data normalization and visualization.                                                           |
 
+
+### Sample Dashboards
+
+#### Traffic Flows 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
+
+
+#### GeoIp Enrichment 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
+
+
+#### Signature Alerting 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
+
+#### Threat Deep-Dive 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+
+#### ...over 20 more dashboards!
+
 ### Getting Started
 
 While there are quite a few components that are a part of Dynamite-NSM. Standing up a standalone agent/monitor deployment is very simple.
@@ -54,25 +73,7 @@ Linux Kernel: 2.6.32+
 14 GB of RAM at least 4 CPU
 ```
 
-#### Sample Dashboards
-##### Traffic Flows 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
-
-
-##### GeoIp Enrichment 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
-
-
-##### Signature Alerting 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
-
-##### Threat Deep-Dive 
-<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
-
-#### ...over 20 more dashboards!
-
 ##### Setup
-
 
 Grab the the release, and install.
 
