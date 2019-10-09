@@ -247,7 +247,11 @@ class ElasticPasswordConfigurator:
             sys.stdout.write('[+] Updating password for {}\n'.format(user))
         es_config = ElasticConfigurator(configuration_directory=self.env_vars.get('ES_PATH_CONF'))
         try:
-            base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
+            try:
+                base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
+            except TypeError:
+                base64string = base64.b64encode('%s:%s' % (self.auth_user.encode('utf-8'),
+                                                         self.current_password.encode('utf-8')))
             url_request = Request(
                 url='http://{}:{}/_xpack/security/user/{}/_password'.format(
                     es_config.get_network_host(),
