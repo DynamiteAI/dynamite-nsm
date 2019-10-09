@@ -3,7 +3,7 @@
 
 ## Dynamite Network Security Monitor
 
-#### [Dynamite-NSM](http://dynamite.ai) is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
+#### [Dynamite NSM](http://dynamite.ai) is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
 
 Dynamite NSM can be installed and managed through a standalone commandline utility implemented in pure Python.
 
@@ -93,6 +93,8 @@ Start the monitor. The Kibana UI can be found at: http://localhost:5601
 ```bash
 dynamite start monitor
 ```
+
+You can login with the `elastic` user and the password you set during installation.
 
 #### Agent
 
