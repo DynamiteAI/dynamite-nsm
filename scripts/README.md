@@ -134,36 +134,42 @@ WARNING OVERWRITES ANY CUSTOM CONFIGURATIONS!
 #### Filebeat
 Filebeat functions as a  log forwarder, and is the agent component responsible for forwarding Zeek/Suricata logs to LogStash.
 
-**Configs**
+| Config                 | Location                              |
+|------------------------|---------------------------------------|
+| Filebeat Configuration | `/opt/dynamite/filebeat/filebeat.yml` |
 
-- `/opt/dynamite/filebeat/filebeat.yml`
+| Log | Location                               |
+|-----------------|----------------------------------------|
+| Filebeat Log    | `/opt/dynamite/filebeat/logs/filebeat` |
 
-**Logs**
-
-- `/opt/dynamite/filebeat/logs/filebeat`
 #### Zeek
 
 Zeek is responsible for generating a variety of logs that representative of network conversations and application protocols. 
 
-**Configs**
 
-- Rules and signatures: `/etc/dynamite/zeek/local.bro`
-- Zeek node configuration: `/opt/dynamite/zeek/etc/node.cfg`
+| Config               | Location                            |
+|----------------------|-------------------------------------|
+| Enabled Zeek Scripts | `/etc/dynamite/zeek/site/local.bro` |
+| Node Configuration   | `/opt/dynamite/zeek/etc/node.cfg`   |
+| Script Directory     | `/etc/dynamite/zeek/policy/`        |
 
-**Logs**
-- `/opt/dynamite/zeek/logs/`
+| Log                | Location                   |
+|--------------------|----------------------------|
+| Zeek Log Directory | `/opt/dynamite/zeek/logs/` |
 
 #### Suricata
 
 Suricata is responsible for generating alert based detections, and relies on open-source EmergingThreat rulesets to accomplish this.
 
-**Configs**
+| Config                 | Location                               |
+|------------------------|----------------------------------------|
+| Suricata Configuration | `/etc/dynamite/suricata/suricata.yaml` |
+| Rules Directory        | `/etc/dynamite/suricata/rules/`        |
 
-- Main Suricata configuration: `/etc/dynamite/suricata/suricata.yaml`
-- Suricata Rules: `/etc/dynamite/suricata/rules/`
-
-**Logs**
-- `/var/dynamite/suricata/log/suricata/suricata.log`
+| Log          | Location                                           |
+|--------------|----------------------------------------------------|
+| Suricata Log | `/var/dynamite/suricata/log/suricata/suricata.log` |
+| Event JSON   | `/var/dynamite/suricata/log/suricata/eve.json`     |
 
 ### Monitor Configuration Files
 
@@ -171,9 +177,29 @@ Suricata is responsible for generating alert based detections, and relies on ope
 
 ElasticSearch functions as the main location for indexing normalized log files.
 
-**Configs**
-- Main ElasticSearch configuration: `/etc/dynamite/elasticsearch/elasticsearch.yml`
-- Java memory provisioning (heap-size): `/etc/dynamite/elasticsearch/jvm.options`
+| Config                               | Location                                        |
+|--------------------------------------|-------------------------------------------------|
+| ElasticSearch Configuration          | `/etc/dynamite/elasticsearch/elasticsearch.yml` |
+| Java memory provisioning (heap-size) | `/etc/dynamite/elasticsearch/jvm.options`       |
 
-**Logs**
-- Cluster Log: `/var/log/dynamite/elasticsearch/dynamite-cluster.log`
+
+| Log         | Location                                             |
+|-------------|------------------------------------------------------|
+| Cluster Log | /var/log/dynamite/elasticsearch/dynamite-cluster.log |
+
+#### LogStash
+
+ElasticSearch functions as the main location for indexing normalized log files.
+
+| Config                               | Location                                   |
+|--------------------------------------|--------------------------------------------|
+| Logstash Configuration               | `/etc/dynamite/logstash/logstash.yml`      |
+| Java memory provisioning (heap-size) | `/etc/dynamite/logstash/jvm.options`       |
+| Pipelines                            | `/etc/dynamite/logstash/pipelines.yml`     |
+| ElastiFlow Config Directory          | `/etc/dynamite/logstash/elastiflow/conf.d` |
+| Synesis Config Directory             | `/etc/dynamite/logstash/synesis/conf.d`    |
+
+
+| Log         | Location                                             |
+|-------------|------------------------------------------------------|
+| LogStash Log | /var/log/dynamite/logstash/logstash-plain.log        |
