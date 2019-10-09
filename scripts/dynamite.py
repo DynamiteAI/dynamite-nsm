@@ -1,25 +1,34 @@
 #! /usr/bin/python
-
+import os
 import sys
 import json
 import argparse
 import traceback
 
-from lib import agent
-from lib import monitor
-from lib import utilities
-from lib.services import elasticsearch, kibana, logstash
+from dynamite_nsm import utilities, updater
+from dynamite_nsm.services import suricata
+from dynamite_nsm.services import agent, monitor, oinkmaster
+from dynamite_nsm.services import elasticsearch, kibana, logstash
 
 
-def _parse_cmdline():
+COMPONENTS = [
+    'agent', 'monitor', 'elasticsearch', 'logstash', 'kibana', 'suricata-rules', 'mirrors', 'default-configs'
+]
+
+COMMANDS = [
+    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'point', 'chpasswd'
+]
+
+
+def _get_parser():
     parser = argparse.ArgumentParser(
-        description='Install/Configure the Dynamite Analysis Framework.'
+        description='Install/Configure the Dynamite Network Monitor.'
     )
     parser.add_argument('command', metavar='command', type=str,
-                        help='An action to perform [prepare|install|uninstall|start|stop|status|profile]')
+                        help='An action to perform [{}]'.format('|'.join(COMMANDS)))
 
     parser.add_argument('component', metavar='component', type=str,
-                        help='The component to perform an action against [agent|logstash|elasticsearch]')
+                        help='The component to perform an action against [{}]'.format('|'.join(COMPONENTS)))
 
     parser.add_argument('--interface', type=str, dest='network_interface', required='install' in sys.argv
                                                                             and 'agent' in sys.argv,
@@ -50,7 +59,7 @@ def _parse_cmdline():
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
 
-    return parser.parse_args()
+    return parser
 
 
 def _fatal_exception(action, component, debug=False):
@@ -67,12 +76,34 @@ def _not_installed(action, component):
     _fatal_exception(action, component, debug=False)
 
 
+def is_first_install():
+    if not os.path.exists('/root/.dynamite'):
+        return True
+    return False
+
+
+def mark_first_install():
+    with open('/root/.dynamite', 'w') as f:
+        f.write('')
+
+
 if __name__ == '__main__':
     if not utilities.is_root():
         sys.stderr.write('[-] This script must be run as root.\n')
         sys.exit(1)
+    parser = _get_parser()
+    args = parser.parse_args()
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(1)
+    if is_first_install():
+        config_update_successful = updater.update_default_configurations()
+        mirror_update_successful = updater.update_mirrors()
+        if config_update_successful and mirror_update_successful:
+            mark_first_install()
+        else:
+            sys.exit(1)
     utilities.create_dynamite_root_directory()
-    args = _parse_cmdline()
     if args.command == 'point':
         if args.component == 'agent':
             agent.point_agent(args.ls_host, args.ls_port)
@@ -87,13 +118,15 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
-            if elasticsearch.install_elasticsearch(stdout=True, create_dynamite_user=True, install_jdk=True):
+            if elasticsearch.install_elasticsearch(password=utilities.prompt_password(),
+                                                   stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to install ElasticSearch.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
             if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         elasticsearch_password=utilities.prompt_password(),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -102,6 +135,7 @@ if __name__ == '__main__':
         elif args.component == 'kibana':
             if not elasticsearch.ElasticProfiler().is_installed:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         elasticsearch_password=utilities.prompt_password(),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:
@@ -115,7 +149,7 @@ if __name__ == '__main__':
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
         elif args.component == 'monitor':
-            monitor.install_monitor()
+            monitor.install_monitor(elasticsearch_password=utilities.prompt_password())
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
@@ -480,6 +514,29 @@ if __name__ == '__main__':
                 sys.stdout.flush()
             except Exception:
                 _fatal_exception('profile', 'agent', args.debug)
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
+    elif args.command == 'update':
+        suricata_profiler = suricata.SuricataProfiler()
+        if args.component == 'default-configs':
+            updater.update_default_configurations()
+            sys.exit(0)
+        elif args.component == 'mirrors':
+            updater.update_mirrors()
+            sys.exit(0)
+        elif args.component == 'suricata-rules':
+            if suricata_profiler.is_installed:
+                suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
+                suricata_install_dir = agent.ENV_VARS.get('SURICATA_HOME')
+                oinkmaster_install_dir = os.path.join(suricata_install_dir, 'oinkmaster')
+                oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir,
+                                                 oinkmaster_install_directory=oinkmaster_install_dir)
+                sys.exit(0)
+            else:
+                sys.stderr.write("[-] Suricata is not installed. You must install the agent before you can update "
+                                 "rulesets.\n 'dynamite install agent'\n")
+                sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
