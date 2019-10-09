@@ -30,13 +30,21 @@ python setup.py install
 
 #### Monitor
 
-![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png)
+##### Traffic Flows 
+<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
 
-![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png)
 
-![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png)
+##### GeoIp Enrichment 
+<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
 
-![dashboards](https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png)
+
+##### Signature Alerting 
+<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
+
+##### Threat Deep-Dive 
+<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+
+####...over 20 more dashboards!
 
 ##### Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.
 
@@ -64,10 +72,10 @@ Linux Kernel: 2.6.32+
 ##### Setup
 
 
-Grab the the release, and install through PIP.
+Grab the the release, and install.
 
 ```bash
-$ pip install dist/dynamite-nsm-0.0.9.tar.gz
+python setup.py install
 ```
 
 Install the monitoring components all on the same machine.
@@ -90,10 +98,10 @@ Linux Kernel: 2.6.32+
 
 ##### Setup
 
-Grab the the release, and install through PIP.
+Grab the the release, and install.
 
 ```bash
-$ pip install dist/dynamite-nsm-0.0.9.tar.gz
+python setup.py install
 ```
 
 Prepare the agent, this installs any required kernel-headers needed to install the PF_RING kernel module. 
