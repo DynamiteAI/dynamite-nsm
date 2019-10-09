@@ -489,7 +489,10 @@ class ElasticInstaller:
         bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
         if not bootstrap_p_res:
             sys.stderr.write('[-] Failed to setup new passwords\n')
-        return setup_from_bootstrap(bootstrap_p_res[0])
+        if not isinstance(bootstrap_p_res[0], str):
+            return setup_from_bootstrap(bootstrap_p_res[0].decode())
+        else:
+            return setup_from_bootstrap(bootstrap_p_res[0])
 
 
 class ElasticProfiler:
