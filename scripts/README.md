@@ -1,3 +1,5 @@
+## Usage
+
 ```
 usage: dynamite.py [-h] [--interface NETWORK_INTERFACE]
                    [--agent-label AGENT_LABEL] [--ls-host LS_HOST]
@@ -105,7 +107,7 @@ A standalone Kibana instance.
 
 | Command | Description                                                    | Example                           |
 |---------|----------------------------------------------------------------|-----------------------------------|
-| update  | update Suricata rule sets (If Suricata is currently installed) |`dynamite update suricata-rules` |
+| update  | Update Suricata rule sets (If Suricata is currently installed) |`dynamite update suricata-rules` |
 
 
 ### mirrors
@@ -123,3 +125,55 @@ WARNING OVERWRITES ANY CUSTOM CONFIGURATIONS!
 | Command | Description                                                                    | Example                           |
 |---------|--------------------------------------------------------------------------------|-----------------------------------|
 | update  | Update default configurations for various installed components (monitor/agent) | `dynamite update default-configs` |
+
+
+## Advanced Configuration Options
+
+### Agent Files
+
+#### Filebeat
+Filebeat functions as a  log forwarder, and is the agent component responsible for forwarding Zeek/Suricata logs to LogStash.
+
+**Configs**
+
+- `/opt/dynamite/filebeat/filebeat.yml`
+
+**Logs**
+
+- `/opt/dynamite/filebeat/logs/filebeat`
+#### Zeek
+
+Zeek is responsible for generating a variety of logs that representative of network conversations and application protocols. 
+
+**Configs**
+
+- Rules and signatures: `/etc/dynamite/zeek/local.bro`
+- Zeek node configuration: `/opt/dynamite/zeek/etc/node.cfg`
+
+**Logs**
+- `/opt/dynamite/zeek/logs/`
+
+#### Suricata
+
+Suricata is responsible for generating alert based detections, and relies on open-source EmergingThreat rulesets to accomplish this.
+
+**Configs**
+
+- Main Suricata configuration: `/etc/dynamite/suricata/suricata.yaml`
+- Suricata Rules: `/etc/dynamite/suricata/rules/`
+
+**Logs**
+- `/var/dynamite/suricata/log/suricata/suricata.log`
+
+### Monitor Configuration Files
+
+#### ElasticSearch
+
+ElasticSearch functions as the main location for indexing normalized log files.
+
+**Configs**
+- Main ElasticSearch configuration: `/etc/dynamite/elasticsearch/elasticsearch.yml`
+- Java memory provisioning (heap-size): `/etc/dynamite/elasticsearch/jvm.options`
+
+**Logs**
+- Cluster Log: `/var/log/dynamite/elasticsearch/dynamite-cluster.log`
