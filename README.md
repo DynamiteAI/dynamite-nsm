@@ -30,22 +30,6 @@ python setup.py install
 
 #### Monitor
 
-##### Traffic Flows 
-<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
-
-
-##### GeoIp Enrichment 
-<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
-
-
-##### Signature Alerting 
-<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
-
-##### Threat Deep-Dive 
-<img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
-
-####...over 20 more dashboards!
-
 ##### Your monitor is responsible for parsing, enriching, indexing, and visualizing analyzed traffic sent from multiple agents.
 
 | Component                                              | Description                                                                                                                     |
@@ -69,6 +53,24 @@ Check to see if your operating system is [supported](SUPPORTED_OSs.md).
 Linux Kernel: 2.6.32+
 14 GB of RAM at least 4 CPU
 ```
+
+#### Sample Dashboards
+##### Traffic Flows 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
+
+
+##### GeoIp Enrichment 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
+
+
+##### Signature Alerting 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
+
+##### Threat Deep-Dive 
+<img align="center" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+
+#### ...over 20 more dashboards!
+
 ##### Setup
 
 
