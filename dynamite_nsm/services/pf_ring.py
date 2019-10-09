@@ -5,9 +5,9 @@ import time
 import tarfile
 import subprocess
 
-from lib import const
-from lib import utilities
-from lib import package_manager
+from dynamite_nsm import const
+from dynamite_nsm import utilities
+from dynamite_nsm import package_manager
 
 INSTALL_DIRECTORY = '/opt/dynamite/pf_ring/'
 
@@ -58,6 +58,7 @@ class PFRingInstaller:
                     self.install_directory))
             subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
+
     @staticmethod
     def _setup_pf_ring_kernel_modules(stdout=False):
         try:
@@ -121,7 +122,7 @@ class PFRingInstaller:
         if pkt_mng.package_manager == 'apt-get':
             packages = ['make', 'gcc', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
-            packages = ['make', 'gcc', '"kernel-devel-uname-r == $(uname -r)"']
+            packages = ['make', 'gcc', 'kernel-devel-$(uname -r)']
         if packages:
             return pkt_mng.install_packages(packages)
         return False
@@ -168,6 +169,7 @@ class PFRingProfiler:
         if not pf_ring_home:
             if stderr:
                 sys.stderr.write('[-] PF_RING installation directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(pf_ring_home):
             if stderr:
                 sys.stderr.write('[-] PF_RING installation directory could not be located on disk at: {}.\n'.format(

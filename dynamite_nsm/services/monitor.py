@@ -1,9 +1,9 @@
 import sys
-from lib import utilities
-from lib.services import elasticsearch, logstash, kibana
+from dynamite_nsm import utilities
+from dynamite_nsm.services import elasticsearch, logstash, kibana
 
 
-def install_monitor():
+def install_monitor(elasticsearch_password='changeme'):
     """
     Installs Logstash (with ElastiFlow templates modified to work with Zeek), ElasticSearch, and Kibana.
 
@@ -15,17 +15,23 @@ def install_monitor():
             utilities.get_memory_available_bytes() / (1024 ** 3)
         ))
         return False
-    utilities.create_dynamite_user('password')
+    utilities.create_dynamite_user(utilities.generate_random_password(50))
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
     utilities.setup_java()
-    es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0', port=9200)
+    es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
+                                                  port=9200,
+                                                  password=elasticsearch_password)
     es_pre_profiler = elasticsearch.ElasticProfiler()
     es_process = elasticsearch.ElasticProcess()
-    ls_installer = logstash.LogstashInstaller(host='0.0.0.0')
+    ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
+                                              elasticsearch_password=elasticsearch_password)
     ls_pre_profiler = logstash.LogstashProfiler()
-    kb_installer = kibana.KibanaInstaller(host='0.0.0.0', port=5601,
-                                          elasticsearch_host='localhost', elasticsearch_port=9200)
+    kb_installer = kibana.KibanaInstaller(host='0.0.0.0',
+                                          port=5601,
+                                          elasticsearch_host='localhost',
+                                          elasticsearch_port=9200,
+                                          elasticsearch_password=elasticsearch_password)
     kb_pre_profiler = kibana.KibanaProfiler()
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
@@ -178,9 +184,9 @@ def uninstall_monitor(prompt_user=True):
         return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! UNINSTALLING THE MONITOR WILL PREVENT EVENTS FROM BEING PROCESSED/VISUALIZED.\n')
-        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             sys.stdout.write('[+] Exiting\n')
             return False

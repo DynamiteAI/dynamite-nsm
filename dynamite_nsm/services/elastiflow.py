@@ -3,11 +3,9 @@ import sys
 import tarfile
 import subprocess
 
-from lib import const
-from lib import utilities
+from dynamite_nsm import const
+from dynamite_nsm import utilities
 
-
-CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/elastiflow/conf.d/'
 INSTALL_DIRECTORY = '/etc/dynamite/logstash/elastiflow/'
 
 
@@ -16,6 +14,7 @@ class ElastiflowConfigurator:
     A configuration interface for ElastiFlow
     """
     def __init__(self):
+        self.es_passwd = 'changeme'
         self.netflow_ipv4_host = '0.0.0.0'
         self.netflow_ipv6_host = '[::]'
         self.netflow_ipv4_port = 2055
@@ -50,11 +49,13 @@ class ElastiflowConfigurator:
 
     def _parse_environment_file(self):
         """
-        Parses the /etc/environment file and returns results for JAVA_HOME, LS_PATH_CONF, LS_HOME;
+        Parses the /etc/environment file and returns ElastiFlow configurations;
         stores the results in class variables of the same name
         """
         for line in open('/etc/environment').readlines():
-            if line.startswith('ELASTIFLOW_NETFLOW_IPV4_HOST'):
+            if line.startswith('ELASTIFLOW_ES_PASSWD'):
+                self.es_passwd = line.split('=')[1].strip()
+            elif line.startswith('ELASTIFLOW_NETFLOW_IPV4_HOST'):
                 self.netflow_ipv4_host = line.split('=')[1].strip()
             elif line.startswith('ELASTIFLOW_NETFLOW_IPV4_PORT'):
                 self.netflow_ipv4_port = line.split('=')[1].strip()
@@ -137,16 +138,11 @@ class ElastiflowConfigurator:
 
 class ElastiFlowInstaller:
 
-    def __init__(self,
-                 configuration_directory=CONFIGURATION_DIRECTORY,
-                 install_directory=INSTALL_DIRECTORY):
+    def __init__(self, install_directory=INSTALL_DIRECTORY):
         """
-        :param configuration_directory: Path to the configuration directory
-        (E.G /etc/dynamite/logstash/elastiflow/conf.d/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/elastiflow/)
         """
 
-        self.configuration_directory = configuration_directory
         self.install_directory = install_directory
 
     @staticmethod
@@ -181,13 +177,11 @@ class ElastiFlowInstaller:
         if stdout:
             sys.stdout.write('[+] Creating elastiflow install|configuration directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         if stdout:
             sys.stdout.write('[+] Copying elastiflow configurations\n')
-        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'logstash', 'elastiflow'),
+        utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'zeek'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
-        utilities.set_ownership_of_file(self.configuration_directory)
         if 'ELASTIFLOW_DICT_PATH' not in open('/etc/environment').read():
             dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:

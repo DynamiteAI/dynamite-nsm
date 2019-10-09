@@ -5,7 +5,9 @@ import sys
 import crypt
 import socket
 import shutil
+import string
 import random
+import getpass
 import tarfile
 import subprocess
 import multiprocessing
@@ -18,7 +20,7 @@ except Exception:
     from urllib.request import urlopen
     from urllib.error import URLError
 
-from lib import const
+from dynamite_nsm import const
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
@@ -125,6 +127,18 @@ def download_java(stdout=False):
             break
 
 
+def extract_archive(archive_path, destination_path, stdout=True):
+    if stdout:
+        sys.stdout.write('[+] Extracting: {} \n'.format(archive_path))
+    try:
+        tf = tarfile.open(archive_path)
+        tf.extractall(path=destination_path)
+        sys.stdout.write('[+] Complete!\n')
+        sys.stdout.flush()
+    except IOError as e:
+        sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+
 def extract_java(stdout=False):
     if stdout:
         sys.stdout.write('[+] Extracting: {} \n'.format(const.JAVA_ARCHIVE_NAME))
@@ -135,6 +149,16 @@ def extract_java(stdout=False):
         sys.stdout.flush()
     except IOError as e:
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+
+def generate_random_password(length=30):
+    """
+    Generate a random password containing alphanumeric and symbolic characters
+    :param length: The length of the password
+    :return: The string representation of the password
+    """
+    tokens = string.ascii_lowercase + string.ascii_uppercase + '0123456789' + '!@#$%^&*()_+'
+    return ''.join(random.choice(tokens) for i in range(length))
 
 
 def get_environment_file_str():
@@ -195,6 +219,29 @@ def is_root():
     return os.getuid() == 0
 
 
+def prompt_input(message):
+    """
+    Compatibility function for Python2/3 for taking in input
+
+    :param message: The message appearing next to the input prompt.
+    return: The inputted text
+    """
+    try:
+        res = raw_input(message)
+    except NameError:
+        res =input(message)
+    return res
+
+
+def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm Password: '):
+    password = 0
+    confirm_password = 1
+    while password != confirm_password:
+        password = getpass.getpass(prompt)
+        confirm_password = getpass.getpass(confirm_prompt)
+    return password
+
+
 def setup_java():
     """
     Installs the latest version of OpenJDK
@@ -242,19 +289,19 @@ def update_sysctl():
     fs_found = False
     for line in open('/etc/sysctl.conf').readlines():
         if not line.startswith('#') and 'vm.max_map_count' in line:
-            new_output += 'vm.max_map_count=262144'
+            new_output += 'vm.max_map_count=262144\n'
             vm_found = True
         elif not line.startswith('#') and 'fs.file-max' in line:
-            new_output += 'fs.file-max=65535'
+            new_output += 'fs.file-max=65535\n'
             fs_found = True
         else:
-            new_output += line
-        new_output += '\n'
+            new_output += line.strip() + '\n'
     if not vm_found:
         new_output += 'vm.max_map_count=262144\n'
     if not fs_found:
         new_output += 'fs.file-max=65535\n'
-    open('/etc/sysctl.conf', 'w').write(new_output)
+    with open('/etc/sysctl.conf', 'w') as f:
+        f.write(new_output)
     subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
     subprocess.call('sysctl -w fs.file-max=65535', shell=True)
     subprocess.call('sysctl -p', shell=True)
@@ -296,8 +343,9 @@ def update_user_file_handle_limits():
             new_output += 'dynamite    -   nofile   65535'
             limit_found = True
         else:
-            new_output += line
+            new_output += line.strip()
         new_output += '\n'
     if not limit_found:
         new_output += '\ndynamite    -   nofile   65535\n'
-    open('/etc/security/limits.conf', 'a').write(new_output)
+    with open('/etc/security/limits.conf', 'w') as f:
+        f.write(new_output)

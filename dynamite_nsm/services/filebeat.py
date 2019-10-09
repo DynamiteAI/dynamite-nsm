@@ -8,9 +8,9 @@ import tarfile
 import subprocess
 from multiprocessing import Process
 
-from lib.services import zeek
-from lib import const
-from lib import utilities
+from dynamite_nsm.services import zeek
+from dynamite_nsm import const
+from dynamite_nsm import utilities
 
 INSTALL_DIRECTORY = '/opt/dynamite/filebeat/'
 
@@ -156,7 +156,8 @@ class FileBeatInstaller:
         if 'FILEBEAT_HOME' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating FileBeat default script path [{}]\n'.format(
-                    self.install_directory))
+                    self.install_directory)
+                )
             subprocess.call('echo FILEBEAT_HOME="{}" >> /etc/environment'.format(self.install_directory),
                             shell=True)
 

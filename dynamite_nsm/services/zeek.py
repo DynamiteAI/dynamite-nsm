@@ -10,10 +10,10 @@ try:
 except Exception:
     from configparser import ConfigParser
 
-from lib import const
-from lib.services import pf_ring
-from lib import utilities
-from lib import package_manager
+from dynamite_nsm import const
+from dynamite_nsm.services import pf_ring
+from dynamite_nsm import utilities
+from dynamite_nsm import package_manager
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/zeek/'
@@ -321,6 +321,11 @@ class ZeekInstaller:
 
     @staticmethod
     def install_dependencies():
+        """
+        Install the required dependencies required by Zeek
+
+        :return: True, if all packages installed successfully
+        """
         pacman = package_manager.OSPackageManager()
         if not pacman.refresh_package_indexes():
             return False
@@ -336,6 +341,13 @@ class ZeekInstaller:
         return False
 
     def setup_zeek(self, network_interface=None, stdout=False):
+        """
+        Setup Zeek NSM with PF_RING support
+
+        :param stdout: Print output to console
+        :param network_interface: The interface to listen on
+        :return: True, if setup successful
+        """
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
         if network_interface not in utilities.get_network_interface_names():
@@ -347,14 +359,15 @@ class ZeekInstaller:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        if stdout:
-            sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
-            sys.stdout.flush()
-            time.sleep(1)
         pf_ring_install = pf_ring.PFRingInstaller()
-        pf_ring_install.download_pf_ring(stdout=True)
-        pf_ring_install.extract_pf_ring(stdout=True)
-        pf_ring_install.setup_pf_ring(stdout=True)
+        if not pf_ring.PFRingProfiler().is_installed:
+            if stdout:
+                sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
+                sys.stdout.flush()
+                time.sleep(1)
+            pf_ring_install.download_pf_ring(stdout=True)
+            pf_ring_install.extract_pf_ring(stdout=True)
+            pf_ring_install.setup_pf_ring(stdout=True)
         if stdout:
             sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.'
                              '\n\n')
@@ -402,7 +415,9 @@ class ZeekInstaller:
 
 
 class ZeekProfiler:
-
+    """
+    An interface for profiling Zeek NSM
+    """
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)
         self.is_installed = self._is_installed(stderr=stderr)
@@ -485,6 +500,12 @@ class ZeekProcess:
         self.install_directory = install_directory
 
     def start(self, stdout=False):
+        """
+        Start Zeek cluster via broctl
+
+        :param stdout: Print output to console
+        :return: True, if started successfully
+        """
         if stdout:
             sys.stdout.write('[+] Attempting to start Zeek cluster.\n')
         p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
@@ -492,6 +513,12 @@ class ZeekProcess:
         return p.returncode == 0
 
     def stop(self, stdout=False):
+        """
+        Stop Zeek cluster via broctl
+
+        :param stdout: Print output to console
+        :return: True, if stopped successfully
+        """
         if stdout:
             sys.stdout.write('[+] Attempting to stop Zeek cluster.\n')
         p = subprocess.Popen('{} stop'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
@@ -499,12 +526,23 @@ class ZeekProcess:
         return p.returncode == 0
 
     def status(self):
+        """
+        Check the status of all workers, proxies, and manager in Zeek cluster
+
+        :return: A string containing the results outputted from 'broctl status'
+        """
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         return out.decode('utf-8')
 
     def restart(self, stdout=False):
+        """
+        Restart the Zeek process via broctl
+
+        :param stdout: Print output to console
+        :return: True if restarted successfully
+        """
         if stdout:
             sys.stdout.write('[+] Attempting to restart Zeek cluster.\n')
         p = subprocess.Popen('{} restart'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)

@@ -22,13 +22,13 @@ except Exception:
     from urllib.request import Request
     from urllib.parse import urlencode
 
-from lib import const
-from lib import utilities
-from lib.package_manager import OSPackageManager
-from lib.services.logstash import LogstashProfiler
-from lib.services.elasticsearch import ElasticProcess
-from lib.services.elasticsearch import ElasticProfiler
-from lib.services.elastiflow import ElastiFlowInstaller
+from dynamite_nsm import const
+from dynamite_nsm import utilities
+from dynamite_nsm.package_manager import OSPackageManager
+from dynamite_nsm.services.logstash import LogstashProfiler
+from dynamite_nsm.services.elasticsearch import ElasticProcess
+from dynamite_nsm.services.elasticsearch import ElasticProfiler
+from dynamite_nsm.services.elastiflow import ElastiFlowInstaller
 
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
 CONFIGURATION_DIRECTORY = '/etc/dynamite/kibana/'
@@ -49,7 +49,9 @@ class KibanaAPIConfigurator:
 
     def create_elastiflow_index_patterns(self, stdout=False):
         """
+        ** DEPRECATED **
         Creates ElastiFlow index-pattern
+
         :param stdout: Print output to console
         :return: True, if created successfully
         """
@@ -88,8 +90,8 @@ class KibanaAPIConfigurator:
         :return: True, if created successfully
         """
 
-        kibana_api_objects_path = os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
-                               const.ELASTIFLOW_DASHBOARDS_CONFIG)
+        kibana_api_objects_path = os.path.join(const.INSTALL_CACHE, const.DEFAULT_CONFIGS, 'kibana', 'objects',
+                                               'saved_objects.ndjson')
 
         server_host = self.kibana_config.get_server_host()
         if server_host.strip() == '0.0.0.0':
@@ -99,8 +101,9 @@ class KibanaAPIConfigurator:
         # Shelling out is a reasonable workaround
         kibana_api_import_url = '{}:{}/api/saved_objects/_import'.format(server_host,
                     self.kibana_config.get_server_port())
-        curl_command = 'curl -X POST {} --form file=@{} -H "kbn-xsrf: true" -H "Content-Type: multipart/form-data" -v'.format(
-                kibana_api_import_url, kibana_api_objects_path
+        curl_command = 'curl -X POST {} -u {}:{} --form file=@{} -H "kbn-xsrf: true" ' \
+                       '-H "Content-Type: multipart/form-data" -v'.format(
+            kibana_api_import_url, 'kibana', self.kibana_config.get_elasticsearch_password(), kibana_api_objects_path
         )
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
@@ -145,7 +148,7 @@ class KibanaConfigurator:
                     v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
                 else:
                     k, v = line.strip().split(':')
-                kb_config_options[k] = str(v).strip().replace('"','').replace("'",'')
+                kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
         return kb_config_options
 
     def _parse_environment_file(self):
@@ -181,6 +184,12 @@ class KibanaConfigurator:
         """
         return self.kb_config_options['elasticsearch.hosts']
 
+    def get_elasticsearch_password(self):
+        """
+        :return: The password to the ElasticSearch 'kibana' user
+        """
+        return self.kb_config_options['elasticsearch.password']
+
     def set_server_host(self, host='0.0.0.0'):
         """
         :param host: The IP address for Kibana service to listen on
@@ -198,6 +207,12 @@ class KibanaConfigurator:
         :param host_list: A list of ElasticSearch hosts for Kibana to connect too
         """
         self.kb_config_options['elasticsearch.hosts'] = json.dumps(host_list)
+
+    def set_elasticsearch_password(self, password):
+        """
+        :param password: The ElasticSearch password for the 'kibana' user
+        """
+        self.kb_config_options['elasticsearch.password'] = password
 
     def write_configs(self):
         """
@@ -222,14 +237,16 @@ class KibanaInstaller:
                  port=5601,
                  elasticsearch_host=None,
                  elasticsearch_port=None,
+                 elasticsearch_password='changeme',
                  install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
         :param port: The port that the Kibana UI/API is bound to (E.G 5601)
-        :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
-        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+        :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: A port number for the target elasticsearch instance
+        :param elasticsearch_password: The password used for authentication across all builtin ES users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
@@ -238,6 +255,7 @@ class KibanaInstaller:
         self.port = port
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
+        self.elasticsearch_password = elasticsearch_password
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
@@ -352,6 +370,7 @@ class KibanaInstaller:
             time.sleep(15)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             kibana_object_create_attempts = 1
+            """
             index_pattern_create_attempts = 1
             while not api_config.create_elastiflow_index_patterns():
                 if stdout:
@@ -361,6 +380,7 @@ class KibanaInstaller:
                 time.sleep(10)
             if stdout:
                 sys.stdout.write('[+] Successfully created index-patterns.\n')
+            """
             while not api_config.create_elastiflow_saved_objects():
                 if stdout:
                     sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
@@ -381,6 +401,7 @@ class KibanaInstaller:
                                                                     self.elasticsearch_port)])
         local_config.set_server_host(self.host)
         local_config.set_server_port(self.port)
+        local_config.set_elasticsearch_password(self.elasticsearch_password)
         local_config.write_configs()
 
     @staticmethod
@@ -558,6 +579,7 @@ class KibanaProcess:
     def start(self, stdout=False):
         """
         Start the Kibana process
+
         :param stdout: Print output to console
         :return: True, if started successfully
         """
@@ -674,13 +696,15 @@ class KibanaProcess:
         utilities.set_ownership_of_file('/var/log/dynamite')
 
 
-def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, install_jdk=True, create_dynamite_user=True,
+def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
+                   install_jdk=True, create_dynamite_user=True,
                    stdout=False):
     """
     Install Kibana/ElastiFlow Dashboards
 
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run
     Logstash/ElasticSearch/Kibana
@@ -697,13 +721,15 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, inst
         ))
         return False
     try:
-        kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
+        kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host,
+                                       elasticsearch_port=elasticsearch_port,
+                                       elasticsearch_password=elasticsearch_password)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)
             utilities.setup_java()
         if create_dynamite_user:
-            utilities.create_dynamite_user('password')
+            utilities.create_dynamite_user(utilities.generate_random_password(50))
         kb_installer.download_kibana(stdout=True)
         kb_installer.extract_kibana(stdout=True)
         kb_installer.setup_kibana(stdout=True)
@@ -733,9 +759,9 @@ def uninstall_kibana(stdout=False, prompt_user=True):
         return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING KIBANA WILL PREVENT YOU FROM VIEWING NETWORK EVENTS.\n')
-        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
@@ -758,7 +784,7 @@ def uninstall_kibana(stdout=False, prompt_user=True):
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
         if stdout:
-            sys.stdout.write('[+] Kibana uninstall successfully.\n')
+            sys.stdout.write('[+] Kibana uninstalled successfully.\n')
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall Kibana: ')
         traceback.print_exc(file=sys.stderr)

@@ -9,9 +9,10 @@ import traceback
 import subprocess
 from multiprocessing import Process
 
-from lib import const
-from lib import utilities
-from lib.services import elastiflow
+from dynamite_nsm import const
+from dynamite_nsm import utilities
+from dynamite_nsm.services import synesis
+from dynamite_nsm.services import elastiflow
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/'
 INSTALL_DIRECTORY = '/opt/dynamite/logstash/'
@@ -206,13 +207,15 @@ class LogstashInstaller:
                  host='0.0.0.0',
                  elasticsearch_host='localhost',
                  elasticsearch_port=9200,
+                 elasticsearch_password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
-        :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
-        :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+        :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: A port number for the target elasticsearch instance
+        :param elasticsearch_password: The password used for authentication across all builtin ES users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
@@ -223,6 +226,7 @@ class LogstashInstaller:
         self.elasticsearch_port = elasticsearch_port
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
+        self.elasticsearch_password = elasticsearch_password
         self.log_directory = log_directory
 
     def _copy_logstash_files_and_directories(self, stdout=False):
@@ -326,12 +330,10 @@ class LogstashInstaller:
         ls_config.write_configs()
 
     def _setup_elastiflow(self, stdout=False):
-        ef_install = elastiflow.ElastiFlowInstaller(configuration_directory=
+        ef_install = elastiflow.ElastiFlowInstaller(install_directory=
                                                     os.path.join(self.configuration_directory, 'elastiflow'))
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'elastiflow-pipeline.yml'),
-                    os.path.join(self.configuration_directory, 'pipelines.yml'))
-        ef_install.download_elasticflow(stdout=stdout)
-        ef_install.extract_elastiflow(stdout=stdout)
+        # ef_install.download_elasticflow(stdout=stdout)
+        # ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)
         ef_config = elastiflow.ElastiflowConfigurator()
         ef_config.ipfix_tcp_ipv4_host = self.host
@@ -339,7 +341,19 @@ class LogstashInstaller:
         ef_config.sflow_ipv4_host = self.host
         ef_config.zeek_ipv4_host = self.host
         ef_config.es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
+        ef_config.es_passwd = self.elasticsearch_password
         ef_config.write_environment_variables()
+
+    def _setup_synesis(self, stdout=False):
+        syn_install = synesis.SynesisInstaller(install_directory=os.path.join(self.configuration_directory, 'synesis'))
+        # syn_install.download_synesis(stdout=stdout)
+        # syn_install.extract_synesis(stdout=stdout)
+        syn_install.setup_logstash_synesis(stdout=stdout)
+        syn_config = synesis.SynesisConfigurator()
+        syn_config.suricata_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
+        syn_config.suricata_resolve_ip2host = True
+        syn_config.suricata_es_passwd = self.elasticsearch_password
+        syn_config.write_environment_variables()
 
     @staticmethod
     def _update_sysctl(stdout=False):
@@ -389,7 +403,10 @@ class LogstashInstaller:
         self._setup_default_logstash_configs(stdout=stdout)
         self._update_sysctl(stdout=stdout)
         self._setup_elastiflow(stdout=stdout)
+        self._setup_synesis(stdout=stdout)
         self._install_logstash_plugins(stdout=stdout)
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
+                    os.path.join(self.configuration_directory, 'pipelines.yml'))
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
@@ -659,10 +676,11 @@ class LogstashProcess:
 
 
 def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsearch_port=9200,
-                     install_jdk=True, create_dynamite_user=True, stdout=False):
+                     elasticsearch_password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):
     """
     Install Logstash/ElastiFlow
 
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
@@ -681,13 +699,15 @@ def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsear
         return False
     try:
         ls_installer = LogstashInstaller(host=host,
-                                         elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port)
+                                         elasticsearch_host=elasticsearch_host,
+                                         elasticsearch_port=elasticsearch_port,
+                                         elasticsearch_password=elasticsearch_password)
         if install_jdk:
             utilities.download_java(stdout=True)
             utilities.extract_java(stdout=True)
             utilities.setup_java()
         if create_dynamite_user:
-            utilities.create_dynamite_user('password')
+            utilities.create_dynamite_user(utilities.generate_random_password(50))
         ls_installer.download_logstash(stdout=True)
         ls_installer.extract_logstash(stdout=True)
         ls_installer.setup_logstash(stdout=True)
@@ -717,9 +737,9 @@ def uninstall_logstash(stdout=False, prompt_user=True):
         return False
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING LOGSTASH WILL PREVENT ELASTICSEARCH FROM RECEIVING EVENTS.\n')
-        resp = input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
@@ -742,7 +762,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
         if stdout:
-            sys.stdout.write('[+] LogStash uninstall successfully.\n')
+            sys.stdout.write('[+] LogStash uninstalled successfully.\n')
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall LogStash: ')
         traceback.print_exc(file=sys.stderr)
