@@ -50,14 +50,14 @@ python setup.py install
 
 
 #### GeoIp Enrichment 
-<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
+<img align="left" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
 
 
 #### Signature Alerting 
 <img align="left" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
 
 #### Threat Deep-Dive 
-<img align="right" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+<img align="left" src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
 
 #### ...over 20 more dashboards!
 
