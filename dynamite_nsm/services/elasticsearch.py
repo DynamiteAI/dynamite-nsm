@@ -451,6 +451,8 @@ class ElasticInstaller:
             for line in s.split('\n'):
                 if 'PASSWORD' in line:
                     _, user, _, password = line.split(' ')
+                    if not isinstance(password, str):
+                        password = password.decode()
                     bootstrap_users_and_passwords[user] = password
             es_pass_config = ElasticPasswordConfigurator(
                 auth_user='elastic',
