@@ -82,10 +82,7 @@ Start the monitor. The Kibana UI can be found at: http://localhost:5601
 ```bash
 dynamite start monitor
 ```
-
-
-
-______
+<br><br><br><br>
 #### Agent
 
 ##### Specs
