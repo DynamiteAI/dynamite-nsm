@@ -108,7 +108,6 @@ class KibanaConfigurator:
                 if line.startswith('elasticsearch.hosts:'):
                     k = 'elasticsearch.hosts'
                     v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
-                    print(line, v)
                 else:
                     k, v = line.strip().split(':')
                 kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
@@ -170,6 +169,7 @@ class KibanaConfigurator:
         :param host_list: A list of ElasticSearch hosts for Kibana to connect too
         """
         self.kb_config_options['elasticsearch.hosts'] = json.dumps(host_list)
+        print(json.dumps(host_list))
 
     def set_elasticsearch_password(self, password):
         """
