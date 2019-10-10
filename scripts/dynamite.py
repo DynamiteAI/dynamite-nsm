@@ -137,7 +137,7 @@ if __name__ == '__main__':
                 sys.exit(1)
         elif args.component == 'monitor':
             if monitor.change_monitor_password(old_password=getpass.getpass('Enter the old ElasticSearch password: '),
-                                               password=utilities.prompt_password(), stdout=True):
+                                               password=utilities.prompt_password()):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset Kibana -> ElasticSearch password.\n')
