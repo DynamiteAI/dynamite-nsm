@@ -498,7 +498,7 @@ class ElasticInstaller:
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
         bootstrap_p = subprocess.Popen([es_password_util, 'auto'],
                                        cwd=self.configuration_directory, stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True, env=env_dict)
+                                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE, env=env_dict)
         bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
         if not bootstrap_p_res:
             sys.stderr.write('[-] Failed to setup new passwords\n')
