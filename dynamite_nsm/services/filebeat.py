@@ -221,6 +221,7 @@ class FileBeatProcess:
     """
     An interface for start|stop|status|restart of the Filebeat process
     """
+
     def __init__(self, install_directory=INSTALL_DIRECTORY):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/filebeat/)

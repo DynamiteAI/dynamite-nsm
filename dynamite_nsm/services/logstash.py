@@ -675,14 +675,20 @@ class LogstashProcess:
         }
 
 
-def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsearch_port=9200,
-                     elasticsearch_password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):
+def install_logstash(host='0.0.0.0',
+                     elasticsearch_host='localhost',
+                     elasticsearch_port=9200,
+                     elasticsearch_password='changeme',
+                     install_jdk=True,
+                     create_dynamite_user=True,
+                     stdout=False):
     """
     Install Logstash/ElastiFlow
-
+    :param host: The IP address to bind LogStash listeners too
     :param elasticsearch_password: The password used for authentication across all builtin ES users
-    :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
-    :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+    :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+    :param elasticsearch_port: A port number for the target elasticsearch instance
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console

@@ -236,7 +236,9 @@ class ElasticConfigurator:
 
 
 class ElasticPasswordConfigurator:
-
+    """
+    Provides a basic interface for resetting ElasticSearch passwords
+    """
     def __init__(self, auth_user, current_password):
         self.auth_user = auth_user
         self.current_password = current_password
@@ -273,24 +275,73 @@ class ElasticPasswordConfigurator:
             return True
 
     def set_apm_system_password(self, new_password, stdout=False):
+        """
+        Reset the builtin apm_system user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('apm_system', new_password, stdout=stdout)
 
     def set_beats_password(self, new_password, stdout=False):
+        """
+        Reset the builtin beats user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('beats_system', new_password, stdout=stdout)
 
     def set_elastic_password(self, new_password, stdout=False):
+        """
+        Reset the builtin elastic user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('elastic', new_password, stdout=stdout)
 
     def set_kibana_password(self, new_password, stdout=False):
+        """
+        Reset the builtin kibana user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('kibana', new_password, stdout=stdout)
 
     def set_logstash_system_password(self, new_password, stdout=False):
+        """
+        Reset the builtin logstash user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('logstash_system', new_password, stdout=stdout)
 
     def set_remote_monitoring_password(self, new_password, stdout=False):
+        """
+        Reset the builtin remote_monitoring_user user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
 
     def set_all_passwords(self, new_password, stdout=False):
+        """
+        Reset all builtin user passwords
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         r = self.set_apm_system_password(new_password, stdout=stdout)
         r2 = self.set_remote_monitoring_password(new_password, stdout=stdout)
         r3 = self.set_logstash_system_password(new_password, stdout=stdout)
@@ -462,7 +513,6 @@ class ElasticInstaller:
                     if not isinstance(password, str):
                         password = password.decode()
                     bootstrap_users_and_passwords[user] = password
-            print(bootstrap_users_and_passwords)
             es_pass_config = ElasticPasswordConfigurator(
                 auth_user='elastic',
                 current_password=bootstrap_users_and_passwords['elastic'])

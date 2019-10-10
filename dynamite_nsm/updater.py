@@ -9,6 +9,11 @@ from dynamite_nsm.utilities import create_dynamite_root_directory
 
 
 def update_default_configurations():
+    """
+    Retrieves the latest skeleton configurations for setting up ElasticSearch, LogStash, Zeek, and Suricata
+
+    :return: True, if retrieved successfully
+    """
     create_dynamite_root_directory()
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/default_configs.tar.gz',
                   'default_configs.tar.gz', stdout=True)
@@ -24,6 +29,11 @@ def update_default_configurations():
 
 
 def update_mirrors():
+    """
+    Retrieves the latest mirrors which contain the download locations for all components
+
+    :return: True, if retrieved successfully
+    """
     create_dynamite_root_directory()
     download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/mirrors.tar.gz',
                   'mirrors.tar.gz', stdout=True)
