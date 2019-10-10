@@ -77,7 +77,7 @@ Check to see if your operating system is [supported](SUPPORTED_OSs.md).
 ##### Specs
 ```
 Linux Kernel: 2.6.32+
-14 GB of RAM at least 4 CPU
+14 GB of RAM at least 4 vCPU
 ```
 
 ##### Installation
@@ -105,7 +105,7 @@ You can login with the `elastic` user and the password you set during installati
 ##### Specs
 ```
 Linux Kernel: 2.6.32+
-4+ GB of RAM at least 2 CPU
+8+ GB of RAM at least 4 vCPU
 ```
 
 ##### Installation
