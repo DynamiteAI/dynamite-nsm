@@ -2,6 +2,7 @@
 import os
 import sys
 import json
+import getpass
 import argparse
 import traceback
 
@@ -112,7 +113,10 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'chpasswd':
         if args.component == 'elasticsearch':
-            if elasticsearch.change_elasticsearch_password(utilities.prompt_password(), stdout=True):
+            if elasticsearch.change_elasticsearch_password(
+                old_password=getpass.getpass('Enter the old ElasticSearch password: '),
+                password=utilities.prompt_password(), stdout=True
+            ):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset ElasticSearch password.\n')

@@ -5,7 +5,6 @@ import time
 import base64
 import signal
 import shutil
-import getpass
 import tarfile
 import traceback
 import subprocess
@@ -798,8 +797,7 @@ class ElasticProcess:
         }
 
 
-def change_elasticsearch_password(password='changeme', stdout=False):
-    old_password = getpass.getpass('Enter the old ElasticSearch password: ')
+def change_elasticsearch_password(old_password, password='changeme', stdout=False):
     if not ElasticProcess().start():
         sys.stderr.write('[-] Could not start ElasticSearch Process. Password reset failed.')
         return False
