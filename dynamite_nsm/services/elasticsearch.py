@@ -250,7 +250,7 @@ class ElasticPasswordConfigurator:
             try:
                 base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
             except TypeError:
-                encoded_bytes = base64.b64encode(b'%s:%s' % (self.auth_user, self.current_password))
+                encoded_bytes = b'%s:%s' % (self.auth_user, self.current_password)
                 base64string = base64.b64encode(encoded_bytes)
             url_request = Request(
                 url='http://{}:{}/_xpack/security/user/{}/_password'.format(
@@ -453,7 +453,6 @@ class ElasticInstaller:
 
     def setup_passwords(self, stdout=False):
         env_dict = utilities.get_environment_file_dict()
-        java_home = env_dict.get('JAVA_HOME')
 
         def setup_from_bootstrap(s):
             bootstrap_users_and_passwords = {}
