@@ -463,6 +463,7 @@ class ElasticInstaller:
                     if not isinstance(password, str):
                         password = password.decode()
                     bootstrap_users_and_passwords[user] = password
+            print(bootstrap_users_and_passwords)
             es_pass_config = ElasticPasswordConfigurator(
                 auth_user='elastic',
                 current_password=bootstrap_users_and_passwords['elastic'])
