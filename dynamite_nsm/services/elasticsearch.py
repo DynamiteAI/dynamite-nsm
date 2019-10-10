@@ -252,6 +252,7 @@ class ElasticPasswordConfigurator:
             except TypeError:
                 encoded_bytes = '{}:{}'.format(self.auth_user, self.current_password).encode('ascii')
                 base64string = base64.b64encode(encoded_bytes)
+                print(base64string)
             url_request = Request(
                 url='http://{}:{}/_xpack/security/user/{}/_password'.format(
                     es_config.get_network_host(),
