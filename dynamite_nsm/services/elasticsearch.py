@@ -799,6 +799,7 @@ class ElasticProcess:
 
 
 def change_elasticsearch_password(password='changeme', stdout=False):
+    old_password = getpass.getpass('Enter the old ElasticSearch password: ')
     if not ElasticProcess().start():
         sys.stderr.write('[-] Could not start ElasticSearch Process. Password reset failed.')
         return False
@@ -812,7 +813,7 @@ def change_elasticsearch_password(password='changeme', stdout=False):
         sys.stdout.flush()
     time.sleep(10)
     es_pw_config = ElasticPasswordConfigurator(
-        'elastic', current_password=getpass.getpass('Enter the old ElasticSearch password: '))
+        'elastic', current_password=old_password)
     return es_pw_config.set_all_passwords(password, stdout=stdout)
 
 
