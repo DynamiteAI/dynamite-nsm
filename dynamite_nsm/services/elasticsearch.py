@@ -475,10 +475,9 @@ class ElasticInstaller:
         subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
         es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
-        print(' '.join(['export JAVA_HOME={} &&'.format(java_home), es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', '""']))
-        cert_p = subprocess.Popen(['export JAVA_HOME={} &&'.format(java_home), es_cert_util, 'cert', '-out',
-                                   es_cert_keystore, '-pass', '""'],
-                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True)
+        cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', '""'],
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True,
+                                  env=env_dict)
         cert_p_res = cert_p.communicate()
         if not os.path.exists(es_cert_keystore):
             sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n\t'.format(cert_p_res))
@@ -497,9 +496,9 @@ class ElasticInstaller:
                 sys.stdout.flush()
         sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
-        bootstrap_p = subprocess.Popen(['export JAVA_HOME={};'.format(java_home), es_password_util, 'auto'],
+        bootstrap_p = subprocess.Popen([es_password_util, 'auto'],
                                        cwd=self.configuration_directory, stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True)
+                                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True, env=env_dict)
         bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
         if not bootstrap_p_res:
             sys.stderr.write('[-] Failed to setup new passwords\n')
