@@ -236,9 +236,14 @@ def prompt_input(message):
 def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm Password: '):
     password = 0
     confirm_password = 1
-    while password != confirm_password:
+    first_attempt = True
+    while password != confirm_password or len(password) < 6:
+        if not first_attempt:
+            sys.stderr.write('[-] Passwords either did not match or were less than 6 characters. Please try again.\n\n')
+            sys.stderr.flush()
         password = getpass.getpass(prompt)
         confirm_password = getpass.getpass(confirm_prompt)
+        first_attempt = False
     return password
 
 
@@ -251,6 +256,7 @@ def setup_java():
         shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
     except shutil.Error as e:
         sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
+        sys.stderr.flush()
     if 'JAVA_HOME' not in open('/etc/environment').read():
         subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
 

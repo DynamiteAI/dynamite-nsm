@@ -236,7 +236,9 @@ class ElasticConfigurator:
 
 
 class ElasticPasswordConfigurator:
-
+    """
+    Provides a basic interface for resetting ElasticSearch passwords
+    """
     def __init__(self, auth_user, current_password):
         self.auth_user = auth_user
         self.current_password = current_password
@@ -251,7 +253,7 @@ class ElasticPasswordConfigurator:
                 base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
             except TypeError:
                 encoded_bytes = '{}:{}'.format(self.auth_user, self.current_password).encode('utf-8')
-                base64string = base64.b64encode(encoded_bytes)
+                base64string = base64.b64encode(encoded_bytes).decode('utf-8')
             url_request = Request(
                 url='http://{}:{}/_xpack/security/user/{}/_password'.format(
                     es_config.get_network_host(),
@@ -273,24 +275,73 @@ class ElasticPasswordConfigurator:
             return True
 
     def set_apm_system_password(self, new_password, stdout=False):
+        """
+        Reset the builtin apm_system user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('apm_system', new_password, stdout=stdout)
 
     def set_beats_password(self, new_password, stdout=False):
+        """
+        Reset the builtin beats user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('beats_system', new_password, stdout=stdout)
 
     def set_elastic_password(self, new_password, stdout=False):
+        """
+        Reset the builtin elastic user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('elastic', new_password, stdout=stdout)
 
     def set_kibana_password(self, new_password, stdout=False):
+        """
+        Reset the builtin kibana user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('kibana', new_password, stdout=stdout)
 
     def set_logstash_system_password(self, new_password, stdout=False):
+        """
+        Reset the builtin logstash user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('logstash_system', new_password, stdout=stdout)
 
     def set_remote_monitoring_password(self, new_password, stdout=False):
+        """
+        Reset the builtin remote_monitoring_user user
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         return self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
 
     def set_all_passwords(self, new_password, stdout=False):
+        """
+        Reset all builtin user passwords
+
+        :param new_password: The new password
+        :param stdout: Print status to stdout
+        :return: True, if successfully reset
+        """
         r = self.set_apm_system_password(new_password, stdout=stdout)
         r2 = self.set_remote_monitoring_password(new_password, stdout=stdout)
         r3 = self.set_logstash_system_password(new_password, stdout=stdout)
@@ -452,6 +503,7 @@ class ElasticInstaller:
         self.setup_passwords(stdout=stdout)
 
     def setup_passwords(self, stdout=False):
+        env_dict = utilities.get_environment_file_dict()
 
         def setup_from_bootstrap(s):
             bootstrap_users_and_passwords = {}
@@ -470,14 +522,15 @@ class ElasticInstaller:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
             return False
         sys.stdout.write('[+] Creating certificate keystore\n')
-        es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
+        es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
         cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
-                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
-        cert_p.communicate(input=b'Y\n')
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
+                                  env=env_dict)
+        cert_p_res = cert_p.communicate()
         if not os.path.exists(es_cert_keystore):
-            sys.stderr.write('[-] Failed to setup SSL certificate keystore\n')
+            sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n\t'.format(cert_p_res))
             return False
         utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
         if not ElasticProfiler().is_running:
@@ -493,11 +546,13 @@ class ElasticInstaller:
                 sys.stdout.flush()
         sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
-        bootstrap_p = subprocess.Popen([es_password_util, 'auto'],  cwd=self.configuration_directory,
-                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+        bootstrap_p = subprocess.Popen([es_password_util, 'auto'],
+                                       cwd=self.configuration_directory, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE, env=env_dict)
         bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
         if not bootstrap_p_res:
             sys.stderr.write('[-] Failed to setup new passwords\n')
+            return False
         if not isinstance(bootstrap_p_res[0], str):
             return setup_from_bootstrap(bootstrap_p_res[0].decode())
         else:
@@ -740,6 +795,24 @@ class ElasticProcess:
             'USER': 'dynamite',
             'LOGS': log_path
         }
+
+
+def change_elasticsearch_password(old_password, password='changeme', stdout=False):
+    if not ElasticProcess().start():
+        sys.stderr.write('[-] Could not start ElasticSearch Process. Password reset failed.')
+        return False
+    while not ElasticProfiler().is_listening:
+        if stdout:
+            sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
+        time.sleep(5)
+    if stdout:
+        sys.stdout.write('[+] ElasticSearch API is up.\n')
+        sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
+        sys.stdout.flush()
+    time.sleep(10)
+    es_pw_config = ElasticPasswordConfigurator(
+        'elastic', current_password=old_password)
+    return es_pw_config.set_all_passwords(password, stdout=stdout)
 
 
 def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):

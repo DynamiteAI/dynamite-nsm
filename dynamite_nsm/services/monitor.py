@@ -140,6 +140,16 @@ def status_monitor():
     return es_process.status(), ls_process.status(), kb_process.status()
 
 
+def change_monitor_password(old_password, password='changeme'):
+    r1 = elasticsearch.change_elasticsearch_password(old_password, password=password, stdout=True)
+    if not r1:
+        return False
+    logstash.change_logstash_elasticsearch_password(password=password, prompt_user=False, stdout=True)
+    kibana.change_kibana_elasticsearch_password(password=password, prompt_user=False, stdout=True)
+    sys.stdout.write('[+] All monitor components updated passwords successfully.\n')
+    return True
+
+
 def stop_monitor():
     """
     Stops ElasticSearch, Logstash, and Kibana on localhost

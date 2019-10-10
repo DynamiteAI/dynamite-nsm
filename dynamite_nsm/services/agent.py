@@ -6,7 +6,7 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services import filebeat, pf_ring, zeek, suricata
 
-ENV_VARS = utilities.get_environment_file_dict()
+environment_variables = utilities.get_environment_file_dict()
 
 
 def is_agent_environment_prepared():
@@ -79,10 +79,11 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
     else:
         sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
     if not filebeat_profiler.is_installed:
-        ENV_VARS = utilities.get_environment_file_dict()
-        monitored_paths = [os.path.join(ENV_VARS.get('ZEEK_HOME'), 'logs/current/*.log')]
+        environment_variables = utilities.get_environment_file_dict()
+        monitored_paths = [os.path.join(environment_variables.get('ZEEK_HOME'), 'logs/current/*.log')]
         if install_suricata:
-            suricata_config = suricata.SuricataConfigurator(configuration_directory=ENV_VARS.get('SURICATA_CONFIG'))
+            suricata_config = suricata.SuricataConfigurator(configuration_directory=
+                                                            environment_variables.get('SURICATA_CONFIG'))
             monitored_paths.append(os.path.join(suricata_config.get_log_directory(), 'eve.json'))
         filebeat_installer.setup_filebeat(stdout=True)
         filebeat_config = filebeat.FileBeatConfigurator()
@@ -190,8 +191,8 @@ def start_agent():
     suricata_profiler = suricata.SuricataProfiler(stderr=False)
 
     # Load service processes
-    filebeat_p = filebeat.FileBeatProcess(install_directory=ENV_VARS.get('FILEBEAT_HOME'))
-    zeek_p = zeek.ZeekProcess(install_directory=ENV_VARS.get('ZEEK_HOME'))
+    filebeat_p = filebeat.FileBeatProcess(install_directory=environment_variables.get('FILEBEAT_HOME'))
+    zeek_p = zeek.ZeekProcess(install_directory=environment_variables.get('ZEEK_HOME'))
 
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
@@ -204,8 +205,8 @@ def start_agent():
     sys.stdout.write('[+] Starting agent processes.\n')
     if suricata_profiler.is_installed:
         # Load Suricata process
-        suricata_p = suricata.SuricataProcess(install_directory=ENV_VARS.get('SURICATA_HOME'),
-                                              configuration_directory=ENV_VARS.get('SURICATA_CONFIG'))
+        suricata_p = suricata.SuricataProcess(install_directory=environment_variables.get('SURICATA_HOME'),
+                                              configuration_directory=environment_variables.get('SURICATA_CONFIG'))
         if not suricata_p.start(stdout=True):
             sys.stderr.write('[-] Could not start agent.suricata_process.\n')
             return False
@@ -227,8 +228,8 @@ def status_agent():
     """
 
     # Load service processes
-    zeek_p = zeek.ZeekProcess(install_directory=ENV_VARS.get('ZEEK_HOME'))
-    filebeat_p = filebeat.FileBeatProcess(ENV_VARS.get('FILEBEAT_HOME'))
+    zeek_p = zeek.ZeekProcess(install_directory=environment_variables.get('ZEEK_HOME'))
+    filebeat_p = filebeat.FileBeatProcess(environment_variables.get('FILEBEAT_HOME'))
 
     # Load service profilers
     pf_ring_profiler = pf_ring.PFRingProfiler(stderr=False)
@@ -248,8 +249,8 @@ def status_agent():
     )
     if suricata_profiler.is_installed:
         # Load Suricata process
-        suricata_p = suricata.SuricataProcess(install_directory=ENV_VARS.get('SURICATA_HOME'),
-                                              configuration_directory=ENV_VARS.get('SURICATA_CONFIG'))
+        suricata_p = suricata.SuricataProcess(install_directory=environment_variables.get('SURICATA_HOME'),
+                                              configuration_directory=environment_variables.get('SURICATA_CONFIG'))
         agent_status['agent_processes']['suricata'] = suricata_p.status()
     return zeek_p.status(), agent_status
 
@@ -269,7 +270,7 @@ def stop_agent():
 
     # Load service processes
     zeek_p = zeek.ZeekProcess()
-    filebeat_p = filebeat.FileBeatProcess(install_directory=ENV_VARS.get('FILEBEAT_HOME'))
+    filebeat_p = filebeat.FileBeatProcess(install_directory=environment_variables.get('FILEBEAT_HOME'))
 
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
@@ -277,8 +278,8 @@ def stop_agent():
         return False
     if suricata_profiler.is_installed:
         # Load Suricata process
-        suricata_p = suricata.SuricataProcess(install_directory=ENV_VARS.get('SURICATA_HOME'),
-                                              configuration_directory=ENV_VARS.get('SURICATA_CONFIG'))
+        suricata_p = suricata.SuricataProcess(install_directory=environment_variables.get('SURICATA_HOME'),
+                                              configuration_directory=environment_variables.get('SURICATA_CONFIG'))
         if not suricata_p.stop(stdout=True):
             sys.stderr.write('[-] Could not stop agent.suricata_process.\n')
             return False
@@ -299,7 +300,7 @@ def uninstall_agent(prompt_user=True):
     :return: True, if uninstall succeeded
     """
     filebeat_profiler = filebeat.FileBeatProfiler()
-    filebeat_config = filebeat.FileBeatConfigurator(install_directory=ENV_VARS.get('FILEBEAT_HOME'))
+    filebeat_config = filebeat.FileBeatConfigurator(install_directory=environment_variables.get('FILEBEAT_HOME'))
     pf_profiler = pf_ring.PFRingProfiler()
     zeek_profiler = zeek.ZeekProfiler()
     suricata_profiler = suricata.SuricataProfiler()
@@ -316,20 +317,20 @@ def uninstall_agent(prompt_user=True):
             sys.stdout.write('[+] Exiting\n')
             return False
     if filebeat_profiler.is_running:
-        filebeat.FileBeatProcess(install_directory=ENV_VARS.get('FILEBEAT_HOME')).stop(stdout=True)
+        filebeat.FileBeatProcess(install_directory=environment_variables.get('FILEBEAT_HOME')).stop(stdout=True)
     if zeek_profiler.is_running:
-        zeek.ZeekProcess(install_directory=ENV_VARS.get('ZEEK_HOME')).stop()
+        zeek.ZeekProcess(install_directory=environment_variables.get('ZEEK_HOME')).stop()
     if pf_profiler.is_installed:
-        shutil.rmtree(ENV_VARS.get('PF_RING_HOME'))
+        shutil.rmtree(environment_variables.get('PF_RING_HOME'))
         os.remove('/opt/dynamite/.agent_environment_prepared')
     if filebeat_profiler.is_installed:
-        shutil.rmtree(ENV_VARS.get('FILEBEAT_HOME'), ignore_errors=True)
+        shutil.rmtree(environment_variables.get('FILEBEAT_HOME'), ignore_errors=True)
     if zeek_profiler.is_installed:
-        shutil.rmtree(ENV_VARS.get('ZEEK_HOME'), ignore_errors=True)
-        shutil.rmtree(ENV_VARS.get('ZEEK_SCRIPTS'), ignore_errors=True)
+        shutil.rmtree(environment_variables.get('ZEEK_HOME'), ignore_errors=True)
+        shutil.rmtree(environment_variables.get('ZEEK_SCRIPTS'), ignore_errors=True)
     if suricata_profiler.is_installed:
-        shutil.rmtree(ENV_VARS.get('SURICATA_HOME'), ignore_errors=True)
-        shutil.rmtree(ENV_VARS.get('SURICATA_CONFIG'), ignore_errors=True)
+        shutil.rmtree(environment_variables.get('SURICATA_HOME'), ignore_errors=True)
+        shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
     shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     env_lines = ''
     for line in open('/etc/environment').readlines():

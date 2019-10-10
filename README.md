@@ -11,13 +11,13 @@ No need to download a huge ISO image or install a dedicated operating system!
 
 **It is compatible with both Python2 and 3, across these [Linux distributions](SUPPORTED_OSs.md).**
 
-### Install With
+#### Install With...
 
 ```bash
 python setup.py install
 ```
 
-And checkout the [commandline walkthrough](https://github.com/vlabsio/dynamite-nsm/tree/master/scripts/README.md)
+**...And checkout the** [commandline walkthrough](https://github.com/vlabsio/dynamite-nsm/tree/master/scripts/README.md)
 
 
 ### The Agent
@@ -77,7 +77,7 @@ Check to see if your operating system is [supported](SUPPORTED_OSs.md).
 ##### Specs
 ```
 Linux Kernel: 2.6.32+
-14 GB of RAM at least 4 CPU
+14 GB of RAM at least 4 vCPU
 ```
 
 ##### Installation
@@ -105,7 +105,7 @@ You can login with the `elastic` user and the password you set during installati
 ##### Specs
 ```
 Linux Kernel: 2.6.32+
-4+ GB of RAM at least 2 CPU
+8+ GB of RAM at least 4 vCPU
 ```
 
 ##### Installation

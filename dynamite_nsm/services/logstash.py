@@ -94,6 +94,14 @@ class LogstashConfigurator:
             new_output += '\n'
         open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
+    @staticmethod
+    def get_elasticsearch_password():
+        """
+        :return: The password for the given ElasticSearch instance
+        """
+        elastiflow_config = elastiflow.ElastiflowConfigurator()
+        return elastiflow_config.es_passwd
+
     def get_log_path(self):
         """
         :return: The path to Logstash logs on filesystem
@@ -136,6 +144,18 @@ class LogstashConfigurator:
         :return: The maximum amount of memory the JVM heap allocates
         """
         return self.jvm_config_options.get('maximum_memory')
+
+    @staticmethod
+    def set_elasticsearch_password(password):
+        """
+        :param password: The new password
+        """
+        elastiflow_config = elastiflow.ElastiflowConfigurator()
+        synesis_config = synesis.SynesisConfigurator()
+        elastiflow_config.es_passwd = password
+        synesis_config.suricata_es_passwd = password
+        elastiflow_config.write_environment_variables()
+        synesis_config.write_environment_variables()
 
     def set_log_path(self, path):
         """
@@ -675,14 +695,35 @@ class LogstashProcess:
         }
 
 
-def install_logstash(host='0.0.0.0', elasticsearch_host='localhost', elasticsearch_port=9200,
-                     elasticsearch_password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):
+def change_logstash_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):
+    if prompt_user:
+        resp = utilities.prompt_input(
+            'Changing the LogStash password can cause LogStash to lose communication with ElasticSearch. '
+            'Are you sure you wish to continue? [no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            return False
+    LogstashConfigurator(configuration_directory=CONFIGURATION_DIRECTORY).set_elasticsearch_password(password=password)
+    return LogstashProcess().restart(stdout=True)
+
+
+def install_logstash(host='0.0.0.0',
+                     elasticsearch_host='localhost',
+                     elasticsearch_port=9200,
+                     elasticsearch_password='changeme',
+                     install_jdk=True,
+                     create_dynamite_user=True,
+                     stdout=False):
     """
     Install Logstash/ElastiFlow
-
+    :param host: The IP address to bind LogStash listeners too
     :param elasticsearch_password: The password used for authentication across all builtin ES users
-    :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
-    :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
+    :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+    :param elasticsearch_port: A port number for the target elasticsearch instance
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
