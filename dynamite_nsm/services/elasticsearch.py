@@ -473,11 +473,11 @@ class ElasticInstaller:
         subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
         es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
-        cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
+        cert_p = subprocess.Popen([utilities.get_environment_file_str(), es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         res = cert_p.communicate(input=b'Y\n')
         if not os.path.exists(es_cert_keystore):
-            sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n'.format(res))
+            sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n\t'.format(res))
             return False
         utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
         if not ElasticProfiler().is_running:
@@ -493,11 +493,13 @@ class ElasticInstaller:
                 sys.stdout.flush()
         sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
-        bootstrap_p = subprocess.Popen([es_password_util, 'auto'],  cwd=self.configuration_directory,
-                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+        bootstrap_p = subprocess.Popen([utilities.get_environment_file_str(), es_password_util, 'auto'],
+                                       cwd=self.configuration_directory, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
         if not bootstrap_p_res:
             sys.stderr.write('[-] Failed to setup new passwords\n')
+            return False
         if not isinstance(bootstrap_p_res[0], str):
             return setup_from_bootstrap(bootstrap_p_res[0].decode())
         else:
