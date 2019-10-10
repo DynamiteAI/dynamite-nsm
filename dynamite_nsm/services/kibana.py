@@ -108,6 +108,7 @@ class KibanaConfigurator:
                 if line.startswith('elasticsearch.hosts:'):
                     k = 'elasticsearch.hosts'
                     v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
+                    print(v)
                 else:
                     k, v = line.strip().split(':')
                 kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
