@@ -658,6 +658,21 @@ class KibanaProcess:
         utilities.set_ownership_of_file('/var/log/dynamite')
 
 
+def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):
+    if prompt_user:
+        resp = utilities.prompt_input(
+            'Changing the LogStash password can cause Kibana to lose communication with ElasticSearch. '
+            'Are you sure you wish to continue? [no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            return False
+    KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY).set_elasticsearch_password(password=password)
+    return KibanaProcess().restart()
+
+
 def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
                    install_jdk=True, create_dynamite_user=True,
                    stdout=False):

@@ -121,6 +121,30 @@ if __name__ == '__main__':
             else:
                 sys.stderr.write('[-] Failed to reset ElasticSearch password.\n')
                 sys.exit(1)
+        elif args.component == 'logstash':
+            if logstash.change_logstash_elasticsearch_password(password=utilities.prompt_password(),
+                                                               prompt_user=True, stdout=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to reset LogStash -> ElasticSearch password.\n')
+                sys.exit(1)
+        elif args.component == 'kibana':
+            if kibana.change_kibana_elasticsearch_password(password=utilities.prompt_password(),
+                                                               prompt_user=True, stdout=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to reset Kibana -> ElasticSearch password.\n')
+                sys.exit(1)
+        elif args.component == 'monitor':
+            if monitor.change_monitor_password(old_password=getpass.getpass('Enter the old ElasticSearch password: '),
+                                               password=utilities.prompt_password(), stdout=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to reset Kibana -> ElasticSearch password.\n')
+                sys.exit(1)
+        else:
+            sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
+            sys.exit(1)
     elif args.command == 'prepare':
         if args.component == 'agent':
             agent.prepare_agent()

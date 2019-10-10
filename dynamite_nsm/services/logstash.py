@@ -695,6 +695,21 @@ class LogstashProcess:
         }
 
 
+def change_logstash_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):
+    if prompt_user:
+        resp = utilities.prompt_input(
+            'Changing the LogStash password can cause LogStash to lose communication with ElasticSearch. '
+            'Are you sure you wish to continue? [no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            return False
+    LogstashConfigurator(configuration_directory=CONFIGURATION_DIRECTORY).set_elasticsearch_password(password=password)
+    return LogstashProcess().restart()
+
+
 def install_logstash(host='0.0.0.0',
                      elasticsearch_host='localhost',
                      elasticsearch_port=9200,
