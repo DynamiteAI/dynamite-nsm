@@ -496,7 +496,7 @@ class ElasticInstaller:
                 sys.stdout.flush()
         sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
-        bootstrap_p = subprocess.Popen(['export {};'.format(java_home), es_password_util, 'auto'],
+        bootstrap_p = subprocess.Popen(['export JAVA_HOME={};'.format(java_home), es_password_util, 'auto'],
                                        cwd=self.configuration_directory, stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True)
         bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
