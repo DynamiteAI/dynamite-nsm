@@ -250,7 +250,7 @@ class ElasticPasswordConfigurator:
             try:
                 base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
             except TypeError:
-                encoded_bytes = '{}:{}'.format(self.auth_user, self.current_password).encode('utf-8')
+                encoded_bytes = base64.b64encode(b'%s:%s' % (self.auth_user, self.current_password))
                 base64string = base64.b64encode(encoded_bytes)
             url_request = Request(
                 url='http://{}:{}/_xpack/security/user/{}/_password'.format(
