@@ -477,8 +477,8 @@ class ElasticInstaller:
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         cert_p.communicate(input=b'Y\n')
         if not os.path.exists(es_cert_keystore):
-            sys.stderr.write('[-] Failed to setup SSL certificate keystore: \nerrors: {}\noutput: {}\n'.format(
-                cert_p.stderr.read(), cert_p.stdout.read()))
+            sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n'.format(
+                cert_p.stdout.read()))
             return False
         utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
         if not ElasticProfiler().is_running:
