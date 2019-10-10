@@ -661,7 +661,7 @@ class KibanaProcess:
 def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):
     if prompt_user:
         resp = utilities.prompt_input(
-            'Changing the LogStash password can cause Kibana to lose communication with ElasticSearch. '
+            'Changing the Kibana password can cause Kibana to lose communication with ElasticSearch. '
             'Are you sure you wish to continue? [no]|yes): ')
         while resp not in ['', 'no', 'yes']:
             resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
@@ -669,7 +669,9 @@ def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, 
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
             return False
-    KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY).set_elasticsearch_password(password=password)
+    kb_config = KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    kb_config.set_elasticsearch_password(password=password)
+    kb_config.write_configs()
     return KibanaProcess().restart()
 
 
