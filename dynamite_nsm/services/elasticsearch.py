@@ -475,6 +475,8 @@ class ElasticInstaller:
         subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
         es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
+        print(' '.join(['export JAVA_HOME={};'.format(java_home), es_cert_util, 'cert', '-out',
+                                   es_cert_keystore, '-pass', '']))
         cert_p = subprocess.Popen(['export JAVA_HOME={};'.format(java_home), es_cert_util, 'cert', '-out',
                                    es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True)
