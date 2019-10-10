@@ -475,7 +475,7 @@ class ElasticInstaller:
         subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
         es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
-        cert_p = subprocess.Popen([utilities.get_environment_file_str(), es_cert_util, 'cert', '-out',
+        cert_p = subprocess.Popen(['export {};'.format(java_home), es_cert_util, 'cert', '-out',
                                    es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True)
         cert_p_res = cert_p.communicate(input=b'Y\n')
@@ -496,7 +496,7 @@ class ElasticInstaller:
                 sys.stdout.flush()
         sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
-        bootstrap_p = subprocess.Popen([utilities.get_environment_file_str(), es_password_util, 'auto'],
+        bootstrap_p = subprocess.Popen(['export {};'.format(java_home), es_password_util, 'auto'],
                                        cwd=self.configuration_directory, stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True)
         bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
