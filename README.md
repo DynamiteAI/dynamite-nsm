@@ -11,10 +11,14 @@ No need to download a huge ISO image or install a dedicated operating system!
 
 **It is compatible with both Python2 and 3, across these [Linux distributions](SUPPORTED_OSs.md).**
 
+#### Install With...
 
 ```bash
 python setup.py install
 ```
+
+**...And checkout the** [commandline walkthrough](https://github.com/vlabsio/dynamite-nsm/tree/master/scripts/README.md)
+
 
 ### The Agent
 
