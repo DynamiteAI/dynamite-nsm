@@ -475,11 +475,11 @@ class ElasticInstaller:
         subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
         es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
-        print(' '.join(['export JAVA_HOME={};'.format(java_home), es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', '""']))
-        cert_p = subprocess.Popen(['export JAVA_HOME={};'.format(java_home), es_cert_util, 'cert', '-out',
+        print(' '.join(['export JAVA_HOME={} &&'.format(java_home), es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', '""']))
+        cert_p = subprocess.Popen(['export JAVA_HOME={} &&'.format(java_home), es_cert_util, 'cert', '-out',
                                    es_cert_keystore, '-pass', '""'],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True)
-        cert_p_res = cert_p.communicate(input=b'Y\n')
+        cert_p_res = cert_p.communicate()
         if not os.path.exists(es_cert_keystore):
             sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n\t'.format(cert_p_res))
             return False
