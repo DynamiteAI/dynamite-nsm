@@ -110,6 +110,13 @@ if __name__ == '__main__':
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
+    elif args.command == 'chpasswd':
+        if args.component == 'elasticsearch':
+            if elasticsearch.change_elasticsearch_password(utilities.prompt_password(), stdout=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to reset ElasticSearch password.\n')
+                sys.exit(1)
     elif args.command == 'prepare':
         if args.component == 'agent':
             agent.prepare_agent()

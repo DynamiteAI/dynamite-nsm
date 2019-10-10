@@ -40,47 +40,9 @@ class KibanaAPIConfigurator:
     Provides an interface for interacting with the Kibana APIs
     """
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+
         self.configuration_directory = configuration_directory
         self.kibana_config = KibanaConfigurator(configuration_directory)
-        es_flow_installer = ElastiFlowInstaller()
-        if not LogstashProfiler().is_elastiflow_downloaded:
-            es_flow_installer.download_elasticflow()
-        es_flow_installer.extract_elastiflow()
-
-    def create_elastiflow_index_patterns(self, stdout=False):
-        """
-        ** DEPRECATED **
-        Creates ElastiFlow index-pattern
-
-        :param stdout: Print output to console
-        :return: True, if created successfully
-        """
-        with open(os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, 'kibana',
-                               const.ELASTIFLOW_INDEX_PATTERNS)) as kibana_patterns_obj:
-
-            data = kibana_patterns_obj.read()
-            try:
-                url_request = Request(
-                    url='http://{}:{}/api/saved_objects/index-pattern/elastiflow-*'.format(
-                        self.kibana_config.get_server_host(),
-                        self.kibana_config.get_server_port()
-                    ),
-                    data=data.encode('utf-8'),
-                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
-                )
-                urlopen(url_request)
-            except HTTPError as e:
-                if e.code == 409:
-                    pass
-                else:
-                    sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
-                    return False
-            except URLError as e:
-                sys.stderr.write('[-] Failed to create index-patterns - [{}]\n'.format(e))
-                return False
-            if stdout:
-                sys.stdout.write('[+] Successfully created index-patterns. \n')
-            return True
 
     def create_elastiflow_saved_objects(self, stdout=False):
         """

@@ -5,6 +5,7 @@ import time
 import base64
 import signal
 import shutil
+import getpass
 import tarfile
 import traceback
 import subprocess
@@ -795,6 +796,24 @@ class ElasticProcess:
             'USER': 'dynamite',
             'LOGS': log_path
         }
+
+
+def change_elasticsearch_password(password='changeme', stdout=False):
+    if not ElasticProcess().start():
+        sys.stderr.write('[-] Could not start ElasticSearch Process. Password reset failed.')
+        return False
+    while not ElasticProfiler().is_listening:
+        if stdout:
+            sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
+        time.sleep(5)
+    if stdout:
+        sys.stdout.write('[+] ElasticSearch API is up.\n')
+        sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
+        sys.stdout.flush()
+    time.sleep(10)
+    es_pw_config = ElasticPasswordConfigurator(
+        'elastic', current_password=getpass.getpass('Enter the old ElasticSearch password: '))
+    return es_pw_config.set_all_passwords(password, stdout=stdout)
 
 
 def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):

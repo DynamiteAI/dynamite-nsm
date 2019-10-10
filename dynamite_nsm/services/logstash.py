@@ -94,6 +94,14 @@ class LogstashConfigurator:
             new_output += '\n'
         open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
+    @staticmethod
+    def get_elasticsearch_password():
+        """
+        :return: The password for the given ElasticSearch instance
+        """
+        elastiflow_config = elastiflow.ElastiflowConfigurator()
+        return elastiflow_config.es_passwd
+
     def get_log_path(self):
         """
         :return: The path to Logstash logs on filesystem
@@ -136,6 +144,18 @@ class LogstashConfigurator:
         :return: The maximum amount of memory the JVM heap allocates
         """
         return self.jvm_config_options.get('maximum_memory')
+
+    @staticmethod
+    def set_elasticsearch_password(password):
+        """
+        :param password: The new password
+        """
+        elastiflow_config = elastiflow.ElastiflowConfigurator()
+        synesis_config = synesis.SynesisConfigurator()
+        elastiflow_config.es_passwd = password
+        synesis_config.suricata_es_passwd = password
+        elastiflow_config.write_environment_variables()
+        synesis_config.write_environment_variables()
 
     def set_log_path(self, path):
         """
