@@ -107,7 +107,7 @@ class KibanaConfigurator:
             if not line.startswith('#') and ':' in line:
                 if line.startswith('elasticsearch.hosts:'):
                     k = 'elasticsearch.hosts'
-                    v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
+                    v = json.loads(line.replace('elasticsearch.hosts:', '').strip().decode('utf-8'))
                     print(v)
                 else:
                     k, v = line.strip().split(':')
