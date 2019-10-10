@@ -707,7 +707,7 @@ def change_logstash_elasticsearch_password(password='changeme', prompt_user=True
                 sys.stdout.write('[+] Exiting\n')
             return False
     LogstashConfigurator(configuration_directory=CONFIGURATION_DIRECTORY).set_elasticsearch_password(password=password)
-    return LogstashProcess().restart()
+    return LogstashProcess().restart(stdout=True)
 
 
 def install_logstash(host='0.0.0.0',

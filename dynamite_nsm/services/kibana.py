@@ -672,7 +672,7 @@ def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, 
     kb_config = KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
     kb_config.set_elasticsearch_password(password=password)
     kb_config.write_configs()
-    return KibanaProcess().restart()
+    return KibanaProcess().restart(stdout=True)
 
 
 def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
