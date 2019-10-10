@@ -470,14 +470,15 @@ class ElasticInstaller:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
             return False
         sys.stdout.write('[+] Creating certificate keystore\n')
-        es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
+        es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
         cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         cert_p.communicate(input=b'Y\n')
         if not os.path.exists(es_cert_keystore):
-            sys.stderr.write('[-] Failed to setup SSL certificate keystore\n')
+            sys.stderr.write('[-] Failed to setup SSL certificate keystore: \nerrors: {}\noutput: {}\n'.format(
+                cert_p.stderr.read(), cert_p.stdout.read()))
             return False
         utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
         if not ElasticProfiler().is_running:
