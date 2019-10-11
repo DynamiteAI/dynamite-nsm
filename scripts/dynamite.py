@@ -140,7 +140,7 @@ if __name__ == '__main__':
                                                password=utilities.prompt_password()):
                 sys.exit(0)
             else:
-                sys.stderr.write('[-] Failed to reset Kibana -> ElasticSearch password.\n')
+                sys.stderr.write('[-] Failed to reset Monitor password.\n')
                 sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
