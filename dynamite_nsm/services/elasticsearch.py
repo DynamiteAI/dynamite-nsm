@@ -59,8 +59,17 @@ class ElasticConfigurator:
             return es_config_options
         for line in open(config_path).readlines():
             if not line.startswith('#') and ':' in line:
-                k, v = line.strip().split(':')
-                es_config_options[k] = str(v).strip().replace('"','').replace("'",'')
+                if line.startswith('discovery.seed_hosts:'):
+                    k = 'discovery.seed_hosts'
+                    v = json.loads(line.replace('discovery.seed_hosts:', '').strip())
+                    es_config_options[k] = v
+                elif line.startswith('cluster.initial_master_nodes:'):
+                    k = 'cluster.initial_master_nodes'
+                    v = json.loads(line.replace('cluster.initial_master_nodes:', '').strip())
+                    es_config_options[k] = v
+                else:
+                    k, v = line.strip().split(':')
+                    es_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
         return es_config_options
 
     def _parse_jvm_options(self):
@@ -147,7 +156,7 @@ class ElasticConfigurator:
         """
         :return: A list of hosts also in the cluster
         """
-        return json.loads(self.es_config_options.get('discovery.seed_hosts'))
+        return self.es_config_options.get('discovery.seed_hosts')
 
     def get_jvm_initial_memory(self):
         """
@@ -184,7 +193,7 @@ class ElasticConfigurator:
         :param name: The name of the ElasticSearch node
         """
         self.es_config_options['node.name'] = name
-        self.es_config_options['cluster.initial_master_nodes'] = json.dumps([name])
+        self.es_config_options['cluster.initial_master_nodes'] = [name]
 
     def set_data_path(self, path):
         """
@@ -202,7 +211,9 @@ class ElasticConfigurator:
         """
         :param host_list: A list of hosts also in the cluster
         """
-        self.es_config_options['discovery.seed_hosts'] = json.dumps(host_list)
+        if not isinstance(host_list, list):
+            raise TypeError("host_list must be of type: 'list'")
+        self.es_config_options['discovery.seed_hosts'] = host_list
 
     def set_jvm_initial_memory(self, gigs):
         """
@@ -231,7 +242,12 @@ class ElasticConfigurator:
         shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
         with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'a') as elastic_search_config_obj:
             for k, v in self.es_config_options.items():
-                elastic_search_config_obj.write('{}: {}\n'.format(k, v))
+                if k == 'discovery.seed_hosts':
+                    elastic_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
+                elif k == 'cluster.initial_master_nodes':
+                    elastic_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
+                else:
+                    elastic_search_config_obj.write('{}: {}\n'.format(k, v))
         self._overwrite_jvm_options()
 
 
@@ -819,7 +835,7 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
     """
     Install ElasticSearch
 
-    :param: password: The password used for authentication across all builtin users
+    :param password: The password used for authentication across all builtin users
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
