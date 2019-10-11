@@ -25,10 +25,8 @@ except Exception:
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.package_manager import OSPackageManager
-from dynamite_nsm.services.logstash import LogstashProfiler
 from dynamite_nsm.services.elasticsearch import ElasticProcess
 from dynamite_nsm.services.elasticsearch import ElasticProfiler
-from dynamite_nsm.services.elastiflow import ElastiFlowInstaller
 
 INSTALL_DIRECTORY = '/opt/dynamite/kibana/'
 CONFIGURATION_DIRECTORY = '/etc/dynamite/kibana/'
@@ -168,7 +166,7 @@ class KibanaConfigurator:
         """
         :param host_list: A list of ElasticSearch hosts for Kibana to connect too
         """
-        self.kb_config_options['elasticsearch.hosts'] = json.dumps(host_list)
+        self.kb_config_options['elasticsearch.hosts'] = host_list
 
     def set_elasticsearch_password(self, password):
         """
@@ -187,7 +185,10 @@ class KibanaConfigurator:
         shutil.move(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
         with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'a') as kibana_search_config_obj:
             for k, v in self.kb_config_options.items():
-                kibana_search_config_obj.write('{}: {}\n'.format(k, v))
+                if k == 'elasticsearch.hosts':
+                    kibana_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
+                else:
+                    kibana_search_config_obj.write('{}: {}\n'.format(k, v))
 
 
 class KibanaInstaller:
@@ -294,7 +295,7 @@ class KibanaInstaller:
             subprocess.call('echo KIBANA_LOGS="{}" >> /etc/environment'.format(self.log_directory),
                             shell=True)
 
-    def _install_elastiflow_dashboards(self, stdout=False):
+    def _install_kibana_objects(self, stdout=False):
         if KibanaProfiler().is_installed and (ElasticProfiler().is_installed or self.elasticsearch_host != 'localhost'):
             if stdout:
                 sys.stdout.write('[+] Installing Kibana Dashboards\n')
@@ -332,17 +333,6 @@ class KibanaInstaller:
             time.sleep(15)
             api_config = KibanaAPIConfigurator(self.configuration_directory)
             kibana_object_create_attempts = 1
-            """
-            index_pattern_create_attempts = 1
-            while not api_config.create_elastiflow_index_patterns():
-                if stdout:
-                    sys.stdout.write('[+] Attempting to create index-patterns [Attempt {}]\n'.format(
-                        index_pattern_create_attempts))
-                index_pattern_create_attempts += 1
-                time.sleep(10)
-            if stdout:
-                sys.stdout.write('[+] Successfully created index-patterns.\n')
-            """
             while not api_config.create_elastiflow_saved_objects():
                 if stdout:
                     sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
@@ -408,7 +398,7 @@ class KibanaInstaller:
         self._copy_kibana_files_and_directories(stdout=stdout)
         self._create_kibana_environment_variables(stdout=stdout)
         self._setup_default_kibana_configs(stdout=stdout)
-        self._install_elastiflow_dashboards(stdout=stdout)
+        self._install_kibana_objects(stdout=stdout)
         utilities.set_ownership_of_file('/etc/dynamite/')
         utilities.set_ownership_of_file('/opt/dynamite/')
         utilities.set_ownership_of_file('/var/log/dynamite')
