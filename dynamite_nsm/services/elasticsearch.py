@@ -287,8 +287,8 @@ class ElasticPasswordConfigurator:
         except HTTPError as e:
             if e.code != 200:
                 sys.stderr.write('[-] Failed to update {} password - [{}]\n'.format(user, e))
-                return False
-            return True
+            return False
+        return True
 
     def set_apm_system_password(self, new_password, stdout=False):
         """

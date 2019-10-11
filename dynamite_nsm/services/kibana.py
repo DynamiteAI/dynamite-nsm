@@ -194,7 +194,6 @@ class KibanaConfigurator:
                     kibana_search_config_obj.write('{}: {}\n'.format(k, v))
 
 
-
 class KibanaInstaller:
     """
     Provides a simple interface for installing a new Kibana interface with ElastiFlow dashboards
