@@ -185,10 +185,7 @@ class KibanaConfigurator:
         shutil.move(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
         with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'a') as kibana_search_config_obj:
             for k, v in self.kb_config_options.items():
-                if k == 'elasticsearch.hosts':
-                    kibana_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
-                else:
-                    kibana_search_config_obj.write('{}: {}\n'.format(k, v))
+                kibana_search_config_obj.write('{}: {}\n'.format(k, v))
 
 
 class KibanaInstaller:
