@@ -106,9 +106,10 @@ class KibanaConfigurator:
                 if line.startswith('elasticsearch.hosts:'):
                     k = 'elasticsearch.hosts'
                     v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
+                    kb_config_options[k] = v
                 else:
                     k, v = line.strip().split(':')
-                kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
+                    kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
         return kb_config_options
 
     def _parse_environment_file(self):
@@ -166,6 +167,8 @@ class KibanaConfigurator:
         """
         :param host_list: A list of ElasticSearch hosts for Kibana to connect too
         """
+        if not isinstance(host_list, list):
+            raise TypeError("host_list must be of type: 'list'")
         self.kb_config_options['elasticsearch.hosts'] = host_list
 
     def set_elasticsearch_password(self, password):
@@ -185,7 +188,11 @@ class KibanaConfigurator:
         shutil.move(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
         with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'a') as kibana_search_config_obj:
             for k, v in self.kb_config_options.items():
-                kibana_search_config_obj.write('{}: {}\n'.format(k, v))
+                if k == 'elasticsearch.hosts':
+                    kibana_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
+                else:
+                    kibana_search_config_obj.write('{}: {}\n'.format(k, v))
+
 
 
 class KibanaInstaller:
