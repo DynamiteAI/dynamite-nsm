@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dynamite-nsm',
-    version='0.5.0',
+    version='0.5.2',
     packages=find_packages(),
     scripts=['scripts/dynamite', 'scripts/dynamite.py'],
     url='http://dynamite.ai',
