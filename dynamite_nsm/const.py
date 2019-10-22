@@ -1,3 +1,9 @@
+DEFAULT_CONFIGS_URL = 'https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/default_configs.tar.gz'
+MIRRORS_CONFIG_URL = 'https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/mirrors.tar.gz'
+
+DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
+MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
+
 ELASTIFLOW_ARCHIVE_NAME = 'elastiflow-vlabs-0.5.3-3.5.0.tar.gz'
 ELASTICSEARCH_ARCHIVE_NAME = 'elasticsearch-7.2.0.tar.gz'
 LOGSTASH_ARCHIVE_NAME = 'logstash-7.2.0.tar.gz'
@@ -37,6 +43,3 @@ PF_RING_MIRRORS = "/etc/dynamite/mirrors/pf_ring-7.4.0"
 SURICATA_MIRRORS = "/etc/dynamite/mirrors/suricata-4.1.4"
 SYNESIS_MIRRORS = "/etc/dynamite/mirrors/synesis_lite_suricata-1.1.0"
 ZEEK_MIRRORS = "/etc/dynamite/mirrors/zeek-2.6.1"
-
-ELASTIFLOW_DASHBOARDS_CONFIG = "elastiflow.kibana.api.7.2.X.ndjson"
-ELASTIFLOW_INDEX_PATTERNS = "elastiflow.index_pattern.json"
