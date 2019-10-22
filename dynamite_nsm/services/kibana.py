@@ -563,10 +563,8 @@ class KibanaProcess:
                                          '-l',
                                          os.path.join(self.config.kibana_logs, 'kibana.log'),
                                          '& > /dev/null &"'
-                                         ],
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
-                             env=utilities.get_environment_file_dict(), shell=True)
-            print(kibana_p.communicate())
+                                         ], env=utilities.get_environment_file_dict(), shell=True)
+            print(kibana_p.wait())
             """
             subprocess.call('su -l dynamite -c "{} {}/bin/kibana '
                             '-c {} -l {} & > /dev/null &"'.format(
