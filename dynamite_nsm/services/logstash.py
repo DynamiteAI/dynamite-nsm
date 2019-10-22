@@ -800,6 +800,8 @@ def uninstall_logstash(stdout=False, prompt_user=True):
                 continue
             elif 'ELASTIFLOW_' in line:
                 continue
+            elif 'SYNLITE_' in line:
+                continue
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
         if stdout:
