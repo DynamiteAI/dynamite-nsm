@@ -542,6 +542,14 @@ class KibanaProcess:
 
             # We use su instead of runuser here because of nodes' weird dependency on PAM
             # when calling from within a sub-shell
+            kibana_p = subprocess.Popen(['su', '-l', 'dynamite', '-c',
+                              '"{}/bin/kibana'.format(self.config.kibana_home),
+                              '-c', os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
+                              '-l', os.path.join(self.config.kibana_logs, 'kibana.log"')],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
+                             env=utilities.get_environment_file_dict())
+            kibana_p.communicate()
+            """
             subprocess.call('su -l dynamite -c "{} {}/bin/kibana '
                             '-c {} -l {} & > /dev/null &"'.format(
                                 utilities.get_environment_file_str(),
@@ -549,6 +557,8 @@ class KibanaProcess:
                                 os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
                                 os.path.join(self.config.kibana_logs, 'kibana.log')
                             ), shell=True)
+            """
+
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
         utilities.set_ownership_of_file('/var/run/dynamite')
