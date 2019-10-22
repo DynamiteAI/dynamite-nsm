@@ -169,7 +169,7 @@ def get_environment_file_str():
     for line in open('/etc/environment').readlines():
         if '=' in line:
             key, value = line.strip().split('=')
-            export_str += 'export {}='{}' && '.format(key, value)
+            export_str += 'export {}=\'{}\' && '.format(key, value)
     return export_str
 
 
