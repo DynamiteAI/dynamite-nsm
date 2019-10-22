@@ -546,20 +546,24 @@ class KibanaProcess:
                                          '-l',
                                          'dynamite',
                                          '-c',
-                                         '" {}/bin/kibana'.format(self.config.kibana_home),
+                                         '"{}/bin/kibana'.format(self.config.kibana_home),
                                          '-c',
                                          os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
                                          '-l',
-                                         os.path.join(self.config.kibana_logs, 'kibana.log') + '"']))
+                                         os.path.join(self.config.kibana_logs, 'kibana.log'),
+                                         '& > /dev/null &"'
+                                         ]))
             kibana_p = subprocess.Popen(['su',
                                          '-l',
                                          'dynamite',
                                          '-c',
-                                         '" {}/bin/kibana'.format(self.config.kibana_home),
+                                         '"{}/bin/kibana'.format(self.config.kibana_home),
                                          '-c',
                                          os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
                                          '-l',
-                                         os.path.join(self.config.kibana_logs, 'kibana.log') + '"'],
+                                         os.path.join(self.config.kibana_logs, 'kibana.log'),
+                                         '& > /dev/null &"'
+                                         ],
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
                              env=utilities.get_environment_file_dict(), shell=True)
             print(kibana_p.communicate())
