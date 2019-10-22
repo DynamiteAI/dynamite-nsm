@@ -542,38 +542,13 @@ class KibanaProcess:
 
             # We use su instead of runuser here because of nodes' weird dependency on PAM
             # when calling from within a sub-shell
-            print(' '.join(['su',
-                                         '-l',
-                                         'dynamite',
-                                         '-c',
-                                         '"{}/bin/kibana'.format(self.config.kibana_home),
-                                         '-c',
-                                         os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
-                                         '-l',
-                                         os.path.join(self.config.kibana_logs, 'kibana.log'),
-                                         '& > /dev/null &"'
-                                         ]))
-            kibana_p = subprocess.Popen(['su',
-                                         '-l',
-                                         'dynamite',
-                                         '-c',
-                                         '"{}/bin/kibana'.format(self.config.kibana_home),
-                                         '-c',
-                                         os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
-                                         '-l',
-                                         os.path.join(self.config.kibana_logs, 'kibana.log'),
-                                         '& > /dev/null &"'
-                                         ], env=utilities.get_environment_file_dict())
-            kibana_p.wait()
-            """
-            subprocess.call('su -l dynamite -c "{} {}/bin/kibana '
-                            '-c {} -l {} & > /dev/null &"'.format(
-                                utilities.get_environment_file_str(),
-                                self.config.kibana_home,
-                                os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
-                                os.path.join(self.config.kibana_logs, 'kibana.log')
-                            ), shell=True)
-            """
+            subprocess.call('su -l dynamite -c "{}/bin/kibana '
+                                '-c {} -l {} & > /dev/null &"'.format(
+                                    self.config.kibana_home,
+                                    os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
+                                    os.path.join(self.config.kibana_logs, 'kibana.log')
+                                ),
+                shell=True, env=utilities.get_environment_file_dict())
 
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
