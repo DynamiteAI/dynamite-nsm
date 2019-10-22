@@ -723,9 +723,9 @@ class ElasticProcess:
         :return: True, if started successfully
         """
         def start_shell_out():
-            subprocess.call('runuser -l dynamite -c "{} {}/bin/elasticsearch '
+            subprocess.call('runuser -l dynamite -c "{}/bin/elasticsearch '
                             '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &>/dev/null &"'.format(
-                utilities.get_environment_file_str(), self.config.es_home), shell=True)
+                self.config.es_home), shell=True, env=utilities.get_environment_file_dict())
         if not os.path.exists('/var/run/dynamite/elasticsearch/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
         utilities.set_ownership_of_file('/var/run/dynamite')

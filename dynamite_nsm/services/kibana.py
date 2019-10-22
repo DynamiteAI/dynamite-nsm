@@ -644,10 +644,9 @@ class KibanaProcess:
 
         # Kibana initially has to be called as root due to a process forking issue when using runuser
         # builtin
-        subprocess.call('{} {}/bin/kibana --optimize --allow-root'.format(
-            utilities.get_environment_file_str(),
+        subprocess.call('{}/bin/kibana --optimize --allow-root'.format(
             self.config.kibana_home,
-        ), shell=True)
+        ), shell=True, env=utilities.get_environment_file_dict())
         # Pass permissions back to dynamite user
         utilities.set_ownership_of_file('/var/log/dynamite')
 
