@@ -29,17 +29,16 @@ class ZeekScriptConfigurator:
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         """
         self.configuration_directory = configuration_directory
-        self.zeek_scripts = None
-        self.zeek_sigs = None
+        self.zeek_scripts = {}
+        self.zeek_sigs = {}
+        self.zeek_redefs = {}
+
         self._parse_zeek_scripts()
 
     def _parse_zeek_scripts(self):
         """
         Parse the local.bro configuration file, and determine which scripts are enabled/disabled
         """
-        self.zeek_scripts = {}
-        self.zeek_sigs = {}
-        self.zeek_redefs = {}
         for line in open(os.path.join(self.configuration_directory, 'site', 'local.bro')).readlines():
             line = line.replace(' ', '').strip()
             if '@load-sigs' in line:
@@ -109,7 +108,7 @@ class ZeekScriptConfigurator:
         return [sig for sig in self.zeek_sigs.keys() if not self.zeek_sigs[sig]]
 
     def get_redefinitions(self):
-        return [(redef, val) for redef, val in self.zeek_redefs]
+        return [(redef, val) for redef, val in self.zeek_redefs.items()]
 
     def write_config(self):
         """
