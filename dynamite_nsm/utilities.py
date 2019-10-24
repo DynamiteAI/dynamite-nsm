@@ -241,8 +241,8 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
     :param confirm_prompt: The confirmation prompt
     :return: The password entered
     """
-    password = 0
-    confirm_password = 1
+    password = '0'
+    confirm_password = '1'
     first_attempt = True
     valid = False
     while password != confirm_password or len(password) < 6 or not valid:
