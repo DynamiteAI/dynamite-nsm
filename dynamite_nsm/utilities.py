@@ -234,13 +234,26 @@ def prompt_input(message):
 
 
 def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm Password: '):
+    """
+    Prompt user for password, and confirm
+
+    :param prompt: The first password prompt
+    :param confirm_prompt: The confirmation prompt
+    :return: The password entered
+    """
     password = 0
     confirm_password = 1
     first_attempt = True
-    while password != confirm_password or len(password) < 6:
+    valid = False
+    while password != confirm_password or len(password) < 6 or not valid:
         if not first_attempt:
             sys.stderr.write('[-] Passwords either did not match or were less than 6 characters. Please try again.\n\n')
             sys.stderr.flush()
+        elif '"' in password or "'" in password:
+            sys.stderr.write('[-] Passwords cannot contain quote characters. Please try again.\n\n')
+            sys.stderr.flush()
+        else:
+            valid = True
         password = getpass.getpass(prompt)
         confirm_password = getpass.getpass(confirm_prompt)
         first_attempt = False

@@ -39,6 +39,7 @@ class ZeekScriptConfigurator:
         """
         self.zeek_scripts = {}
         self.zeek_sigs = {}
+        self.zeek_redefs = {}
         for line in open(os.path.join(self.configuration_directory, 'site', 'local.bro')).readlines():
             line = line.replace(' ', '').strip()
             if '@load-sigs' in line:
@@ -57,6 +58,9 @@ class ZeekScriptConfigurator:
                     enabled = True
                 script = line.split('@load')[1]
                 self.zeek_scripts[script] = enabled
+            elif line.startswith('redef'):
+                definition, value = line.split('redef')[1].split('=')
+                self.zeek_redefs[definition] = value
 
     def disable_script(self, name):
         """
@@ -104,6 +108,9 @@ class ZeekScriptConfigurator:
         """
         return [sig for sig in self.zeek_sigs.keys() if not self.zeek_sigs[sig]]
 
+    def get_redefinitions(self):
+        return [(redef, val) for redef, val in self.zeek_redefs]
+
     def write_config(self):
         """
         Overwrite the existing local.bro config with changed values
@@ -122,6 +129,8 @@ class ZeekScriptConfigurator:
             output_str += '@load-sigs {}\n'.format(e_sig)
         for d_sig in self.get_disabled_sigs():
             output_str += '@load-sigs {}\n'.format(d_sig)
+        for rdef, val in self.get_redefinitions():
+            output_str += 'redef {} = {}\n'.format(rdef, val)
         shutil.move(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
         with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
             f.write(output_str)
