@@ -61,7 +61,7 @@ class KibanaAPIConfigurator:
         # Shelling out is a reasonable workaround
         kibana_api_import_url = '{}:{}/api/saved_objects/_import'.format(server_host,
                     self.kibana_config.get_server_port())
-        curl_command = 'curl -X POST {} -u {}:{} --form file=@{} -H "kbn-xsrf: true" ' \
+        curl_command = 'curl -X POST {} -u {}:"{}" --form file=@{} -H "kbn-xsrf: true" ' \
                        '-H "Content-Type: multipart/form-data" -v'.format(
             kibana_api_import_url, 'kibana', self.kibana_config.get_elasticsearch_password(), kibana_api_objects_path
         )
@@ -542,13 +542,14 @@ class KibanaProcess:
 
             # We use su instead of runuser here because of nodes' weird dependency on PAM
             # when calling from within a sub-shell
-            subprocess.call('su -l dynamite -c "{} {}/bin/kibana '
-                            '-c {} -l {} & > /dev/null &"'.format(
-                                utilities.get_environment_file_str(),
-                                self.config.kibana_home,
-                                os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
-                                os.path.join(self.config.kibana_logs, 'kibana.log')
-                            ), shell=True)
+            subprocess.call('su -l dynamite -c "{}/bin/kibana '
+                                '-c {} -l {} & > /dev/null &"'.format(
+                                    self.config.kibana_home,
+                                    os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
+                                    os.path.join(self.config.kibana_logs, 'kibana.log')
+                                ),
+                shell=True, env=utilities.get_environment_file_dict())
+
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
         utilities.set_ownership_of_file('/var/run/dynamite')
@@ -643,10 +644,9 @@ class KibanaProcess:
 
         # Kibana initially has to be called as root due to a process forking issue when using runuser
         # builtin
-        subprocess.call('{} {}/bin/kibana --optimize --allow-root'.format(
-            utilities.get_environment_file_str(),
+        subprocess.call('{}/bin/kibana --optimize --allow-root'.format(
             self.config.kibana_home,
-        ), shell=True)
+        ), shell=True, env=utilities.get_environment_file_dict())
         # Pass permissions back to dynamite user
         utilities.set_ownership_of_file('/var/log/dynamite')
 

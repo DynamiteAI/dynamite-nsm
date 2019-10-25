@@ -15,12 +15,12 @@ def update_default_configurations():
     :return: True, if retrieved successfully
     """
     create_dynamite_root_directory()
-    download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/default_configs.tar.gz',
-                  'default_configs.tar.gz', stdout=True)
+    download_file(const.DEFAULT_CONFIGS_URL,
+                  const.DEFAULT_CONFIGS_ARCHIVE_NAME, stdout=True)
     shutil.rmtree(const.DEFAULT_CONFIGS, ignore_errors=True)
     time.sleep(1)
     try:
-        print('Copying default_configs -> /etc/dynamite/default_configs')
+        sys.stdout.write('[+] Copying default_configs -> {}\n'.format(const.DEFAULT_CONFIGS))
         extract_archive(os.path.join(const.INSTALL_CACHE, 'default_configs.tar.gz'), '/etc/dynamite/')
         return True
     except IOError as e:
@@ -35,11 +35,11 @@ def update_mirrors():
     :return: True, if retrieved successfully
     """
     create_dynamite_root_directory()
-    download_file('https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/mirrors.tar.gz',
-                  'mirrors.tar.gz', stdout=True)
+    download_file(const.MIRRORS_CONFIG_URL,
+                  const.MIRRORS_CONFIG_ARCHIVE_NAME, stdout=True)
     shutil.rmtree(const.MIRRORS, ignore_errors=True)
     try:
-        print('Copying mirrors -> /etc/dynamite/mirrors')
+        sys.stdout.write('[+] Copying mirrors -> {}\n'.format(const.MIRRORS))
         extract_archive(os.path.join(const.INSTALL_CACHE, 'mirrors.tar.gz'), '/etc/dynamite/')
         return True
     except IOError as e:

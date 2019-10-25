@@ -317,24 +317,18 @@ class LogstashInstaller:
         if stdout:
             sys.stdout.write('[+] Installing Logstash plugins\n')
             sys.stdout.flush()
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-sflow'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-                        shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-codec-netflow'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-dns'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-geoip'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-filter-translate'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-            shell=True)
-        subprocess.call('{} {}/bin/logstash-plugin install logstash-input-beats'.format(
-            utilities.get_environment_file_str(), self.install_directory),
-                        shell=True)
+        subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
+                        shell=True, env=utilities.get_environment_file_dict())
+        subprocess.call('{}/bin/logstash-plugin install logstash-codec-netflow'.format(self.install_directory),
+            shell=True, env=utilities.get_environment_file_dict())
+        subprocess.call('{}/bin/logstash-plugin install logstash-filter-dns'.format(self.install_directory),
+            shell=True, env=utilities.get_environment_file_dict())
+        subprocess.call('{}/bin/logstash-plugin install logstash-filter-geoip'.format(self.install_directory),
+            shell=True, env=utilities.get_environment_file_dict())
+        subprocess.call('{}/bin/logstash-plugin install logstash-filter-translate'.format(self.install_directory),
+            shell=True, env=utilities.get_environment_file_dict())
+        subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
+            shell=True, env=utilities.get_environment_file_dict())
 
     def _setup_default_logstash_configs(self, stdout=False):
         sys.stdout.write('[+] Overwriting default configuration.\n')
@@ -799,6 +793,8 @@ def uninstall_logstash(stdout=False, prompt_user=True):
             elif 'LS_HOME' in line:
                 continue
             elif 'ELASTIFLOW_' in line:
+                continue
+            elif 'SYNLITE_' in line:
                 continue
             env_lines += line.strip() + '\n'
         open('/etc/environment', 'w').write(env_lines)
