@@ -1,4 +1,4 @@
-DEFAULT_CONFIGS_URL = 'https://github.com/DynamiteAI/dynamite-nsm-configs/raw/zeek_stats/default_configs.tar.gz'
+DEFAULT_CONFIGS_URL = 'https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/default_configs.tar.gz'
 MIRRORS_CONFIG_URL = 'https://github.com/DynamiteAI/dynamite-nsm-configs/raw/master/mirrors.tar.gz'
 
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
