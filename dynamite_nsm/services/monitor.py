@@ -45,7 +45,7 @@ def install_monitor(elasticsearch_password='changeme'):
             return False
     environment_variables = utilities.get_environment_file_dict()
     sys.stdout.write('[+] Starting ElasticSearch on localhost.\n')
-    es_process = elasticsearch.ElasticProcess(configuration_directory=environment_variables.get('ES_PATH_CONF'))
+    es_process = elasticsearch.ElasticProcess()
     es_process.start()
     if not ls_pre_profiler.is_installed:
         if not ls_pre_profiler.is_downloaded:
@@ -94,7 +94,7 @@ def start_monitor():
     es_profiler = elasticsearch.ElasticProfiler()
     ls_profiler = logstash.LogstashProfiler()
     kb_profiler = kibana.KibanaProfiler()
-    es_process = elasticsearch.ElasticProcess(configuration_directory=environment_variables.get('ES_PATH_CONF'))
+    es_process = elasticsearch.ElasticProcess()
     ls_process = logstash.LogstashProcess()
     kb_process = kibana.KibanaProcess()
     if not (es_profiler.is_installed or ls_profiler.is_installed or kb_profiler.is_installed):
