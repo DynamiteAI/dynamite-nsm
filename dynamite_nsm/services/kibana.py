@@ -318,7 +318,7 @@ class KibanaInstaller:
                     sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
                     sys.stdout.flush()
                 time.sleep(10)
-            kibana_process = KibanaProcess(self.configuration_directory)
+            kibana_process = KibanaProcess()
             kibana_process.optimize(stdout=stdout)
             utilities.set_ownership_of_file('/opt/dynamite/')
             utilities.set_ownership_of_file('/etc/dynamite/')
