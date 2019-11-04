@@ -64,6 +64,12 @@ class OinkmasterInstaller:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))
             return False
+        if 'OINKMASTER_HOME' not in open('/etc/environment').read():
+            if stdout:
+                sys.stdout.write('[+] Updating Oinkmaster default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo OINKMASTER_HOME="{}" >> /etc/environment'.format(self.install_directory),
+                            shell=True)
         if stdout:
             sys.stdout.write('[+] Updating oinkmaster.conf with emerging-threats URL.\n')
         try:
@@ -75,7 +81,10 @@ class OinkmasterInstaller:
         return True
 
 
-def update_suricata_rules(suricata_config_directory, oinkmaster_install_directory=INSTALL_DIRECTORY):
+def update_suricata_rules():
+    environment_variables = utilities.get_environment_file_dict()
+    suricata_config_directory = environment_variables.get('SURICATA_CONFIG')
+    oinkmaster_install_directory = environment_variables.get('OINKMASTER_HOME')
     exit_code = subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(
         os.path.join(suricata_config_directory, 'rules')), cwd=oinkmaster_install_directory, shell=True)
     sys.stdout.write('[+] Agent must be restarted for changes to take effect.\n')

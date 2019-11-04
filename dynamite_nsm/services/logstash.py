@@ -346,8 +346,6 @@ class LogstashInstaller:
     def _setup_elastiflow(self, stdout=False):
         ef_install = elastiflow.ElastiFlowInstaller(install_directory=
                                                     os.path.join(self.configuration_directory, 'elastiflow'))
-        # ef_install.download_elasticflow(stdout=stdout)
-        # ef_install.extract_elastiflow(stdout=stdout)
         ef_install.setup_logstash_elastiflow(stdout=stdout)
         ef_config = elastiflow.ElastiflowConfigurator()
         ef_config.ipfix_tcp_ipv4_host = self.host
@@ -360,8 +358,6 @@ class LogstashInstaller:
 
     def _setup_synesis(self, stdout=False):
         syn_install = synesis.SynesisInstaller(install_directory=os.path.join(self.configuration_directory, 'synesis'))
-        # syn_install.download_synesis(stdout=stdout)
-        # syn_install.extract_synesis(stdout=stdout)
         syn_install.setup_logstash_synesis(stdout=stdout)
         syn_config = synesis.SynesisConfigurator()
         syn_config.suricata_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
@@ -497,7 +493,9 @@ class LogstashProfiler:
     def _is_elastiflow_installed(stderr=False):
         env_dict = utilities.get_environment_file_dict()
         ef_dict_path = env_dict.get('ELASTIFLOW_DICT_PATH')
+        syn_dict_path = env_dict.get('SYNLITE_SURICATA_DICT_PATH')
         ef_template_path = env_dict.get('ELASTIFLOW_TEMPLATE_PATH')
+        syn_template_path = env_dict.get('SYNLITE_SURICATA_TEMPLATE_PATH')
         ef_geo_ip_db_path = env_dict.get('ELASTIFLOW_GEOIP_DB_PATH')
         ef_definition_path = env_dict.get('ELASTIFLOW_DEFINITION_PATH')
         if not ef_dict_path:
@@ -516,6 +514,14 @@ class LogstashProfiler:
             if stderr:
                 sys.stderr.write('[-] ElastiFlow definitions directory could not be located in /etc/environment.\n')
             return False
+        elif not syn_dict_path:
+            if stderr:
+                sys.stderr.write('[-] Synesis dictionary directory could not be located in /etc/environment.\n')
+            return False
+        elif not syn_template_path:
+            if stderr:
+                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/environment.\n')
+            return False
         if not os.path.exists(ef_dict_path):
             if stderr:
                 sys.stderr.write('[-] ElastiFlow dictionary directory could not be located at: {}\n'.format(ef_dict_path))
@@ -533,6 +539,16 @@ class LogstashProfiler:
         elif not os.path.exists(ef_definition_path):
             if stderr:
                 sys.stderr.write('[-] ElastiFlow definitions directory could not be located at: {}\n'.format(
+                    ef_definition_path))
+            return False
+        elif not os.path.exists(syn_dict_path):
+            if stderr:
+                sys.stderr.write('[-] Synesis dictionary directory could not be located at: {}\n'.format(
+                    ef_definition_path))
+            return False
+        elif not os.path.exists(syn_template_path):
+            if stderr:
+                sys.stderr.write('[-] Synesis template directory could not be located at: {}\n'.format(
                     ef_definition_path))
             return False
         return True
@@ -580,12 +596,9 @@ class LogstashProcess:
     """
     An interface for start|stop|status|restart of the LogStash process
     """
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
-        """
-
-        self.configuration_directory = configuration_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.configuration_directory = self.environment_variables.get('LS_PATH_CONF')
         self.config = LogstashConfigurator(self.configuration_directory)
 
         if not os.path.exists('/var/run/dynamite/logstash/'):
@@ -754,7 +767,7 @@ def install_logstash(host='0.0.0.0',
         sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your collector: \'dynamite start logstash\'.\n')
         sys.stdout.flush()
-    return True
+    return LogstashProfiler(stderr=False).is_installed
 
 
 def uninstall_logstash(stdout=False, prompt_user=True):

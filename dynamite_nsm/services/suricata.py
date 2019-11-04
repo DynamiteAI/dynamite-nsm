@@ -922,13 +922,10 @@ class SuricataProcess:
     An interface for start|stop|status|restart of the Suricata process
     """
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY, configuration_directory=CONFIGURATION_DIRECTORY):
-        """
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata/)
-        """
-        self.install_directory = install_directory
-        self.configuration_directory = configuration_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.install_directory = self.environment_variables.get('SURICATA_HOME')
+        self.configuration_directory = self.environment_variables.get('SURICATA_CONFIG')
         self.config = SuricataConfigurator(self.configuration_directory)
 
         try:

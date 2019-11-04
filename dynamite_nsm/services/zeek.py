@@ -494,18 +494,16 @@ class ZeekProfiler:
         env_dict = utilities.get_environment_file_dict()
         zeek_home = env_dict.get('ZEEK_HOME')
         if zeek_home:
-            if 'running' in ZeekProcess(install_directory=zeek_home).status():
+            if 'running' in ZeekProcess().status():
                 return True
         return False
 
 
 class ZeekProcess:
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY):
-        """
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
-        """
-        self.install_directory = install_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.install_directory = self.environment_variables.get('ZEEK_HOME')
 
     def start(self, stdout=False):
         """

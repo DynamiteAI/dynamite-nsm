@@ -704,12 +704,9 @@ class ElasticProcess:
     """
     An interface for start|stop|status|restart of the ElasticSearch process
     """
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-        """
-
-        self.configuration_directory = configuration_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.configuration_directory = self.environment_variables.get('ES_PATH_CONF')
         self.config = ElasticConfigurator(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
@@ -869,7 +866,7 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
         sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
     sys.stdout.flush()
-    return True
+    return ElasticProfiler(stderr=False).is_installed
 
 
 def uninstall_elasticsearch(stdout=False, prompt_user=True):

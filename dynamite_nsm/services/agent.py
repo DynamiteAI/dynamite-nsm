@@ -13,13 +13,12 @@ def is_agent_environment_prepared():
     return os.path.exists('/opt/dynamite/.agent_environment_prepared')
 
 
-def install_agent(network_interface, agent_label, logstash_target, install_suricata=True):
+def install_agent(network_interface, agent_label, logstash_target):
     """
     :param network_interface: The network interface that the agent should analyze traffic on
     :param agent_label: A descriptive label representing the
     segment/location on your network that your agent is monitoring
     :param logstash_target: The host port combination for the target Logstash server (E.G "localhost:5044")
-    :param install_suricata: If True, installs Suricata IDS alongside Zeek NSM
     :return: True, if install succeeded
     """
     zeek_installer = zeek.ZeekInstaller()
@@ -39,24 +38,23 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
     if zeek_profiler.is_running or filebeat_profiler.is_running:
         sys.stderr.write('[-] Please stop the agent before attempting re-installation.\n')
         return False
-    elif install_suricata and suricata_profiler.is_running:
+    elif suricata_profiler.is_running:
         sys.stderr.write('[-] Please stop the agent before attempting re-installation.\n')
         return False
 
     # === Install Suricata ===
-    if install_suricata:
-        suricata_installer = suricata.SuricataInstaller()
-        if not suricata_profiler.is_downloaded:
-            suricata_installer.download_suricata(stdout=True)
-            suricata_installer.extract_suricata(stdout=True)
-        else:
-            sys.stdout.write('[+] Suricata has already been downloaded to local cache. Skipping Suricata Download.\n')
-        if not suricata_profiler.is_installed:
-            suricata_installer.install_dependencies()
-            suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
-        else:
-            sys.stdout.write('[+] Suricata has already been installed on this system. '
-                             'Skipping Suricata Installation.\n')
+    suricata_installer = suricata.SuricataInstaller()
+    if not suricata_profiler.is_downloaded:
+        suricata_installer.download_suricata(stdout=True)
+        suricata_installer.extract_suricata(stdout=True)
+    else:
+        sys.stdout.write('[+] Suricata has already been downloaded to local cache. Skipping Suricata Download.\n')
+    if not suricata_profiler.is_installed:
+        suricata_installer.install_dependencies()
+        suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
+    else:
+        sys.stdout.write('[+] Suricata has already been installed on this system. '
+                         'Skipping Suricata Installation.\n')
 
     # === Install Zeek ===
     if not zeek_profiler.is_downloaded:
@@ -81,10 +79,9 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
     if not filebeat_profiler.is_installed:
         environment_variables = utilities.get_environment_file_dict()
         monitored_paths = [os.path.join(environment_variables.get('ZEEK_HOME'), 'logs/current/*.log')]
-        if install_suricata:
-            suricata_config = suricata.SuricataConfigurator(configuration_directory=
-                                                            environment_variables.get('SURICATA_CONFIG'))
-            monitored_paths.append(os.path.join(suricata_config.get_log_directory(), 'eve.json'))
+        suricata_config = suricata.SuricataConfigurator(configuration_directory=
+                                                        environment_variables.get('SURICATA_CONFIG'))
+        monitored_paths.append(os.path.join(suricata_config.get_log_directory(), 'eve.json'))
         filebeat_installer.setup_filebeat(stdout=True)
         filebeat_config = filebeat.FileBeatConfigurator()
         filebeat_config.set_logstash_targets([logstash_target])
@@ -104,18 +101,14 @@ def install_agent(network_interface, agent_label, logstash_target, install_suric
         sys.stderr.write('[-] PF_RING kernel module was not loaded properly.\n')
         return False
     if zeek_post_install_profiler.is_installed and filebeat_post_install_profiler.is_installed:
-        if install_suricata:
-            if suricata_post_profiler.is_installed:
-                sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
-                sys.stdout.flush()
-                return True
-            else:
-                sys.stderr.write('[-] Agent installation failed. Suricata did not install properly.\n')
-                sys.stderr.flush()
-                return False
-        sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
-        sys.stdout.flush()
-        return True
+        if suricata_post_profiler.is_installed:
+            sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
+            sys.stdout.flush()
+            return True
+        else:
+            sys.stderr.write('[-] Agent installation failed. Suricata did not install properly.\n')
+            sys.stderr.flush()
+            return False
     return False
 
 
@@ -191,8 +184,8 @@ def start_agent():
     suricata_profiler = suricata.SuricataProfiler(stderr=False)
 
     # Load service processes
-    filebeat_p = filebeat.FileBeatProcess(install_directory=environment_variables.get('FILEBEAT_HOME'))
-    zeek_p = zeek.ZeekProcess(install_directory=environment_variables.get('ZEEK_HOME'))
+    filebeat_p = filebeat.FileBeatProcess()
+    zeek_p = zeek.ZeekProcess()
 
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
@@ -205,8 +198,7 @@ def start_agent():
     sys.stdout.write('[+] Starting agent processes.\n')
     if suricata_profiler.is_installed:
         # Load Suricata process
-        suricata_p = suricata.SuricataProcess(install_directory=environment_variables.get('SURICATA_HOME'),
-                                              configuration_directory=environment_variables.get('SURICATA_CONFIG'))
+        suricata_p = suricata.SuricataProcess()
         if not suricata_p.start(stdout=True):
             sys.stderr.write('[-] Could not start agent.suricata_process.\n')
             return False
@@ -228,8 +220,8 @@ def status_agent():
     """
 
     # Load service processes
-    zeek_p = zeek.ZeekProcess(install_directory=environment_variables.get('ZEEK_HOME'))
-    filebeat_p = filebeat.FileBeatProcess(environment_variables.get('FILEBEAT_HOME'))
+    zeek_p = zeek.ZeekProcess()
+    filebeat_p = filebeat.FileBeatProcess()
 
     # Load service profilers
     pf_ring_profiler = pf_ring.PFRingProfiler(stderr=False)
@@ -270,7 +262,7 @@ def stop_agent():
 
     # Load service processes
     zeek_p = zeek.ZeekProcess()
-    filebeat_p = filebeat.FileBeatProcess(install_directory=environment_variables.get('FILEBEAT_HOME'))
+    filebeat_p = filebeat.FileBeatProcess()
 
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
@@ -278,8 +270,7 @@ def stop_agent():
         return False
     if suricata_profiler.is_installed:
         # Load Suricata process
-        suricata_p = suricata.SuricataProcess(install_directory=environment_variables.get('SURICATA_HOME'),
-                                              configuration_directory=environment_variables.get('SURICATA_CONFIG'))
+        suricata_p = suricata.SuricataProcess()
         if not suricata_p.stop(stdout=True):
             sys.stderr.write('[-] Could not stop agent.suricata_process.\n')
             return False
@@ -317,9 +308,9 @@ def uninstall_agent(prompt_user=True):
             sys.stdout.write('[+] Exiting\n')
             return False
     if filebeat_profiler.is_running:
-        filebeat.FileBeatProcess(install_directory=environment_variables.get('FILEBEAT_HOME')).stop(stdout=True)
+        filebeat.FileBeatProcess().stop(stdout=True)
     if zeek_profiler.is_running:
-        zeek.ZeekProcess(install_directory=environment_variables.get('ZEEK_HOME')).stop()
+        zeek.ZeekProcess().stop()
     if pf_profiler.is_installed:
         shutil.rmtree(environment_variables.get('PF_RING_HOME'))
         os.remove('/opt/dynamite/.agent_environment_prepared')

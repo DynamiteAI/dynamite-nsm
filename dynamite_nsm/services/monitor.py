@@ -2,6 +2,8 @@ import sys
 from dynamite_nsm import utilities
 from dynamite_nsm.services import elasticsearch, logstash, kibana
 
+environment_variables = utilities.get_environment_file_dict()
+
 
 def install_monitor(elasticsearch_password='changeme'):
     """
@@ -23,7 +25,6 @@ def install_monitor(elasticsearch_password='changeme'):
                                                   port=9200,
                                                   password=elasticsearch_password)
     es_pre_profiler = elasticsearch.ElasticProfiler()
-    es_process = elasticsearch.ElasticProcess()
     ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
                                               elasticsearch_password=elasticsearch_password)
     ls_pre_profiler = logstash.LogstashProfiler()
@@ -42,7 +43,9 @@ def install_monitor(elasticsearch_password='changeme'):
         if not elasticsearch.ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch failed to install on localhost.\n')
             return False
+    environment_variables = utilities.get_environment_file_dict()
     sys.stdout.write('[+] Starting ElasticSearch on localhost.\n')
+    es_process = elasticsearch.ElasticProcess(configuration_directory=environment_variables.get('ES_PATH_CONF'))
     es_process.start()
     if not ls_pre_profiler.is_installed:
         if not ls_pre_profiler.is_downloaded:
@@ -91,7 +94,7 @@ def start_monitor():
     es_profiler = elasticsearch.ElasticProfiler()
     ls_profiler = logstash.LogstashProfiler()
     kb_profiler = kibana.KibanaProfiler()
-    es_process = elasticsearch.ElasticProcess()
+    es_process = elasticsearch.ElasticProcess(configuration_directory=environment_variables.get('ES_PATH_CONF'))
     ls_process = logstash.LogstashProcess()
     kb_process = kibana.KibanaProcess()
     if not (es_profiler.is_installed or ls_profiler.is_installed or kb_profiler.is_installed):

@@ -519,12 +519,9 @@ class KibanaProcess:
     """
     An interface for start|stop|status|restart of the Kibana process
     """
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
-        """
-
-        self.configuration_directory = configuration_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.configuration_directory = self.environment_variables.get('KIBANA_PATH_CONF')
         self.config = KibanaConfigurator(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/kibana/kibana.pid').read())
@@ -713,7 +710,7 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elas
         sys.stdout.write('[+] *** Kibana + Dashboards installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your collector: \'dynamite start kibana\'.\n')
         sys.stdout.flush()
-    return True
+    return KibanaProfiler(stderr=False).is_installed
 
 
 def uninstall_kibana(stdout=False, prompt_user=True):
