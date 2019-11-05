@@ -6,8 +6,6 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services import filebeat, pf_ring, zeek, suricata
 
-environment_variables = utilities.get_environment_file_dict()
-
 
 def is_agent_environment_prepared():
     return os.path.exists('/opt/dynamite/.agent_environment_prepared')
@@ -241,8 +239,7 @@ def status_agent():
     )
     if suricata_profiler.is_installed:
         # Load Suricata process
-        suricata_p = suricata.SuricataProcess(install_directory=environment_variables.get('SURICATA_HOME'),
-                                              configuration_directory=environment_variables.get('SURICATA_CONFIG'))
+        suricata_p = suricata.SuricataProcess()
         agent_status['agent_processes']['suricata'] = suricata_p.status()
     return zeek_p.status(), agent_status
 
@@ -290,6 +287,7 @@ def uninstall_agent(prompt_user=True):
     :param prompt_user: Print a warning before continuing
     :return: True, if uninstall succeeded
     """
+    environment_variables = utilities.get_environment_file_dict()
     filebeat_profiler = filebeat.FileBeatProfiler()
     filebeat_config = filebeat.FileBeatConfigurator(install_directory=environment_variables.get('FILEBEAT_HOME'))
     pf_profiler = pf_ring.PFRingProfiler()
