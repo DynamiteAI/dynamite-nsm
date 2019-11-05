@@ -225,7 +225,6 @@ class KibanaInstaller:
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
-                self.elasticsearch_port = 9200
             else:
                 raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
         self.install_directory = install_directory

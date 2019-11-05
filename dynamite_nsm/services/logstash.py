@@ -13,6 +13,7 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services import synesis
 from dynamite_nsm.services import elastiflow
+from dynamite_nsm.services.elasticsearch import ElasticProfiler
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/'
 INSTALL_DIRECTORY = '/opt/dynamite/logstash/'
@@ -242,7 +243,11 @@ class LogstashInstaller:
         """
 
         self.host = host
-        self.elasticsearch_host = elasticsearch_host
+        if not elasticsearch_host:
+            if ElasticProfiler().is_installed:
+                self.elasticsearch_host = 'localhost'
+            else:
+                raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
         self.elasticsearch_port = elasticsearch_port
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
@@ -320,15 +325,15 @@ class LogstashInstaller:
         subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
                         shell=True, env=utilities.get_environment_file_dict())
         subprocess.call('{}/bin/logstash-plugin install logstash-codec-netflow'.format(self.install_directory),
-            shell=True, env=utilities.get_environment_file_dict())
+                        shell=True, env=utilities.get_environment_file_dict())
         subprocess.call('{}/bin/logstash-plugin install logstash-filter-dns'.format(self.install_directory),
-            shell=True, env=utilities.get_environment_file_dict())
+                        shell=True, env=utilities.get_environment_file_dict())
         subprocess.call('{}/bin/logstash-plugin install logstash-filter-geoip'.format(self.install_directory),
-            shell=True, env=utilities.get_environment_file_dict())
+                        shell=True, env=utilities.get_environment_file_dict())
         subprocess.call('{}/bin/logstash-plugin install logstash-filter-translate'.format(self.install_directory),
-            shell=True, env=utilities.get_environment_file_dict())
+                        shell=True, env=utilities.get_environment_file_dict())
         subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
-            shell=True, env=utilities.get_environment_file_dict())
+                        shell=True, env=utilities.get_environment_file_dict())
 
     def _setup_default_logstash_configs(self, stdout=False):
         sys.stdout.write('[+] Overwriting default configuration.\n')
@@ -344,8 +349,9 @@ class LogstashInstaller:
         ls_config.write_configs()
 
     def _setup_elastiflow(self, stdout=False):
-        ef_install = elastiflow.ElastiFlowInstaller(install_directory=
-                                                    os.path.join(self.configuration_directory, 'elastiflow'))
+        ef_install = elastiflow.ElastiFlowInstaller(install_directory=os.path.join(
+            self.configuration_directory, 'elastiflow')
+        )
         ef_install.setup_logstash_elastiflow(stdout=stdout)
         ef_config = elastiflow.ElastiflowConfigurator()
         ef_config.ipfix_tcp_ipv4_host = self.host
@@ -467,7 +473,8 @@ class LogstashProfiler:
         ls_home = env_dict.get('LS_HOME')
         if not ls_home:
             if stderr:
-                sys.stderr.write('[-] LogStash installation directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] LogStash installation directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(ls_home):
             if stderr:
@@ -500,36 +507,43 @@ class LogstashProfiler:
         ef_definition_path = env_dict.get('ELASTIFLOW_DEFINITION_PATH')
         if not ef_dict_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         elif not ef_template_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElastiFlow template directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         elif not ef_geo_ip_db_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow geoip directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElastiFlow geoip directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         elif not ef_definition_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow definitions directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElastiFlow definitions directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         elif not syn_dict_path:
             if stderr:
-                sys.stderr.write('[-] Synesis dictionary directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] Synesis dictionary directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         elif not syn_template_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElastiFlow template directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(ef_dict_path):
             if stderr:
-                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located at: {}\n'.format(ef_dict_path))
+                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located at: '
+                                 '{}\n'.format(ef_dict_path))
             return False
         elif not os.path.exists(ef_template_path):
             if stderr:
-                sys.stderr.write('[-] ElastiFlow template directory could not be located at: {}\n'.format(
-                    ef_template_path))
+                sys.stderr.write('[-] ElastiFlow template directory could not be located at: '
+                                 '{}\n'.format(ef_template_path))
             return False
         elif not os.path.exists(ef_geo_ip_db_path):
             if stderr:
@@ -559,7 +573,8 @@ class LogstashProfiler:
         ls_path_conf = env_dict.get('LS_PATH_CONF')
         if not ls_path_conf:
             if stderr:
-                sys.stderr.write('[-] LogStash configuration directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] LogStash configuration directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(ls_path_conf, 'logstash.yml')):
             if stderr:
