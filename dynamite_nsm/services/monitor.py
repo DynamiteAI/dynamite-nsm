@@ -2,8 +2,6 @@ import sys
 from dynamite_nsm import utilities
 from dynamite_nsm.services import elasticsearch, logstash, kibana
 
-environment_variables = utilities.get_environment_file_dict()
-
 
 def install_monitor(elasticsearch_password='changeme'):
     """
@@ -43,7 +41,6 @@ def install_monitor(elasticsearch_password='changeme'):
         if not elasticsearch.ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch failed to install on localhost.\n')
             return False
-    environment_variables = utilities.get_environment_file_dict()
     sys.stdout.write('[+] Starting ElasticSearch on localhost.\n')
     es_process = elasticsearch.ElasticProcess()
     es_process.start()

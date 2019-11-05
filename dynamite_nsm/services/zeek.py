@@ -387,17 +387,17 @@ class ZeekInstaller:
         subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                            const.ZEEK_DIRECTORY_NAME))
 
-        if 'ZEEK_HOME' not in open('/etc/environment').read():
+        if 'ZEEK_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo ZEEK_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo ZEEK_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
-        if 'ZEEK_SCRIPTS' not in open('/etc/environment').read():
+        if 'ZEEK_SCRIPTS' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Zeek default script path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/environment'.format(self.configuration_directory),
+            subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
         if stdout:
             sys.stdout.write('[+] Overwriting default Script | Node configurations.\n')
@@ -446,11 +446,11 @@ class ZeekProfiler:
         zeek_scripts = env_dict.get('ZEEK_SCRIPTS')
         if not zeek_home:
             if stderr:
-                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not zeek_scripts:
             if stderr:
-                sys.stderr.write('[-] ZEEK_SCRIPTS directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ZEEK_SCRIPTS directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(zeek_home):
             if stderr:

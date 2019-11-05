@@ -64,11 +64,11 @@ class OinkmasterInstaller:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))
             return False
-        if 'OINKMASTER_HOME' not in open('/etc/environment').read():
+        if 'OINKMASTER_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Oinkmaster default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo OINKMASTER_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo OINKMASTER_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
         if stdout:
             sys.stdout.write('[+] Updating oinkmaster.conf with emerging-threats URL.\n')

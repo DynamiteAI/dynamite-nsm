@@ -324,7 +324,7 @@ def uninstall_agent(prompt_user=True):
         shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
     shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     env_lines = ''
-    for line in open('/etc/environment').readlines():
+    for line in open('/etc/dynamite/environment').readlines():
         if 'FILEBEAT_HOME' in line:
             continue
         elif 'ZEEK_HOME' in line:
@@ -338,6 +338,6 @@ def uninstall_agent(prompt_user=True):
         elif 'PF_RING_HOME' in line:
             continue
         env_lines += line.strip() + '\n'
-    with open('/etc/environment', 'w') as f:
+    with open('/etc/dynamite/environment', 'w') as f:
         f.write(env_lines)
     return True

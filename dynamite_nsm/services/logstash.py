@@ -68,10 +68,10 @@ class LogstashConfigurator:
 
     def _parse_environment_file(self):
         """
-        Parses the /etc/environment file and returns results for JAVA_HOME, LS_PATH_CONF, LS_HOME;
+        Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, LS_PATH_CONF, LS_HOME;
         stores the results in class variables of the same name
         """
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if line.startswith('JAVA_HOME'):
                 self.java_home = line.split('=')[1].strip()
             elif line.startswith('LS_PATH_CONF'):
@@ -300,17 +300,17 @@ class LogstashInstaller:
         subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
 
     def _create_logstash_environment_variables(self, stdout=False):
-        if 'LS_PATH_CONF' not in open('/etc/environment').read():
+        if 'LS_PATH_CONF' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating LogStash default configuration path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo LS_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
+            subprocess.call('echo LS_PATH_CONF="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
-        if 'LS_HOME' not in open('/etc/environment').read():
+        if 'LS_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating LogStash default home path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo LS_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo LS_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
 
     def _install_logstash_plugins(self, stdout=False):
@@ -467,7 +467,7 @@ class LogstashProfiler:
         ls_home = env_dict.get('LS_HOME')
         if not ls_home:
             if stderr:
-                sys.stderr.write('[-] LogStash installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] LogStash installation directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(ls_home):
             if stderr:
@@ -500,27 +500,27 @@ class LogstashProfiler:
         ef_definition_path = env_dict.get('ELASTIFLOW_DEFINITION_PATH')
         if not ef_dict_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElastiFlow dictionary directory could not be located in /etc/dynamite/environment.\n')
             return False
         elif not ef_template_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/dynamite/environment.\n')
             return False
         elif not ef_geo_ip_db_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow geoip directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElastiFlow geoip directory could not be located in /etc/dynamite/environment.\n')
             return False
         elif not ef_definition_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow definitions directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElastiFlow definitions directory could not be located in /etc/dynamite/environment.\n')
             return False
         elif not syn_dict_path:
             if stderr:
-                sys.stderr.write('[-] Synesis dictionary directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] Synesis dictionary directory could not be located in /etc/dynamite/environment.\n')
             return False
         elif not syn_template_path:
             if stderr:
-                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElastiFlow template directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(ef_dict_path):
             if stderr:
@@ -559,7 +559,7 @@ class LogstashProfiler:
         ls_path_conf = env_dict.get('LS_PATH_CONF')
         if not ls_path_conf:
             if stderr:
-                sys.stderr.write('[-] LogStash configuration directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] LogStash configuration directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(ls_path_conf, 'logstash.yml')):
             if stderr:
@@ -800,7 +800,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
         shutil.rmtree(ls_config.get_log_path())
         shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if 'LS_PATH_CONF' in line:
                 continue
             elif 'LS_HOME' in line:
@@ -810,7 +810,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
             elif 'SYNLITE_' in line:
                 continue
             env_lines += line.strip() + '\n'
-        open('/etc/environment', 'w').write(env_lines)
+        open('/etc/dynamite/environment', 'w').write(env_lines)
         if stdout:
             sys.stdout.write('[+] LogStash uninstalled successfully.\n')
     except Exception:

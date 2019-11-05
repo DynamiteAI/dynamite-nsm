@@ -817,17 +817,17 @@ class SuricataInstaller:
         suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
         if not suricata_compiled:
             return False
-        if 'SURICATA_HOME' not in open('/etc/environment').read():
+        if 'SURICATA_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Suricata default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo SURICATA_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo SURICATA_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
-        if 'SURICATA_CONFIG' not in open('/etc/environment').read():
+        if 'SURICATA_CONFIG' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Suricata default config path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo SURICATA_CONFIG="{}" >> /etc/environment'.format(self.configuration_directory),
+            subprocess.call('echo SURICATA_CONFIG="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
         suricata_rules_installed = self._setup_suricata_rules(stdout=stdout)
         if not suricata_rules_installed:
@@ -865,11 +865,11 @@ class SuricataProfiler:
         suricata_config = env_dict.get('SURICATA_CONFIG')
         if not suricata_home:
             if stderr:
-                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not suricata_config:
             if stderr:
-                sys.stderr.write('[-] SURICATA_CONFIG directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] SURICATA_CONFIG directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(suricata_home):
             if stderr:
