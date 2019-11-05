@@ -29,9 +29,6 @@ CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
 INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
 LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
 
-ENV_VARS = utilities.get_environment_file_dict()
-
-
 class ElasticConfigurator:
     """
     Wrapper for configuring elasticsearch.yml and jvm.options
