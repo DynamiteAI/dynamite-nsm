@@ -809,6 +809,8 @@ def uninstall_logstash(stdout=False, prompt_user=True):
                 continue
             elif 'SYNLITE_' in line:
                 continue
+            elif line.strip() == '':
+                continue
             env_lines += line.strip() + '\n'
         open('/etc/dynamite/environment', 'w').write(env_lines)
         if stdout:

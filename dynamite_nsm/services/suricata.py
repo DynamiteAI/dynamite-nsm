@@ -865,7 +865,8 @@ class SuricataProfiler:
         suricata_config = env_dict.get('SURICATA_CONFIG')
         if not suricata_home:
             if stderr:
-                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not suricata_config:
             if stderr:

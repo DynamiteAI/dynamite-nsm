@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import shutil
@@ -494,8 +495,7 @@ class ZeekProfiler:
         env_dict = utilities.get_environment_file_dict()
         zeek_home = env_dict.get('ZEEK_HOME')
         if zeek_home:
-            if 'running' in ZeekProcess().status():
-                return True
+            return ZeekProcess().status()['RUNNING']
         return False
 
 
@@ -540,7 +540,34 @@ class ZeekProcess:
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
-        return out.decode('utf-8')
+        raw_output = out.decode('utf-8')
+
+        zeek_status = {
+            'RUNNING': False,
+            'SUBPROCESSES': []
+        }
+        zeek_subprocesses = []
+        for line in raw_output.split('\n')[1:]:
+            tokenized_line = re.findall(r'\S+', line)
+            if len(tokenized_line) == 8:
+                name, _type, host, status, pid, _, _, _ = tokenized_line
+                zeek_status['RUNNING'] = True
+            elif len(tokenized_line) == 4:
+                name, _type, host, status = tokenized_line
+                pid = None
+            else:
+                continue
+            zeek_subprocesses.append(
+                {
+                    'process_name': name,
+                    'process_type': _type,
+                    'host': host,
+                    'status': status,
+                    'pid': pid
+                }
+            )
+        zeek_status['SUBPROCESSES'] = zeek_subprocesses
+        return zeek_status
 
     def restart(self, stdout=False):
         """

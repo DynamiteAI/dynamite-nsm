@@ -320,6 +320,7 @@ def uninstall_agent(prompt_user=True):
     if suricata_profiler.is_installed:
         shutil.rmtree(environment_variables.get('SURICATA_HOME'), ignore_errors=True)
         shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
+        shutil.rmtree(environment_variables.get('OINKMASTER_HOME'), ignore_errors=True)
     shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     env_lines = ''
     for line in open('/etc/dynamite/environment').readlines():
@@ -334,6 +335,8 @@ def uninstall_agent(prompt_user=True):
         elif 'SURICATA_CONFIG' in line:
             continue
         elif 'PF_RING_HOME' in line:
+            continue
+        elif line.strip() == '':
             continue
         env_lines += line.strip() + '\n'
     with open('/etc/dynamite/environment', 'w') as f:

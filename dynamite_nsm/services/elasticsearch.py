@@ -919,6 +919,8 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
                 continue
             elif 'ES_HOME' in line:
                 continue
+            elif line.strip() == '':
+                continue
             env_lines += line.strip() + '\n'
         open('/etc/dynamite/environment', 'w').write(env_lines)
         if stdout:
