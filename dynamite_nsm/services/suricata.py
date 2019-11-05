@@ -817,9 +817,6 @@ class SuricataInstaller:
         suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
         if not suricata_compiled:
             return False
-        suricata_rules_installed = self._setup_suricata_rules(stdout=stdout)
-        if not suricata_rules_installed:
-            return False
         if 'SURICATA_HOME' not in open('/etc/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Suricata default home path [{}]\n'.format(
@@ -832,6 +829,9 @@ class SuricataInstaller:
                     self.configuration_directory))
             subprocess.call('echo SURICATA_CONFIG="{}" >> /etc/environment'.format(self.configuration_directory),
                             shell=True)
+        suricata_rules_installed = self._setup_suricata_rules(stdout=stdout)
+        if not suricata_rules_installed:
+            return False
         config = SuricataConfigurator(self.configuration_directory)
         config.set_monitor_interface(network_interface)
         config.set_rules_directory(os.path.join(self.configuration_directory, 'rules'))
