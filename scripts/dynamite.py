@@ -105,6 +105,7 @@ if __name__ == '__main__':
         else:
             sys.exit(1)
     utilities.create_dynamite_root_directory()
+    utilities.create_dynamite_environment_file()
     if args.command == 'point':
         if args.component == 'agent':
             agent.point_agent(args.ls_host, args.ls_port)

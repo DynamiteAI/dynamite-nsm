@@ -71,7 +71,9 @@ def check_socket(host, port):
 
 
 def create_dynamite_environment_file():
-    open('/etc/dynamite/environment', 'w').close()
+    env_file = open('/etc/dynamite/environment', 'a')
+    env_file.write('')
+    env_file.close()
     set_permissions_of_file('/etc/dynamite/environment', 700)
 
 
