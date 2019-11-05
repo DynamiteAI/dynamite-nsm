@@ -233,6 +233,7 @@ def status_agent():
         return False
     agent_status = dict(
         agent_processes={
+            'zeek': zeek_p.status(),
             'pf_ring': pf_ring_profiler.get_profile(),
             'filebeat': filebeat_p.status()
         }
@@ -241,7 +242,7 @@ def status_agent():
         # Load Suricata process
         suricata_p = suricata.SuricataProcess()
         agent_status['agent_processes']['suricata'] = suricata_p.status()
-    return zeek_p.status(), agent_status
+    return agent_status
 
 
 def stop_agent():
