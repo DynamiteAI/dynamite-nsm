@@ -337,9 +337,8 @@ if __name__ == '__main__':
                     _fatal_exception('status', 'monitor', args.debug)
             elif args.component == 'agent':
                 try:
-                    zeek_status, other_processes = agent.status_agent()
-                    sys.stdout.write(zeek_status)
-                    sys.stdout.write(json.dumps(other_processes, indent=1))
+                    agent_status = agent.status_agent()
+                    sys.stdout.write(json.dumps(agent_status, indent=1))
                     sys.stdout.flush()
                     sys.exit(0)
                 except Exception:
