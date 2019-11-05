@@ -706,8 +706,7 @@ class SuricataInstaller:
             sys.stderr.write('[-] Unable to setup Oinkmaster: {}'.format(e))
             return False
 
-        oinkmaster.update_suricata_rules(self.configuration_directory,
-                                         os.path.join(self.install_directory, 'oinkmaster'))
+        oinkmaster.update_suricata_rules()
         return oink_install_res
 
 
