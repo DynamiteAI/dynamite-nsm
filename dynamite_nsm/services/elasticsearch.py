@@ -29,6 +29,7 @@ CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
 INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
 LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
 
+
 class ElasticConfigurator:
     """
     Wrapper for configuring elasticsearch.yml and jvm.options
@@ -602,11 +603,17 @@ class ElasticProfiler:
 
     @staticmethod
     def _is_installed(stderr=False):
-        env_dict = utilities.get_environment_file_dict()
+        try:
+            env_dict = utilities.get_environment_file_dict()
+        except IOError:
+            if stderr:
+                sys.stderr.write('[-] ElasticSearch environment variables haven\'t been created.\n')
+            return False
         es_home = env_dict.get('ES_HOME')
         if not es_home:
             if stderr:
-                sys.stderr.write('[-] ElasticSearch installation directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElasticSearch installation directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(es_home):
             if stderr:
