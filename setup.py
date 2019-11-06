@@ -14,4 +14,7 @@ setup(
     description='Dynamite-NSM is an network security monitor with an emphasis on very fast deployment, '
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
+    install_requires=[
+        'pyyaml'
+    ]
 )

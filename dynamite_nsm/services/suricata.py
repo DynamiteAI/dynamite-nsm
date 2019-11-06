@@ -165,8 +165,9 @@ class SuricataConfigurator:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
-        with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'wb') as configyaml:
-            dump(self.config_data, configyaml)
+        with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'w') as configyaml:
+            configyaml.write('%YAML 1.1\n---\n\n')
+            dump(self.config_data, configyaml, default_flow_style=False)
 
 
 class SuricataInstaller:
