@@ -417,7 +417,7 @@ class ZeekInstaller:
             node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
                                    host='localhost',
                                    interface=network_interface,
-                                   lb_procs=10,
+                                   lb_procs=1,
                                    pin_cpus=cpu_group
                                    )
             node_config.write_config()

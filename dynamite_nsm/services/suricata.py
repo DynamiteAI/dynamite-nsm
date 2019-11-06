@@ -1,11 +1,17 @@
 import os
 import sys
 import time
-import json
 import shutil
 import signal
 import tarfile
 import subprocess
+
+from yaml import load, dump
+
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -22,614 +28,145 @@ class SuricataConfigurator:
     """
     Wrapper for configuring suricata.yml
     """
+
+    tokens = {
+        'home_net': ('vars', 'address-groups', 'HOME_NET'),
+        'external_net': ('vars', 'address-groups', 'EXTERNAL_NET'),
+        'http_net': ('vars', 'address-groups', 'HTTP_SERVERS'),
+        'sql_servers': ('vars', 'address-groups', 'SQL_SERVERS'),
+        'dns_servers': ('vars', 'address-groups', 'DNS_SERVERS'),
+        'telnet_servers': ('vars', 'address-groups', 'TELNET_SERVERS'),
+        'aim_servers': ('vars', 'address-groups', 'AIM_SERVERS'),
+        'dc_servers': ('vars', 'address-groups', 'DC_SERVERS'),
+        'dnp3_servers': ('vars', 'address-groups', 'DNP3_SERVERS'),
+        'modbus_client': ('vars', 'address-groups', 'MODBUS_CLIENT'),
+        'modbus_server': ('vars', 'address-groups', 'MODBUS_SERVER'),
+        'enip_client': ('vars', 'address-groups', 'ENIP_CLIENT'),
+        'enip_server': ('vars', 'address-groups', 'ENIP_SERVER'),
+        'http_ports': ('vars', 'port-groups', 'HTTP_PORTS'),
+        'shellcode_ports': ('vars', 'port-groups', 'SHELLCODE_PORTS'),
+        'oracle_ports': ('vars', 'port-groups', 'ORACLE_PORTS'),
+        'ssh_ports': ('vars', 'port-groups', 'SSH_PORTS'),
+        'dnp3_ports': ('vars', 'port-groups', 'DNP3_PORTS'),
+        'modbus_ports': ('vars', 'port-groups', 'MODBUS_PORTS'),
+        'file_data_ports': ('vars', 'port-groups', 'FILE_DATA_PORTS'),
+        'ftp_ports': ('vars', 'port-groups', 'FTP_PORTS'),
+        'default_log_directory': ('default-log-dir',),
+        'default_rules_directory': ('default-rule-path',),
+        'classification_file': ('classification-file',),
+        'reference_config_file': ('reference-config-file',),
+        'af_packet_interfaces': ('af-packet',),
+        'pcap_interfaces': ('pcap',),
+        'pfring_interfaces': ('pfring',)
+    }
+
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
         """
         self.configuration_directory = configuration_directory
-        self.suricata_config = self._parse_suricatayaml()
+        self.config_data = None
+
+        self.home_net = None
+        self.external_net = None
+        self.http_net = None
+        self.sql_servers = None
+        self.dns_servers = None
+        self.telnet_servers = None
+        self.aim_servers = None
+        self.dc_servers = None
+        self.modbus_client = None
+        self.modbus_server = None
+        self.enip_client = None
+        self.enip_server = None
+        self.http_ports = None
+        self.shellcode_ports = None
+        self.oracle_ports = None
+        self.ssh_ports = None
+        self.dnp3_ports = None
+        self.modbus_ports = None
+        self.default_log_directory = None
+        self.default_rules_directory = None
+        self.classification_file = None
+        self.reference_config_file = None
+        self.af_packet_interfaces = None
+        self.pcap_interfaces = None
+        self.pfring_interfaces = None
+        self._parse_suricatayaml()
 
     def _parse_suricatayaml(self):
-        suricata_config = {}
-        parsable_tokens = [
-            # address groups
-            'HOME_NET', 'EXTERNAL_NET', 'HTTP_SERVERS', 'SMTP_SERVERS', 'SQL_SERVERS', 'DNS_SERVERS',
-            'TELNET_SERVERS', 'AIM_SERVERS', 'DC_SERVERS', 'DNP3_SERVER', 'DNP3_CLIENT', 'MODBUS_CLIENT',
-            'MODBUS_SERVER', 'ENIP_CLIENT', 'ENIP_SERVER',
 
-            # port groups
-            'HTTP_PORTS', 'SHELLCODE_PORTS', 'ORACLE_PORTS', 'SSH_PORTS', 'DNP3_PORTS', 'MODBUS_PORTS',
-            'FILE_DATA_PORTS', 'FTP_PORTS',
+        def set_instance_var_from_token(variable_name, data):
+            """
+            :param variable_name: The name of the instance variable to update
+            :param data: The parsed yaml object
+            :return: True if successfully located
+            """
+            if variable_name not in self.tokens.keys():
+                return False
+            key_path = self.tokens[variable_name]
+            value = data
+            for k in key_path:
+                value = value[k]
+            setattr(self, var_name, value)
+            return True
 
-            # logging
-            'default-log-dir',
+        with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'r') as configyaml:
+            self.config_data = load(configyaml, Loader=Loader)
 
-            # rule-path
-            'default-rule-path',
+        for var_name in vars(self).keys():
+            set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
-            # rule classifications
-            'classification-file',
-            'reference-config-file',
-
-            '- interface'
-
-        ]
-        for line in open(os.path.join(self.configuration_directory, 'suricata.yaml')).readlines():
-            token = line.split(':')[0].strip()
-            if token in parsable_tokens:
-                value = line.split(':')[1].strip()
-                if token == '- interface' and value == 'default':
-                    continue
-                suricata_config[token] = value
-
-        return suricata_config
-
-    def get_monitor_interface(self):
+    def add_pfring_interface(self, interface, threads=None, cluster_id=None, bpf_filter=None):
         """
-        Get the network interface being monitored
-
-        :return: The name of the network interface (E.G eth0, mon1)
-        """
-        return self.suricata_config['- interface']
-
-    def get_log_directory(self):
-        """
-        Get the location that logs are being written
-
-        :return: Path to logs directory
-        """
-        return self.suricata_config['default-log-dir']
-
-    def get_rules_directory(self):
-        """
-        Get the location that rules are being written
-
-        :return: Path to rules directory
-        """
-        return self.suricata_config['default-rule-path']
-
-    def get_classification_file(self):
-        """
-        Get the file used for alert classifications
-
-        :return: Path to the classification file
-        """
-        return self.suricata_config['classification-file']
-
-    def get_reference_config_file(self):
-        """
-        Get the file used for rule references
-
-        :return: Path to the rule-reference-config file
-        """
-        return self.suricata_config['reference-config-file']
-
-    def get_aim_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with AIM (Instant Messaging) servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['AIM_SERVERS']
-
-    def get_dnp3_clients_group(self):
-        """
-        Get the group of hosts/IPs associated with DNP3 clients
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['DNP3_CLIENT']
-
-    def get_dnp3_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with DNP3 servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['DNP3_SERVER']
-
-    def get_dnp3_port_group(self):
-        """
-        Get the group of ports associated with the DNP3 protocol
-
-        :return: port list, string or variable string/expression
-        """
-        return self.suricata_config['DNP3_PORTS']
-
-    def get_dns_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with DNS servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['DNS_SERVERS']
-
-    def get_domain_controller_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with Domain Controller servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['DC_SERVERS']
-
-    def get_enip_clients_group(self):
-        """
-        Get the group of hosts/IPs associated with ENIP clients
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['ENIP_CLIENT']
-
-    def get_enip_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with ENIP servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['ENIP_SERVER']
-
-    def get_external_net_group(self):
-        """
-        Get the group of hosts/IPs associated with External (WAN) devices
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['EXTERNAL_NET']
-
-    def get_filedata_port_group(self):
-        """
-        Get the group of ports associated with file-serving protocols
-
-        :return: port list, string or variable string/expression
-        """
-        return self.suricata_config['FILE_DATA_PORTS']
-
-    def get_ftp_port_group(self):
-        """
-        Get the group of ports associated with FTP protocols
-
-        :return: port list, string or variable string/expression
-        """
-        return self.suricata_config['FTP_PORTS']
-
-    def get_home_net_group(self):
-        """
-        Get the group of hosts/IPs associated with Internal (LAN) devices
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['HOME_NET']
-
-    def get_http_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with HTTP servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['HTTP_SERVERS']
-
-    def get_http_port_group(self):
-        """
-        Get the group of ports associated with HTTP protocols
-
-        :return: port list, string or variable string/expression
-        """
-        return self.suricata_config['HTTP_PORTS']
-
-    def get_modbus_clients_group(self):
-        """
-        Get the group of hosts/IPs associated with Modbus clients
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['MODBUS_CLIENT']
-
-    def get_modbus_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with Modbus servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['MODBUS_SERVER']
-
-    def get_modbus_ports_group(self):
-        """
-        Get the group of ports associated with Modbus ports
-
-        :return: port list, string or variable string/expression
-        """
-        return self.suricata_config['MODBUS_PORTS']
-
-    def get_oracle_port_group(self):
-        """
-        Get the group of ports associated with Oracle ports
-
-        :return: port list, string or variable string/expression
-        """
-        return self.suricata_config['ORACLE_PORTS']
-
-    def get_smtp_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with SMTP servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['SMTP_SERVERS']
-
-    def get_shellcode_port_group(self):
-        """
-        Get the group of ports associated from shellcode payloads are commonly sent
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['SHELLCODE_PORTS']
-
-    def get_ssh_port_group(self):
-        """
-        Get the group of ports associated with SSH ports
-
-        :return: port list, string or variable string/expression
-        """
-        return self.suricata_config['SSH_PORTS']
-
-    def get_sql_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with SQL servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['SQL_SERVERS']
-
-    def get_telnet_servers_group(self):
-        """
-        Get the group of hosts/IPs associated with Telnet servers
-
-        :return: host/IPs list or variable string/expression
-        """
-        return self.suricata_config['TELNET_SERVERS']
-
-    def set_monitor_interface(self, interface):
-        """
-        Set the interface to monitor
-
-        :param interface: The interface to monitor (E.G eth0, mon1)
+        :param interface: The name of the interface to monitor (eth0, mon0)
+        :param threads: "auto" or the number of threads
+        :param cluster_id: The PF_RING cluster id; PF_RING will load balance packets based on flow
+        :param bpf_filter: bpf filter for this interface (E.G tcp)
         :return: None
         """
-        self.suricata_config['- interface'] = interface
+        interface_config = {
+                'interface': interface
+        }
+        if threads:
+            interface_config['threads'] = threads
+        if cluster_id:
+            interface_config['cluster-id'] = cluster_id
+        if bpf_filter:
+            interface_config['bpf_filter'] = bpf_filter
 
-    def set_log_directory(self, log_directory):
-        """
-        Set the path to the log directory
-
-        :param log_directory: The full path to the log directory
-        :return: None
-        """
-        log_directory = log_directory.replace('"', '').replace("'", '')
-        self.suricata_config['default-log-dir'] = '"{}"'.format(log_directory)
-
-    def set_rules_directory(self, rules_directory):
-        """
-        Set the path to the rules directory
-
-        :param rules_directory: The path to the rules directory
-        :return: None
-        """
-        rules_directory = rules_directory.replace('"', '').replace("'", '')
-        self.suricata_config['default-rule-path'] = '"{}"'.format(rules_directory)
-
-    def set_classification_file(self, classification_file):
-        """
-        Set the path to the alert classification file
-
-        :param classification_file: The full path to the alert classification configuration
-        :return: None
-        """
-        classification_file = classification_file.replace('"', '').replace("'", '')
-        self.suricata_config['classification-file'] = '"{}"'.format(classification_file)
-
-    def set_reference_config_file(self, reference_file):
-        """
-        Set the path to the rules reference file
-
-        :param reference_file: The full path to the rules reference configuration
-        :return: None
-        """
-        reference_file = reference_file.replace('"', '').replace("'", '')
-        self.suricata_config['reference-config-file'] = '"{}"'.format(reference_file)
-
-    def set_aim_servers_group(self, var_or_ips='EXTERNAL_NET'):
-        """
-        Set the group associated with AIM (Instant Messaging) servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['AIM_SERVERS'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['AIM_SERVERS'] = var_or_ips
-
-    def set_dnp3_clients_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with DNP3 clients
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['DNP3_CLIENT'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['DNP3_CLIENT'] = var_or_ips
-
-    def set_dnp3_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with DNP3 servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['DNP3_SERVER'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['DNP3_SERVER'] = var_or_ips
-
-    def set_dnp3_port_group(self, var_or_ports="20000"):
-        """
-        Set the group associated with DNP3 servers
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['DNP3_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['DNP3_PORTS'] = var_or_ports
-
-    def set_dns_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with DNS servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['DNS_SERVERS'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['DNS_SERVERS'] = var_or_ips
-
-    def set_domain_controller_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with Windows Domain Controllers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['DC_SERVERS'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['DC_SERVERS'] = var_or_ips
-
-    def set_enip_clients_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with ENIP clients
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['ENIP_CLIENT'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['ENIP_CLIENT'] = var_or_ips
-
-    def set_enip_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with ENIP servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['ENIP_SERVER'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['ENIP_SERVER'] = var_or_ips
-
-    def set_external_net_group(self, var_or_ips='!$HOME_NET'):
-        """
-        Set the group associated with WAN (Internet) devices
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['EXTERNAL_NET'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['EXTERNAL_NET'] = var_or_ips
-
-    def set_filedata_port_group(self, var_or_ports=("$HTTP_PORTS", 110, 143)):
-        """
-        Set the group associated with common file-transfer ports
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['FILE_DATA_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['FILE_DATA_PORTS'] = var_or_ports
-
-    def set_ftp_port_group(self, var_or_ports="21"):
-        """
-        Set the group associated with FTP ports
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['FTP_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['FTP_PORTS'] = var_or_ports
-
-    def set_home_net_group(self, var_or_ips=('192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12')):
-        """
-        Set the group associated with LAN (local) devices
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        self.suricata_config['HOME_NET'] = json.dumps(list(var_or_ips))
-
-    def set_http_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with HTTP servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['HTTP_SERVERS'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['HTTP_SERVERS'] = var_or_ips
-
-    def set_http_port_group(self, var_or_ports="80"):
-        """
-        Set the group associated with HTTP ports
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['HTTP_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['HTTP_PORTS'] = var_or_ports
-
-    def set_modbus_clients_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with Modbus clients
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['MODBUS_CLIENT'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['MODBUS_CLIENT'] = var_or_ips
-
-    def set_modbus_port_group(self, var_or_ports="502"):
-        """
-        Set the group associated with Modbus ports
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['MODBUS_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['MODBUS_PORTS'] = var_or_ports
-
-    def set_modbus_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with Modbus servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['MODBUS_SERVER'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['MODBUS_SERVER'] = var_or_ips
-
-    def set_oracle_port_group(self, var_or_ports="1521"):
-        """
-        Set the group associated with Oracle ports
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['ORACLE_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['ORACLE_PORTS'] = var_or_ports
-
-    def set_smtp_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with SMTP servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['SMTP_SERVERS'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['SMTP_SERVERS'] = var_or_ips
-
-    def set_shellcode_port_group(self, var_or_ports="!80"):
-        """
-        Set the group from which shellcode payloads are commonly sent
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['SHELLCODE_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['SHELLCODE_PORTS'] = var_or_ports
-
-    def set_ssh_port_group(self, var_or_ports="22"):
-        """
-        Set the group associated with SSH ports
-
-        :param var_or_ports: A variable representing a group of ports or a list of ports representing the group
-        :return: None
-        """
-        if isinstance(var_or_ports, tuple):
-            self.suricata_config['SSH_PORTS'] = json.dumps(list(var_or_ports))
-        else:
-            self.suricata_config['SSH_PORTS'] = var_or_ports
-
-    def set_sql_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with SQL servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['SQL_SERVERS'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['SQL_SERVERS'] = var_or_ips
-
-    def set_telnet_servers_group(self, var_or_ips='$HOME_NET'):
-        """
-        Set the group associated with Telnet servers
-
-        :param var_or_ips: A variable representing a group of IPs or a list of IPs representing the group
-        :return: None
-        """
-        if isinstance(var_or_ips, tuple):
-            self.suricata_config['TELNET_SERVERS'] = json.dumps(list(var_or_ips))
-        else:
-            self.suricata_config['TELNET_SERVERS'] = var_or_ips
+        self.pfring_interfaces.append(interface_config)
 
     def write_config(self):
         """
         Overwrite the existing suricata.yaml config with changed values
         """
+
+        def update_dict_from_path(path, value):
+            """
+            :param path: A tuple representing each level of a nested path in the yaml document
+                        ('vars', 'address-groups', 'HOME_NET') = /vars/address-groups/HOME_NET
+            :param value: The new value
+            :return: None
+            """
+            partial_config_data = self.config_data
+            for i in range(0, len(path) - 1):
+                partial_config_data = partial_config_data[path[i]]
+            partial_config_data.update({path[-1]: value})
+
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
         shutil.copy(os.path.join(self.configuration_directory, 'suricata.yaml'), suricata_config_backup)
-        suricata_config_content = open(os.path.join(self.configuration_directory, 'suricata.yaml')).readlines()
-        output_str = ''
-        for line in suricata_config_content:
-            padding = ' ' * (len(line) - len(line.lstrip()))
-            token = line.split(':')[0].strip()
-            if token in self.suricata_config.keys():
-                line = '{}{}: {}'.format(padding, token, self.suricata_config[token]) + '\n'
-            output_str += line
 
-        with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'w') as f:
-            f.write(output_str)
+        for k, v in vars(self).items():
+            if k not in self.tokens:
+                continue
+            token_path = self.tokens[k]
+            update_dict_from_path(token_path, v)
+        with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'wb') as configyaml:
+            dump(self.config_data, configyaml)
 
 
 class SuricataInstaller:
@@ -833,10 +370,11 @@ class SuricataInstaller:
         if not suricata_rules_installed:
             return False
         config = SuricataConfigurator(self.configuration_directory)
-        config.set_monitor_interface(network_interface)
-        config.set_rules_directory(os.path.join(self.configuration_directory, 'rules'))
-        config.set_reference_config_file(os.path.join(self.configuration_directory, 'reference.config'))
-        config.set_classification_file(os.path.join(self.configuration_directory, 'rules', 'classification.config'))
+        config.pfring_interfaces = []
+        config.add_pfring_interface(network_interface, threads='auto', cluster_id=99)
+        config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
+        config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
+        config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')
         config.write_config()
         return True
 
@@ -874,8 +412,8 @@ class SuricataProfiler:
             return False
         if not os.path.exists(suricata_home):
             if stderr:
-                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located on disk at: {}.\n'.format(
-                    suricata_home))
+                sys.stderr.write('[-] SURICATA_HOME installation directory could not be located on disk at: '
+                                 '{}.\n'.format(suricata_home))
             return False
         if not os.path.exists(suricata_config):
             if stderr:
@@ -943,11 +481,10 @@ class SuricataProcess:
         if not os.path.exists('/var/run/dynamite/suricata/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/suricata/'), shell=True)
         p = subprocess.Popen('bin/suricata -i {} '
-                             '--pfring-int={} --pfring-cluster-type=cluster_flow -D '
+                             '--pfring -D '
                              '--pidfile /var/run/dynamite/suricata/suricata.pid '
                              '-c {}'.format(
-                                            self.config.get_monitor_interface(),
-                                            self.config.get_monitor_interface(),
+                                            self.config.pfring_interfaces[0]['interface'],
                                             os.path.join(self.configuration_directory, 'suricata.yaml')
         ), shell=True, cwd=self.install_directory)
         p.communicate()
@@ -1021,5 +558,5 @@ class SuricataProcess:
         return {
             'PID': self.pid,
             'RUNNING': utilities.check_pid(self.pid),
-            'LOG': os.path.join(self.config.get_log_directory(), 'suricata.log')
+            'LOG': os.path.join(self.config.default_log_directory, 'suricata.log')
         }
