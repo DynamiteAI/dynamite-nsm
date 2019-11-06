@@ -293,7 +293,7 @@ def uninstall_agent(prompt_user=True):
     pf_profiler = pf_ring.PFRingProfiler()
     zeek_profiler = zeek.ZeekProfiler()
     suricata_profiler = suricata.SuricataProfiler()
-    if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
+    if not (filebeat_profiler.is_installed or zeek_profiler.is_installed or suricata_profiler.is_installed):
         sys.stderr.write('[-] No agent installation detected.\n')
         return False
     if filebeat_profiler.is_installed:
@@ -337,6 +337,8 @@ def uninstall_agent(prompt_user=True):
         elif 'SURICATA_CONFIG' in line:
             continue
         elif 'PF_RING_HOME' in line:
+            continue
+        elif 'OINKMASTER_HOME' in line:
             continue
         elif line.strip() == '':
             continue
