@@ -185,6 +185,10 @@ class SuricataInstaller:
         self.install_directory = install_directory
 
     def _configure_and_compile_suricata(self, pf_ring_installer, stdout=False):
+        if self.configuration_directory.endswith('/'):
+            suricata_config_root = '/'.join(self.configuration_directory.split('/')[:-2])
+        else:
+            suricata_config_root = '/'.join(self.configuration_directory.split('/')[:-1])
         if stdout:
             sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
             sys.stdout.flush()
