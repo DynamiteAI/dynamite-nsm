@@ -248,6 +248,8 @@ class LogstashInstaller:
                 self.elasticsearch_host = 'localhost'
             else:
                 raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
+        else:
+            self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
