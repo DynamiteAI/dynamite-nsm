@@ -175,7 +175,8 @@ class SuricataInstaller:
 
     def __init__(self,
                  configuration_directory=CONFIGURATION_DIRECTORY,
-                 install_directory=INSTALL_DIRECTORY):
+                 install_directory=INSTALL_DIRECTORY,
+                 log_directory=LOG_DIRECTORY):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
@@ -183,6 +184,7 @@ class SuricataInstaller:
 
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
+        self.log_directory = log_directory
 
     def _configure_and_compile_suricata(self, pf_ring_installer, stdout=False):
         if self.configuration_directory.endswith('/'):
@@ -216,6 +218,7 @@ class SuricataInstaller:
             sys.stdout.write('[+] Creating suricata install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
         try:
             os.mkdir(os.path.join(self.configuration_directory, 'rules'))
             shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'),
@@ -251,7 +254,6 @@ class SuricataInstaller:
 
         oinkmaster.update_suricata_rules()
         return oink_install_res
-
 
     @staticmethod
     def download_suricata(stdout=False):
@@ -378,7 +380,7 @@ class SuricataInstaller:
         config = SuricataConfigurator(self.configuration_directory)
         config.pfring_interfaces = []
         config.add_pfring_interface(network_interface, threads='auto', cluster_id=99)
-        config.default_log_directory = LOG_DIRECTORY
+        config.default_log_directory = self.log_directory
         config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
         config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
         config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')

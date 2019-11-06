@@ -290,22 +290,23 @@ def uninstall_agent(prompt_user=True):
     """
     environment_variables = utilities.get_environment_file_dict()
     filebeat_profiler = filebeat.FileBeatProfiler()
-    filebeat_config = filebeat.FileBeatConfigurator(install_directory=environment_variables.get('FILEBEAT_HOME'))
     pf_profiler = pf_ring.PFRingProfiler()
     zeek_profiler = zeek.ZeekProfiler()
     suricata_profiler = suricata.SuricataProfiler()
     if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
         sys.stderr.write('[-] No agent installation detected.\n')
         return False
-    if prompt_user:
-        sys.stderr.write('[-] WARNING! REMOVING THE AGENT WILL RESULT IN EVENTS NO LONGER BEING SENT TO {}.\n'.format(
-            filebeat_config.get_logstash_targets()))
-        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
-        while resp not in ['', 'no', 'yes']:
+    if filebeat_profiler.is_installed:
+        filebeat_config = filebeat.FileBeatConfigurator(install_directory=environment_variables.get('FILEBEAT_HOME'))
+        if prompt_user:
+            sys.stderr.write('[-] WARNING! REMOVING THE AGENT WILL RESULT IN EVENTS NO LONGER BEING SENT TO {}.\n'.format(
+                filebeat_config.get_logstash_targets()))
             resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
-        if resp != 'yes':
-            sys.stdout.write('[+] Exiting\n')
-            return False
+            while resp not in ['', 'no', 'yes']:
+                resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            if resp != 'yes':
+                sys.stdout.write('[+] Exiting\n')
+                return False
     if filebeat_profiler.is_running:
         filebeat.FileBeatProcess().stop(stdout=True)
     if zeek_profiler.is_running:
