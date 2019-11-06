@@ -116,21 +116,24 @@ if __name__ == '__main__':
         if args.component == 'elasticsearch':
             if elasticsearch.change_elasticsearch_password(
                 old_password=getpass.getpass('Enter the old ElasticSearch password: '),
-                password=utilities.prompt_password(), stdout=True
+                password=utilities.prompt_password('Enter the new ElasticSearch password: '), stdout=True
             ):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset ElasticSearch password.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
-            if logstash.change_logstash_elasticsearch_password(password=utilities.prompt_password(),
-                                                               prompt_user=True, stdout=True):
+            if logstash.change_logstash_elasticsearch_password(password=utilities.prompt_password(
+                'Enter the new password (same as ElasticSearch): '
+            ), prompt_user=True, stdout=True):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset LogStash -> ElasticSearch password.\n')
                 sys.exit(1)
         elif args.component == 'kibana':
-            if kibana.change_kibana_elasticsearch_password(password=utilities.prompt_password(),
+            if kibana.change_kibana_elasticsearch_password(password=utilities.prompt_password(
+                'Enter the new password (same as ElasticSearch): '
+            ),
                                                            prompt_user=True, stdout=True):
                 sys.exit(0)
             else:
@@ -138,7 +141,9 @@ if __name__ == '__main__':
                 sys.exit(1)
         elif args.component == 'monitor':
             if monitor.change_monitor_password(old_password=getpass.getpass('Enter the old ElasticSearch password: '),
-                                               password=utilities.prompt_password()):
+                                               password=utilities.prompt_password(
+                                                   'Enter the new ElasticSearch password: ')
+                                               ):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset Monitor password.\n')
@@ -154,7 +159,8 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
-            if elasticsearch.install_elasticsearch(password=utilities.prompt_password(),
+            if elasticsearch.install_elasticsearch(
+                password=utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: '),
                                                    stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -162,7 +168,9 @@ if __name__ == '__main__':
                 sys.exit(1)
         elif args.component == 'logstash':
             if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(),
+                                         elasticsearch_password=utilities.prompt_password(
+                                             'Enter the password used for logging into ElasticSearch: '
+                                         ),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -171,7 +179,9 @@ if __name__ == '__main__':
         elif args.component == 'kibana':
             if not elasticsearch.ElasticProfiler().is_installed:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(),
+                                         elasticsearch_password=utilities.prompt_password(
+                                             'Enter the password used for logging into ElasticSearch: '
+                                         ),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:
@@ -186,7 +196,9 @@ if __name__ == '__main__':
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
         elif args.component == 'monitor':
-            monitor.install_monitor(elasticsearch_password=utilities.prompt_password())
+            monitor.install_monitor(elasticsearch_password=utilities.prompt_password(
+                'Create a password for logging into ElasticSearch: '
+            ))
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
