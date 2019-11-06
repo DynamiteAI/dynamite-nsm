@@ -186,9 +186,9 @@ class SuricataInstaller:
 
     def _configure_and_compile_suricata(self, pf_ring_installer, stdout=False):
         if self.configuration_directory.endswith('/'):
-            suricata_config_root = '/'.join(self.configuration_directory.split('/')[:-2])
+            suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-2])
         else:
-            suricata_config_root = '/'.join(self.configuration_directory.split('/')[:-1])
+            suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-1])
         if stdout:
             sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
             sys.stdout.flush()
@@ -196,7 +196,7 @@ class SuricataInstaller:
                                            '--localstatedir=/var/dynamite/suricata --enable-pfring '
                                            '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
                                                 self.install_directory,
-                                                '/'.join(self.configuration_directory.split('/')[:-1]),
+                                                suricata_config_parent,
                                                 os.path.join(pf_ring_installer.install_directory, 'include'),
                                                 os.path.join(pf_ring_installer.install_directory, 'lib')),
             shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
