@@ -21,7 +21,8 @@ from dynamite_nsm.services import oinkmaster
 
 
 INSTALL_DIRECTORY = '/opt/dynamite/suricata/'
-CONFIGURATION_DIRECTORY = '/etc/dynamite/suricata'
+CONFIGURATION_DIRECTORY = '/etc/dynamite/suricata/'
+LOG_DIRECTORY = '/var/log/dynamite/suricata/'
 
 
 class SuricataConfigurator:
@@ -373,6 +374,7 @@ class SuricataInstaller:
         config = SuricataConfigurator(self.configuration_directory)
         config.pfring_interfaces = []
         config.add_pfring_interface(network_interface, threads='auto', cluster_id=99)
+        config.default_log_directory = LOG_DIRECTORY
         config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
         config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
         config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')
