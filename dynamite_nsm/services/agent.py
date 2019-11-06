@@ -79,7 +79,7 @@ def install_agent(network_interface, agent_label, logstash_target):
         monitored_paths = [os.path.join(environment_variables.get('ZEEK_HOME'), 'logs/current/*.log')]
         suricata_config = suricata.SuricataConfigurator(configuration_directory=
                                                         environment_variables.get('SURICATA_CONFIG'))
-        monitored_paths.append(os.path.join(suricata_config.get_log_directory(), 'eve.json'))
+        monitored_paths.append(os.path.join(suricata_config.default_log_directory, 'eve.json'))
         filebeat_installer.setup_filebeat(stdout=True)
         filebeat_config = filebeat.FileBeatConfigurator()
         filebeat_config.set_logstash_targets([logstash_target])
