@@ -303,7 +303,7 @@ class FileBeatProcess:
                 if stdout:
                     sys.stdout.write('[+] Attempting to stop Filebeat [{}]\n'.format(self.pid))
                 if attempts > 3:
-                    sig_command = signal.SIGINT
+                    sig_command = signal.SIGKILL
                 else:
                     sig_command = signal.SIGTERM
                 attempts += 1
