@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import time
 import signal
 import shutil
@@ -8,31 +7,59 @@ import tarfile
 import subprocess
 from multiprocessing import Process
 
-from dynamite_nsm.services import zeek
+from yaml import load, dump
+
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.services import zeek
 
 INSTALL_DIRECTORY = '/opt/dynamite/filebeat/'
 
 
 class FileBeatConfigurator:
 
+    tokens = {
+        'inputs': ('filebeat.inputs',),
+        'logstash_targets': ('output.logstash', 'hosts'),
+        'processors': ('processors',)
+    }
+
     def __init__(self, install_directory=INSTALL_DIRECTORY):
         self.install_directory = install_directory
-        self.agent_tag = None
+
+        self.inputs = None
         self.logstash_targets = None
-        self.monitor_target_paths = None
+        self.processors = None
+
         self._parse_filebeatyaml()
 
     def _parse_filebeatyaml(self):
-        for line in open(os.path.join(self.install_directory, 'filebeat.yml')).readlines():
-            if not line.startswith('#') and ':' in line:
-                if '"originating_agent_tag"' in line.strip():
-                    self.agent_tag = line.split(':')[2].strip()[1:-2]
-                elif 'hosts:' in line:
-                    self.logstash_targets = list(json.loads(line.replace('hosts:', '').strip()))
-                elif 'paths:' in line:
-                    self.monitor_target_paths = list(json.loads(line.replace('paths:', '')))
+
+        def set_instance_var_from_token(variable_name, data):
+            """
+            :param variable_name: The name of the instance variable to update
+            :param data: The parsed yaml object
+            :return: True if successfully located
+            """
+            if variable_name not in self.tokens.keys():
+                return False
+            key_path = self.tokens[variable_name]
+            value = data
+            for k in key_path:
+                value = value[k]
+            setattr(self, var_name, value)
+            return True
+
+        with open(os.path.join(self.install_directory, 'filebeat.yml'), 'r') as configyaml:
+            self.config_data = load(configyaml, Loader=Loader)
+
+        for var_name in vars(self).keys():
+            set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
     def set_agent_tag(self, agent_tag):
         """
@@ -40,7 +67,14 @@ class FileBeatConfigurator:
 
         :param agent_tag: A tag associated with the agent
         """
-        self.agent_tag = agent_tag
+
+        if not self.processors:
+            self.processors = [{'add_fields': {'fields': {'originating_agent_tag': agent_tag}}}]
+        else:
+            for processor in self.processors:
+                if processor.keys()[0] == 'add_fields':
+                    processor['add_fields'] = {'fields': {'originating_agent_tag': agent_tag}}
+                    break
 
     def set_logstash_targets(self, target_hosts):
         """
@@ -56,19 +90,31 @@ class FileBeatConfigurator:
 
         :param monitor_log_paths: A list of log files to monitor (wild card '*' accepted)
         """
-        self.monitor_target_paths = monitor_log_paths
+        if not self.inputs:
+            self.inputs = [{
+                'type': 'log',
+                'enabled': True,
+                'paths': monitor_log_paths
+            }]
+        else:
+            for i, _input in enumerate(self.inputs):
+                if _input['type'] == 'log':
+                    _input = {'type': 'log', 'enabled': True, 'paths': monitor_log_paths}
+                    self.inputs[i] = _input
 
     def get_agent_tag(self):
         """
         Get the tag associated to the agent
         :return: A tag associated with the agent
         """
-        return self.agent_tag
+        try:
+            return self.processors[0]['add_fields']['fields']['originating_agent_tag']
+        except (AttributeError, IndexError, KeyError):
+            return None
 
     def get_logstash_targets(self):
         """
         A list of Logstash targets that the agent is pointing too
-
         :return: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"]
         """
         return self.logstash_targets
@@ -79,21 +125,38 @@ class FileBeatConfigurator:
 
         :return: A list of log files to monitor
         """
-        return self.monitor_target_paths
+        try:
+            return self.inputs[0]['paths']
+        except (AttributeError, IndexError, KeyError):
+            return None
 
     def write_config(self):
-        config_output = ''
-        for line in open(os.path.join(self.install_directory, 'filebeat.yml')).readlines():
-            if not line.startswith('#') and ':' in line:
-                if 'originating_agent_tag' in line:
-                    line = '     fields: {"originating_agent_tag": "' + self.agent_tag + '"}\n'
-                elif 'hosts:' in line:
-                    line = '   hosts: {}\n'.format(json.dumps(self.logstash_targets))
-                elif 'paths:' in line:
-                    line = '  paths: {}\n'.format(json.dumps(self.monitor_target_paths))
-            config_output += line
-        with open(os.path.join(self.install_directory, 'filebeat.yml'), 'w') as out_config:
-            out_config.write(config_output)
+
+        def update_dict_from_path(path, value):
+            """
+            :param path: A tuple representing each level of a nested path in the yaml document
+                        ('vars', 'address-groups', 'HOME_NET') = /vars/address-groups/HOME_NET
+            :param value: The new value
+            :return: None
+            """
+            partial_config_data = self.config_data
+            for i in range(0, len(path) - 1):
+                partial_config_data = partial_config_data[path[i]]
+            partial_config_data.update({path[-1]: value})
+
+        timestamp = int(time.time())
+        backup_configurations = os.path.join(self.install_directory, 'config_backups/')
+        suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
+        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        shutil.copy(os.path.join(self.install_directory, 'filebeat.yml'), suricata_config_backup)
+
+        for k, v in vars(self).items():
+            if k not in self.tokens:
+                continue
+            token_path = self.tokens[k]
+            update_dict_from_path(token_path, v)
+        with open(os.path.join(self.install_directory, 'filebeat2.yml'), 'w') as configyaml:
+            dump(self.config_data, configyaml, default_flow_style=False)
 
 
 class FileBeatInstaller:
