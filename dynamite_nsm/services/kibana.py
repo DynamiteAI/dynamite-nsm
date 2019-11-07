@@ -114,10 +114,10 @@ class KibanaConfigurator:
 
     def _parse_environment_file(self):
         """
-        Parses the /etc/environment file and returns results for JAVA_HOME, KIBANA_PATH_CONF, KIBANA_HOME; KIBANA_LOGS
+        Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, KIBANA_PATH_CONF, KIBANA_HOME; KIBANA_LOGS
         stores the results in class variables of the same name
         """
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if line.startswith('JAVA_HOME'):
                 self.java_home = line.split('=')[1].strip()
             elif line.startswith('KIBANA_PATH_CONF'):
@@ -225,7 +225,6 @@ class KibanaInstaller:
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
-                self.elasticsearch_port = 9200
             else:
                 raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
         self.install_directory = install_directory
@@ -279,23 +278,23 @@ class KibanaInstaller:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
 
     def _create_kibana_environment_variables(self, stdout=False):
-        if 'KIBANA_PATH_CONF' not in open('/etc/environment').read():
+        if 'KIBANA_PATH_CONF' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Kibana default configuration path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo KIBANA_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
+            subprocess.call('echo KIBANA_PATH_CONF="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
-        if 'KIBANA_HOME' not in open('/etc/environment').read():
+        if 'KIBANA_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Kibana default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo KIBANA_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo KIBANA_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
-        if 'KIBANA_LOGS' not in open('/etc/environment').read():
+        if 'KIBANA_LOGS' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Kibana default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo KIBANA_LOGS="{}" >> /etc/environment'.format(self.log_directory),
+            subprocess.call('echo KIBANA_LOGS="{}" >> /etc/dynamite/environment'.format(self.log_directory),
                             shell=True)
 
     def _install_kibana_objects(self, stdout=False):
@@ -318,7 +317,7 @@ class KibanaInstaller:
                     sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
                     sys.stdout.flush()
                 time.sleep(10)
-            kibana_process = KibanaProcess(self.configuration_directory)
+            kibana_process = KibanaProcess()
             kibana_process.optimize(stdout=stdout)
             utilities.set_ownership_of_file('/opt/dynamite/')
             utilities.set_ownership_of_file('/etc/dynamite/')
@@ -432,7 +431,7 @@ class KibanaProfiler:
         kibana_home = env_dict.get('KIBANA_HOME')
         if not kibana_home:
             if stderr:
-                sys.stderr.write('[-] Kibana installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] Kibana installation directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(kibana_home):
             if stderr:
@@ -461,7 +460,7 @@ class KibanaProfiler:
         kibana_path_conf = env_dict.get('KIBANA_PATH_CONF')
         if not kibana_path_conf:
             if stderr:
-                sys.stderr.write('[-] Kibana configuration directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] Kibana configuration directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
             if stderr:
@@ -488,7 +487,7 @@ class KibanaProfiler:
         kibana_path_conf = env_dict.get('KIBANA_PATH_CONF')
         if not kibana_path_conf:
             if stderr:
-                sys.stderr.write('[-] Kibana configuration directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] Kibana configuration directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
             if stderr:
@@ -519,12 +518,9 @@ class KibanaProcess:
     """
     An interface for start|stop|status|restart of the Kibana process
     """
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
-        """
-
-        self.configuration_directory = configuration_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.configuration_directory = self.environment_variables.get('KIBANA_PATH_CONF')
         self.config = KibanaConfigurator(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/kibana/kibana.pid').read())
@@ -713,7 +709,7 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elas
         sys.stdout.write('[+] *** Kibana + Dashboards installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your collector: \'dynamite start kibana\'.\n')
         sys.stdout.flush()
-    return True
+    return KibanaProfiler(stderr=False).is_installed
 
 
 def uninstall_kibana(stdout=False, prompt_user=True):
@@ -746,15 +742,17 @@ def uninstall_kibana(stdout=False, prompt_user=True):
         shutil.rmtree(kb_config.kibana_logs)
         shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if 'KIBANA_PATH_CONF' in line:
                 continue
             elif 'KIBANA_HOME' in line:
                 continue
             elif 'KIBANA_LOGS' in line:
                 continue
+            elif line.strip() == '':
+                continue
             env_lines += line.strip() + '\n'
-        open('/etc/environment', 'w').write(env_lines)
+        open('/etc/dynamite/environment', 'w').write(env_lines)
         if stdout:
             sys.stdout.write('[+] Kibana uninstalled successfully.\n')
     except Exception:

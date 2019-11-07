@@ -70,8 +70,16 @@ def check_socket(host, port):
             return False
 
 
+def create_dynamite_environment_file():
+    env_file = open('/etc/dynamite/environment', 'a')
+    env_file.write('')
+    env_file.close()
+    set_permissions_of_file('/etc/dynamite/environment', 700)
+
+
 def create_dynamite_root_directory():
     subprocess.call('mkdir -p /opt/dynamite/', shell=True)
+    subprocess.call('mkdir -p /etc/dynamite/', shell=True)
     subprocess.call('mkdir -p /tmp/dynamite/install_cache/', shell=True)
 
 
@@ -163,10 +171,10 @@ def generate_random_password(length=30):
 
 def get_environment_file_str():
     """
-    :return: The contents of the /etc/environment file as a giant export string
+    :return: The contents of the /etc/dynamite/environment file as a giant export string
     """
     export_str = ''
-    for line in open('/etc/environment').readlines():
+    for line in open('/etc/dynamite/environment').readlines():
         if '=' in line:
             key, value = line.strip().split('=')
             export_str += 'export {}=\'{}\' && '.format(key, value)
@@ -175,10 +183,10 @@ def get_environment_file_str():
 
 def get_environment_file_dict():
     """
-    :return: The contents of the /etc/environment file as a dictionary
+    :return: The contents of the /etc/dynamite/environment file as a dictionary
     """
     export_dict = {}
-    for line in open('/etc/environment').readlines():
+    for line in open('/etc/dynamite/environment').readlines():
         if '=' in line:
             key, value = line.strip().split('=')
             export_dict[key] = value
@@ -270,8 +278,8 @@ def setup_java():
     except shutil.Error as e:
         sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
         sys.stderr.flush()
-    if 'JAVA_HOME' not in open('/etc/environment').read():
-        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/environment', shell=True)
+    if 'JAVA_HOME' not in open('/etc/dynamite/environment').read():
+        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/dynamite/environment', shell=True)
 
 
 def set_ownership_of_file(path):
@@ -286,6 +294,8 @@ def set_ownership_of_file(path):
         for momo in dirs:
             os.chown(os.path.join(root, momo), uid, group)
         for momo in files:
+            if momo == 'environment':
+                continue
             os.chown(os.path.join(root, momo), uid, group)
 
 
@@ -294,7 +304,7 @@ def set_permissions_of_file(file_path, unix_permissions_integer):
     Set the permissions of a file to unix_permissions_integer
 
     :param file_path: The path to the file
-    :param unix_permissions_integer: The numeric represention of user/group/everyone permissions on a file
+    :param unix_permissions_integer: The numeric representation of user/group/everyone permissions on a file
     """
     subprocess.call('chmod {} {}'.format(unix_permissions_integer, file_path), shell=True)
 

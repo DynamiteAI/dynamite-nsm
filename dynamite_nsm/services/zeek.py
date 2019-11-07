@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import shutil
@@ -387,17 +388,17 @@ class ZeekInstaller:
         subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                            const.ZEEK_DIRECTORY_NAME))
 
-        if 'ZEEK_HOME' not in open('/etc/environment').read():
+        if 'ZEEK_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo ZEEK_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo ZEEK_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
-        if 'ZEEK_SCRIPTS' not in open('/etc/environment').read():
+        if 'ZEEK_SCRIPTS' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating Zeek default script path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/environment'.format(self.configuration_directory),
+            subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
         if stdout:
             sys.stdout.write('[+] Overwriting default Script | Node configurations.\n')
@@ -416,7 +417,7 @@ class ZeekInstaller:
             node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
                                    host='localhost',
                                    interface=network_interface,
-                                   lb_procs=10,
+                                   lb_procs=1,
                                    pin_cpus=cpu_group
                                    )
             node_config.write_config()
@@ -446,11 +447,11 @@ class ZeekProfiler:
         zeek_scripts = env_dict.get('ZEEK_SCRIPTS')
         if not zeek_home:
             if stderr:
-                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not zeek_scripts:
             if stderr:
-                sys.stderr.write('[-] ZEEK_SCRIPTS directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ZEEK_SCRIPTS directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(zeek_home):
             if stderr:
@@ -494,18 +495,15 @@ class ZeekProfiler:
         env_dict = utilities.get_environment_file_dict()
         zeek_home = env_dict.get('ZEEK_HOME')
         if zeek_home:
-            if 'running' in ZeekProcess(install_directory=zeek_home).status():
-                return True
+            return ZeekProcess().status()['RUNNING']
         return False
 
 
 class ZeekProcess:
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY):
-        """
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
-        """
-        self.install_directory = install_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.install_directory = self.environment_variables.get('ZEEK_HOME')
 
     def start(self, stdout=False):
         """
@@ -542,7 +540,34 @@ class ZeekProcess:
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
-        return out.decode('utf-8')
+        raw_output = out.decode('utf-8')
+
+        zeek_status = {
+            'RUNNING': False,
+            'SUBPROCESSES': []
+        }
+        zeek_subprocesses = []
+        for line in raw_output.split('\n')[1:]:
+            tokenized_line = re.findall(r'\S+', line)
+            if len(tokenized_line) == 8:
+                name, _type, host, status, pid, _, _, _ = tokenized_line
+                zeek_status['RUNNING'] = True
+            elif len(tokenized_line) == 4:
+                name, _type, host, status = tokenized_line
+                pid = None
+            else:
+                continue
+            zeek_subprocesses.append(
+                {
+                    'process_name': name,
+                    'process_type': _type,
+                    'host': host,
+                    'status': status,
+                    'pid': pid
+                }
+            )
+        zeek_status['SUBPROCESSES'] = zeek_subprocesses
+        return zeek_status
 
     def restart(self, stdout=False):
         """

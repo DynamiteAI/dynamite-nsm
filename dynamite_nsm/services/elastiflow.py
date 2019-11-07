@@ -49,10 +49,10 @@ class ElastiflowConfigurator:
 
     def _parse_environment_file(self):
         """
-        Parses the /etc/environment file and returns ElastiFlow configurations;
+        Parses the /etc/dynamite/environment file and returns ElastiFlow configurations;
         stores the results in class variables of the same name
         """
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if line.startswith('ELASTIFLOW_ES_PASSWD'):
                 self.es_passwd = line.split('=')[1].strip()
             elif line.startswith('ELASTIFLOW_NETFLOW_IPV4_HOST'):
@@ -118,7 +118,7 @@ class ElastiflowConfigurator:
         """
         elastiflow_vars_map = {}
         new_env_content = ''
-        lines = open('/etc/environment').readlines()
+        lines = open('/etc/dynamite/environment').readlines()
         for var in vars(self):
             elastiflow_key = 'ELASTIFLOW_' + str(var).upper()
             elastiflow_vars_map[elastiflow_key] = getattr(self, var)
@@ -132,7 +132,7 @@ class ElastiflowConfigurator:
                 new_env_content += line + '\n'
         for unwritten_key, unwritten_val in elastiflow_vars_map.items():
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
-        with open('/etc/environment', 'w') as f:
+        with open('/etc/dynamite/environment', 'w') as f:
             f.write(new_env_content)
 
 
@@ -182,24 +182,24 @@ class ElastiFlowInstaller:
         utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'zeek'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
-        if 'ELASTIFLOW_DICT_PATH' not in open('/etc/environment').read():
+        if 'ELASTIFLOW_DICT_PATH' not in open('/etc/dynamite/environment').read():
             dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow dictionary configuration path [{}]\n'.format(dict_path))
-            subprocess.call('echo ELASTIFLOW_DICT_PATH="{}" >> /etc/environment'.format(dict_path), shell=True)
-        if 'ELASTIFLOW_TEMPLATE_PATH' not in open('/etc/environment').read():
+            subprocess.call('echo ELASTIFLOW_DICT_PATH="{}" >> /etc/dynamite/environment'.format(dict_path), shell=True)
+        if 'ELASTIFLOW_TEMPLATE_PATH' not in open('/etc/dynamite/environment').read():
             template_path = os.path.join(self.install_directory, 'templates')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow template configuration path [{}]\n'.format(template_path))
-            subprocess.call('echo ELASTIFLOW_TEMPLATE_PATH="{}" >> /etc/environment'.format(template_path), shell=True)
-        if 'ELASTIFLOW_GEOIP_DB_PATH' not in open('/etc/environment').read():
+            subprocess.call('echo ELASTIFLOW_TEMPLATE_PATH="{}" >> /etc/dynamite/environment'.format(template_path), shell=True)
+        if 'ELASTIFLOW_GEOIP_DB_PATH' not in open('/etc/dynamite/environment').read():
             geo_path = os.path.join(self.install_directory, 'geoipdbs')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow geodb configuration path [{}]\n'.format(geo_path))
-            subprocess.call('echo ELASTIFLOW_GEOIP_DB_PATH="{}" >> /etc/environment'.format(geo_path), shell=True)
-        if 'ELASTIFLOW_DEFINITION_PATH' not in open('/etc/environment').read():
+            subprocess.call('echo ELASTIFLOW_GEOIP_DB_PATH="{}" >> /etc/dynamite/environment'.format(geo_path), shell=True)
+        if 'ELASTIFLOW_DEFINITION_PATH' not in open('/etc/dynamite/environment').read():
             def_path = os.path.join(self.install_directory, 'definitions')
             if stdout:
                 sys.stdout.write('[+] Updating Elastiflow definitions configuration path [{}]\n'.format(def_path))
-            subprocess.call('echo ELASTIFLOW_DEFINITION_PATH="{}" >> /etc/environment'.format(def_path), shell=True)
+            subprocess.call('echo ELASTIFLOW_DEFINITION_PATH="{}" >> /etc/dynamite/environment'.format(def_path), shell=True)
         ElastiflowConfigurator().write_environment_variables()

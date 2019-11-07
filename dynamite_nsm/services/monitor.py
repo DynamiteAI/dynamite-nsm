@@ -23,7 +23,6 @@ def install_monitor(elasticsearch_password='changeme'):
                                                   port=9200,
                                                   password=elasticsearch_password)
     es_pre_profiler = elasticsearch.ElasticProfiler()
-    es_process = elasticsearch.ElasticProcess()
     ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
                                               elasticsearch_password=elasticsearch_password)
     ls_pre_profiler = logstash.LogstashProfiler()
@@ -43,6 +42,7 @@ def install_monitor(elasticsearch_password='changeme'):
             sys.stderr.write('[-] ElasticSearch failed to install on localhost.\n')
             return False
     sys.stdout.write('[+] Starting ElasticSearch on localhost.\n')
+    es_process = elasticsearch.ElasticProcess()
     es_process.start()
     if not ls_pre_profiler.is_installed:
         if not ls_pre_profiler.is_downloaded:

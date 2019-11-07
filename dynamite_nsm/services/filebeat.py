@@ -153,12 +153,12 @@ class FileBeatInstaller:
         beats_config.write_config()
         utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
                                           unix_permissions_integer=501)
-        if 'FILEBEAT_HOME' not in open('/etc/environment').read():
+        if 'FILEBEAT_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating FileBeat default script path [{}]\n'.format(
                     self.install_directory)
                 )
-            subprocess.call('echo FILEBEAT_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo FILEBEAT_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
 
 
@@ -183,7 +183,7 @@ class FileBeatProfiler:
         filebeat_home = env_dict.get('FILEBEAT_HOME')
         if not filebeat_home:
             if stderr:
-                sys.stderr.write('[-] FILEBEAT_HOME installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] FILEBEAT_HOME installation directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(filebeat_home):
             if stderr:
@@ -206,7 +206,7 @@ class FileBeatProfiler:
         env_dict = utilities.get_environment_file_dict()
         filebeat_home = env_dict.get('FILEBEAT_HOME')
         if filebeat_home:
-            return FileBeatProcess(install_directory=filebeat_home).status()['RUNNING']
+            return FileBeatProcess().status()['RUNNING']
         return False
 
     def get_profile(self):
@@ -222,11 +222,9 @@ class FileBeatProcess:
     An interface for start|stop|status|restart of the Filebeat process
     """
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY):
-        """
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/filebeat/)
-        """
-        self.install_directory = install_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.install_directory = self.environment_variables.get('FILEBEAT_HOME')
         self.config = FileBeatConfigurator(self.install_directory)
 
         if not os.path.exists('/var/run/dynamite/filebeat/'):
@@ -305,7 +303,7 @@ class FileBeatProcess:
                 if stdout:
                     sys.stdout.write('[+] Attempting to stop Filebeat [{}]\n'.format(self.pid))
                 if attempts > 3:
-                    sig_command = signal.SIGINT
+                    sig_command = signal.SIGKILL
                 else:
                     sig_command = signal.SIGTERM
                 attempts += 1

@@ -52,11 +52,11 @@ class PFRingInstaller:
                                                                              const.PF_RING_DIRECTORY_NAME, 'kernel'))
 
     def _create_pf_ring_environment_variables(self, stdout=False):
-        if 'PF_RING_HOME' not in open('/etc/environment').read():
+        if 'PF_RING_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo PF_RING_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo PF_RING_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
 
     @staticmethod
@@ -168,7 +168,8 @@ class PFRingProfiler:
         pf_ring_home = env_dict.get('PF_RING_HOME')
         if not pf_ring_home:
             if stderr:
-                sys.stderr.write('[-] PF_RING installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] PF_RING installation directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(pf_ring_home):
             if stderr:

@@ -29,8 +29,6 @@ CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
 INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
 LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
 
-ENV_VARS = utilities.get_environment_file_dict()
-
 
 class ElasticConfigurator:
     """
@@ -90,10 +88,10 @@ class ElasticConfigurator:
 
     def _parse_environment_file(self):
         """
-        Parses the /etc/environment file and returns results for JAVA_HOME, ES_PATH_CONF, ES_HOME;
+        Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, ES_PATH_CONF, ES_HOME;
         stores the results in class variables of the same name
         """
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if line.startswith('JAVA_HOME'):
                 self.java_home = line.split('=')[1].strip()
             elif line.startswith('ES_PATH_CONF'):
@@ -439,17 +437,17 @@ class ElasticInstaller:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
 
     def _create_elasticsearch_environment_variables(self, stdout=False):
-        if 'ES_PATH_CONF' not in open('/etc/environment').read():
+        if 'ES_PATH_CONF' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating ElasticSearch default configuration path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo ES_PATH_CONF="{}" >> /etc/environment'.format(self.configuration_directory),
+            subprocess.call('echo ES_PATH_CONF="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
-        if 'ES_HOME' not in open('/etc/environment').read():
+        if 'ES_HOME' not in open('/etc/dynamite/environment').read():
             if stdout:
                 sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo ES_HOME="{}" >> /etc/environment'.format(self.install_directory),
+            subprocess.call('echo ES_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
 
     def _setup_default_elasticsearch_configs(self, stdout=False):
@@ -605,11 +603,17 @@ class ElasticProfiler:
 
     @staticmethod
     def _is_installed(stderr=False):
-        env_dict = utilities.get_environment_file_dict()
+        try:
+            env_dict = utilities.get_environment_file_dict()
+        except IOError:
+            if stderr:
+                sys.stderr.write('[-] ElasticSearch environment variables haven\'t been created.\n')
+            return False
         es_home = env_dict.get('ES_HOME')
         if not es_home:
             if stderr:
-                sys.stderr.write('[-] ElasticSearch installation directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElasticSearch installation directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(es_home):
             if stderr:
@@ -634,11 +638,17 @@ class ElasticProfiler:
 
     @staticmethod
     def _is_configured(stderr=False):
-        env_dict = utilities.get_environment_file_dict()
+        try:
+            env_dict = utilities.get_environment_file_dict()
+        except IOError:
+            if stderr:
+                sys.stderr.write('[-] ElasticSearch environment variables haven\'t been created.\n')
+            return False
         es_path_conf = env_dict.get('ES_PATH_CONF')
         if not es_path_conf:
             if stderr:
-                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
             if stderr:
@@ -665,11 +675,16 @@ class ElasticProfiler:
 
     @staticmethod
     def _is_listening(stderr=False):
-        env_dict = utilities.get_environment_file_dict()
+        try:
+            env_dict = utilities.get_environment_file_dict()
+        except IOError:
+            if stderr:
+                sys.stderr.write('[-] ElasticSearch environment variables haven\'t been created.\n')
+            return False
         es_path_conf = env_dict.get('ES_PATH_CONF')
         if not es_path_conf:
             if stderr:
-                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in /etc/environment.\n')
+                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in /etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
             if stderr:
@@ -704,12 +719,9 @@ class ElasticProcess:
     """
     An interface for start|stop|status|restart of the ElasticSearch process
     """
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-        """
-
-        self.configuration_directory = configuration_directory
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.configuration_directory = self.environment_variables.get('ES_PATH_CONF')
         self.config = ElasticConfigurator(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
@@ -869,7 +881,7 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
         sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
     sys.stdout.flush()
-    return True
+    return ElasticProfiler(stderr=False).is_installed
 
 
 def uninstall_elasticsearch(stdout=False, prompt_user=True):
@@ -902,13 +914,15 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
         shutil.rmtree(es_config.get_log_path())
         shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if 'ES_PATH_CONF' in line:
                 continue
             elif 'ES_HOME' in line:
                 continue
+            elif line.strip() == '':
+                continue
             env_lines += line.strip() + '\n'
-        open('/etc/environment', 'w').write(env_lines)
+        open('/etc/dynamite/environment', 'w').write(env_lines)
         if stdout:
             sys.stdout.write('[+] ElasticSearch uninstalled successfully.\n')
     except Exception:

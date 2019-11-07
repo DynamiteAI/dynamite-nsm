@@ -29,7 +29,7 @@ class SynesisConfigurator:
         self.suricata_beats_port = 5044
 
     def _parse_environment_file(self):
-        for line in open('/etc/environment').readlines():
+        for line in open('/etc/dynamite/environment').readlines():
             if line.startswith('SYNLITE_SURICATA_ES_PASSWD'):
                 self.suricata_es_passwd = line.split('=')[1].strip()
             elif line.startswith('SYNLITE_SURICATA_RESOLVE_IP2HOST'):
@@ -57,7 +57,7 @@ class SynesisConfigurator:
         """
         synlite_vars_map = {}
         new_env_content = ''
-        lines = open('/etc/environment').readlines()
+        lines = open('/etc/dynamite/environment').readlines()
         for var in vars(self):
             synlite_key = 'SYNLITE_' + str(var).upper()
             synlite_vars_map[synlite_key] = getattr(self, var)
@@ -71,7 +71,7 @@ class SynesisConfigurator:
                 new_env_content += line + '\n'
         for unwritten_key, unwritten_val in synlite_vars_map.items():
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
-        with open('/etc/environment', 'w') as f:
+        with open('/etc/dynamite/environment', 'w') as f:
             f.write(new_env_content)
 
 
@@ -121,19 +121,19 @@ class SynesisInstaller:
                                         'suricata'),
                            self.install_directory)
         utilities.set_ownership_of_file(self.install_directory)
-        if 'SYNLITE_SURICATA_DICT_PATH' not in open('/etc/environment').read():
+        if 'SYNLITE_SURICATA_DICT_PATH' not in open('/etc/dynamite/environment').read():
             dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:
                 sys.stdout.write('[+] Updating Synesis dictionary configuration path [{}]\n'.format(dict_path))
-            subprocess.call('echo SYNLITE_SURICATA_DICT_PATH="{}" >> /etc/environment'.format(dict_path), shell=True)
-        if 'SYNLITE_SURICATA_TEMPLATE_PATH' not in open('/etc/environment').read():
+            subprocess.call('echo SYNLITE_SURICATA_DICT_PATH="{}" >> /etc/dynamite/environment'.format(dict_path), shell=True)
+        if 'SYNLITE_SURICATA_TEMPLATE_PATH' not in open('/etc/dynamite/environment').read():
             template_path = os.path.join(self.install_directory, 'templates')
             if stdout:
                 sys.stdout.write('[+] Updating Synesis template configuration path [{}]\n'.format(template_path))
-            subprocess.call('echo SYNLITE_SURICATA_TEMPLATE_PATH="{}" >> /etc/environment'.format(template_path), shell=True)
-        if 'SYNLITE_SURICATA_GEOIP_DB_PATH' not in open('/etc/environment').read():
+            subprocess.call('echo SYNLITE_SURICATA_TEMPLATE_PATH="{}" >> /etc/dynamite/environment'.format(template_path), shell=True)
+        if 'SYNLITE_SURICATA_GEOIP_DB_PATH' not in open('/etc/dynamite/environment').read():
             geo_path = os.path.join(self.install_directory, 'geoipdbs')
             if stdout:
                 sys.stdout.write('[+] Updating Synesis geodb configuration path [{}]\n'.format(geo_path))
-            subprocess.call('echo SYNLITE_SURICATA_GEOIP_DB_PATH="{}" >> /etc/environment'.format(geo_path), shell=True)
+            subprocess.call('echo SYNLITE_SURICATA_GEOIP_DB_PATH="{}" >> /etc/dynamite/environment'.format(geo_path), shell=True)
         SynesisConfigurator().write_environment_variables()

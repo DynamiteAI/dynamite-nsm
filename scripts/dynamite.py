@@ -105,6 +105,7 @@ if __name__ == '__main__':
         else:
             sys.exit(1)
     utilities.create_dynamite_root_directory()
+    utilities.create_dynamite_environment_file()
     if args.command == 'point':
         if args.component == 'agent':
             agent.point_agent(args.ls_host, args.ls_port)
@@ -115,29 +116,34 @@ if __name__ == '__main__':
         if args.component == 'elasticsearch':
             if elasticsearch.change_elasticsearch_password(
                 old_password=getpass.getpass('Enter the old ElasticSearch password: '),
-                password=utilities.prompt_password(), stdout=True
+                password=utilities.prompt_password('Enter the new ElasticSearch password: '), stdout=True
             ):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset ElasticSearch password.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
-            if logstash.change_logstash_elasticsearch_password(password=utilities.prompt_password(),
-                                                               prompt_user=True, stdout=True):
+            if logstash.change_logstash_elasticsearch_password(password=utilities.prompt_password(
+                'Enter the new password (same as ElasticSearch): '
+            ), prompt_user=True, stdout=True):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset LogStash -> ElasticSearch password.\n')
                 sys.exit(1)
         elif args.component == 'kibana':
-            if kibana.change_kibana_elasticsearch_password(password=utilities.prompt_password(),
-                                                               prompt_user=True, stdout=True):
+            if kibana.change_kibana_elasticsearch_password(password=utilities.prompt_password(
+                'Enter the new password (same as ElasticSearch): '
+            ),
+                                                           prompt_user=True, stdout=True):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset Kibana -> ElasticSearch password.\n')
                 sys.exit(1)
         elif args.component == 'monitor':
             if monitor.change_monitor_password(old_password=getpass.getpass('Enter the old ElasticSearch password: '),
-                                               password=utilities.prompt_password()):
+                                               password=utilities.prompt_password(
+                                                   'Enter the new ElasticSearch password: ')
+                                               ):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to reset Monitor password.\n')
@@ -153,7 +159,8 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
-            if elasticsearch.install_elasticsearch(password=utilities.prompt_password(),
+            if elasticsearch.install_elasticsearch(
+                password=utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: '),
                                                    stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -161,7 +168,9 @@ if __name__ == '__main__':
                 sys.exit(1)
         elif args.component == 'logstash':
             if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(),
+                                         elasticsearch_password=utilities.prompt_password(
+                                             'Enter the password used for logging into ElasticSearch: '
+                                         ),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
@@ -170,7 +179,9 @@ if __name__ == '__main__':
         elif args.component == 'kibana':
             if not elasticsearch.ElasticProfiler().is_installed:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(),
+                                         elasticsearch_password=utilities.prompt_password(
+                                             'Enter the password used for logging into ElasticSearch: '
+                                         ),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     sys.exit(0)
                 else:
@@ -185,7 +196,9 @@ if __name__ == '__main__':
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
         elif args.component == 'monitor':
-            monitor.install_monitor(elasticsearch_password=utilities.prompt_password())
+            monitor.install_monitor(elasticsearch_password=utilities.prompt_password(
+                'Create a password for logging into ElasticSearch: '
+            ))
         elif args.component == 'agent':
             agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
@@ -336,9 +349,8 @@ if __name__ == '__main__':
                     _fatal_exception('status', 'monitor', args.debug)
             elif args.component == 'agent':
                 try:
-                    zeek_status, other_processes = agent.status_agent()
-                    sys.stdout.write(zeek_status)
-                    sys.stdout.write(json.dumps(other_processes, indent=1))
+                    agent_status = agent.status_agent()
+                    sys.stdout.write(json.dumps(agent_status, indent=1))
                     sys.stdout.flush()
                     sys.exit(0)
                 except Exception:
@@ -563,11 +575,10 @@ if __name__ == '__main__':
             sys.exit(0)
         elif args.component == 'suricata-rules':
             if suricata_profiler.is_installed:
-                suricata_config_dir = agent.ENV_VARS.get('SURICATA_CONFIG')
-                suricata_install_dir = agent.ENV_VARS.get('SURICATA_HOME')
+                suricata_config_dir = agent.environment_variables.get('SURICATA_CONFIG')
+                suricata_install_dir = agent.environment_variables.get('SURICATA_HOME')
                 oinkmaster_install_dir = os.path.join(suricata_install_dir, 'oinkmaster')
-                oinkmaster.update_suricata_rules(suricata_config_directory=suricata_config_dir,
-                                                 oinkmaster_install_directory=oinkmaster_install_dir)
+                oinkmaster.update_suricata_rules()
                 sys.exit(0)
             else:
                 sys.stderr.write("[-] Suricata is not installed. You must install the agent before you can update "
