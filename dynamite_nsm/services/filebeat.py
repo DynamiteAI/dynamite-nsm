@@ -155,7 +155,7 @@ class FileBeatConfigurator:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
-        with open(os.path.join(self.install_directory, 'filebeat2.yml'), 'w') as configyaml:
+        with open(os.path.join(self.install_directory, 'filebeat.yml'), 'w') as configyaml:
             dump(self.config_data, configyaml, default_flow_style=False)
 
 
