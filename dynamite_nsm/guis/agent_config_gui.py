@@ -178,7 +178,7 @@ class EditWorkerForm(npyscreen.ActionForm):
         self.host_text = self.add(npyscreen.TitleText, name='Host')
         self.threads_text = self.add(npyscreen.TitleText, name='Worker Threads')
         self.cpus_text = self.add(npyscreen.TitleText, name='CPU Affinity')
-        self.delete_button = self.add_widget(RemoveWorkerButton, name='Delete Worker', rely=10, color='DANGER')
+        self.delete_button = self.add_widget(RemoveWorkerButton, name='Delete Worker', rely=13, color='DANGER')
 
     def beforeEditing(self):
         if self.value == '<create new worker>':
