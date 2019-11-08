@@ -1,6 +1,6 @@
 import npyscreen
-from dynamite_nsm.utilities import get_environment_file_dict
 from dynamite_nsm.services.zeek import ZeekNodeConfigurator
+from dynamite_nsm.utilities import get_environment_file_dict
 
 
 class RemoveWorkerButton(npyscreen.ButtonPress):
@@ -119,7 +119,7 @@ class ProxySelect(npyscreen.MultiLineAction):
 
 class ZeekNodeSettingsForm(npyscreen.ActionForm):
     """
-    Main Zeek Settings Form
+    Main Zeek Node Settings Form
     """
     def __init__(self, *args, **keywords):
         super(ZeekNodeSettingsForm, self).__init__(*args, **keywords)
@@ -141,7 +141,7 @@ class ZeekNodeSettingsForm(npyscreen.ActionForm):
         self.add(LoggerSelect, values=loggers, max_height=5)
         self.add(npyscreen.TitleText, name='Proxies', editable=False)
         self.add(ProxySelect, values=proxies, max_height=5)
-        self.add(npyscreen.TitleText, name='Manager', editable=False)
+        self.add(npyscreen.TitleText, name='Manager', editable=False, max_height=3)
         self.add(ManagerSelect, values=manager)
 
     def on_ok(self):
@@ -362,7 +362,9 @@ class EditLoggerManagerProxy(npyscreen.ActionForm):
 
 
 class ZeekNodeConfiguratorApp(npyscreen.NPSAppManaged):
-
+    """
+    App Entry Point
+    """
     def __init__(self):
         self.zeek_config = None
 
