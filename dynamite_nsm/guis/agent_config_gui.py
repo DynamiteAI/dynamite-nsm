@@ -192,7 +192,7 @@ class EditWorkerForm(npyscreen.ActionForm):
             self.threads_text.value = self.worker_config['lb_procs']
             self.cpus_text.value = self.worker_config['pin_cpus']
             self.delete_button.delete_value = self.value
-            self.delete_button.hidden = True
+            self.delete_button.hidden = False
         else:
             self.delete_button.hidden = True
 
