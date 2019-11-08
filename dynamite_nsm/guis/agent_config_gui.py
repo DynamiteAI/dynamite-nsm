@@ -145,6 +145,9 @@ class ZeekNodeSettingsForm(npyscreen.ActionForm):
         self.add(ManagerSelect, values=manager)
 
     def on_ok(self):
+        npyscreen.notify_wait(
+            'Be sure to restart the agent for changes to take effect!', color='WARNING'
+        )
         self.parentApp.setNextForm(None)
 
 
@@ -240,6 +243,9 @@ class EditWorkerForm(npyscreen.ActionForm):
         )
 
         # Switch back to the main interface
+        npyscreen.notify_wait(
+            self.worker_name_text.value + ' has been updated!', color='VERYGOOD'
+        )
         self.parentApp.zeek_config.write_config()
         self.parentApp.removeForm('MAIN')
         self.parentApp.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Node Configuration')
@@ -343,6 +349,9 @@ class EditLoggerManagerProxy(npyscreen.ActionForm):
 
         # Switch back to the main interface
         self.parentApp.zeek_config.write_config()
+        npyscreen.notify_wait(
+            self.component_name_text.value + ' has been updated!', color='VERYGOOD'
+        )
         self.parentApp.removeForm('MAIN')
         self.parentApp.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Node Configuration')
         self.parentApp.switchForm('MAIN')
