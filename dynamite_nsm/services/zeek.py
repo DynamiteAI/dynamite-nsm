@@ -225,7 +225,7 @@ class ZeekNodeConfigurator:
         :return: True, if successfully removed
         """
         try:
-            if self.node_config[name]['type'] == 'worker':
+            if self.node_config[name]['type'] == 'logger':
                 del self.node_config[name]
             else:
                 return False
@@ -270,6 +270,46 @@ class ZeekNodeConfigurator:
                 return False
         except KeyError:
             return False
+        return True
+
+    def list_workers(self):
+        """
+        :return: A list of worker names
+        """
+        workers = []
+        for component, values in self.node_config.items():
+            if values['type'] == 'worker':
+                workers.append(component)
+        return workers
+
+    def list_proxies(self):
+        """
+        :return: A list of proxy names
+        """
+        proxies = []
+        for component, values in self.node_config.items():
+            if values['type'] == 'proxy':
+                proxies.append(component)
+        return proxies
+
+    def list_loggers(self):
+        """
+        :return: A list of logger names
+        """
+        loggers = []
+        for component, values in self.node_config.items():
+            if values['type'] == 'logger':
+                loggers.append(component)
+        return loggers
+
+    def get_manager(self):
+        """
+        :return: The name of the manager
+        """
+        for component, values in self.node_config.items():
+            if values['type'] == 'manager':
+                return component
+        return None
 
     def write_config(self):
         """
