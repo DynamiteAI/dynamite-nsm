@@ -1,7 +1,6 @@
 import npyscreen
+from dynamite_nsm.utilities import get_environment_file_dict
 from dynamite_nsm.services.zeek import ZeekNodeConfigurator
-
-ZEEK_CONFIGURATION_DIRECTORY = '/Users/jaminbecker/PycharmProjects/dynamite-nsm-project/utils/default_configs/zeek'
 
 
 class RemoveWorkerButton(npyscreen.ButtonPress):
@@ -352,22 +351,18 @@ class EditLoggerManagerProxy(npyscreen.ActionForm):
         self.parentApp.setNextFormPrevious()
 
 
-class App(npyscreen.NPSAppManaged):
+class ZeekNodeConfiguratorApp(npyscreen.NPSAppManaged):
 
-    def __init__(self, *args, **keywords):
+    def __init__(self):
         self.zeek_config = None
 
-        super(App, self).__init__(*args, **keywords)
+        super(ZeekNodeConfiguratorApp, self).__init__()
 
     def onStart(self):
-        self.zeek_config = ZeekNodeConfigurator(ZEEK_CONFIGURATION_DIRECTORY)
+        environment_variables = get_environment_file_dict()
+        self.zeek_config = ZeekNodeConfigurator(environment_variables['ZEEK_HOME'])
         self.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Node Configuration')
         self.addForm('EDITWORKERFM', EditWorkerForm, name='Edit Zeek Worker')
         self.addForm('EDITLOGGERFM', EditLoggerManagerProxy, name='Edit Logger', component_type='logger')
         self.addForm('EDITMANAGERFM', EditLoggerManagerProxy, name='Edit Manager', component_type='manager')
         self.addForm('EDITPROXYFM', EditLoggerManagerProxy, name='Edit Proxy', component='proxy')
-
-
-if __name__ == '__main__':
-    app = App()
-    app.run()

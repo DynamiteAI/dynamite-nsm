@@ -10,6 +10,7 @@ from dynamite_nsm import utilities, updater
 from dynamite_nsm.services import suricata
 from dynamite_nsm.services import agent, monitor, oinkmaster
 from dynamite_nsm.services import elasticsearch, kibana, logstash
+from dynamite_nsm.guis import agent_config_gui
 
 
 COMPONENTS = [
@@ -56,6 +57,11 @@ def _get_parser():
 
     parser.add_argument('--es-port', type=int, dest='es_port', default=9200,
                         help='Target ElasticSearch cluster; A valid port [1-65535]')
+
+    # Config Modes
+
+    parser.add_argument('--zeek-cluster', type=str, dest='config_zeek_cluster',
+                        help='Enter into Zeek Cluster Configuration Mode.')
 
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
@@ -157,6 +163,17 @@ if __name__ == '__main__':
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
+    elif args.command == 'config':
+        if args.component == 'agent':
+            agent_config_modes = ['--zeek-cluster']
+            if args.config_zeek_cluster:
+                agent_config_gui.ZeekNodeConfiguratorApp()
+                exit(0)
+            else:
+                sys.stderr.write('[-] Invalid/Empty agent configuration mode - valid modes: {}\n'.format(
+                    agent_config_modes)
+                )
+                sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
             if elasticsearch.install_elasticsearch(
@@ -575,8 +592,9 @@ if __name__ == '__main__':
             sys.exit(0)
         elif args.component == 'suricata-rules':
             if suricata_profiler.is_installed:
-                suricata_config_dir = agent.environment_variables.get('SURICATA_CONFIG')
-                suricata_install_dir = agent.environment_variables.get('SURICATA_HOME')
+                environment_variables = utilities.get_environment_file_dict()
+                suricata_config_dir = environment_variables.get('SURICATA_CONFIG')
+                suricata_install_dir = environment_variables.get('SURICATA_HOME')
                 oinkmaster_install_dir = os.path.join(suricata_install_dir, 'oinkmaster')
                 oinkmaster.update_suricata_rules()
                 sys.exit(0)
