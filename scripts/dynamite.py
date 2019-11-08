@@ -60,7 +60,7 @@ def _get_parser():
 
     # Config Modes
 
-    parser.add_argument('--zeek-cluster', type=str, dest='config_zeek_cluster',
+    parser.add_argument('--zeek-cluster', default=False, dest='config_zeek_cluster', action='store_true',
                         help='Enter into Zeek Cluster Configuration Mode.')
 
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
