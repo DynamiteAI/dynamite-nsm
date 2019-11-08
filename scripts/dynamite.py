@@ -167,8 +167,9 @@ if __name__ == '__main__':
         if args.component == 'agent':
             agent_config_modes = ['--zeek-cluster']
             if args.config_zeek_cluster:
-                agent_config_gui.ZeekNodeConfiguratorApp()
-                exit(0)
+                zeek_node_config_gui = agent_config_gui.ZeekNodeConfiguratorApp()
+                zeek_node_config_gui.run()
+                sys.exit(0)
             else:
                 sys.stderr.write('[-] Invalid/Empty agent configuration mode - valid modes: {}\n'.format(
                     agent_config_modes)
