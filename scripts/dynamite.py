@@ -7,10 +7,10 @@ import argparse
 import traceback
 
 from dynamite_nsm import utilities, updater
-from dynamite_nsm.services import suricata
+from dynamite_nsm.services import zeek, suricata
 from dynamite_nsm.services import agent, monitor, oinkmaster
 from dynamite_nsm.services import elasticsearch, kibana, logstash
-from dynamite_nsm.guis import agent_config_gui
+from dynamite_nsm.guis import zeek_node_config_gui, zeek_script_config_gui
 
 
 COMPONENTS = [
@@ -18,7 +18,8 @@ COMPONENTS = [
 ]
 
 COMMANDS = [
-    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'point', 'chpasswd'
+    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'configure',
+    'point', 'chpasswd'
 ]
 
 
@@ -62,6 +63,8 @@ def _get_parser():
 
     parser.add_argument('--zeek-cluster', default=False, dest='config_zeek_cluster', action='store_true',
                         help='Enter into Zeek Cluster Configuration Mode.')
+    parser.add_argument('--zeek-scripts', default=False, dest='config_zeek_scripts', action='store_true',
+                        help='Enter into Zeek Script Configuration Mode.')
 
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
@@ -163,12 +166,19 @@ if __name__ == '__main__':
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
-    elif args.command == 'config':
+    elif args.command in ['config', 'configure']:
         if args.component == 'agent':
-            agent_config_modes = ['--zeek-cluster']
+            agent_config_modes = ['--zeek-cluster', '--zeek-scripts']
+            if not zeek.ZeekProfiler().is_installed:
+                sys.stderr.write('[-] The agent must be installed before it can be configured.')
+                sys.exit(1)
             if args.config_zeek_cluster:
-                zeek_node_config_gui = agent_config_gui.ZeekNodeConfiguratorApp()
-                zeek_node_config_gui.run()
+                zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
+                zeek_node_config.run()
+                sys.exit(0)
+            elif args.config_zeek_scripts:
+                zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
+                zeek_script_config.run()
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Invalid/Empty agent configuration mode - valid modes: {}\n'.format(
