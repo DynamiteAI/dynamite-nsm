@@ -373,7 +373,7 @@ class ZeekNodeConfiguratorApp(npyscreen.NPSAppManaged):
     def onStart(self):
         environment_variables = get_environment_file_dict()
         self.zeek_config = ZeekNodeConfigurator(environment_variables['ZEEK_HOME'])
-        self.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Node Configuration')
+        self.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Cluster Configuration')
         self.addForm('EDITWORKERFM', EditWorkerForm, name='Edit Zeek Worker')
         self.addForm('EDITLOGGERFM', EditLoggerManagerProxy, name='Edit Logger', component_type='logger')
         self.addForm('EDITMANAGERFM', EditLoggerManagerProxy, name='Edit Manager', component_type='manager')

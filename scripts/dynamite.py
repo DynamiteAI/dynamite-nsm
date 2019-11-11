@@ -1,6 +1,7 @@
 #! /usr/bin/python
 import os
 import sys
+import pty
 import json
 import getpass
 import argparse
@@ -65,6 +66,8 @@ def _get_parser():
                         help='Enter into Zeek Cluster Configuration Mode.')
     parser.add_argument('--zeek-scripts', default=False, dest='config_zeek_scripts', action='store_true',
                         help='Enter into Zeek Script Configuration Mode.')
+    parser.add_argument('--zeek-shell', default=False, dest='config_zeek_shell', action='store_true',
+                        help='Enter into ZeekCtl interactive shell')
 
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
@@ -168,7 +171,7 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command in ['config', 'configure']:
         if args.component == 'agent':
-            agent_config_modes = ['--zeek-cluster', '--zeek-scripts']
+            agent_config_modes = ['--zeek-cluster', '--zeek-scripts', '--zeek-shell']
             if not zeek.ZeekProfiler().is_installed:
                 sys.stderr.write('[-] The agent must be installed before it can be configured.')
                 sys.exit(1)
@@ -180,6 +183,8 @@ if __name__ == '__main__':
                 zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
                 zeek_script_config.run()
                 sys.exit(0)
+            elif args.config_zeek_shell:
+                pty.spawn('bin/broctl')
             else:
                 sys.stderr.write('[-] Invalid/Empty agent configuration mode - valid modes: {}\n'.format(
                     agent_config_modes)
