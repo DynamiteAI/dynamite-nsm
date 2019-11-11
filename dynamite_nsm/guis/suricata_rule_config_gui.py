@@ -68,6 +68,3 @@ class SuricataRuleConfiguratorApp(npyscreen.NPSAppManaged):
         env_vars = get_environment_file_dict()
         self.suricata_rule_config = SuricataConfigurator(env_vars['SURICATA_CONFIG'])
         self.addForm('MAIN', SuricataRuleSettingsForm, name='Suricata Rule Configuration')
-
-
-SuricataRuleConfiguratorApp().run()
