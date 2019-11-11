@@ -2,7 +2,10 @@ import subprocess
 
 
 class OSPackageManager:
-
+    """
+    Interface for interacting with the operating systems package manager system
+    Currently supports YUM/apt-get
+    """
     def __init__(self):
         self.package_manager = self.detect_package_manager()
 
@@ -26,6 +29,7 @@ class OSPackageManager:
     def install_packages(self, packages):
         """
         Given a set of packages, installs the packages
+
         :param packages: Name of binary packages to install
         """
         flags = '-y'
@@ -37,6 +41,9 @@ class OSPackageManager:
         return p.returncode == 0
 
     def refresh_package_indexes(self):
+        """
+        Refresh the package cache
+        """
         params = None
         if self.package_manager == 'apt-get':
             params = 'update'
