@@ -1,15 +1,18 @@
 #! /usr/bin/python
 import os
 import sys
+import pty
 import json
 import getpass
 import argparse
 import traceback
 
 from dynamite_nsm import utilities, updater
-from dynamite_nsm.services import suricata
+from dynamite_nsm.services import zeek, suricata
 from dynamite_nsm.services import agent, monitor, oinkmaster
 from dynamite_nsm.services import elasticsearch, kibana, logstash
+from dynamite_nsm.guis import zeek_node_config_gui, zeek_script_config_gui, suricata_interface_config_gui,\
+    suricata_rule_config_gui
 
 
 COMPONENTS = [
@@ -17,7 +20,8 @@ COMPONENTS = [
 ]
 
 COMMANDS = [
-    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'point', 'chpasswd'
+    'prepare', 'install', 'uninstall', 'start', 'stop', 'restart', 'status', 'profile', 'update', 'configure',
+    'point', 'chpasswd'
 ]
 
 
@@ -56,6 +60,19 @@ def _get_parser():
 
     parser.add_argument('--es-port', type=int, dest='es_port', default=9200,
                         help='Target ElasticSearch cluster; A valid port [1-65535]')
+
+    # Config Modes
+
+    parser.add_argument('--zeek-cluster', default=False, dest='config_zeek_cluster', action='store_true',
+                        help='Enter into Zeek Cluster Configuration Mode.')
+    parser.add_argument('--zeek-scripts', default=False, dest='config_zeek_scripts', action='store_true',
+                        help='Enter into Zeek Script Configuration Mode.')
+    parser.add_argument('--suricata-interfaces', default=False, dest='config_suricata_interfaces', action='store_true',
+                        help='Enter into Suricata Interface Configuration Mode.')
+    parser.add_argument('--suricata-rules', default=False, dest='config_suricata_rules', action='store_true',
+                        help='Enter into Suricata Rule Configuration Mode.')
+    parser.add_argument('--zeek-shell', default=False, dest='config_zeek_shell', action='store_true',
+                        help='Enter into ZeekCtl interactive shell')
 
     parser.add_argument('--debug', default=False, dest='debug', action='store_true',
                         help='Include detailed error messages in console.')
@@ -157,6 +174,37 @@ if __name__ == '__main__':
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
+    elif args.command in ['config', 'configure']:
+        if args.component == 'agent':
+            agent_config_modes = ['--suricata-rules', '--suricata-interfaces',
+                                  '--zeek-cluster', '--zeek-scripts', '--zeek-shell']
+            if not zeek.ZeekProfiler().is_installed:
+                sys.stderr.write('[-] The agent must be installed before it can be configured.')
+                sys.exit(1)
+            if args.config_zeek_cluster:
+                zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
+                zeek_node_config.run()
+                sys.exit(0)
+            elif args.config_zeek_scripts:
+                zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
+                zeek_script_config.run()
+                sys.exit(0)
+            elif args.config_suricata_interfaces:
+                suricata_interface_config = suricata_interface_config_gui.SuricataInstanceConfiguratorApp()
+                suricata_interface_config.run()
+                sys.exit(0)
+            elif args.config_suricata_rules:
+                suricata_rule_config = suricata_rule_config_gui.SuricataRuleConfiguratorApp()
+                suricata_rule_config.run()
+                sys.exit(0)
+            elif args.config_zeek_shell:
+                env_variables = environment_variables = utilities.get_environment_file_dict()
+                pty.spawn(os.path.join(env_variables['ZEEK_HOME'], 'bin/broctl'))
+            else:
+                sys.stderr.write('[-] Invalid/Empty agent configuration mode - valid modes: {}\n'.format(
+                    agent_config_modes)
+                )
+                sys.exit(1)
     elif args.command == 'install':
         if args.component == 'elasticsearch':
             if elasticsearch.install_elasticsearch(
@@ -575,8 +623,9 @@ if __name__ == '__main__':
             sys.exit(0)
         elif args.component == 'suricata-rules':
             if suricata_profiler.is_installed:
-                suricata_config_dir = agent.environment_variables.get('SURICATA_CONFIG')
-                suricata_install_dir = agent.environment_variables.get('SURICATA_HOME')
+                environment_variables = utilities.get_environment_file_dict()
+                suricata_config_dir = environment_variables.get('SURICATA_CONFIG')
+                suricata_install_dir = environment_variables.get('SURICATA_HOME')
                 oinkmaster_install_dir = os.path.join(suricata_install_dir, 'oinkmaster')
                 oinkmaster.update_suricata_rules()
                 sys.exit(0)

@@ -13,6 +13,9 @@ INSTALL_DIRECTORY = '/opt/dynamite/pf_ring/'
 
 
 class PFRingInstaller:
+    """
+    An interface for installing PF_RING kernel module and UserLand requirements
+    """
 
     def __init__(self, install_directory=INSTALL_DIRECTORY):
         """
@@ -140,7 +143,7 @@ class PFRingInstaller:
 
 class PFRingProfiler:
     """
-    Interface for determining whether PF_RING is installed/configured/running properly.
+    An Interface for determining whether PF_RING is installed/configured/running properly.
     """
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)

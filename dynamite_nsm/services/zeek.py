@@ -84,31 +84,31 @@ class ZeekScriptConfigurator:
         except KeyError:
             return False
 
-    def get_disabled_scripts(self):
+    def list_disabled_scripts(self):
         """
         :return: A list of disabled Zeek scripts
         """
         return [script for script in self.zeek_scripts.keys() if not self.zeek_scripts[script]]
 
-    def get_enabled_scripts(self):
+    def list_enabled_scripts(self):
         """
         :return: A list of enabled Zeek scripts
         """
         return [script for script in self.zeek_scripts.keys() if self.zeek_scripts[script]]
 
-    def get_enabled_sigs(self):
+    def list_enabled_sigs(self):
         """
         :return: A list of enabled Zeek signatures
         """
         return [sig for sig in self.zeek_sigs.keys() if self.zeek_sigs[sig]]
 
-    def get_disabled_sigs(self):
+    def list_disabled_sigs(self):
         """
         :return: A list of disabled Zeek signatures
         """
         return [sig for sig in self.zeek_sigs.keys() if not self.zeek_sigs[sig]]
 
-    def get_redefinitions(self):
+    def list_redefinitions(self):
         return [(redef, val) for redef, val in self.zeek_redefs.items()]
 
     def write_config(self):
@@ -121,15 +121,15 @@ class ZeekScriptConfigurator:
         zeek_config_backup = os.path.join(backup_configurations, 'local.bro.backup.{}'.format(timestamp))
 
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        for e_script in self.get_enabled_scripts():
+        for e_script in self.list_enabled_scripts():
             output_str += '@load {}\n'.format(e_script)
-        for d_script in self.get_disabled_scripts():
+        for d_script in self.list_disabled_scripts():
             output_str += '#@load {}\n'.format(d_script)
-        for e_sig in self.get_enabled_sigs():
+        for e_sig in self.list_enabled_sigs():
             output_str += '@load-sigs {}\n'.format(e_sig)
-        for d_sig in self.get_disabled_sigs():
+        for d_sig in self.list_disabled_sigs():
             output_str += '@load-sigs {}\n'.format(d_sig)
-        for rdef, val in self.get_redefinitions():
+        for rdef, val in self.list_redefinitions():
             output_str += 'redef {} = {}\n'.format(rdef, val)
         shutil.move(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
         with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
@@ -225,7 +225,7 @@ class ZeekNodeConfigurator:
         :return: True, if successfully removed
         """
         try:
-            if self.node_config[name]['type'] == 'worker':
+            if self.node_config[name]['type'] == 'logger':
                 del self.node_config[name]
             else:
                 return False
@@ -270,6 +270,46 @@ class ZeekNodeConfigurator:
                 return False
         except KeyError:
             return False
+        return True
+
+    def list_workers(self):
+        """
+        :return: A list of worker names
+        """
+        workers = []
+        for component, values in self.node_config.items():
+            if values['type'] == 'worker':
+                workers.append(component)
+        return workers
+
+    def list_proxies(self):
+        """
+        :return: A list of proxy names
+        """
+        proxies = []
+        for component, values in self.node_config.items():
+            if values['type'] == 'proxy':
+                proxies.append(component)
+        return proxies
+
+    def list_loggers(self):
+        """
+        :return: A list of logger names
+        """
+        loggers = []
+        for component, values in self.node_config.items():
+            if values['type'] == 'logger':
+                loggers.append(component)
+        return loggers
+
+    def get_manager(self):
+        """
+        :return: The name of the manager
+        """
+        for component, values in self.node_config.items():
+            if values['type'] == 'manager':
+                return component
+        return None
 
     def write_config(self):
         """

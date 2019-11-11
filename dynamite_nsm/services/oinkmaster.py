@@ -15,6 +15,9 @@ INSTALL_DIRECTORY = '/opt/dynamite/oinkmaster/'
 
 
 class OinkmasterInstaller:
+    """
+    An interface for installing OinkMaster Suricata update script
+    """
     def __init__(self, install_directory=INSTALL_DIRECTORY):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/oinkmaster/)
@@ -82,6 +85,11 @@ class OinkmasterInstaller:
 
 
 def update_suricata_rules():
+    """
+    Update Suricata rules specified in the oinkmaster.conf file
+
+    :return: True if succeeded
+    """
     environment_variables = utilities.get_environment_file_dict()
     suricata_config_directory = environment_variables.get('SURICATA_CONFIG')
     oinkmaster_install_directory = environment_variables.get('OINKMASTER_HOME')
