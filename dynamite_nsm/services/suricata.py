@@ -29,7 +29,26 @@ class SuricataConfigurator:
     """
     Wrapper for configuring suricata.yml
     """
-
+    default_suricata_rules = [
+        'botcc.rules', 'botcc.portgrouped.rules', 'ciarmy.rules',
+        'compromised.rules', 'drop.rules', 'dshield.rules',
+        'emerging - attack_response.rules', 'emerging - chat.rules',
+        'emerging - current_events.rules', 'emerging - dns.rules',
+        'emerging - dos.rules', 'emerging - exploit.rules',
+        'emerging - ftp.rules', 'emerging - imap.rules',
+        'emerging - malware.rules', 'emerging - misc.rules',
+        'emerging - mobile_malware.rules', 'emerging - netbios.rules',
+        'emerging - p2p.rules', 'emerging - policy.rules',
+        'emerging - pop3.rules', 'emerging - rpc.rules',
+        'emerging - smtp.rules', 'emerging - snmp.rules',
+        'emerging - sql.rules', 'emerging - telnet.rules',
+        'emerging - tftp.rules', 'emerging - trojan.rules',
+        'emerging - user_agents.rules', 'emerging - voip.rules',
+        'emerging - web_client.rules', 'emerging - web_server.rules',
+        'emerging - worm.rules', 'tor.rules',
+        'http - events.rules', 'smtp - events.rules',
+        'dns - events.rules', 'tls - events.rules',
+    ]
     tokens = {
         'home_net': ('vars', 'address-groups', 'HOME_NET'),
         'external_net': ('vars', 'address-groups', 'EXTERNAL_NET'),
@@ -58,7 +77,8 @@ class SuricataConfigurator:
         'reference_config_file': ('reference-config-file',),
         'af_packet_interfaces': ('af-packet',),
         'pcap_interfaces': ('pcap',),
-        'pfring_interfaces': ('pfring',)
+        'pfring_interfaces': ('pfring',),
+        'rule_files': ('rule-files',)
     }
 
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
@@ -93,6 +113,7 @@ class SuricataConfigurator:
         self.af_packet_interfaces = None
         self.pcap_interfaces = None
         self.pfring_interfaces = None
+        self.rule_files = None
         self._parse_suricatayaml()
 
     def _parse_suricatayaml(self):
@@ -154,6 +175,42 @@ class SuricataConfigurator:
             else:
                 new_interface_config.append(interface_config)
         self.pfring_interfaces = new_interface_config
+
+    def list_enabled_rules(self):
+        """
+        List enabled rules
+
+        :return: A list of enabled rule files
+        """
+        return [rule for rule in self.default_suricata_rules if rule in self.rule_files]
+
+    def list_disabled_rules(self):
+        """
+        List disabled rules
+
+        :return: A list of disabled rule files
+        """
+        return [rule for rule in self.default_suricata_rules if rule not in self.rule_files]
+
+    def enable_rule(self, rule_file):
+        """
+        Enable a rule
+
+        :param rule_file: The name of the rule to enable
+        :return: None
+        """
+        if rule_file not in self.list_enabled_rules():
+            self.rule_files.append(rule_file)
+
+    def disable_rule(self, rule_file):
+        """
+        Disable a rule
+
+        :param rule_file: The name of the rule to disable
+        :return: None
+        """
+        if rule_file in self.list_enabled_rules():
+            self.rule_files.remove(rule_file)
 
     def write_config(self):
         """

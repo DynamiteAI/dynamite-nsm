@@ -66,6 +66,6 @@ class ZeekScriptConfiguratorApp(npyscreen.NPSAppManaged):
         super(ZeekScriptConfiguratorApp, self).__init__()
 
     def onStart(self):
-        environment_variables = get_environment_file_dict()
-        self.zeek_script_config = ZeekScriptConfigurator(environment_variables['ZEEK_SCRIPTS'])
+        env_vars = get_environment_file_dict()
+        self.zeek_script_config = ZeekScriptConfigurator(env_vars['ZEEK_SCRIPTS'])
         self.addForm('MAIN', ZeekScriptSettingsForm, name='Zeek Script Configuration')
