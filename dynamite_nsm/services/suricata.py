@@ -120,6 +120,8 @@ class SuricataConfigurator:
 
     def add_pfring_interface(self, interface, threads=None, cluster_id=None, bpf_filter=None):
         """
+        Add a new PF_RING interface to monitor
+
         :param interface: The name of the interface to monitor (eth0, mon0)
         :param threads: "auto" or the number of threads
         :param cluster_id: The PF_RING cluster id; PF_RING will load balance packets based on flow
@@ -137,6 +139,21 @@ class SuricataConfigurator:
             interface_config['bpf_filter'] = bpf_filter
 
         self.pfring_interfaces.append(interface_config)
+
+    def remove_pfring_interface(self, interface):
+        """
+        Remove an existing PF_RING interface
+
+        :param interface: The name of the interface to remove (eth0, mon0)
+        :return: None
+        """
+        new_interface_config = []
+        for interface_config in self.pfring_interfaces:
+            if interface_config['interface'] == interface:
+                continue
+            else:
+                new_interface_config.append(interface_config)
+        self.pfring_interfaces = new_interface_config
 
     def write_config(self):
         """

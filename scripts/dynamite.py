@@ -184,8 +184,8 @@ if __name__ == '__main__':
                 zeek_script_config.run()
                 sys.exit(0)
             elif args.config_zeek_shell:
-                environment_variables = environment_variables = utilities.get_environment_file_dict()
-                pty.spawn(os.path.join(environment_variables['ZEEK_HOME'], 'bin/broctl'))
+                env_variables = environment_variables = utilities.get_environment_file_dict()
+                pty.spawn(os.path.join(env_variables['ZEEK_HOME'], 'bin/broctl'))
             else:
                 sys.stderr.write('[-] Invalid/Empty agent configuration mode - valid modes: {}\n'.format(
                     agent_config_modes)

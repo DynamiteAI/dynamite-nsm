@@ -6,14 +6,15 @@
 usage: dynamite.py [-h] [--interface NETWORK_INTERFACE]
                    [--agent-label AGENT_LABEL] [--ls-host LS_HOST]
                    [--ls-port LS_PORT] [--es-host ES_HOST] [--es-port ES_PORT]
-                   [--debug]
+                   [--zeek-cluster] [--zeek-scripts] [--zeek-shell] [--debug]
                    command component
 
 Install/Configure the Dynamite Network Monitor.
 
 positional arguments:
   command               An action to perform [prepare|install|uninstall|start|
-                        stop|restart|status|profile|update|point|chpasswd]
+                        stop|restart|status|profile|update|configure|point|chp
+                        asswd]
   component             The component to perform an action against
                         [agent|monitor|elasticsearch|logstash|kibana|suricata-
                         rules|mirrors|default-configs]
@@ -32,6 +33,9 @@ optional arguments:
   --es-host ES_HOST     Target ElasticSearch cluster; A valid Ipv4/Ipv6
                         address or hostname
   --es-port ES_PORT     Target ElasticSearch cluster; A valid port [1-65535]
+  --zeek-cluster        Enter into Zeek Cluster Configuration Mode.
+  --zeek-scripts        Enter into Zeek Script Configuration Mode.
+  --zeek-shell          Enter into ZeekCtl interactive shell
   --debug               Include detailed error messages in console.
 ```
 
@@ -42,14 +46,16 @@ Zeek + Suricata + FileBeat; responsible for analyzing network traffic on a given
 
 | Command   | Description                                                                                               | Example                                                                                   |
 |-----------|-----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| prepare   | Install required dependencies for agent installation. Requires a`reboot` for changes to go into effect. |`dynamite prepare agent`                                                                  |
-| install   | Install agent components (Zeek, Suricata, PF_RING, Oinkmaster).                                          |`dynamite install agent --interface mon0 --agent-label honeypot1 --ls-host 160.1.134.145` |
+| prepare   | Install required dependencies for agent installation. Requires a`reboot` for changes to go into effect. |`dynamite prepare agent`                                                                    |
+| install   | Install agent components (Zeek, Suricata, PF_RING, Oinkmaster).                                          |`dynamite install agent --interface mon0 --agent-label honeypot1 --ls-host 160.1.134.145`  |
 | uninstall | Uninstall agent components (Zeek, Suricata, PF_RING, Oinkmaster).                                         |`dynamite uninstall agent`                                                                |
 | start     | Start the agent processes.                                                                                |`dynamite start agent`                                                                    |
 | stop      | Stop the agent processes.                                                                                 |`dynamite stop agent`                                                                     |
 | restart   | Restart the agent processes.                                                                              |`dynamite restart agent`                                                                  |
 | status    | Return the status of agent running processes.                                                             |`dynamite status agent`                                                                   |
 | profile   | Run a series of checks to determine if agent is installed properly.                                       |`dynamite profile agent`                                                                  |
+| configure | Configure agent components, currently supported  `--zeek-cluster, --zeek-scripts, --zeek-shell`           |`dynamite configure agent --zeek-scripts`                                                 |
+| update    | Update configurations/mirrors/signatures                                                                  |`dynamite update suricata-rules`                                                          |
 | point     | Point the agent to a new LogStash host.                                                                   |`dynamite point agent --ls-host 160.1.134.130 --ls-port 5044`                             |
 
 ### monitor
