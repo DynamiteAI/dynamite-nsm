@@ -11,7 +11,7 @@ from dynamite_nsm import utilities, updater
 from dynamite_nsm.services import zeek, suricata
 from dynamite_nsm.services import agent, monitor, oinkmaster
 from dynamite_nsm.services import elasticsearch, kibana, logstash
-from dynamite_nsm.guis import zeek_node_config_gui, zeek_script_config_gui
+from dynamite_nsm.guis import zeek_node_config_gui, zeek_script_config_gui, suricata_rule_config_gui
 
 
 COMPONENTS = [
@@ -66,6 +66,8 @@ def _get_parser():
                         help='Enter into Zeek Cluster Configuration Mode.')
     parser.add_argument('--zeek-scripts', default=False, dest='config_zeek_scripts', action='store_true',
                         help='Enter into Zeek Script Configuration Mode.')
+    parser.add_argument('--suricata-rules', default=False, dest='config_suricata_rules', action='store_true',
+                        help='Enter into Suricata Rule Configuration Mode.')
     parser.add_argument('--zeek-shell', default=False, dest='config_zeek_shell', action='store_true',
                         help='Enter into ZeekCtl interactive shell')
 
@@ -171,7 +173,7 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command in ['config', 'configure']:
         if args.component == 'agent':
-            agent_config_modes = ['--zeek-cluster', '--zeek-scripts', '--zeek-shell']
+            agent_config_modes = ['--suricata-rules', '--zeek-cluster', '--zeek-scripts', '--zeek-shell']
             if not zeek.ZeekProfiler().is_installed:
                 sys.stderr.write('[-] The agent must be installed before it can be configured.')
                 sys.exit(1)
@@ -182,6 +184,10 @@ if __name__ == '__main__':
             elif args.config_zeek_scripts:
                 zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
                 zeek_script_config.run()
+                sys.exit(0)
+            elif args.config_suricata_rules:
+                suricata_rule_config = suricata_rule_config_gui.SuricataRuleConfiguratorApp()
+                suricata_rule_config.run()
                 sys.exit(0)
             elif args.config_zeek_shell:
                 env_variables = environment_variables = utilities.get_environment_file_dict()
