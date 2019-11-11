@@ -105,7 +105,7 @@ prompt_input(message)
 Compatibility function for Python2/3 for taking in input
 
 - *param* message: The message appearing next to the input prompt.
-return: The inputted text
+- *return* The inputted text
 
 ## prompt_password
 ```python
