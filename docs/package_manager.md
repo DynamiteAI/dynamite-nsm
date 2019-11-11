@@ -14,7 +14,7 @@ OSPackageManager.detect_package_manager()
 ```
 
 Detect the POSIX package manager currently being used
-:return: The package manager command
+- *return* The package manager command
 
 ### install_packages
 ```python
