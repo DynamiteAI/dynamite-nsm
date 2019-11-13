@@ -65,6 +65,8 @@ def install_agent(network_interface, agent_label, logstash_target):
             sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
             return False
         zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
+        zeek_installer.setup_dynamite_zeek_scripts()
+
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
 

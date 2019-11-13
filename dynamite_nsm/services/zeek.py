@@ -389,6 +389,40 @@ class ZeekInstaller:
             return pacman.install_packages(packages)
         return False
 
+    def setup_dynamite_zeek_scripts(self):
+        """
+        Installs and enables extra dynamite Zeek scripts
+
+        :return: True if zeek scripts were successfully installed
+        """
+        scripts = ''
+        redefs = ''
+        install_cache_extra_scripts_path = \
+            os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'dynamite_extra_scripts')
+        if not os.path.exists(install_cache_extra_scripts_path):
+            sys.stderr.write('[-] dynamite_extra_scripts not found in install_cache.\n')
+            sys.stderr.flush()
+            return False
+        try:
+            os.mkdir(os.path.join(self.configuration_directory, 'dynamite_extra_scripts'))
+        except OSError:
+            pass
+        extra_scripts_path = os.path.join(self.configuration_directory, 'dynamite_extra_scripts')
+        utilities.copytree(install_cache_extra_scripts_path, extra_scripts_path)
+        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'r') as rf:
+            for line in rf.readlines():
+                if '@load' in line:
+                    scripts += line.strip() + '\n'
+                elif 'redef' in line:
+                    redefs += line.strip() + '\n'
+        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as wf:
+            extra_script_install_path = os.path.join(self.configuration_directory, 'dynamite_extra_scripts')
+            wf.write(scripts)
+            for script_dir in os.listdir(extra_script_install_path):
+                wf.write('@load {}\n'.format(os.path.join(extra_script_install_path, script_dir)))
+            wf.write(redefs)
+        return True
+
     def setup_zeek(self, network_interface=None, stdout=False):
         """
         Setup Zeek NSM with PF_RING support
@@ -454,6 +488,7 @@ class ZeekInstaller:
         workers_cpu_grps = [range(0, available_cpus)[n:n + 2] for n in range(0, len(range(0, available_cpus)), 2)]
 
         for i, cpu_group in enumerate(workers_cpu_grps):
+
             node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
                                    host='localhost',
                                    interface=network_interface,
