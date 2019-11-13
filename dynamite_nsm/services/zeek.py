@@ -398,7 +398,7 @@ class ZeekInstaller:
         scripts = ''
         redefs = ''
         install_cache_extra_scripts_path = \
-            os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME, 'dynamite_extra_scripts')
+            os.path.join(const.DEFAULT_CONFIGS, const.ZEEK_DIRECTORY_NAME, 'dynamite_extra_scripts')
         if not os.path.exists(install_cache_extra_scripts_path):
             sys.stderr.write('[-] dynamite_extra_scripts not found in install_cache.\n')
             sys.stderr.flush()
