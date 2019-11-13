@@ -389,6 +389,25 @@ class ZeekInstaller:
             return pacman.install_packages(packages)
         return False
 
+    def setup_dynamite_zeek_scripts(self):
+        """
+        Installs and enables extra dynamite Zeek scripts
+
+        :return: True if zeek scripts were successfully installed
+        """
+        install_cache_extra_scripts_path = \
+            os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME, 'dynamite_extra_scripts')
+        if not os.path.exists(install_cache_extra_scripts_path):
+            sys.stderr.write('[-] dynamite_extra_scripts not found in install_cache.\n')
+            sys.stderr.flush()
+            return False
+        utilities.copytree(install_cache_extra_scripts_path, self.configuration_directory)
+        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'a') as f:
+            extra_script_install_path = os.path.join(self.configuration_directory, 'dynamite_extra_scripts')
+            for script_dir in os.listdir(extra_script_install_path):
+                f.write('@load {}\n'.format(os.path.join(extra_script_install_path, script_dir)))
+        return True
+
     def setup_zeek(self, network_interface=None, stdout=False):
         """
         Setup Zeek NSM with PF_RING support
@@ -454,6 +473,7 @@ class ZeekInstaller:
         workers_cpu_grps = [range(0, available_cpus)[n:n + 2] for n in range(0, len(range(0, available_cpus)), 2)]
 
         for i, cpu_group in enumerate(workers_cpu_grps):
+
             node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
                                    host='localhost',
                                    interface=network_interface,
