@@ -395,6 +395,8 @@ class ZeekInstaller:
 
         :return: True if zeek scripts were successfully installed
         """
+        scripts = ''
+        redefs = ''
         install_cache_extra_scripts_path = \
             os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME, 'dynamite_extra_scripts')
         if not os.path.exists(install_cache_extra_scripts_path):
@@ -402,10 +404,18 @@ class ZeekInstaller:
             sys.stderr.flush()
             return False
         utilities.copytree(install_cache_extra_scripts_path, self.configuration_directory)
-        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'a') as f:
+        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'r') as rf:
+            for line in rf.readlines():
+                if '@load' in line:
+                    scripts += line.strip() + '\n'
+                elif 'redef' in line:
+                    redefs += line.strip() + '\n'
+        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as wf:
             extra_script_install_path = os.path.join(self.configuration_directory, 'dynamite_extra_scripts')
+            wf.write(scripts)
             for script_dir in os.listdir(extra_script_install_path):
-                f.write('@load {}\n'.format(os.path.join(extra_script_install_path, script_dir)))
+                wf.write('@load {}\n'.format(os.path.join(extra_script_install_path, script_dir)))
+            wf.write(redefs)
         return True
 
     def setup_zeek(self, network_interface=None, stdout=False):
