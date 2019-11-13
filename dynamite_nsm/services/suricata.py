@@ -157,7 +157,7 @@ class SuricataConfigurator:
         if cluster_id:
             interface_config['cluster-id'] = cluster_id
         if bpf_filter:
-            interface_config['bpf_filter'] = bpf_filter
+            interface_config['bpf-filter'] = bpf_filter
 
         self.pfring_interfaces.append(interface_config)
 
