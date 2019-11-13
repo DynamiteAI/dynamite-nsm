@@ -72,7 +72,7 @@ class FileBeatConfigurator:
             self.processors = [{'add_fields': {'fields': {'originating_agent_tag': agent_tag}}}]
         else:
             for processor in self.processors:
-                if processor.keys()[0] == 'add_fields':
+                if list(processor.keys())[0] == 'add_fields':
                     processor['add_fields'] = {'fields': {'originating_agent_tag': agent_tag}}
                     break
 
