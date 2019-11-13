@@ -403,7 +403,10 @@ class ZeekInstaller:
             sys.stderr.write('[-] dynamite_extra_scripts not found in install_cache.\n')
             sys.stderr.flush()
             return False
-        os.mkdir(os.path.join(self.configuration_directory, 'dynamite_extra_scripts'))
+        try:
+            os.mkdir(os.path.join(self.configuration_directory, 'dynamite_extra_scripts'))
+        except OSError:
+            pass
         extra_scripts_path = os.path.join(self.configuration_directory, 'dynamite_extra_scripts')
         utilities.copytree(install_cache_extra_scripts_path, extra_scripts_path)
         with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'r') as rf:
