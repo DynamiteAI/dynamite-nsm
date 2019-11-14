@@ -6,7 +6,8 @@
 usage: dynamite.py [-h] [--interface NETWORK_INTERFACE]
                    [--agent-label AGENT_LABEL] [--ls-host LS_HOST]
                    [--ls-port LS_PORT] [--es-host ES_HOST] [--es-port ES_PORT]
-                   [--zeek-cluster] [--zeek-scripts] [--zeek-shell] [--debug]
+                   [--zeek-cluster] [--zeek-scripts] [--suricata-interfaces]
+                   [--suricata-rules] [--zeek-shell] [--debug]
                    command component
 
 Install/Configure the Dynamite Network Monitor.
@@ -35,6 +36,9 @@ optional arguments:
   --es-port ES_PORT     Target ElasticSearch cluster; A valid port [1-65535]
   --zeek-cluster        Enter into Zeek Cluster Configuration Mode.
   --zeek-scripts        Enter into Zeek Script Configuration Mode.
+  --suricata-interfaces
+                        Enter into Suricata Interface Configuration Mode.
+  --suricata-rules      Enter into Suricata Rule Configuration Mode.
   --zeek-shell          Enter into ZeekCtl interactive shell
   --debug               Include detailed error messages in console.
 ```
