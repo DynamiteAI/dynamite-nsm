@@ -251,10 +251,23 @@ if __name__ == '__main__':
             installed = agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
             if installed:
-                zeek_node_config_gui.ZeekNodeConfiguratorApp().run()
-                zeek_script_config_gui.ZeekScriptConfiguratorApp().run()
-                suricata_interface_config_gui.SuricataInstanceConfiguratorApp().run()
-                suricata_rule_config_gui.SuricataRuleConfiguratorApp().run()
+                try:
+                    zeek_node_config_gui.ZeekNodeConfiguratorApp().run()
+                except KeyboardInterrupt:
+                    pass
+                try:
+                    zeek_script_config_gui.ZeekScriptConfiguratorApp().run()
+                except KeyboardInterrupt:
+                    pass
+                try:
+                    suricata_interface_config_gui.SuricataInstanceConfiguratorApp().run()
+                except KeyboardInterrupt:
+                    pass
+                try:
+                    suricata_rule_config_gui.SuricataRuleConfiguratorApp().run()
+                except KeyboardInterrupt:
+                    pass
+
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
