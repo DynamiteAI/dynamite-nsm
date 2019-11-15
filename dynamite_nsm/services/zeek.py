@@ -498,6 +498,7 @@ class ZeekInstaller:
                                lb_procs=lb_procs,
                                pin_cpus=pinned_cpus
                                )
+        node_config.write_config()
 
 
 class ZeekProfiler:
