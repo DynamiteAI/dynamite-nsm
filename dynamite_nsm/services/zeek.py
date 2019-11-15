@@ -484,18 +484,20 @@ class ZeekInstaller:
 
         node_config = ZeekNodeConfigurator(self.install_directory)
 
-        available_cpus = utilities.get_cpu_core_count()
-        workers_cpu_grps = [range(0, available_cpus)[n:n + 2] for n in range(0, len(range(0, available_cpus)), 2)]
-
-        for i, cpu_group in enumerate(workers_cpu_grps):
-
-            node_config.add_worker(name='dynamite-worker-{}'.format(i + 1),
-                                   host='localhost',
-                                   interface=network_interface,
-                                   lb_procs=1,
-                                   pin_cpus=cpu_group
-                                   )
-            node_config.write_config()
+        cpu_count = utilities.get_cpu_core_count()
+        cpus = [c for c in range(0, cpu_count)]
+        if cpu_count > 1:
+            pinned_cpus = cpus[:-1]
+            lb_procs = len(pinned_cpus)
+        else:
+            pinned_cpus = cpus
+            lb_procs = 1
+        node_config.add_worker(name='dynamite-worker-1',
+                               host='localhost',
+                               interface=network_interface,
+                               lb_procs=lb_procs,
+                               pin_cpus=pinned_cpus
+                               )
 
 
 class ZeekProfiler:
