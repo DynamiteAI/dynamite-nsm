@@ -255,14 +255,34 @@ if __name__ == '__main__':
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          elasticsearch_password=utilities.prompt_password(),
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
+                    env_variables = environment_variables = utilities.get_environment_file_dict()
+                    kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
+                    sys.stdout.write('\n[+] Once started Kibana will be accessible at: ')
+                    sys.stdout.write('\n\tHOST: http://{}{}\n'.format(kb_config.get_server_host(),
+                                                                      kb_config.get_server_port()))
+                    sys.stdout.write('\n\tUSER: elastic\n')
+                    sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.get_elasticsearch_password()))
+                    sys.stdout.flush()
                     sys.exit(0)
                 else:
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
         elif args.component == 'monitor':
-            monitor.install_monitor(elasticsearch_password=utilities.prompt_password(
+            installed = monitor.install_monitor(elasticsearch_password=utilities.prompt_password(
                 'Create a password for logging into ElasticSearch: '
             ))
+            if installed:
+                env_variables = environment_variables = utilities.get_environment_file_dict()
+                kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
+                sys.stdout.write('\n[+] Once started Kibana will be accessible at: ')
+                sys.stdout.write('\n\tHOST: http://{}{}\n'.format(kb_config.get_server_host(),
+                                                                kb_config.get_server_port()))
+                sys.stdout.write('\n\tUSER: elastic\n')
+                sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.get_elasticsearch_password()))
+                sys.stdout.flush()
+                sys.exit(0)
+            sys.exit(1)
+
         elif args.component == 'agent':
             installed = agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
@@ -283,7 +303,13 @@ if __name__ == '__main__':
                     suricata_rule_config_gui.SuricataRuleConfiguratorApp().run()
                 except KeyboardInterrupt:
                     pass
-
+                sys.stdout.write('[+] To configure the agent: \n')
+                sys.stdout.write('\n\tdynamite configure agent -- <options>\n\n')
+                sys.stdout.write('[+] To start the agent:\n')
+                sys.stdout.write('\n\tdynamite start agent\n')
+                sys.stdout.flush()
+                sys.exit(0)
+            sys.exit(1)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
