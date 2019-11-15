@@ -182,8 +182,11 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] The agent must be installed before it can be configured.')
                 sys.exit(1)
             if args.config_zeek_cluster:
-                zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
-                zeek_node_config.run()
+                try:
+                    zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
+                    zeek_node_config.run()
+                except KeyboardInterrupt:
+                    pass
                 sys.exit(0)
             elif args.config_zeek_scripts:
                 zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
