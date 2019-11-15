@@ -101,7 +101,7 @@ class EditInterfaceForm(npyscreen.ActionForm):
                 return
             self.net_interface_text.value = self.interface_config['interface']
             self.threads_text.value = self.interface_config.get('threads')
-            self.cluster_id.value = self.interface_config.get('cluster-id')
+            self.cluster_id.value = str(self.interface_config.get('cluster-id'))
             self.bpf_filter.value = self.interface_config.get('bpf-filter')
             self.delete_button.delete_value = self.value
             self.delete_button.hidden = False
