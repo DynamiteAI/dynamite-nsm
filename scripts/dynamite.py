@@ -186,7 +186,7 @@ if __name__ == '__main__':
                     zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
                     zeek_node_config.run()
                 except KeyboardInterrupt:
-                    sys.stdout.writeln('[+] Be sure to restart the agent for changes to take effect!\n')
+                    sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
             elif args.config_zeek_scripts:
@@ -194,7 +194,7 @@ if __name__ == '__main__':
                     zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
                     zeek_script_config.run()
                 except KeyboardInterrupt:
-                    sys.stdout.writeln('[+] Be sure to restart the agent for changes to take effect!\n')
+                    sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
             elif args.config_suricata_interfaces:
@@ -202,7 +202,7 @@ if __name__ == '__main__':
                     suricata_interface_config = suricata_interface_config_gui.SuricataInstanceConfiguratorApp()
                     suricata_interface_config.run()
                 except KeyboardInterrupt:
-                    sys.stdout.writeln('[+] Be sure to restart the agent for changes to take effect!\n')
+                    sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
             elif args.config_suricata_rules:
@@ -210,7 +210,7 @@ if __name__ == '__main__':
                     suricata_rule_config = suricata_rule_config_gui.SuricataRuleConfiguratorApp()
                     suricata_rule_config.run()
                 except KeyboardInterrupt:
-                    sys.stdout.writeln('[+] Be sure to restart the agent for changes to take effect!\n')
+                    sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
             elif args.config_zeek_shell:
