@@ -19,7 +19,7 @@ class RemoveNetworkInterfaceButton(npyscreen.ButtonPress):
         if not res:
             return
 
-        self.parent.parentApp.suricata_config.remove_pfring_interface(self.delete_value)
+        self.parent.parentApp.suricata_config.remove_afpacket_interface(self.delete_value)
         self.parent.parentApp.suricata_config.write_config()
         self.parent.parentApp.removeForm('MAIN')
         self.parent.parentApp.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')
@@ -45,7 +45,7 @@ class SuricataInstanceSettingsForm(npyscreen.ActionForm):
 
     def create(self):
         interface_names = list(set([interface_config['interface']
-                                    for interface_config in self.parentApp.suricata_config.pfring_interfaces]))
+                                    for interface_config in self.parentApp.suricata_config.afpacket_interfaces]))
         interface_names.append('<create new interface>')
 
         self.add(npyscreen.TitleText, name='Network Interfaces', editable=False)
@@ -91,7 +91,7 @@ class EditInterfaceForm(npyscreen.ActionForm):
             self.value = None
 
         if self.value:
-            interface_configs = self.parentApp.suricata_config.pfring_interfaces
+            interface_configs = self.parentApp.suricata_config.afpacket_interfaces
             for interface_config in interface_configs:
                 if interface_config['interface'] == self.value:
                     self.interface_config = interface_config
@@ -127,8 +127,8 @@ class EditInterfaceForm(npyscreen.ActionForm):
             )
             return
         if self.value:
-            self.parentApp.suricata_config.remove_pfring_interface(self.value)
-        self.parentApp.suricata_config.add_pfring_interface(
+            self.parentApp.suricata_config.remove_afpacket_interface(self.value)
+        self.parentApp.suricata_config.add_afpacket_interface(
             interface=self.net_interface_text.value,
             threads=self.threads_text.value,
             cluster_id=self.cluster_id.value,
