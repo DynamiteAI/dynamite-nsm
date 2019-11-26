@@ -91,7 +91,7 @@ class EditInterfaceForm(npyscreen.ActionForm):
             self.value = None
 
         if self.value:
-            interface_configs = self.parentApp.suricata_config.afpacket_interfaces
+            interface_configs = self.parentApp.suricata_config.af_packet_interfaces
             for interface_config in interface_configs:
                 if interface_config['interface'] == self.value:
                     self.interface_config = interface_config
