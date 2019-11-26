@@ -1,14 +1,18 @@
 
 from setuptools import setup, find_packages
 
+with open("PROJECT_DESCRIPTION.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name='dynamite-nsm',
-    version='0.5.8',
+    version='0.5.9',
     packages=find_packages(),
     scripts=['scripts/dynamite', 'scripts/dynamite.py'],
     url='http://dynamite.ai',
-    license='',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    license='GPL 3',
     author='Jamin Becker',
     author_email='jamin@dynamite.ai',
     description='Dynamite-NSM is an network security monitor with an emphasis on very fast deployment, '
@@ -17,5 +21,14 @@ setup(
     install_requires=[
         'pyyaml',
         'npyscreen'
+    ],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Natural Language :: English',
+        'Programming Language :: Python',
+        'Operating System :: POSIX :: Linux',
+        'Environment :: Console',
+        'Topic :: System :: Networking :: Monitoring',
+        'Topic :: Security'
     ]
 )

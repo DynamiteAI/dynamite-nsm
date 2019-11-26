@@ -139,13 +139,41 @@ class SuricataConfigurator:
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
-    def add_pfring_interface(self, interface, threads=None, cluster_id=None, bpf_filter=None):
+    def add_afpacket_interface(self, interface, threads=None, cluster_id=None, cluster_type='cluster_flow',
+                                bpf_filter=None):
+        """
+        Add a new AF_PACKET interface to monitor
+
+        :param interface: The name of the interface to monitor (eth0, mon0)
+        :param threads: "auto" or the number of threads
+        :param cluster_id: The AF_PACKET cluster id; AF_PACKET will load balance packets based on flow
+        :param cluster_type: Recommended modes are cluster_flow on most boxes and cluster_cpu or cluster_qm on system
+        :param bpf_filter: bpf filter for this interface (E.G tcp)
+        :return: None
+        """
+        interface_config = {
+            'interface': interface
+        }
+        if threads:
+            interface_config['threads'] = threads
+        if cluster_id:
+            interface_config['cluster-id'] = cluster_id
+        if cluster_type:
+            interface_config['cluster-type'] = cluster_type
+        if bpf_filter:
+            interface_config['bpf-filter'] = bpf_filter
+
+        self.af_packet_interfaces.append(interface_config)
+
+    def add_pfring_interface(self, interface, threads=None, cluster_id=None, cluster_type='cluster_flow',
+                             bpf_filter=None):
         """
         Add a new PF_RING interface to monitor
 
         :param interface: The name of the interface to monitor (eth0, mon0)
         :param threads: "auto" or the number of threads
         :param cluster_id: The PF_RING cluster id; PF_RING will load balance packets based on flow
+        :param cluster_type: Recommended modes are cluster_flow on most boxes and cluster_cpu or cluster_qm on system
         :param bpf_filter: bpf filter for this interface (E.G tcp)
         :return: None
         """
@@ -156,10 +184,27 @@ class SuricataConfigurator:
             interface_config['threads'] = threads
         if cluster_id:
             interface_config['cluster-id'] = cluster_id
+        if cluster_type:
+            interface_config['cluster-type'] = cluster_type
         if bpf_filter:
             interface_config['bpf-filter'] = bpf_filter
 
         self.pfring_interfaces.append(interface_config)
+
+    def remove_afpacket_interface(self, interface):
+        """
+        Remove an existing AF_PACKET interface
+
+        :param interface: The name of the interface to remove (eth0, mon0)
+        :return: None
+        """
+        new_interface_config = []
+        for interface_config in self.af_packet_interfaces:
+            if interface_config['interface'] == interface:
+                continue
+            else:
+                new_interface_config.append(interface_config)
+        self.af_packet_interfaces = new_interface_config
 
     def remove_pfring_interface(self, interface):
         """
@@ -370,12 +415,14 @@ class SuricataInstaller:
         packages = None
         if pacman.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config',
-                        'libpcre3-dev', 'libpcap-dev','libyaml-dev','libjansson-dev', 'rustc', 'cargo', 'python-pip',
-                        'wireshark', 'zlib1g-dev']
+                        'libpcre3-dev', 'libpcap-dev', 'libyaml-dev', 'libjansson-dev', 'rustc', 'cargo', 'python-pip',
+                        'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev'
+                        'liblz4-dev']
         elif pacman.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
                         'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip',
-                        'wireshark', 'zlib-devel']
+                        'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel', 'file-devel'
+                        'lz4-devel']
         if packages:
             return pacman.install_packages(packages)
         return False
@@ -452,13 +499,26 @@ class SuricataInstaller:
         if not suricata_rules_installed:
             return False
         config = SuricataConfigurator(self.configuration_directory)
-        config.pfring_interfaces = []
-        config.add_pfring_interface(network_interface, threads='auto', cluster_id=99)
+        config.af_packet_interfaces = []
+        config.add_afpacket_interface(network_interface, threads='auto', cluster_id=99)
         config.default_log_directory = self.log_directory
         config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
         config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
         config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')
+
+        # Disable Unneeded Suricata rules
+        config.disable_rule('http-events.rules')
+        config.disable_rule('smtp-events.rules')
+        config.disable_rule('dns-events.rules')
+        config.disable_rule('tls-events.rules')
+        config.disable_rule('drop.rules')
+        config.disable_rule('emerging-p2p.rules')
+        config.disable_rule('emerging-pop3.rules')
+        config.disable_rule('emerging-telnet.rules')
+        config.disable_rule('emerging-tftp.rules')
+        config.disable_rule('emerging-voip.rules')
         config.write_config()
+
         return True
 
 
@@ -564,10 +624,10 @@ class SuricataProcess:
         if not os.path.exists('/var/run/dynamite/suricata/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/suricata/'), shell=True)
         p = subprocess.Popen('bin/suricata -i {} '
-                             '--pfring -D '
+                             '-D '
                              '--pidfile /var/run/dynamite/suricata/suricata.pid '
                              '-c {}'.format(
-                                            self.config.pfring_interfaces[0]['interface'],
+                                            self.config.af_packet_interfaces[0]['interface'],
                                             os.path.join(self.configuration_directory, 'suricata.yaml')
         ), shell=True, cwd=self.install_directory)
         p.communicate()
@@ -609,11 +669,11 @@ class SuricataProcess:
                     sig_command = signal.SIGKILL
                 else:
                     # Kill the zombie after the third attempt of asking it to kill itself
-                    sig_command = signal.SIGTERM
+                    sig_command = signal.SIGINT
                 attempts += 1
                 if self.pid != -1:
                     os.kill(self.pid, sig_command)
-                time.sleep(1)
+                time.sleep(10)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
                 sys.stderr.write('[-] An error occurred while attempting to stop Suricata: {}\n'.format(e))
