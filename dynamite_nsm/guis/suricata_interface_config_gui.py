@@ -45,7 +45,7 @@ class SuricataInstanceSettingsForm(npyscreen.ActionForm):
 
     def create(self):
         interface_names = list(set([interface_config['interface']
-                                    for interface_config in self.parentApp.suricata_config.afpacket_interfaces]))
+                                    for interface_config in self.parentApp.suricata_config.af_packet_interfaces]))
         interface_names.append('<create new interface>')
 
         self.add(npyscreen.TitleText, name='Network Interfaces', editable=False)
