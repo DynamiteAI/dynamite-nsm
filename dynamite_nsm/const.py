@@ -13,7 +13,7 @@ KIBANA_ARCHIVE_NAME = 'kibana-7.2.0-linux-x86_64.tar.gz'
 OINKMASTER_ARCHIVE_NAME = 'oinkmaster-snapshot.tar.gz'
 PF_RING_ARCHIVE_NAME = 'PF_RING-7.4.0.tar.gz'
 SYNESIS_ARCHIVE_NAME = 'synesis_lite_suricata-vlabs-0.1.0-1.1.0.tar.gz'
-SURICATA_ARCHIVE_NAME = 'suricata-5.0.0.tar.gz'
+SURICATA_ARCHIVE_NAME = 'suricata-4.1.4.tar.gz'
 ZEEK_ARCHIVE_NAME = 'bro-2.6.1.tar.gz'
 
 ELASTIFLOW_DIRECTORY_NAME = 'elastiflow-vlabs-0.5.3-3.5.0'
@@ -25,7 +25,7 @@ LOGSTASH_DIRECTORY_NAME = 'logstash-7.2.0'
 OINKMASTER_DIRECTORY_NAME = 'oinkmaster'
 PF_RING_DIRECTORY_NAME = 'PF_RING-7.4.0'
 SYNESIS_DIRECTORY_NAME = 'synesis_lite_suricata-vlabs-0.1.0-1.1.0'
-SURICATA_DIRECTORY_NAME = 'suricata-5.0.0'
+SURICATA_DIRECTORY_NAME = 'suricata-4.1.4'
 ZEEK_DIRECTORY_NAME = 'bro-2.6.1'
 
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
@@ -40,6 +40,6 @@ KIBANA_MIRRORS = "/etc/dynamite/mirrors/kibana-7.2.0"
 JAVA_MIRRORS = "/etc/dynamite/mirrors/java-11"
 OINKMASTER_MIRRORS = "/etc/dynamite/mirrors/oinkmaster-nightly"
 PF_RING_MIRRORS = "/etc/dynamite/mirrors/pf_ring-7.4.0"
-SURICATA_MIRRORS = "/etc/dynamite/mirrors/suricata-5.0.0"
+SURICATA_MIRRORS = "/etc/dynamite/mirrors/suricata-4.1.4"
 SYNESIS_MIRRORS = "/etc/dynamite/mirrors/synesis_lite_suricata-1.1.0"
 ZEEK_MIRRORS = "/etc/dynamite/mirrors/zeek-2.6.1"
