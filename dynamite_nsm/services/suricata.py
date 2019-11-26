@@ -669,11 +669,11 @@ class SuricataProcess:
                     sig_command = signal.SIGKILL
                 else:
                     # Kill the zombie after the third attempt of asking it to kill itself
-                    sig_command = signal.SIGTERM
+                    sig_command = signal.SIGINT
                 attempts += 1
                 if self.pid != -1:
                     os.kill(self.pid, sig_command)
-                time.sleep(1)
+                time.sleep(10)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
                 sys.stderr.write('[-] An error occurred while attempting to stop Suricata: {}\n'.format(e))
