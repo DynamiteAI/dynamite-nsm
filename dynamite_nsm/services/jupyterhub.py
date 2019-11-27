@@ -12,7 +12,7 @@ class JupyterInstaller:
     @staticmethod
     def install_dependencies(stdout=True):
         """
-        Install the required dependencies required by Zeek
+        Install the required dependencies required by Jupyterhub
 
         :return: True, if all packages installed successfully
         """
@@ -57,4 +57,20 @@ class JupyterInstaller:
             return False
         return True
 
-print('RESULT: {}'.format(JupyterInstaller.install_dependencies()))
+    @staticmethod
+    def install_jupyterhub(stdout=True):
+        if stdout:
+            sys.stdout.write('Installing JupyterHub and ipython[notebook] via pip3.\n')
+            sys.stdout.flush()
+        p = subprocess.Popen('python3 -m pip install jupyterhub notebook', stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, shell=True)
+        p.communicate()
+        if p.returncode != 0:
+            sys.stderr.write('[-] Failed to install Jupyterhub. '
+                             'Ensure python3 and pip3 are installed and in $PATH: {}\n'.format(p.stderr.read()))
+            return False
+        return True
+
+
+if JupyterInstaller.install_dependencies():
+    print(JupyterInstaller.install_jupyterhub())
