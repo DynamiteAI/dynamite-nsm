@@ -8,9 +8,8 @@ import argparse
 import traceback
 
 from dynamite_nsm import utilities, updater
-from dynamite_nsm.services import zeek, suricata
-from dynamite_nsm.services import agent, monitor, oinkmaster
-from dynamite_nsm.services import elasticsearch, kibana, logstash
+from dynamite_nsm.services.helpers import oinkmaster
+from dynamite_nsm.services import agent, elasticsearch, logstash, kibana, monitor, suricata, zeek
 from dynamite_nsm.guis import zeek_node_config_gui, zeek_script_config_gui, suricata_interface_config_gui,\
     suricata_rule_config_gui
 
