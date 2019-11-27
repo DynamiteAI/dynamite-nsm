@@ -12,9 +12,9 @@ except Exception:
     from configparser import ConfigParser
 
 from dynamite_nsm import const
-from dynamite_nsm.services import pf_ring
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
+from dynamite_nsm.services.helpers import pf_ring
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/zeek/'

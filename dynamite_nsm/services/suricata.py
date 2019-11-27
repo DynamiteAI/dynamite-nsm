@@ -16,8 +16,8 @@ except ImportError:
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
-from dynamite_nsm.services import pf_ring
-from dynamite_nsm.services import oinkmaster
+from dynamite_nsm.services.helpers import pf_ring
+from dynamite_nsm.services.helpers import oinkmaster
 
 
 INSTALL_DIRECTORY = '/opt/dynamite/suricata/'

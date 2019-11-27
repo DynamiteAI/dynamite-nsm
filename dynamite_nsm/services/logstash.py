@@ -11,8 +11,8 @@ from multiprocessing import Process
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
-from dynamite_nsm.services import synesis
-from dynamite_nsm.services import elastiflow
+from dynamite_nsm.services.helpers import synesis
+from dynamite_nsm.services.helpers import elastiflow
 from dynamite_nsm.services.elasticsearch import ElasticProfiler
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/logstash/'
