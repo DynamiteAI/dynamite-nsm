@@ -32,7 +32,8 @@ class JupyterInstaller:
             if p.returncode != 0:
                 sys.stderr.write('[-] Could not install node rpm.\n')
                 return False
-            pacman.install_packages(['nodejs', 'python36'])
+            packages = ['nodejs', 'python36']
+            pacman.install_packages(packages)
         if packages:
             return pacman.install_packages(packages)
         return False

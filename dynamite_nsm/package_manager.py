@@ -34,12 +34,10 @@ class OSPackageManager:
         """
         flags = '-y'
         if not self.package_manager:
-            print('NOT A PKTMAN')
             return False
         p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
                              shell=True)
         p.communicate()
-        print('RETURN: {}' .format(p.returncode))
         return p.returncode == 0
 
     def refresh_package_indexes(self):
