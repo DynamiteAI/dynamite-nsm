@@ -1,16 +1,21 @@
+import os
 import sys
+import shutil
 import subprocess
+from dynamite_nsm import const
+from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 INSTALL_DIRECTORY = '/opt/dynamite/jupyterhub/'
+SDK_HOME = '/home/jupyter/dynamite-sdk/'
 
 
 class JupyterInstaller:
 
     def __init__(self, install_directory=INSTALL_DIRECTORY):
-        pass
+        self.install_directory = install_directory
 
     @staticmethod
-    def install_dependencies(stdout=True):
+    def install_dependencies(stdout=False):
         """
         Install the required dependencies required by Jupyterhub
 
@@ -58,9 +63,9 @@ class JupyterInstaller:
         return True
 
     @staticmethod
-    def install_jupyterhub(stdout=True):
+    def install_jupyterhub(stdout=False):
         if stdout:
-            sys.stdout.write('Installing JupyterHub and ipython[notebook] via pip3.\n')
+            sys.stdout.write('[+] Installing JupyterHub and ipython[notebook] via pip3.\n')
             sys.stdout.flush()
         p = subprocess.Popen('python3 -m pip install jupyterhub notebook', stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True)
@@ -71,6 +76,18 @@ class JupyterInstaller:
             return False
         return True
 
+    def setup_jupyterhub(self, jupyter_password='changeme', stdout=False):
+        if stdout:
+            sys.stdout.write('[+] Creating jupyter user in dynamite group.\n')
+            sys.stdout.flush()
+        utilities.create_jupyter_user(password=jupyter_password)
+        source_config = os.path.join(const.DEFAULT_CONFIGS, 'dynamite_lab', 'jupyterhub_config.py')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/')
+        shutil.copy(source_config, self.install_directory)
 
-if JupyterInstaller.install_dependencies():
-    print(JupyterInstaller.install_jupyterhub())
+
+JupyterInstaller.install_dependencies(True)
+JupyterInstaller.install_jupyterhub(True)
+JupyterInstaller().setup_jupyterhub()
+

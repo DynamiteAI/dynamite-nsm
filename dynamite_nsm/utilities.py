@@ -85,12 +85,23 @@ def create_dynamite_root_directory():
 
 def create_dynamite_user(password):
     """
-    Create the dynamite user
+    Create the dynamite user and group
 
     :param password: The password for the user
     """
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
+
+
+def create_jupyter_user(password):
+    """
+    Create the jupyter user w/ home (and dynamite group if it does not exist)
+
+    :param password: The password for the user
+    """
+    pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
+    subprocess.call('groupadd dynamite; useradd -m -p "{}" -s /bin/bash jupyter -G dynamite'.format(pass_encry),
+                    shell=True)
 
 
 def download_file(url, filename, stdout=False):
@@ -282,14 +293,16 @@ def setup_java():
         subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/dynamite/environment', shell=True)
 
 
-def set_ownership_of_file(path):
+def set_ownership_of_file(path, user='dynamite', group='dynamite'):
     """
-    Set the ownership of a file to dynamite user/group at a given path
+    Set the ownership of a file given a user/group and a path
 
     :param path: The path to the file
+    :param user: The name of the user
+    :param group: The group of the user
     """
-    uid = pwd.getpwnam('dynamite').pw_uid
-    group = grp.getgrnam('dynamite').gr_gid
+    uid = pwd.getpwnam(user).pw_uid
+    group = grp.getgrnam(group).gr_gid
     for root, dirs, files in os.walk(path):
         for momo in dirs:
             os.chown(os.path.join(root, momo), uid, group)

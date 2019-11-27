@@ -112,7 +112,7 @@ class PFRingInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     @staticmethod
-    def install_dependencies(stdout=True):
+    def install_dependencies(stdout=False):
         """
         Install required PF_RING dependencies
 

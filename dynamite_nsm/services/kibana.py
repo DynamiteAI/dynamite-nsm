@@ -319,8 +319,8 @@ class KibanaInstaller:
                 time.sleep(10)
             kibana_process = KibanaProcess()
             kibana_process.optimize(stdout=stdout)
-            utilities.set_ownership_of_file('/opt/dynamite/')
-            utilities.set_ownership_of_file('/etc/dynamite/')
+            utilities.set_ownership_of_file('/opt/dynamite/', user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file('/etc/dynamite/', user='dynamite', group='dynamite')
             time.sleep(5)
             sys.stdout.write('[+] Starting Kibana.\n')
             kibana_process.start(stdout=stdout)
@@ -401,9 +401,9 @@ class KibanaInstaller:
         self._create_kibana_environment_variables(stdout=stdout)
         self._setup_default_kibana_configs(stdout=stdout)
         self._install_kibana_objects(stdout=stdout)
-        utilities.set_ownership_of_file('/etc/dynamite/')
-        utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/log/dynamite')
+        utilities.set_ownership_of_file('/etc/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/opt/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
 
 
 class KibanaProfiler:
@@ -548,7 +548,7 @@ class KibanaProcess:
 
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
-        utilities.set_ownership_of_file('/var/run/dynamite')
+        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
 
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
@@ -634,7 +634,7 @@ class KibanaProcess:
     def optimize(self, stdout=False):
         if not os.path.exists('/var/run/dynamite/kibana/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
-        utilities.set_ownership_of_file('/var/run/dynamite')
+        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
         if stdout:
             sys.stdout.write('[+] Optimizing Kibana Libraries.\n')
 
@@ -644,7 +644,7 @@ class KibanaProcess:
             self.config.kibana_home,
         ), shell=True, env=utilities.get_environment_file_dict())
         # Pass permissions back to dynamite user
-        utilities.set_ownership_of_file('/var/log/dynamite')
+        utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
 
 
 def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):

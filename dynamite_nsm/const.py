@@ -1,9 +1,10 @@
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.59/default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.59/mirrors.tar.gz'
+DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.60/default_configs.tar.gz'
+MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.60/mirrors.tar.gz'
 
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
 
+DYNAMITE_SDK_ARCHIVE_NAME = 'dynamite-sdk-lite-0.1.tar.gz'
 ELASTIFLOW_ARCHIVE_NAME = 'elastiflow-vlabs-0.5.3-3.5.0.tar.gz'
 ELASTICSEARCH_ARCHIVE_NAME = 'elasticsearch-7.2.0.tar.gz'
 LOGSTASH_ARCHIVE_NAME = 'logstash-7.2.0.tar.gz'
@@ -16,6 +17,7 @@ SYNESIS_ARCHIVE_NAME = 'synesis_lite_suricata-vlabs-0.1.0-1.1.0.tar.gz'
 SURICATA_ARCHIVE_NAME = 'suricata-4.1.4.tar.gz'
 ZEEK_ARCHIVE_NAME = 'bro-2.6.1.tar.gz'
 
+DYNAMITE_SDK_DIRECTORY_NAME = 'ELASTIFLOW_ARCHIVE_NAME'
 ELASTIFLOW_DIRECTORY_NAME = 'elastiflow-vlabs-0.5.3-3.5.0'
 ELASTICSEARCH_DIRECTORY_NAME = 'elasticsearch-7.2.0'
 FILE_BEAT_DIRECTORY_NAME = 'filebeat-7.2.0-linux-x86_64'
@@ -32,6 +34,7 @@ INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
 
+DYNAMITE_SDK_MIRRORS = '/etc/dynamite/mirrors/dynamite-sdk-0.1'
 ELASTIFLOW_MIRRORS = "/etc/dynamite/mirrors/elastiflow-3.5.0"
 ELASTICSEARCH_MIRRORS = "/etc/dynamite/mirrors/elasticsearch-7.2.0"
 FILE_BEAT_MIRRORS = "/etc/dynamite/mirrors/filebeat-7.2.0"

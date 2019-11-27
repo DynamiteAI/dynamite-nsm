@@ -425,9 +425,9 @@ class LogstashInstaller:
         self._install_logstash_plugins(stdout=stdout)
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
                     os.path.join(self.configuration_directory, 'pipelines.yml'))
-        utilities.set_ownership_of_file('/etc/dynamite/')
-        utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/log/dynamite')
+        utilities.set_ownership_of_file('/etc/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/opt/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
 
 
 class LogstashProfiler:

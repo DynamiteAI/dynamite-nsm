@@ -6,7 +6,7 @@ with open("PROJECT_DESCRIPTION.md", "r") as fh:
 
 setup(
     name='dynamite-nsm',
-    version='0.5.9.2',
+    version='0.6.0',
     packages=find_packages(),
     scripts=['scripts/dynamite', 'scripts/dynamite.py'],
     url='http://dynamite.ai',

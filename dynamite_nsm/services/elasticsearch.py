@@ -511,9 +511,9 @@ class ElasticInstaller:
         self._create_elasticsearch_environment_variables(stdout=stdout)
         self._setup_default_elasticsearch_configs(stdout=stdout)
         self._update_sysctl(stdout=stdout)
-        utilities.set_ownership_of_file('/etc/dynamite/')
-        utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/log/dynamite')
+        utilities.set_ownership_of_file('/etc/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/opt/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
         self.setup_passwords(stdout=stdout)
 
     def setup_passwords(self, stdout=False):
@@ -546,7 +546,8 @@ class ElasticInstaller:
         if not os.path.exists(es_cert_keystore):
             sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n\t'.format(cert_p_res))
             return False
-        utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
+        utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'),
+                                        user='dynamite', group='dynamite')
         if not ElasticProfiler().is_running:
             ElasticProcess().start(stdout=stdout)
             sys.stdout.flush()
@@ -740,7 +741,7 @@ class ElasticProcess:
                 utilities.get_environment_file_str(), self.config.es_home), shell=True)
         if not os.path.exists('/var/run/dynamite/elasticsearch/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
-        utilities.set_ownership_of_file('/var/run/dynamite')
+        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
 
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()

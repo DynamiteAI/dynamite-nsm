@@ -120,7 +120,7 @@ class SynesisInstaller:
         utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, 'logstash',
                                         'suricata'),
                            self.install_directory)
-        utilities.set_ownership_of_file(self.install_directory)
+        utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         if 'SYNLITE_SURICATA_DICT_PATH' not in open('/etc/dynamite/environment').read():
             dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:
