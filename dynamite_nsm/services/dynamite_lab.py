@@ -83,7 +83,7 @@ class JupyterInstaller:
         utilities.create_jupyter_user(password=jupyter_password)
         source_config = os.path.join(const.DEFAULT_CONFIGS, 'dynamite_lab', 'jupyterhub_config.py')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/')
+        subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/', shell=True)
         shutil.copy(source_config, self.install_directory)
 
 
