@@ -34,6 +34,7 @@ class OSPackageManager:
         """
         flags = '-y'
         if not self.package_manager:
+            print('NOT A PKTMAN')
             return False
         p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
                              shell=True)
