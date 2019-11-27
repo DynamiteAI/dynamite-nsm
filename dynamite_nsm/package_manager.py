@@ -38,6 +38,7 @@ class OSPackageManager:
         p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
                              shell=True)
         p.communicate()
+        print('RETURN: {}' .format(p.returncode))
         return p.returncode == 0
 
     def refresh_package_indexes(self):
