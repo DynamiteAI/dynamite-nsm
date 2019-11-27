@@ -9,14 +9,14 @@ from dynamite_nsm import package_manager
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/jupyterhub/'
-SDK_HOME = '/home/jupyter/dynamite-sdk/'
+NOTEBOOK_HOME = '/home/jupyter/dynamite-sdk/'
 
 
 class DynamiteLabInstaller:
 
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, sdk_home=SDK_HOME, stdout=False):
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, notebook_home=NOTEBOOK_HOME, stdout=False):
         self.configuration_directory = configuration_directory
-        self.sdk_home = sdk_home
+        self.notebook_home = notebook_home
         self.download_dynamite_sdk(stdout=stdout)
         self.extract_dynamite_sdk(stdout=stdout)
         self.install_jupyterhub_dependencies(stdout=stdout)
@@ -118,10 +118,12 @@ class DynamiteLabInstaller:
         if self.stdout:
             sys.stdout.write('[+] Copying DynamiteSDK into lab environment.\n')
             sys.stdout.flush()
-        subprocess.call('mkdir -p {}'.format(self.sdk_home), shell=True)
-        install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
-        utilities.copytree(install_cache, self.sdk_home)
-        utilities.set_ownership_of_file(self.sdk_home, user='jupyter', group='dynamite')
+        subprocess.call('mkdir -p {}'.format(self.notebook_home), shell=True)
+        sdk_install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
+        utilities.copytree(os.path.join(sdk_install_cache, 'dynamite_sdk', 'notebooks'), self.notebook_home)
+        # utilities.set_ownership_of_file(self.sdk_home, user='jupyter', group='dynamite')
+        p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=os.path.join(sdk_install_cache, 'dynamite_sdk'))
+        p.communicate()
 
     def setup_jupyterhub(self, jupyter_password='changeme'):
         if self.stdout:
