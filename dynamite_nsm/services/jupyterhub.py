@@ -37,7 +37,7 @@ class JupyterInstaller:
         if packages:
             pacman.install_packages(packages)
         p = subprocess.Popen('npm install -g configurable-http-proxy', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             close_fds=True)
+                             close_fds=True, shell=True)
         p.communicate()
         if p.returncode != 0:
             sys.stderr.write('[-] Failed to install configurable-http-proxy, ensure npm is installed and in $PATH: {}\n'
