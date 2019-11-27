@@ -17,7 +17,7 @@ SYNESIS_ARCHIVE_NAME = 'synesis_lite_suricata-vlabs-0.1.0-1.1.0.tar.gz'
 SURICATA_ARCHIVE_NAME = 'suricata-4.1.4.tar.gz'
 ZEEK_ARCHIVE_NAME = 'bro-2.6.1.tar.gz'
 
-DYNAMITE_SDK_DIRECTORY_NAME = 'ELASTIFLOW_ARCHIVE_NAME'
+DYNAMITE_SDK_DIRECTORY_NAME = 'dynamite-sdk-lite-0.1'
 ELASTIFLOW_DIRECTORY_NAME = 'elastiflow-vlabs-0.5.3-3.5.0'
 ELASTICSEARCH_DIRECTORY_NAME = 'elasticsearch-7.2.0'
 FILE_BEAT_DIRECTORY_NAME = 'filebeat-7.2.0-linux-x86_64'
