@@ -4,7 +4,8 @@ import shutil
 from datetime import datetime
 from dynamite_nsm import const
 from dynamite_nsm import utilities
-from dynamite_nsm.services import filebeat, pf_ring, zeek, suricata
+from dynamite_nsm.services.helpers import pf_ring
+from dynamite_nsm.services import filebeat, zeek, suricata
 
 
 def is_agent_environment_prepared():
