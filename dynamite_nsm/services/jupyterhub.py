@@ -35,4 +35,4 @@ class JupyterInstaller:
             return pacman.install_packages(packages)
         return False
 
-JupyterInstaller.install_dependencies()
+print('RESULT: {}'.format(JupyterInstaller.install_dependencies())
