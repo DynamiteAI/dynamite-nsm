@@ -112,23 +112,31 @@ class PFRingInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     @staticmethod
-    def install_dependencies():
+    def install_dependencies(stdout=True):
         """
         Install required PF_RING dependencies
 
         :return: True, if packages were successfully installed
         """
         pkt_mng = package_manager.OSPackageManager()
-        if not pkt_mng.refresh_package_indexes():
-            return False
+        if stdout:
+            sys.stdout.write('[+] Updating Package Indexes.\n')
+            sys.stdout.flush()
+        pkt_mng.refresh_package_indexes()
         packages = None
+        if stdout:
+            sys.stdout.write('[+] Installing dependencies.\n')
+            sys.stdout.flush()
         if pkt_mng.package_manager == 'apt-get':
             packages = ['make', 'gcc', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
             packages = ['make', 'gcc', 'kernel-devel-$(uname -r)']
         if packages:
             return pkt_mng.install_packages(packages)
-        return False
+        else:
+            sys.stderr.write('[-] A valid package manager could not be found. Currently supports only YUM '
+                             'and apt-get.\n')
+            return False
 
     def setup_pf_ring(self, stdout=False):
         """

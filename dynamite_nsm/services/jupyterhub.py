@@ -10,7 +10,7 @@ class JupyterInstaller:
         pass
 
     @staticmethod
-    def install_dependencies():
+    def install_dependencies(stdout=True):
         """
         Install the required dependencies required by Zeek
 
@@ -20,8 +20,13 @@ class JupyterInstaller:
         if not pacman.refresh_package_indexes():
             return False
         packages = None
+        if stdout:
+            sys.stdout.write('[+] Updating Package Indexes.\n')
+            sys.stdout.flush()
         pacman.refresh_package_indexes()
-        print(pacman.package_manager + ' TEST')
+        if stdout:
+            sys.stdout.write('[+] Installing dependencies.\n')
+            sys.stdout.flush()
         if pacman.package_manager == 'apt-get':
             packages = ['python3', 'python3-pip', 'nodejs', 'npm']
         elif pacman.package_manager == 'yum':
@@ -30,12 +35,19 @@ class JupyterInstaller:
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
             p.communicate()
             if p.returncode != 0:
-                sys.stderr.write('[-] Could not install node rpm.\n')
+                sys.stderr.write('[-] Could not install nodejs source rpm.\n')
                 return False
             packages = ['nodejs', 'python36']
             pacman.install_packages(packages)
         if packages:
             pacman.install_packages(packages)
+        else:
+            sys.stderr.write('[-] A valid package manager could not be found. Currently supports only YUM '
+                             'and apt-get.\n')
+            return False
+        if stdout:
+            sys.stdout.write('[+] Installing configurable-http-proxy. This may take some time.\n')
+            sys.stdout.flush()
         p = subprocess.Popen('npm install -g configurable-http-proxy', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              shell=True)
         p.communicate()
@@ -44,6 +56,5 @@ class JupyterInstaller:
                              ''.format(p.stderr.read()))
             return False
         return True
-
 
 print('RESULT: {}'.format(JupyterInstaller.install_dependencies()))
