@@ -20,6 +20,7 @@ class JupyterInstaller:
         if not pacman.refresh_package_indexes():
             return False
         packages = None
+        pacman.refresh_package_indexes()
         if pacman.package_manager == 'apt-get':
             packages = ['python3', 'python3-pip', 'nodejs', 'npm']
         elif pacman.package_manager == 'yum':
@@ -30,9 +31,10 @@ class JupyterInstaller:
             if p.returncode != 0:
                 sys.stderr.write('[-] Could not install node rpm.\n')
                 return False
-            pacman.install_packages(['nodejs'])
+            pacman.install_packages(['nodejs', 'python36'])
         if packages:
             return pacman.install_packages(packages)
         return False
+
 
 print('RESULT: {}'.format(JupyterInstaller.install_dependencies()))
