@@ -21,6 +21,7 @@ class JupyterInstaller:
             return False
         packages = None
         pacman.refresh_package_indexes()
+        print(pacman.package_manager + ' TEST')
         if pacman.package_manager == 'apt-get':
             packages = ['python3', 'python3-pip', 'nodejs', 'npm']
         elif pacman.package_manager == 'yum':
