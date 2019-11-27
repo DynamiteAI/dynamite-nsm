@@ -1,21 +1,59 @@
 import os
 import sys
 import shutil
+import tarfile
 import subprocess
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
-INSTALL_DIRECTORY = '/opt/dynamite/jupyterhub/'
+
+
+CONFIGURATION_DIRECTORY = '/etc/dynamite/jupyterhub/'
 SDK_HOME = '/home/jupyter/dynamite-sdk/'
 
 
-class JupyterInstaller:
+class DynamiteLabInstaller:
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY):
-        self.install_directory = install_directory
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, sdk_home=SDK_HOME, stdout=False):
+        self.configuration_directory = configuration_directory
+        self.sdk_home = sdk_home
+        self.download_dynamite_sdk(stdout=stdout)
+        self.extract_dynamite_sdk(stdout=stdout)
+        self.install_jupyterhub_dependencies(stdout=stdout)
+        self.install_jupyterhub(stdout=stdout)
+        self.stdout = stdout
 
     @staticmethod
-    def install_dependencies(stdout=False):
+    def download_dynamite_sdk(stdout=False):
+        """
+        Download DynamiteSDK archive
+
+        :param stdout: Print output to console
+        """
+        for url in open(const.DYNAMITE_SDK_MIRRORS, 'r').readlines():
+            if utilities.download_file(url, const.DYNAMITE_SDK_ARCHIVE_NAME, stdout=stdout):
+                break
+
+    @staticmethod
+    def extract_dynamite_sdk(stdout=False):
+        """
+        Extract DynamiteSDK to local install_cache
+
+        :param stdout: Print output to console
+        """
+        if stdout:
+            sys.stdout.write('[+] Extracting: {} \n'.format(const.DYNAMITE_SDK_ARCHIVE_NAME))
+        try:
+            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_ARCHIVE_NAME))
+            tf.extractall(path=const.INSTALL_CACHE)
+            if stdout:
+                sys.stdout.write('[+] Complete!\n')
+                sys.stdout.flush()
+        except IOError as e:
+            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+
+    @staticmethod
+    def install_jupyterhub_dependencies(stdout=False):
         """
         Install the required dependencies required by Jupyterhub
 
@@ -76,18 +114,28 @@ class JupyterInstaller:
             return False
         return True
 
-    def setup_jupyterhub(self, jupyter_password='changeme', stdout=False):
-        if stdout:
+    def setup_dynamite_sdk(self):
+        if self.stdout:
+            sys.stdout.write('[+] Copying DynamiteSDK into lab environment.\n')
+            sys.stdout.flush()
+        install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
+        utilities.copytree(install_cache, self.sdk_home)
+        utilities.set_ownership_of_file(self.sdk_home, user='jupyter', group='dynamite')
+
+    def setup_jupyterhub(self, jupyter_password='changeme'):
+        if self.stdout:
             sys.stdout.write('[+] Creating jupyter user in dynamite group.\n')
             sys.stdout.flush()
         utilities.create_jupyter_user(password=jupyter_password)
+        if self.stdout:
+            sys.stdout.write('[+] Creating lab directories and files.\n')
+            sys.stdout.flush()
         source_config = os.path.join(const.DEFAULT_CONFIGS, 'dynamite_lab', 'jupyterhub_config.py')
-        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/', shell=True)
-        shutil.copy(source_config, self.install_directory)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        # subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/', shell=True)
+        shutil.copy(source_config, self.configuration_directory)
 
 
-JupyterInstaller.install_dependencies(True)
-JupyterInstaller.install_jupyterhub(True)
-JupyterInstaller().setup_jupyterhub()
-
+installer = DynamiteLabInstaller(stdout=True)
+installer.setup_jupyterhub()
+installer.setup_dynamite_sdk()
