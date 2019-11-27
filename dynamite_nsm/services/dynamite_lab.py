@@ -118,6 +118,7 @@ class DynamiteLabInstaller:
         if self.stdout:
             sys.stdout.write('[+] Copying DynamiteSDK into lab environment.\n')
             sys.stdout.flush()
+        subprocess.call('mkdir -p {}'.format(self.sdk_home), shell=True)
         install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
         utilities.copytree(install_cache, self.sdk_home)
         utilities.set_ownership_of_file(self.sdk_home, user='jupyter', group='dynamite')
