@@ -1,6 +1,9 @@
 import os
 import sys
+import time
+import json
 import shutil
+import signal
 import tarfile
 import subprocess
 from dynamite_nsm import const
@@ -225,6 +228,249 @@ class DynamiteLabInstaller:
             sys.stdout.flush()
         source_config = os.path.join(const.DEFAULT_CONFIGS, 'dynamite_lab', 'jupyterhub_config.py')
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        # subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/', shell=True)
+        if 'DYNAMITE_LAB_CONFIG' not in open('/etc/dynamite/environment').read():
+            if self.stdout:
+                sys.stdout.write('[+] Updating Dynamite Lab Config path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> /etc/dynamite/environment'.format(
+                self.configuration_directory), shell=True)
         shutil.copy(source_config, self.configuration_directory)
+        os.symlink('/usr/local/bin/jupyter*', '/usr/bin/')
 
+
+class DynamiteLabProfiler:
+    """
+    Interface for determining whether JupyterHub is installed/configured/running properly.
+    """
+    def __init__(self, stderr=False):
+        self.is_installed = self._is_installed(stderr=stderr)
+        self.is_configured = self._is_configured(stderr=stderr)
+        self.is_running = self._is_running()
+
+    def __str__(self):
+        return json.dumps({
+            'INSTALLED': self.is_installed,
+            'CONFIGURED': self.is_configured,
+            'RUNNING': self.is_running,
+        }, indent=1)
+
+    @staticmethod
+    def _is_installed(stderr=False):
+        try:
+            p = subprocess.Popen('jupyterhub --version')
+            p.communicate()
+            return p.returncode == 0
+        except OSError:
+            if stderr:
+                sys.stderr.write('[-] Could not locate JupyterHub in $PATH.')
+            return False
+
+    @staticmethod
+    def _is_configured(stderr=False):
+        try:
+            env_dict = utilities.get_environment_file_dict()
+        except IOError:
+            if stderr:
+                sys.stderr.write('[-] DynamiteLab environment variables haven\'t been created.\n')
+            return False
+        dynamite_lab_config = env_dict.get('DYNAMITE_LAB_CONFIG')
+        if not dynamite_lab_config:
+            if stderr:
+                sys.stderr.write('[-] DynamiteLab configuration directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
+            return False
+        if not os.path.exists(dynamite_lab_config):
+            if stderr:
+                sys.stderr.write('[-] DynamiteLab configuration directory could not be located at {}.\n'.format(
+                    dynamite_lab_config))
+            return False
+        try:
+            DynamiteLabConfigurator(configuration_directory=dynamite_lab_config)
+        except Exception:
+            if stderr:
+                sys.stderr.write('[-] Un-parsable config.cfg \n')
+            return False
+        return True
+
+    @staticmethod
+    def _is_running():
+        try:
+            return JupyterHubProcess().status()['RUNNING']
+        except Exception:
+            return False
+
+    def get_profile(self):
+        return {
+            'INSTALLED': self.is_installed,
+            'RUNNING': self.is_running,
+        }
+
+
+class JupyterHubProcess:
+    """
+    An interface for start|stop|status|restart of the JupyterHub process
+    """
+    def __init__(self):
+        self.environment_variables = utilities.get_environment_file_dict()
+        self.configuration_directory = self.environment_variables.get('DYNAMITE_LAB_CONFIG')
+        try:
+            self.pid = int(open('/var/run/dynamite/jupyterhub/jupyterhub.pid').read())
+        except (IOError, ValueError):
+            self.pid = -1
+
+    def start(self, stdout=False):
+        """
+        Start the JupyterHub process
+        :param stdout: Print output to console
+        :return: True, if started successfully
+        """
+
+        if not os.path.exists('/var/run/dynamite/jupyterhub/'):
+            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/jupyterhub/'), shell=True)
+
+        if not utilities.check_pid(self.pid):
+            subprocess.call('jupyterhub -f {}'.format(self.configuration_directory), shell=True)
+        else:
+            sys.stderr.write('[-] JupyterHub is already running on PID [{}]\n'.format(self.pid))
+            return True
+        retry = 0
+        self.pid = -1
+        time.sleep(5)
+        while retry < 6:
+            start_message = '[+] [Attempt: {}] Starting JupyterHub on PID [{}]\n'.format(retry + 1, self.pid)
+            try:
+                with open('/var/run/dynamite/jupyterhub/jupyterhub.pid') as f:
+                    self.pid = int(f.read())
+                start_message = '[+] [Attempt: {}] Starting JupyterHub on PID [{}]\n'.format(retry + 1, self.pid)
+                if stdout:
+                    sys.stdout.write(start_message)
+                if not utilities.check_pid(self.pid):
+                    retry += 1
+                    time.sleep(5)
+                else:
+                    return True
+            except IOError:
+                if stdout:
+                    sys.stdout.write(start_message)
+                retry += 1
+                time.sleep(3)
+        return False
+
+    def stop(self, stdout=False):
+        """
+        Stop the ElasticSearch process
+
+        :param stdout: Print output to console
+        :return: True if stopped successfully
+        """
+        alive = True
+        attempts = 0
+        while alive:
+            try:
+                if stdout:
+                    sys.stdout.write('[+] Attempting to stop JupyterHub [{}]\n'.format(self.pid))
+                if attempts > 3:
+                    sig_command = signal.SIGKILL
+                else:
+                    # Kill the zombie after the third attempt of asking it to kill itself
+                    sig_command = signal.SIGINT
+                attempts += 1
+                if self.pid != -1:
+                    os.kill(self.pid, sig_command)
+                time.sleep(10)
+
+                alive = utilities.check_pid(self.pid)
+            except Exception as e:
+                sys.stderr.write('[-] An error occurred while attempting to stop JupyterHub: {}\n'.format(e))
+                return False
+        return True
+
+    def restart(self, stdout=False):
+        """
+        Restart the JupyterHub process
+
+        :param stdout: Print output to console
+        :return: True if started successfully
+        """
+        self.stop(stdout=stdout)
+        return self.start(stdout=stdout)
+
+    def status(self):
+        """
+        Check the status of the JupyterHub process
+
+        :return: A dictionary containing the run status and relevant configuration options
+        """
+
+        return {
+            'PID': self.pid,
+            'RUNNING': utilities.check_pid(self.pid),
+            'USER': 'root'
+        }
+
+
+def install_dynamite_lab(
+    elasticsearch_host='localhost',
+    elasticsearch_port=9200,
+    elasticsearch_password='changeme',
+    jupyterhub_password='changeme',
+    stdout=True):
+
+    dynamite_lab_installer = DynamiteLabInstaller(elasticsearch_host, elasticsearch_port, elasticsearch_password,
+                                                  jupyterhub_password, stdout=stdout)
+    dynamite_lab_installer.setup_dynamite_sdk()
+    dynamite_lab_installer.setup_jupyterhub()
+
+'''
+
+def uninstall_dynamite_lab(stdout=False, prompt_user=True):
+    """
+    Uninstall ElasticSearch
+
+    :param stdout: Print the output to console
+    :param prompt_user: Print a warning before continuing
+    :return: True, if uninstall succeeded
+    """
+    es_profiler = ElasticProfiler()
+    es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    if not es_profiler.is_installed:
+        sys.stderr.write('[-] ElasticSearch is not installed.\n')
+        return False
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            return False
+    if es_profiler.is_running:
+        ElasticProcess().stop(stdout=stdout)
+    try:
+        shutil.rmtree(es_config.configuration_directory)
+        shutil.rmtree(es_config.es_home)
+        shutil.rmtree(es_config.get_log_path())
+        shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
+        env_lines = ''
+        for line in open('/etc/dynamite/environment').readlines():
+            if 'ES_PATH_CONF' in line:
+                continue
+            elif 'ES_HOME' in line:
+                continue
+            elif line.strip() == '':
+                continue
+            env_lines += line.strip() + '\n'
+        open('/etc/dynamite/environment', 'w').write(env_lines)
+        if stdout:
+            sys.stdout.write('[+] ElasticSearch uninstalled successfully.\n')
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to uninstall ElasticSearch: ')
+        traceback.print_exc(file=sys.stderr)
+        return False
+    return True
+'''
+
+install_dynamite_lab('localhost', stdout=True)
+print(DynamiteLabProfiler().get_profile())
+JupyterHubProcess().start(stdout=True)
