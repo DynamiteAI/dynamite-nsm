@@ -209,6 +209,13 @@ class DynamiteLabInstaller:
         utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='dynamite')
         p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
         p.communicate()
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        if 'DYNAMITE_LAB_CONFIG' not in open('/etc/dynamite/environment').read():
+            if self.stdout:
+                sys.stdout.write('[+] Updating Dynamite Lab Config path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> /etc/dynamite/environment'.format(
+                self.configuration_directory), shell=True)
         dynamite_sdk_config = DynamiteLabConfigurator(configuration_directory=self.configuration_directory)
         dynamite_sdk_config.elasticsearch_url = 'http://{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)
         dynamite_sdk_config.elasticsearch_user = 'elastic'
