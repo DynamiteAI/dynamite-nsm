@@ -53,7 +53,8 @@ def _get_parser():
 
     parser.add_argument('--es-host', type=str, dest='es_host',
                         required=(not elasticsearch.ElasticProfiler().is_installed
-                                  and 'install' in sys.argv and ('kibana' in sys.argv or 'logstash' in sys.argv)
+                                  and 'install' in sys.argv and ('kibana' in sys.argv or 'lab' in sys.argv
+                                                                 or 'logstash' in sys.argv)
                                   ),
                         help='Target ElasticSearch cluster; A valid Ipv4/Ipv6 address or hostname')
 
