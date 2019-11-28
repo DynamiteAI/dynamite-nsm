@@ -103,19 +103,28 @@ class DynamiteLabInstaller:
 
     @staticmethod
     def _link_jupyterhub_binaries():
-        os.symlink('/usr/local/bin/jupyter', '/usr/bin/jupyter')
-        os.symlink('/usr/local/bin/jupyterhub', '/usr/bin/jupyterhub')
-        os.symlink('/usr/local/bin/jupyterhub-singleuser', '/usr/bin/jupyterhub-singleuser')
-        os.symlink('/usr/local/bin/jupyter-bundlerextension', '/usr/bin/jupyter-bundlerextension')
-        os.symlink('/usr/local/bin/jupyter-kernel', '/usr/bin/jupyter-kernel')
-        os.symlink('/usr/local/bin/jupyter-migrate', '/usr/bin/jupyter-migrate')
-        os.symlink('/usr/local/bin/jupyter-nbconvert', '/usr/bin/jupyter-nbconvert')
-        os.symlink('/usr/local/bin/jupyter-nbextension', '/usr/bin/jupyter-nbextension')
-        os.symlink('/usr/local/bin/jupyter-notebook', '/usr/bin/jupyter-notebook')
-        os.symlink('/usr/local/bin/jupyter-run', '/usr/bin/jupyter-run')
-        os.symlink('/usr/local/bin/jupyter-serverextension', '/usr/bin/jupyter-serverextension')
-        os.symlink('/usr/local/bin/jupyter-troubleshoot', '/usr/bin/jupyter-troubleshoot')
-        os.symlink('/usr/local/bin/jupyter-trust','/usr/bin/jupyter-trust')
+        paths = [
+            ('/usr/local/bin/jupyter', '/usr/bin/jupyter'),
+            ('/usr/local/bin/jupyterhub', '/usr/bin/jupyterhub'),
+            ('/usr/local/bin/jupyterhub-singleuser', '/usr/bin/jupyterhub-singleuser'),
+            ('/usr/local/bin/jupyter-bundlerextension', '/usr/bin/jupyter-bundlerextension'),
+            ('/usr/local/bin/jupyter-kernel', '/usr/bin/jupyter-kernel'),
+            ('/usr/local/bin/jupyter-migrate', '/usr/bin/jupyter-migrate'),
+            ('/usr/local/bin/jupyter-nbconvert', '/usr/bin/jupyter-nbconvert'),
+            ('/usr/local/bin/jupyter-nbextension', '/usr/bin/jupyter-nbextension'),
+            ('/usr/local/bin/jupyter-notebook', '/usr/bin/jupyter-notebook'),
+            ('/usr/local/bin/jupyter-run', '/usr/bin/jupyter-run'),
+            ('/usr/local/bin/jupyter-serverextension', '/usr/bin/jupyter-serverextension'),
+            ('/usr/local/bin/jupyter-troubleshoot', '/usr/bin/jupyter-troubleshoot'),
+            ('/usr/local/bin/jupyter-trust','/usr/bin/jupyter-trust')
+        ]
+        for path in paths:
+            src, dst = path
+            try:
+                os.symlink(src, dst)
+            except OSError:
+                pass
+
 
 
 
