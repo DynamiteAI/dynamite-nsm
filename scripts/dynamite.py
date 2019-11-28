@@ -9,13 +9,13 @@ import traceback
 
 from dynamite_nsm import utilities, updater
 from dynamite_nsm.services.helpers import oinkmaster
-from dynamite_nsm.services import agent, elasticsearch, logstash, kibana, monitor, suricata, zeek
+from dynamite_nsm.services import agent, dynamite_lab, elasticsearch, logstash, kibana, monitor, suricata, zeek
 from dynamite_nsm.guis import zeek_node_config_gui, zeek_script_config_gui, suricata_interface_config_gui,\
     suricata_rule_config_gui
 
 
 COMPONENTS = [
-    'agent', 'monitor', 'elasticsearch', 'logstash', 'kibana', 'suricata-rules', 'mirrors', 'default-configs'
+    'agent', 'monitor', 'lab', 'elasticsearch', 'logstash', 'kibana', 'suricata-rules', 'mirrors', 'default-configs'
 ]
 
 COMMANDS = [
@@ -221,7 +221,24 @@ if __name__ == '__main__':
                 )
                 sys.exit(1)
     elif args.command == 'install':
-        if args.component == 'elasticsearch':
+        if args.component in ['dynamite-lab', 'lab']:
+            password = utilities.prompt_password(
+                'Enter the password used for logging into ElasticSearch: ')
+            if dynamite_lab.install_dynamite_lab(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                              elasticsearch_password=password,
+                                              jupyterhub_password=password,
+                                              stdout=True)
+                sys.stdout.write('\n[+] Once started DynamiteLab will be accessible at: ')
+                sys.stdout.write('\n\tHOST: http://{}{}\n'.format('0.0.0.0',
+                                                                  8000))
+                sys.stdout.write('\n\tUSER: jupyter\n')
+                sys.stdout.write('\n\tPASSWORD: {}\n'.format(password))
+                sys.stdout.flush()
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to install DynamiteLab.\n')
+                sys.exit(1)
+        elif args.component == 'elasticsearch':
             if elasticsearch.install_elasticsearch(
                 password=utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: '),
                                                    stdout=True, create_dynamite_user=True, install_jdk=True):

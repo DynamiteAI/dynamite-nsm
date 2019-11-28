@@ -893,8 +893,10 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
     :param prompt_user: Print a warning before continuing
     :return: True, if uninstall succeeded
     """
+    environment_variables = utilities.get_environment_file_dict()
+    configuration_directory = environment_variables.get('ES_PATH_CONF')
     es_profiler = ElasticProfiler()
-    es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    es_config = ElasticConfigurator(configuration_directory=configuration_directory)
     if not es_profiler.is_installed:
         sys.stderr.write('[-] ElasticSearch is not installed.\n')
         return False

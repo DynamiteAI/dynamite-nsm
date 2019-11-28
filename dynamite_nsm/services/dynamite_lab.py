@@ -5,6 +5,7 @@ import json
 import shutil
 import signal
 import tarfile
+import traceback
 import subprocess
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -78,6 +79,15 @@ class DynamiteLabInstaller:
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  notebook_home=NOTEBOOK_HOME,
                  stdout=False):
+        """
+        :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+        :param elasticsearch_port: A port number for the target elasticsearch instance
+        :param elasticsearch_password: The password used for authentication across all builtin ES users
+        :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/dynamite_sdk/)
+        :param notebook_home: The path where Jupyter notebooks are stored
+        :param stdout: Print output to console
+        """
 
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
@@ -116,7 +126,7 @@ class DynamiteLabInstaller:
             ('/usr/local/bin/jupyter-run', '/usr/bin/jupyter-run'),
             ('/usr/local/bin/jupyter-serverextension', '/usr/bin/jupyter-serverextension'),
             ('/usr/local/bin/jupyter-troubleshoot', '/usr/bin/jupyter-troubleshoot'),
-            ('/usr/local/bin/jupyter-trust','/usr/bin/jupyter-trust')
+            ('/usr/local/bin/jupyter-trust', '/usr/bin/jupyter-trust')
         ]
         for path in paths:
             src, dst = path
@@ -398,7 +408,7 @@ class JupyterHubProcess:
 
     def stop(self, stdout=False):
         """
-        Stop the ElasticSearch process
+        Stop the Jupyterhub process
 
         :param stdout: Print output to console
         :return: True if stopped successfully
@@ -449,35 +459,43 @@ class JupyterHubProcess:
         }
 
 
-def install_dynamite_lab(
-    elasticsearch_host='localhost',
-    elasticsearch_port=9200,
-    elasticsearch_password='changeme',
-    jupyterhub_password='changeme',
-    stdout=True):
+def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
+                         jupyterhub_password='changeme', stdout=True):
+    """
+    Install the DynamiteLab environment
+
+    :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
+    :param elasticsearch_port: A port number for the target elasticsearch instance
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
+    :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
+    :param stdout: Print output to console
+    :return: True, if installation was successful
+    """
 
     dynamite_lab_installer = DynamiteLabInstaller(elasticsearch_host, elasticsearch_port, elasticsearch_password,
                                                   jupyterhub_password, stdout=stdout)
     dynamite_lab_installer.setup_dynamite_sdk()
     dynamite_lab_installer.setup_jupyterhub()
+    return DynamiteLabProfiler().is_installed
 
-'''
 
 def uninstall_dynamite_lab(stdout=False, prompt_user=True):
     """
-    Uninstall ElasticSearch
+    Uninstall DynamiteLab
 
     :param stdout: Print the output to console
     :param prompt_user: Print a warning before continuing
     :return: True, if uninstall succeeded
     """
-    es_profiler = ElasticProfiler()
-    es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
-    if not es_profiler.is_installed:
-        sys.stderr.write('[-] ElasticSearch is not installed.\n')
+    environment_variables = utilities.get_environment_file_dict()
+    configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
+    notebook_home = environment_variables.get('NOTEBOOK_HOME')
+    dynamite_lab_profiler = DynamiteLabProfiler()
+    if not dynamite_lab_profiler.is_installed:
+        sys.stderr.write('[-] DynanmiteLab is not installed.\n')
         return False
     if prompt_user:
-        sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
+        sys.stderr.write('[-] WARNING! REMOVING DYNAMITE LAB WILL REMOVE ALL JUPYTER NOTEBOOKS.\n')
         resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
             resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
@@ -485,32 +503,26 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
             return False
-    if es_profiler.is_running:
-        ElasticProcess().stop(stdout=stdout)
+    if dynamite_lab_profiler.is_running:
+        JupyterHubProcess().stop(stdout=stdout)
     try:
-        shutil.rmtree(es_config.configuration_directory)
-        shutil.rmtree(es_config.es_home)
-        shutil.rmtree(es_config.get_log_path())
+        shutil.rmtree(configuration_directory)
+        shutil.rmtree(notebook_home)
         shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
         for line in open('/etc/dynamite/environment').readlines():
-            if 'ES_PATH_CONF' in line:
+            if 'DYNAMITE_LAB_CONFIG' in line:
                 continue
-            elif 'ES_HOME' in line:
+            elif 'NOTEBOOK_HOME' in line:
                 continue
             elif line.strip() == '':
                 continue
             env_lines += line.strip() + '\n'
         open('/etc/dynamite/environment', 'w').write(env_lines)
         if stdout:
-            sys.stdout.write('[+] ElasticSearch uninstalled successfully.\n')
+            sys.stdout.write('[+] DynamiteLab uninstalled successfully.\n')
     except Exception:
-        sys.stderr.write('[-] A fatal error occurred while attempting to uninstall ElasticSearch: ')
+        sys.stderr.write('[-] A fatal error occurred while attempting to uninstall DynamiteLab: ')
         traceback.print_exc(file=sys.stderr)
         return False
     return True
-'''
-
-install_dynamite_lab('localhost', stdout=True)
-print(DynamiteLabProfiler().get_profile())
-JupyterHubProcess().start(stdout=True)
