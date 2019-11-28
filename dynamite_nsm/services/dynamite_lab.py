@@ -7,6 +7,7 @@ import signal
 import tarfile
 import traceback
 import subprocess
+from multiprocessing import Process
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
@@ -374,9 +375,11 @@ class JupyterHubProcess:
         :param stdout: Print output to console
         :return: True, if started successfully
         """
-
+        def start_shell_out():
+            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/jupyterhub/'), shell=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if not os.path.exists('/var/run/dynamite/jupyterhub/'):
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/jupyterhub/'), shell=True)
+            Process(target=start_shell_out).start()
 
         if not utilities.check_pid(self.pid):
             subprocess.call('jupyterhub -f {}'.format(self.configuration_directory), shell=True)
