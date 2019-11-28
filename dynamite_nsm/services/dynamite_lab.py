@@ -376,7 +376,7 @@ class JupyterHubProcess:
         :return: True, if started successfully
         """
         def start_shell_out():
-            subprocess.call('jupyterhub -f {} &'.format(
+            subprocess.call('jupyterhub -f {} &>/dev/null &'.format(
                 os.path.join(self.configuration_directory, 'jupyterhub_config.py')), shell=True, stderr=subprocess.PIPE,
                 stdout=None)
 
