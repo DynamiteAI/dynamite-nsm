@@ -555,7 +555,7 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
 
 def prompt_password_change_options():
     resp = utilities.prompt_input(
-        '1. Change the password the SDK uses to connect to Elasticsearch.]\n'
+        '1. Change the password the SDK uses to connect to Elasticsearch.\n'
         '2. Change the password for logging into Jupyterhub (jupyter user).\n\n'
         'Select an option [1, 2]: ')
     while str(resp) not in ['', '1', '2']:
