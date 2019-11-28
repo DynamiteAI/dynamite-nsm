@@ -202,13 +202,12 @@ class DynamiteLabInstaller:
             sys.stdout.write('[+] Copying DynamiteSDK into lab environment.\n')
             sys.stdout.flush()
         subprocess.call('mkdir -p {}'.format(self.notebook_home), shell=True)
-        sdk_install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
-        utilities.copytree(os.path.join(sdk_install_cache, 'notebooks'), self.notebook_home)
-        shutil.copy(os.path.join(sdk_install_cache, 'dynamite_sdk', 'config.cfg.example'),
-                           os.path.join(self.configuration_directory, 'config.cfg'))
-        utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='dynamite')
-        p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
-        p.communicate()
+        if 'NOTEBOOK_HOME' not in open('/etc/dynamite/environment').read():
+            if self.stdout:
+                sys.stdout.write('[+] Updating Notebook home path [{}]\n'.format(
+                    self.notebook_home))
+                subprocess.call('echo NOTEBOOK_HOME="{}" >> /etc/dynamite/environment'.format(
+                    self.notebook_home), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         if 'DYNAMITE_LAB_CONFIG' not in open('/etc/dynamite/environment').read():
             if self.stdout:
@@ -216,6 +215,13 @@ class DynamiteLabInstaller:
                     self.configuration_directory))
             subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> /etc/dynamite/environment'.format(
                 self.configuration_directory), shell=True)
+        sdk_install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
+        utilities.copytree(os.path.join(sdk_install_cache, 'notebooks'), self.notebook_home)
+        shutil.copy(os.path.join(sdk_install_cache, 'dynamite_sdk', 'config.cfg.example'),
+                           os.path.join(self.configuration_directory, 'config.cfg'))
+        utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='dynamite')
+        p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
+        p.communicate()
         dynamite_sdk_config = DynamiteLabConfigurator(configuration_directory=self.configuration_directory)
         dynamite_sdk_config.elasticsearch_url = 'http://{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)
         dynamite_sdk_config.elasticsearch_user = 'elastic'
