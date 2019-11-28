@@ -7,9 +7,54 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 
+try:
+    from ConfigParser import ConfigParser
+except Exception:
+    from configparser import ConfigParser
 
-CONFIGURATION_DIRECTORY = '/etc/dynamite/jupyterhub/'
+CONFIGURATION_DIRECTORY = '/etc/dynamite/dynamite_sdk/'
 NOTEBOOK_HOME = '/home/jupyter/lab/'
+
+
+class DynamiteLabConfigurator:
+
+    tokens = {
+        'elasticsearch_url': 'AUTHENTICATION',
+        'elasticsearch_user': 'AUTHENTICATION',
+        'elasticsearch_password': 'AUTHENTICATION',
+        'timeout': 'SEARCH',
+        'max_results': 'SEARCH'
+    }
+
+    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        self.configuration_directory = configuration_directory
+        self.elasticsearch_url = None
+        self.elasticsearch_user = None
+        self.elasticsearch_password = None
+        self.timeout = None
+        self.max_results = None
+        self.config = self._parse_lab_config()
+
+    def _parse_lab_config(self):
+        """
+        :return: A dictionary representing the configurations storred within node.cfg
+        """
+        config_parser = ConfigParser()
+        config_parser.readfp(open(os.path.join(self.configuration_directory, 'config.cfg')))
+        for section in config_parser.sections():
+            for item in config_parser.items(section):
+                key, value = item
+                setattr(self, key, value)
+        return config_parser
+
+    def write_config(self):
+        for k, v in vars(self).items():
+            if k not in self.tokens.keys():
+                continue
+            section = self.tokens[k]
+            self.config.set(section, k, v)
+        with open(os.path.join(self.configuration_directory, 'config.cfg'), 'w') as configfile:
+            self.config.write(configfile)
 
 
 class DynamiteLabInstaller:
@@ -121,9 +166,14 @@ class DynamiteLabInstaller:
         subprocess.call('mkdir -p {}'.format(self.notebook_home), shell=True)
         sdk_install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
         utilities.copytree(os.path.join(sdk_install_cache, 'notebooks'), self.notebook_home)
+        utilities.copytree(os.path.join(sdk_install_cache, 'dynamite_sdk', 'config.cfg.example'),
+                           self.configuration_directory)
         utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='dynamite')
         p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
         p.communicate()
+        dynamite_sdk_config = DynamiteLabConfigurator(configuration_directory=self.configuration_directory)
+        dynamite_sdk_config.elasticsearch_host = 'test'
+        dynamite_sdk_config.write_config()
 
     def setup_jupyterhub(self, jupyter_password='changeme'):
         if self.stdout:
