@@ -476,7 +476,7 @@ def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200
                                                   jupyterhub_password, stdout=stdout)
     dynamite_lab_installer.setup_dynamite_sdk()
     dynamite_lab_installer.setup_jupyterhub()
-    return DynamiteLabProfiler().is_installed
+    return DynamiteLabProfiler(stderr=True).is_installed
 
 
 def uninstall_dynamite_lab(stdout=False, prompt_user=True):
