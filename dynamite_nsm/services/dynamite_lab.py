@@ -307,7 +307,7 @@ class DynamiteLabProfiler:
     @staticmethod
     def _is_installed(stderr=False):
         try:
-            p = subprocess.Popen('jupyterhub --version')
+            p = subprocess.Popen('jupyterhub --version', shell=True)
             p.communicate()
             return p.returncode == 0
         except OSError:
