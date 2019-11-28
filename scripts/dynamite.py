@@ -230,8 +230,7 @@ if __name__ == '__main__':
                                                  elasticsearch_password=password,
                                                  jupyterhub_password=password, stdout=True):
                 sys.stdout.write('\n[+] Once started DynamiteLab will be accessible at: ')
-                sys.stdout.write('\n\tHOST: http://{}{}\n'.format('0.0.0.0',
-                                                                  8000))
+                sys.stdout.write('\n\tHOST: http://{}:{}\n'.format('0.0.0.0', 8000))
                 sys.stdout.write('\n\tUSER: jupyter\n')
                 sys.stdout.write('\n\tPASSWORD: {}\n'.format(password))
                 sys.stdout.flush()
@@ -365,7 +364,22 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'start':
-        if args.component == 'elasticsearch':
+        if args.component in ['dynamite-lab', 'lab']:
+            try:
+                sys.stdout.write('[+] Starting DynamiteLab\n')
+                started = dynamite_lab.JupyterHubProcess().start(stdout=True)
+                if started:
+                    sys.stdout.write('[+] Dynamite started successfully. Check its status at any time with: '
+                                     '\'dynamite status lab\'.\n')
+                elif not dynamite_lab.DynamiteLabProfiler(stderr=False).is_installed:
+                    _not_installed('start', 'lab')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] An error occurred while attempting to start DynamiteLab.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('start', 'lab', args.debug)
+        elif args.component == 'elasticsearch':
             try:
                 sys.stdout.write('[+] Starting ElasticSearch.\n')
                 started = elasticsearch.ElasticProcess().start(stdout=True)
@@ -435,9 +449,18 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'status':
-            if args.component == 'elasticsearch':
-                if not elasticsearch.ElasticProfiler(stderr=False).is_installed:
-                    _not_installed('start', 'elasticsearch')
+            if args.component in ['dynamite-lab', 'lab']:
+                if not dynamite_lab.DynamiteLabProfiler(stderr=True).is_installed:
+                    _not_installed('start', 'lab')
+                    sys.exit(0)
+                try:
+                    sys.stdout.write(json.dumps(dynamite_lab.JupyterHubProcess().status(), indent=1) + '\n')
+                    sys.exit(0)
+                except Exception:
+                    _fatal_exception('status', 'lab', args.debug)
+            elif args.component == 'elasticsearch':
+                if not elasticsearch.ElasticProfiler(stderr=True).is_installed:
+                    _not_installed('status', 'elasticsearch')
                     sys.exit(0)
                 try:
                     sys.stdout.write(json.dumps(elasticsearch.ElasticProcess().status(), indent=1) + '\n')
@@ -445,7 +468,7 @@ if __name__ == '__main__':
                 except Exception:
                     _fatal_exception('status', 'elasticsearch', args.debug)
             elif args.component == 'logstash':
-                if not logstash.LogstashProfiler(stderr=False).is_installed:
+                if not logstash.LogstashProfiler(stderr=True).is_installed:
                     _not_installed('status', 'logstash')
                     sys.exit(0)
                 try:
@@ -453,7 +476,7 @@ if __name__ == '__main__':
                 except Exception:
                     _fatal_exception('status', 'logstash', args.debug)
             elif args.component == 'kibana':
-                if not kibana.KibanaProfiler(stderr=False).is_installed:
+                if not kibana.KibanaProfiler(stderr=True).is_installed:
                     _not_installed('status', 'kibana')
                     sys.exit(0)
                 try:
@@ -484,11 +507,26 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
                 sys.exit(1)
     elif args.command == 'stop':
-        if args.component == 'elasticsearch':
+        if args.component in ['dynamite-lab', 'lab']:
+            try:
+                sys.stdout.write('[+] Stopping DynamiteLab.\n')
+                stopped = dynamite_lab.JupyterHubProcess().stop(stdout=True)
+                if not dynamite_lab.DynamiteLabProfiler(stderr=True).is_installed:
+                    _not_installed('stop', 'lab')
+                    sys.exit(0)
+                elif stopped:
+                    sys.stdout.write('[+] DynamiteLab stopped successfully.\n')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] An error occurred while attempting to stop DynamiteLab.\n')
+                    sys.exit(1)
+            except Exception:
+                _fatal_exception('stop', 'lab', args.debug)
+        elif args.component == 'elasticsearch':
             try:
                 sys.stdout.write('[+] Stopping ElasticSearch.\n')
                 stopped = elasticsearch.ElasticProcess().stop(stdout=True)
-                if not elasticsearch.ElasticProfiler(stderr=False).is_installed:
+                if not elasticsearch.ElasticProfiler(stderr=True).is_installed:
                     _not_installed('stop', 'kibana')
                     sys.exit(0)
                 elif stopped:
@@ -503,7 +541,7 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Stopping LogStash.\n')
                 stopped = logstash.LogstashProcess().stop(stdout=True)
-                if not logstash.LogstashProfiler(stderr=False).is_installed:
+                if not logstash.LogstashProfiler(stderr=True).is_installed:
                     _not_installed('stop', 'logstash')
                     sys.exit(0)
                 elif stopped:
@@ -518,7 +556,7 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Stopping Kibana.\n')
                 stopped = kibana.KibanaProcess().stop(stdout=True)
-                if not kibana.KibanaProfiler(stderr=False).is_installed:
+                if not kibana.KibanaProfiler(stderr=True).is_installed:
                     _not_installed('stop', 'kibana')
                     sys.exit(0)
                 elif stopped:
@@ -553,7 +591,7 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Restarting ElasticSearch.\n')
                 restarted = elasticsearch.ElasticProcess().restart(stdout=True)
-                if not elasticsearch.ElasticProfiler(stderr=False).is_installed:
+                if not elasticsearch.ElasticProfiler(stderr=True).is_installed:
                     _not_installed('restart', 'kibana')
                     sys.exit(0)
                 elif restarted:
@@ -568,7 +606,7 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Restarting LogStash.\n')
                 restarted = logstash.LogstashProcess().restart(stdout=True)
-                if not logstash.LogstashProfiler(stderr=False).is_installed:
+                if not logstash.LogstashProfiler(stderr=True).is_installed:
                     _not_installed('restart', 'logstash')
                     sys.exit(0)
                 elif restarted:
@@ -583,7 +621,7 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Restarting Kibana.\n')
                 restarted = kibana.KibanaProcess().restart(stdout=True)
-                if not kibana.KibanaProfiler(stderr=False).is_installed:
+                if not kibana.KibanaProfiler(stderr=True).is_installed:
                     _not_installed('restart', 'logstash')
                     sys.exit(0)
                 elif restarted:
