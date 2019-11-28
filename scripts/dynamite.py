@@ -224,10 +224,10 @@ if __name__ == '__main__':
         if args.component in ['dynamite-lab', 'lab']:
             password = utilities.prompt_password(
                 'Enter the password used for logging into ElasticSearch: ')
-            if dynamite_lab.install_dynamite_lab(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                              elasticsearch_password=password,
-                                              jupyterhub_password=password,
-                                              stdout=True)
+            if dynamite_lab.install_dynamite_lab(elasticsearch_host=args.es_host,
+                                                 elasticsearch_port=args.es_port,
+                                                 elasticsearch_password=password,
+                                                 jupyterhub_password=password, stdout=True):
                 sys.stdout.write('\n[+] Once started DynamiteLab will be accessible at: ')
                 sys.stdout.write('\n\tHOST: http://{}{}\n'.format('0.0.0.0',
                                                                   8000))
