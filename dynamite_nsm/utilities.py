@@ -95,12 +95,12 @@ def create_dynamite_user(password):
 
 def create_jupyter_user(password):
     """
-    Create the jupyter user w/ home (and dynamite group if it does not exist)
+    Create the jupyter user w/ home
 
     :param password: The password for the user
     """
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
-    subprocess.call('groupadd dynamite; useradd -m -p "{}" -s /bin/bash jupyter -G dynamite'.format(pass_encry),
+    subprocess.call('groupadd dynamite; useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
                     shell=True)
 
 
