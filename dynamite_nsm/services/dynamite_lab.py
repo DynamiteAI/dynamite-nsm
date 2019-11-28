@@ -102,6 +102,24 @@ class DynamiteLabInstaller:
                 raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
 
     @staticmethod
+    def _link_jupyterhub_binaries():
+        os.symlink('/usr/local/bin/jupyter', '/usr/bin/jupyter')
+        os.symlink('/usr/local/bin/jupyterhub', '/usr/bin/jupyterhub')
+        os.symlink('"/usr/local/bin/jupyterhub - singleuser"', '"/usr/bin/jupyterhub - singleuser"')
+        os.symlink('"/usr/local/bin/jupyter - bundlerextension"', '"/usr/bin/jupyter - bundlerextension"')
+        os.symlink('"/usr/local/bin/jupyter - kernel"', '"/usr/bin/jupyter - kernel"')
+        os.symlink('"/usr/local/bin/jupyter - migrate"', '"/usr/bin/jupyter - migrate"')
+        os.symlink('"/usr/local/bin/jupyter - nbconvert"', '"/usr/bin/jupyter - nbconvert"')
+        os.symlink('"/usr/local/bin/jupyter - nbextension"', '"/usr/bin/jupyter - nbextension"')
+        os.symlink('"/usr/local/bin/jupyter - notebook"', '"/usr/bin/jupyter - notebook"')
+        os.symlink('"/usr/local/bin/jupyter - run"', '"/usr/bin/jupyter - run"')
+        os.symlink('"/usr/local/bin/jupyter - serverextension"', '"/usr/bin/jupyter - serverextension"')
+        os.symlink('"/usr/local/bin/jupyter - troubleshoot"', '"/usr/bin/jupyter - troubleshoot"')
+        os.symlink('"/usr/local/bin/jupyter - trust"', '"/usr/bin/jupyter - trust"')
+
+
+
+    @staticmethod
     def download_dynamite_sdk(stdout=False):
         """
         Download DynamiteSDK archive
@@ -248,7 +266,7 @@ class DynamiteLabInstaller:
             subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> /etc/dynamite/environment'.format(
                 self.configuration_directory), shell=True)
         shutil.copy(source_config, self.configuration_directory)
-        os.symlink('/usr/local/bin/jupyter*', '/usr/bin/')
+        self._link_jupyterhub_binaries()
 
 
 class DynamiteLabProfiler:
