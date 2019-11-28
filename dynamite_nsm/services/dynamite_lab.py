@@ -137,9 +137,6 @@ class DynamiteLabInstaller:
             except OSError:
                 pass
 
-
-
-
     @staticmethod
     def download_dynamite_sdk(stdout=False):
         """

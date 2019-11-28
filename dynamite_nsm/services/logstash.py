@@ -231,7 +231,8 @@ class LogstashInstaller:
                  elasticsearch_password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
-                 log_directory=LOG_DIRECTORY):
+                 log_directory=LOG_DIRECTORY,
+                 stdout=False):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
         :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
@@ -240,8 +241,8 @@ class LogstashInstaller:
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
+        :param stdout: Print output to console
         """
-
         self.host = host
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
@@ -255,9 +256,12 @@ class LogstashInstaller:
         self.install_directory = install_directory
         self.elasticsearch_password = elasticsearch_password
         self.log_directory = log_directory
+        self.stdout = stdout
+        self.download_logstash(stdout=stdout)
+        self.extract_logstash(stdout=stdout)
 
-    def _copy_logstash_files_and_directories(self, stdout=False):
-        if stdout:
+    def _copy_logstash_files_and_directories(self):
+        if self.stdout:
             sys.stdout.write('[+] Copying required LogStash files and directories.\n')
         config_paths = [
             'config/logstash.yml',
@@ -277,7 +281,7 @@ class LogstashInstaller:
             'x-pack/'
         ]
         for path in config_paths:
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Copying {} -> {}\n'.format(
                     os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
                     self.configuration_directory))
@@ -288,7 +292,7 @@ class LogstashInstaller:
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Copying {} -> {}\n'.format(
                     os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
                     self.install_directory))
@@ -298,30 +302,30 @@ class LogstashInstaller:
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
 
-    def _create_logstash_directories(self, stdout=False):
-        if stdout:
+    def _create_logstash_directories(self):
+        if self.stdout:
             sys.stdout.write('[+] Creating logstash install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
 
-    def _create_logstash_environment_variables(self, stdout=False):
+    def _create_logstash_environment_variables(self):
         if 'LS_PATH_CONF' not in open('/etc/dynamite/environment').read():
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Updating LogStash default configuration path [{}]\n'.format(
                     self.configuration_directory))
             subprocess.call('echo LS_PATH_CONF="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
         if 'LS_HOME' not in open('/etc/dynamite/environment').read():
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Updating LogStash default home path [{}]\n'.format(
                     self.configuration_directory))
             subprocess.call('echo LS_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
 
-    def _install_logstash_plugins(self, stdout=False):
-        if stdout:
+    def _install_logstash_plugins(self):
+        if self.stdout:
             sys.stdout.write('[+] Installing Logstash plugins\n')
             sys.stdout.flush()
         subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
@@ -337,24 +341,24 @@ class LogstashInstaller:
         subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
                         shell=True, env=utilities.get_environment_file_dict())
 
-    def _setup_default_logstash_configs(self, stdout=False):
+    def _setup_default_logstash_configs(self):
         sys.stdout.write('[+] Overwriting default configuration.\n')
         sys.stdout.flush()
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'logstash.yml'),
                     self.configuration_directory)
         ls_config = LogstashConfigurator(configuration_directory=self.configuration_directory)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
             sys.stdout.flush()
         ls_config.set_jvm_initial_memory(4)
         ls_config.set_jvm_maximum_memory(4)
         ls_config.write_configs()
 
-    def _setup_elastiflow(self, stdout=False):
+    def _setup_elastiflow(self):
         ef_install = elastiflow.ElastiFlowInstaller(install_directory=os.path.join(
             self.configuration_directory, 'elastiflow')
         )
-        ef_install.setup_logstash_elastiflow(stdout=stdout)
+        ef_install.setup_logstash_elastiflow()
         ef_config = elastiflow.ElastiflowConfigurator()
         ef_config.ipfix_tcp_ipv4_host = self.host
         ef_config.netflow_ipv4_host = self.host
@@ -364,9 +368,9 @@ class LogstashInstaller:
         ef_config.es_passwd = self.elasticsearch_password
         ef_config.write_environment_variables()
 
-    def _setup_synesis(self, stdout=False):
+    def _setup_synesis(self):
         syn_install = synesis.SynesisInstaller(install_directory=os.path.join(self.configuration_directory, 'synesis'))
-        syn_install.setup_logstash_synesis(stdout=stdout)
+        syn_install.setup_logstash_synesis()
         syn_config = synesis.SynesisConfigurator()
         syn_config.suricata_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         syn_config.suricata_resolve_ip2host = True
@@ -409,20 +413,20 @@ class LogstashInstaller:
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
-    def setup_logstash(self, stdout=False):
+    def setup_logstash(self):
         """
         Create required directories, files, and variables to run LogStash successfully;
 
         :param stdout: Print output to console
         """
-        self._create_logstash_directories(stdout=stdout)
-        self._copy_logstash_files_and_directories(stdout=stdout)
-        self._create_logstash_environment_variables(stdout=stdout)
-        self._setup_default_logstash_configs(stdout=stdout)
-        self._update_sysctl(stdout=stdout)
-        self._setup_elastiflow(stdout=stdout)
-        self._setup_synesis(stdout=stdout)
-        self._install_logstash_plugins(stdout=stdout)
+        self._create_logstash_directories()
+        self._copy_logstash_files_and_directories()
+        self._create_logstash_environment_variables()
+        self._setup_default_logstash_configs()
+        self._update_sysctl()
+        self._setup_elastiflow()
+        self._setup_synesis()
+        self._install_logstash_plugins()
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
                     os.path.join(self.configuration_directory, 'pipelines.yml'))
         utilities.set_ownership_of_file('/etc/dynamite/', user='dynamite', group='dynamite')
@@ -773,9 +777,7 @@ def install_logstash(host='0.0.0.0',
             utilities.setup_java()
         if create_dynamite_user:
             utilities.create_dynamite_user(utilities.generate_random_password(50))
-        ls_installer.download_logstash(stdout=True)
-        ls_installer.extract_logstash(stdout=True)
-        ls_installer.setup_logstash(stdout=True)
+        ls_installer.setup_logstash()
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to install LogStash: ')
         traceback.print_exc(file=sys.stderr)
@@ -795,8 +797,10 @@ def uninstall_logstash(stdout=False, prompt_user=True):
     :param prompt_user: Print a warning before continuing
     :return: True, if uninstall succeeded
     """
+    environment_variables = utilities.get_environment_file_dict()
+    configuration_directory = environment_variables.get('LS_PATH_CONF')
     ls_profiler = LogstashProfiler()
-    ls_config = LogstashConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    ls_config = LogstashConfigurator(configuration_directory=configuration_directory)
     if not ls_profiler.is_installed:
         sys.stderr.write('[-] LogStash is not installed.\n')
         return False
