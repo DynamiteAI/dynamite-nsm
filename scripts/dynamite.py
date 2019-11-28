@@ -330,7 +330,13 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'uninstall':
-        if args.component == 'elasticsearch':
+        if args.component in ['dynamite-lab', 'lab']:
+            if dynamite_lab.uninstall_dynamite_lab(stdout=True, prompt_user=True):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to uninstall DynamiteLab.\n')
+                sys.exit(1)
+        elif args.component == 'elasticsearch':
             if elasticsearch.uninstall_elasticsearch(stdout=True, prompt_user=True):
                 sys.exit(0)
             else:
@@ -587,7 +593,22 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'restart':
-        if args.component == 'elasticsearch':
+        if args.component in ['dynamite-lab', 'lab']:
+            try:
+                sys.stdout.write('[+] Restarting DynamiteLab.\n')
+                restarted = dynamite_lab.JupyterHubProcess().restart(stdout=True)
+                if not dynamite_lab.DynamiteLabProfiler(stderr=True).is_installed:
+                    _not_installed('restart', 'lab')
+                    sys.exit(0)
+                elif restarted:
+                    sys.stdout.write('[+] DynamiteLab restarted successfully.\n')
+                    sys.exit(0)
+                else:
+                    sys.stdout.write('[-] An error occurred while attempting to start DynamiteLab.\n')
+                    sys.exit(0)
+            except Exception:
+                _fatal_exception('restart', 'lab', args.debug)
+        elif args.component == 'elasticsearch':
             try:
                 sys.stdout.write('[+] Restarting ElasticSearch.\n')
                 restarted = elasticsearch.ElasticProcess().restart(stdout=True)
@@ -664,6 +685,16 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'profile':
+        if args.component in ['dynamite-lab', 'lab']:
+            try:
+                sys.stdout.write('[+] Profiling ElasticSearch.\n')
+                profile_result = dynamite_lab.DynamiteLabProfiler(stderr=True)
+                sys.stdout.write('[+]  DYNAMITELAB.INSTALLED: {}\n'.format(profile_result.is_installed))
+                sys.stdout.write('[+]  DYNAMITELAB.CONFIGURED: {}\n'.format(profile_result.is_configured))
+                sys.stdout.write('[+]  DYNAMITELAB.RUNNING: {}\n'.format(profile_result.is_running))
+                sys.exit(0)
+            except Exception:
+                _fatal_exception('profile', 'elasticsearch', args.debug)
         if args.component == 'elasticsearch':
             try:
                 sys.stdout.write('[+] Profiling ElasticSearch.\n')
