@@ -6,6 +6,7 @@ import subprocess
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
+from dynamite_nsm.services.elasticsearch import ElasticProfiler
 
 try:
     from ConfigParser import ConfigParser
@@ -59,7 +60,17 @@ class DynamiteLabConfigurator:
 
 class DynamiteLabInstaller:
 
-    def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY, notebook_home=NOTEBOOK_HOME, stdout=False):
+    def __init__(self,
+                 elasticsearch_host=None,
+                 elasticsearch_port=None,
+                 elasticsearch_password='changeme',
+                 configuration_directory=CONFIGURATION_DIRECTORY,
+                 notebook_home=NOTEBOOK_HOME,
+                 stdout=False):
+
+        self.elasticsearch_host = elasticsearch_host
+        self.elasticsearch_port = elasticsearch_port
+        self.elasticsearch_password = elasticsearch_password
         self.configuration_directory = configuration_directory
         self.notebook_home = notebook_home
         self.download_dynamite_sdk(stdout=stdout)
@@ -67,6 +78,12 @@ class DynamiteLabInstaller:
         self.install_jupyterhub_dependencies(stdout=stdout)
         self.install_jupyterhub(stdout=stdout)
         self.stdout = stdout
+
+        if not elasticsearch_host:
+            if ElasticProfiler().is_installed:
+                self.elasticsearch_host = 'localhost'
+            else:
+                raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
 
     @staticmethod
     def download_dynamite_sdk(stdout=False):
@@ -172,7 +189,9 @@ class DynamiteLabInstaller:
         p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
         p.communicate()
         dynamite_sdk_config = DynamiteLabConfigurator(configuration_directory=self.configuration_directory)
-        dynamite_sdk_config.elasticsearch_host = 'test'
+        dynamite_sdk_config.elasticsearch_url = 'http://{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)
+        dynamite_sdk_config.elasticsearch_user = 'elastic'
+        dynamite_sdk_config.elasticsearch_password = self.elasticsearch_password
         dynamite_sdk_config.write_config()
 
     def setup_jupyterhub(self, jupyter_password='changeme'):
@@ -188,7 +207,9 @@ class DynamiteLabInstaller:
         # subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/', shell=True)
         shutil.copy(source_config, self.configuration_directory)
 
-
-installer = DynamiteLabInstaller(stdout=True)
+installer = DynamiteLabInstaller(elasticsearch_host='ec2-44-226-26-67.us-west-2.compute.amazonaws.com',
+                                 elasticsearch_port=9200,
+                                 elasticsearch_password='changeme',
+                                 stdout=True)
 installer.setup_jupyterhub()
 installer.setup_dynamite_sdk()
