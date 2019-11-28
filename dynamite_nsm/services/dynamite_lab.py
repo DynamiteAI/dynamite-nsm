@@ -9,7 +9,7 @@ from dynamite_nsm import package_manager
 
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/jupyterhub/'
-NOTEBOOK_HOME = '/home/jupyter/dynamite-sdk/'
+NOTEBOOK_HOME = '/home/jupyter/lab/'
 
 
 class DynamiteLabInstaller:
