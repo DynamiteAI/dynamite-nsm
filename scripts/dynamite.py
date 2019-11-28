@@ -130,7 +130,13 @@ if __name__ == '__main__':
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)
     elif args.command == 'chpasswd':
-        if args.component == 'elasticsearch':
+        if args.component in ['dynamite-lab', 'lab']:
+            if dynamite_lab.prompt_password_change_options():
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to reset password.\n')
+                sys.exit(1)
+        elif args.component == 'elasticsearch':
             if elasticsearch.change_elasticsearch_password(
                 old_password=getpass.getpass('Enter the old ElasticSearch password: '),
                 password=utilities.prompt_password('Enter the new ElasticSearch password: '), stdout=True
@@ -689,9 +695,9 @@ if __name__ == '__main__':
             try:
                 sys.stdout.write('[+] Profiling ElasticSearch.\n')
                 profile_result = dynamite_lab.DynamiteLabProfiler(stderr=True)
-                sys.stdout.write('[+]  DYNAMITELAB.INSTALLED: {}\n'.format(profile_result.is_installed))
+                sys.stdout.write('[+]   DYNAMITELAB.INSTALLED: {}\n'.format(profile_result.is_installed))
                 sys.stdout.write('[+]  DYNAMITELAB.CONFIGURED: {}\n'.format(profile_result.is_configured))
-                sys.stdout.write('[+]  DYNAMITELAB.RUNNING: {}\n'.format(profile_result.is_running))
+                sys.stdout.write('[+]     DYNAMITELAB.RUNNING: {}\n'.format(profile_result.is_running))
                 sys.exit(0)
             except Exception:
                 _fatal_exception('profile', 'elasticsearch', args.debug)

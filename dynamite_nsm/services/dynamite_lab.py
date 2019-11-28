@@ -1,4 +1,5 @@
 import os
+import pty
 import sys
 import time
 import json
@@ -464,6 +465,25 @@ class JupyterHubProcess:
         }
 
 
+def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):
+    environment_variables = utilities.get_environment_file_dict()
+    configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
+    if prompt_user:
+        resp = utilities.prompt_input(
+            'Changing the SDK password can cause your notebooks to lose communication with ElasticSearch. '
+            'Are you sure you wish to continue? [no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            return False
+    dynamite_lab_config = DynamiteLabConfigurator(configuration_directory=configuration_directory)
+    dynamite_lab_config.elasticsearch_password = password
+    dynamite_lab_config.write_config()
+    return True
+
+
 def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
                          jupyterhub_password='changeme', stdout=True):
     """
@@ -530,4 +550,19 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall DynamiteLab: ')
         traceback.print_exc(file=sys.stderr)
         return False
+    return True
+
+
+def prompt_password_change_options():
+    resp = utilities.prompt_input(
+        '1. Change the password the SDK uses to connect to Elasticsearch.]\n'
+        '2. Change the password for logging into Jupyterhub (jupyter user).\n\n'
+        'Select an option [1, 2]: ')
+    while str(resp) not in ['', '1', '2']:
+        resp = utilities.prompt_input('Select an option [1, 2]: ')
+    if str(resp) == '1':
+        return change_sdk_elasticsearch_password(utilities.prompt_password('Enter the new Elasticsearch password: '),
+                                          prompt_user=False)
+    else:
+        pty.spawn(['passwd', 'jupyter'])
     return True
