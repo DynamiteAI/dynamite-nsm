@@ -376,8 +376,7 @@ class JupyterHubProcess:
         :return: True, if started successfully
         """
         def start_shell_out():
-            subprocess.call('jupyterhub -f {}'.format(self.configuration_directory), shell=True,
-                            stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            subprocess.call('jupyterhub -f {}'.format(self.configuration_directory), shell=True)
 
         if not os.path.exists('/var/run/dynamite/jupyterhub/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/jupyterhub/'), shell=True)
