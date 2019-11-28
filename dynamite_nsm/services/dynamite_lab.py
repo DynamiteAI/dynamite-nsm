@@ -18,6 +18,9 @@ NOTEBOOK_HOME = '/home/jupyter/lab/'
 
 
 class DynamiteLabConfigurator:
+    """
+    Wrapper for configuring dynamite-sdk-lite config.cfg
+    """
 
     tokens = {
         'elasticsearch_url': 'AUTHENTICATION',
@@ -59,11 +62,16 @@ class DynamiteLabConfigurator:
 
 
 class DynamiteLabInstaller:
-
+    """
+    Provides a simple interface for installing a new Installing the DynamiteLab environment
+        - Jupyterhub
+        - dynamite-sdk-lite
+    """
     def __init__(self,
                  elasticsearch_host=None,
                  elasticsearch_port=None,
                  elasticsearch_password='changeme',
+                 jupyterhub_password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  notebook_home=NOTEBOOK_HOME,
                  stdout=False):
@@ -71,6 +79,7 @@ class DynamiteLabInstaller:
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
         self.elasticsearch_password = elasticsearch_password
+        self.jupyterhub_password = jupyterhub_password
         self.configuration_directory = configuration_directory
         self.notebook_home = notebook_home
         self.download_dynamite_sdk(stdout=stdout)
@@ -164,6 +173,12 @@ class DynamiteLabInstaller:
 
     @staticmethod
     def install_jupyterhub(stdout=False):
+        """
+        Installs Jupyterhub and ipython[notebook]
+
+        :param stdout: Print the output to console
+        :return: True, if installation succeeded
+        """
         if stdout:
             sys.stdout.write('[+] Installing JupyterHub and ipython[notebook] via pip3.\n')
             sys.stdout.flush()
@@ -177,6 +192,9 @@ class DynamiteLabInstaller:
         return True
 
     def setup_dynamite_sdk(self):
+        """
+        Sets up sdk files; and installs globally
+        """
         if self.stdout:
             sys.stdout.write('[+] Copying DynamiteSDK into lab environment.\n')
             sys.stdout.flush()
@@ -194,11 +212,14 @@ class DynamiteLabInstaller:
         dynamite_sdk_config.elasticsearch_password = self.elasticsearch_password
         dynamite_sdk_config.write_config()
 
-    def setup_jupyterhub(self, jupyter_password='changeme'):
+    def setup_jupyterhub(self):
+        """
+        Sets up jupyterhub configuration; and creates required user for initial login
+        """
         if self.stdout:
             sys.stdout.write('[+] Creating jupyter user in dynamite group.\n')
             sys.stdout.flush()
-        utilities.create_jupyter_user(password=jupyter_password)
+        utilities.create_jupyter_user(password=self.jupyterhub_password)
         if self.stdout:
             sys.stdout.write('[+] Creating lab directories and files.\n')
             sys.stdout.flush()
@@ -207,9 +228,3 @@ class DynamiteLabInstaller:
         # subprocess.call('mkdir -p /var/run/dynamite/jupyterhub/', shell=True)
         shutil.copy(source_config, self.configuration_directory)
 
-installer = DynamiteLabInstaller(elasticsearch_host='ec2-44-226-26-67.us-west-2.compute.amazonaws.com',
-                                 elasticsearch_port=9200,
-                                 elasticsearch_password='changeme',
-                                 stdout=True)
-installer.setup_jupyterhub()
-installer.setup_dynamite_sdk()
