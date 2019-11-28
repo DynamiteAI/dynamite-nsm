@@ -376,13 +376,14 @@ class JupyterHubProcess:
         :return: True, if started successfully
         """
         def start_shell_out():
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/jupyterhub/'), shell=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.call('jupyterhub -f {}'.format(self.configuration_directory), shell=True,
+                            stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
         if not os.path.exists('/var/run/dynamite/jupyterhub/'):
-            Process(target=start_shell_out).start()
+            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/jupyterhub/'), shell=True)
 
         if not utilities.check_pid(self.pid):
-            subprocess.call('jupyterhub -f {}'.format(self.configuration_directory), shell=True)
+            Process(target=start_shell_out).start()
         else:
             sys.stderr.write('[-] JupyterHub is already running on PID [{}]\n'.format(self.pid))
             return True
