@@ -89,6 +89,10 @@ class DynamiteLabInstaller:
         self.extract_dynamite_sdk(stdout=stdout)
         self.install_jupyterhub_dependencies(stdout=stdout)
         self.install_jupyterhub(stdout=stdout)
+        if self.stdout:
+            sys.stdout.write('[+] Creating jupyter user in dynamite group.\n')
+            sys.stdout.flush()
+        utilities.create_jupyter_user(password=self.jupyterhub_password)
         self.stdout = stdout
 
         if not elasticsearch_host:
@@ -232,10 +236,6 @@ class DynamiteLabInstaller:
         """
         Sets up jupyterhub configuration; and creates required user for initial login
         """
-        if self.stdout:
-            sys.stdout.write('[+] Creating jupyter user in dynamite group.\n')
-            sys.stdout.flush()
-        utilities.create_jupyter_user(password=self.jupyterhub_password)
         if self.stdout:
             sys.stdout.write('[+] Creating lab directories and files.\n')
             sys.stdout.flush()
