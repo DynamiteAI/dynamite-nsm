@@ -627,7 +627,8 @@ class LogstashProcess:
 
         if not os.path.exists('/var/run/dynamite/logstash/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/logstash/'), shell=True)
-            utilities.set_ownership_of_file('/var/run/dynamite')
+
+        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
         try:
             self.pid = int(open('/var/run/dynamite/logstash/logstash.pid').read()) + 1
         except (IOError, ValueError):
