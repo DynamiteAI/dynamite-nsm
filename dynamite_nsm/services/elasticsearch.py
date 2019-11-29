@@ -384,7 +384,8 @@ class ElasticInstaller:
         :param: password: The password used for authentication across all builtin users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/f/)
+        :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
+        :param stdout: Print output to console
         """
 
         self.host = host
@@ -394,6 +395,8 @@ class ElasticInstaller:
         self.install_directory = install_directory
         self.log_directory = log_directory
         self.stdout = stdout
+        self.download_elasticsearch(stdout=stdout)
+        self.extract_elasticsearch(stdout=stdout)
 
     def _create_elasticsearch_directories(self):
         if self.stdout:
@@ -874,9 +877,7 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
             utilities.setup_java()
         if create_dynamite_user:
             utilities.create_dynamite_user(utilities.generate_random_password(50))
-        es_installer.download_elasticsearch(stdout=True)
-        es_installer.extract_elasticsearch(stdout=True)
-        es_installer.setup_elasticsearch(stdout=True)
+        es_installer.setup_elasticsearch()
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to install ElasticSearch: ')
         traceback.print_exc(file=sys.stderr)
