@@ -521,6 +521,28 @@ def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200
     return DynamiteLabProfiler(stderr=True).is_installed
 
 
+def prompt_password_change_options():
+    """
+    Provide the user with a choice between changing the jupyter user password (logging into jupyterhub)
+    or changing the password that the SDK uses to connect to ElasticSearch.
+
+    :return: True, if successfully changed
+
+    """
+    resp = utilities.prompt_input(
+        '1. Change the password the SDK uses to connect to Elasticsearch.\n'
+        '2. Change the password for logging into Jupyterhub (jupyter user).\n\n'
+        'Select an option [1, 2]: ')
+    while str(resp) not in ['', '1', '2']:
+        resp = utilities.prompt_input('Select an option [1, 2]: ')
+    if str(resp) == '1':
+        return change_sdk_elasticsearch_password(utilities.prompt_password('Enter the new Elasticsearch password: '),
+                                          prompt_user=False)
+    else:
+        pty.spawn(['passwd', 'jupyter'])
+    return True
+
+
 def uninstall_dynamite_lab(stdout=False, prompt_user=True):
     """
     Uninstall DynamiteLab
@@ -567,19 +589,4 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall DynamiteLab: ')
         traceback.print_exc(file=sys.stderr)
         return False
-    return True
-
-
-def prompt_password_change_options():
-    resp = utilities.prompt_input(
-        '1. Change the password the SDK uses to connect to Elasticsearch.\n'
-        '2. Change the password for logging into Jupyterhub (jupyter user).\n\n'
-        'Select an option [1, 2]: ')
-    while str(resp) not in ['', '1', '2']:
-        resp = utilities.prompt_input('Select an option [1, 2]: ')
-    if str(resp) == '1':
-        return change_sdk_elasticsearch_password(utilities.prompt_password('Enter the new Elasticsearch password: '),
-                                          prompt_user=False)
-    else:
-        pty.spawn(['passwd', 'jupyter'])
     return True
