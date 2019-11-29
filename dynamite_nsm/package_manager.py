@@ -15,9 +15,10 @@ class OSPackageManager:
         Detect the POSIX package manager currently being used
         :return: The package manager command
         """
-        apt_get_p = subprocess.Popen('apt-get -h &> /dev/null', shell=True)
+        apt_get_p = subprocess.Popen('apt-get -h &> /dev/null', shell=True,
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         apt_get_p.communicate()
-        yum_p = subprocess.Popen('yum -h &> /dev/null', shell=True)
+        yum_p = subprocess.Popen('yum -h &> /dev/null', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         yum_p.communicate()
         if apt_get_p.returncode == 0:
             return 'apt-get'
@@ -36,7 +37,7 @@ class OSPackageManager:
         if not self.package_manager:
             return False
         p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
-                             shell=True)
+                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
         return p.returncode == 0
 
@@ -51,6 +52,7 @@ class OSPackageManager:
             params = 'check-update'
         if not self.package_manager:
             return False
-        p = subprocess.Popen('{} {} &> /dev/null'.format(self.package_manager, params), shell=True)
+        p = subprocess.Popen('{} {} &> /dev/null'.format(self.package_manager, params), shell=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
         return p.returncode == 0 or p.returncode == 100

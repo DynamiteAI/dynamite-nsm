@@ -23,6 +23,9 @@ def install_monitor(elasticsearch_password='changeme'):
     es_pre_profiler = elasticsearch.ElasticProfiler()
     ls_pre_profiler = logstash.LogstashProfiler()
     kb_pre_profiler = kibana.KibanaProfiler()
+    if ls_pre_profiler.is_installed and es_pre_profiler.is_installed and kb_pre_profiler.is_installed:
+        sys.stderr.write('[-] Monitor is already installed. If you wish to re-install, first uninstall.\n')
+        return False
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
         es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',

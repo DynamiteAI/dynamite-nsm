@@ -26,6 +26,10 @@ def install_agent(network_interface, agent_label, logstash_target):
     filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_profiler = filebeat.FileBeatProfiler()
 
+    if zeek_profiler.is_installed and suricata_profiler.is_installed and filebeat_profiler.is_installed:
+        sys.stderr.write('[-] Agent is already installed. If you wish to re-install, first uninstall.\n')
+        return False
+
     # === Check running processes/prerequisites
     if not is_agent_environment_prepared():
         sys.stderr.write('[-] The environment must first be prepared prior to agent installation. \n')
