@@ -482,6 +482,14 @@ class JupyterHubProcess:
 
 
 def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):
+    """
+    Change the DynamiteSDK to ElasticSearch password
+
+    :param password: The password that the SDK will use to connect to ElasticSearch
+    :param prompt_user: Whether or not to warn the user
+    :param stdout: Print output to console
+    :return: True if changed successfully
+    """
     environment_variables = utilities.get_environment_file_dict()
     configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
     if prompt_user:
@@ -527,7 +535,6 @@ def prompt_password_change_options():
     or changing the password that the SDK uses to connect to ElasticSearch.
 
     :return: True, if successfully changed
-
     """
     resp = utilities.prompt_input(
         '1. Change the password the SDK uses to connect to Elasticsearch.\n'
