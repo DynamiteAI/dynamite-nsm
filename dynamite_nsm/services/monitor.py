@@ -7,6 +7,8 @@ def install_monitor(elasticsearch_password='changeme', verbose=False):
     """
     Installs Logstash (with ElastiFlow templates modified to work with Zeek), ElasticSearch, and Kibana.
 
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
+    :param verbose: Include output from system utilities
     :return: True, if installation succeeded
     """
     es_pre_profiler = elasticsearch.ElasticProfiler()

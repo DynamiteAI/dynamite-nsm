@@ -234,10 +234,10 @@ if __name__ == '__main__':
             if dynamite_lab.install_dynamite_lab(elasticsearch_host=args.es_host,
                                                  elasticsearch_port=args.es_port,
                                                  elasticsearch_password=password,
-                                                 jupyterhub_password=password, stdout=True):
+                                                 jupyterhub_password=password, stdout=True, verbose=args.debug):
                 sys.stdout.write('\n[+] Once started DynamiteLab will be accessible at: ')
-                sys.stdout.write('\n\tHOST: http://{}:{}\n'.format('0.0.0.0', 8000))
-                sys.stdout.write('\n\tUSER: jupyter\n')
+                sys.stdout.write('\n\tHOST: http://{}:{}'.format('0.0.0.0', 8000))
+                sys.stdout.write('\n\tUSER: jupyter')
                 sys.stdout.write('\n\tPASSWORD: {}\n'.format(password))
                 sys.stdout.flush()
                 sys.exit(0)
@@ -280,9 +280,9 @@ if __name__ == '__main__':
                     env_variables = environment_variables = utilities.get_environment_file_dict()
                     kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
                     sys.stdout.write('\n[+] Once started Kibana will be accessible at: ')
-                    sys.stdout.write('\n\tHOST: http://{}:{}\n'.format(kb_config.get_server_host(),
+                    sys.stdout.write('\n\tHOST: http://{}:{}'.format(kb_config.get_server_host(),
                                                                       kb_config.get_server_port()))
-                    sys.stdout.write('\n\tUSER: elastic\n')
+                    sys.stdout.write('\n\tUSER: elastic')
                     sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.get_elasticsearch_password()))
                     sys.stdout.flush()
                     sys.exit(0)
@@ -307,7 +307,7 @@ if __name__ == '__main__':
 
         elif args.component == 'agent':
             installed = agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
-                                logstash_target='{}:{}'.format(args.ls_host, args.ls_port))
+                                logstash_target='{}:{}'.format(args.ls_host, args.ls_port), verbose=args.debug)
             if installed:
                 try:
                     zeek_node_config_gui.ZeekNodeConfiguratorApp().run()

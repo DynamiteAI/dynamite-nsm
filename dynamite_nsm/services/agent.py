@@ -12,7 +12,7 @@ def is_agent_environment_prepared():
     return os.path.exists('/opt/dynamite/.agent_environment_prepared')
 
 
-def install_agent(network_interface, agent_label, logstash_target):
+def install_agent(network_interface, agent_label, logstash_target, verbose=False):
     """
     :param network_interface: The network interface that the agent should analyze traffic on
     :param agent_label: A descriptive label representing the
@@ -21,7 +21,8 @@ def install_agent(network_interface, agent_label, logstash_target):
     :return: True, if install succeeded
     """
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
-    zeek_installer = zeek.ZeekInstaller(download_zeek_archive=not zeek_profiler.is_downloaded, stdout=True)
+    zeek_installer = zeek.ZeekInstaller(download_zeek_archive=not zeek_profiler.is_downloaded, stdout=True,
+                                        verbose=verbose)
     suricata_profiler = suricata.SuricataProfiler()
     filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_profiler = filebeat.FileBeatProfiler()
@@ -61,12 +62,8 @@ def install_agent(network_interface, agent_label, logstash_target):
 
     # === Install Zeek ===
     if not zeek_profiler.is_installed:
-        if not zeek_installer.install_dependencies():
-            sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
-            return False
-        zeek_installer.setup_zeek(network_interface=network_interface, stdout=True)
+        zeek_installer.setup_zeek(network_interface=network_interface)
         zeek_installer.setup_dynamite_zeek_scripts()
-
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
 

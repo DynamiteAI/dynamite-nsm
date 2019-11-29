@@ -331,7 +331,8 @@ class ZeekInstaller:
 
     def __init__(self,
                  configuration_directory=CONFIGURATION_DIRECTORY,
-                 install_directory=INSTALL_DIRECTORY, download_zeek_archive=True, stdout=False):
+                 install_directory=INSTALL_DIRECTORY, download_zeek_archive=True, stdout=False,
+                 verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
@@ -342,10 +343,11 @@ class ZeekInstaller:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.stdout = stdout
+        self.verbose = verbose
         if download_zeek_archive:
             self.download_zeek(stdout=stdout)
             self.extract_zeek(stdout=stdout)
-        if not self.install_dependencies():
+        if not self.install_dependencies(verbose=verbose):
             raise Exception('Could not install Zeek dependencies.')
 
     @staticmethod
@@ -377,13 +379,13 @@ class ZeekInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     @staticmethod
-    def install_dependencies():
+    def install_dependencies(verbose=False):
         """
         Install the required dependencies required by Zeek
 
         :return: True, if all packages installed successfully
         """
-        pacman = package_manager.OSPackageManager()
+        pacman = package_manager.OSPackageManager(verbose=verbose)
         if not pacman.refresh_package_indexes():
             return False
         packages = None
@@ -574,7 +576,8 @@ class ZeekProfiler:
         zeek_scripts = env_dict.get('ZEEK_SCRIPTS')
         if not zeek_home:
             if stderr:
-                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not zeek_scripts:
             if stderr:

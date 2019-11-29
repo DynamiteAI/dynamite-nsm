@@ -37,6 +37,9 @@ class DynamiteLabConfigurator:
     }
 
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
+        """
+        :param configuration_directory: The directory that stores the JupyterHub and DynamiteSDK configurations
+        """
         self.configuration_directory = configuration_directory
         self.elasticsearch_url = None
         self.elasticsearch_user = None
@@ -47,7 +50,7 @@ class DynamiteLabConfigurator:
 
     def _parse_lab_config(self):
         """
-        :return: A dictionary representing the configurations storred within node.cfg
+        :return: A dictionary representing the configurations stored within node.cfg
         """
         config_parser = ConfigParser()
         config_parser.readfp(open(os.path.join(self.configuration_directory, 'config.cfg')))
@@ -58,6 +61,9 @@ class DynamiteLabConfigurator:
         return config_parser
 
     def write_config(self):
+        """
+        Write the DynamiteSDK config file
+        """
         for k, v in vars(self).items():
             if k not in self.tokens.keys():
                 continue
@@ -80,7 +86,8 @@ class DynamiteLabInstaller:
                  jupyterhub_password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  notebook_home=NOTEBOOK_HOME,
-                 stdout=False):
+                 stdout=False,
+                 verbose=False):
         """
         :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
         :param elasticsearch_port: A port number for the target elasticsearch instance
@@ -89,6 +96,7 @@ class DynamiteLabInstaller:
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/dynamite_sdk/)
         :param notebook_home: The path where Jupyter notebooks are stored
         :param stdout: Print output to console
+        :param verbose: Include output from system utilities
         """
 
         self.elasticsearch_host = elasticsearch_host
@@ -99,7 +107,7 @@ class DynamiteLabInstaller:
         self.notebook_home = notebook_home
         self.download_dynamite_sdk(stdout=stdout)
         self.extract_dynamite_sdk(stdout=stdout)
-        if not self.install_jupyterhub_dependencies(stdout=stdout):
+        if not self.install_jupyterhub_dependencies(stdout=stdout, verbose=verbose):
             raise Exception("Could not install jupyterhub dependencies.")
         if not self.install_jupyterhub(stdout=stdout):
             raise Exception("Could not install jupyterhub.")
@@ -108,6 +116,7 @@ class DynamiteLabInstaller:
             sys.stdout.flush()
         utilities.create_jupyter_user(password=self.jupyterhub_password)
         self.stdout = stdout
+        self.verbose = verbose
 
         if not elasticsearch_host:
             if ElasticProfiler().is_installed:
@@ -169,13 +178,15 @@ class DynamiteLabInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     @staticmethod
-    def install_jupyterhub_dependencies(stdout=False):
+    def install_jupyterhub_dependencies(stdout=False, verbose=False):
         """
         Install the required dependencies required by Jupyterhub
 
+        :param stdout: Print output to console
+        :param verbose: Include output from system utilities
         :return: True, if all packages installed successfully
         """
-        pacman = package_manager.OSPackageManager()
+        pacman = package_manager.OSPackageManager(verbose=verbose)
         if not pacman.refresh_package_indexes():
             return False
         packages = None
@@ -490,7 +501,7 @@ def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, std
 
 
 def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
-                         jupyterhub_password='changeme', stdout=True):
+                         jupyterhub_password='changeme', stdout=True, verbose=False):
     """
     Install the DynamiteLab environment
 
@@ -499,11 +510,12 @@ def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200
     :param elasticsearch_password: The password used for authentication across all builtin ES users
     :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
     :param stdout: Print output to console
+    :param verbose: Include output from system utilities
     :return: True, if installation was successful
     """
 
     dynamite_lab_installer = DynamiteLabInstaller(elasticsearch_host, elasticsearch_port, elasticsearch_password,
-                                                  jupyterhub_password, stdout=stdout)
+                                                  jupyterhub_password, stdout=stdout, verbose=verbose)
     dynamite_lab_installer.setup_dynamite_sdk()
     dynamite_lab_installer.setup_jupyterhub()
     return DynamiteLabProfiler(stderr=True).is_installed
