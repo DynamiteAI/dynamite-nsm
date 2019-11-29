@@ -259,7 +259,7 @@ class DynamiteLabInstaller:
         utilities.copytree(os.path.join(sdk_install_cache, 'notebooks'), self.notebook_home)
         shutil.copy(os.path.join(sdk_install_cache, 'dynamite_sdk', 'config.cfg.example'),
                            os.path.join(self.configuration_directory, 'config.cfg'))
-        utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='dynamite')
+        utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='jupyter')
         p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
         p.communicate()
         dynamite_sdk_config = DynamiteLabConfigurator(configuration_directory=self.configuration_directory)
