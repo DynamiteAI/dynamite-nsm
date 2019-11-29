@@ -26,7 +26,7 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
     suricata_profiler = suricata.SuricataProfiler()
     filebeat_profiler = filebeat.FileBeatProfiler()
     filebeat_installer = filebeat.FileBeatInstaller(download_filebeat_archive=not filebeat_profiler.is_downloaded,
-                                                    stdout=True, verbose=verbose)
+                                                    stdout=True)
 
     if zeek_profiler.is_installed and suricata_profiler.is_installed and filebeat_profiler.is_installed:
         sys.stderr.write('[-] Agent is already installed. If you wish to re-install, first uninstall.\n')
