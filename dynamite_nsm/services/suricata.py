@@ -433,7 +433,6 @@ class SuricataInstaller:
 
         :param stdout: Print output to console
         :param network_interface: The interface to listen on
-        :return: True, if setup successful
         """
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
@@ -441,7 +440,7 @@ class SuricataInstaller:
             sys.stderr.write(
                 '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
                     network_interface, utilities.get_network_interface_names()))
-            return False
+            raise Exception('Invalid network interface {}'.format(network_interface))
         self._copy_suricata_files_and_directories(stdout=stdout)
         pf_ring_install = pf_ring.PFRingInstaller()
         if not pf_ring.PFRingProfiler().is_installed:
@@ -457,13 +456,13 @@ class SuricataInstaller:
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpcap.so.1 -> /lib/libpcap.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
+                raise Exception('An error occurred while linking libpcap.so.1 - {}'.format(e))
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib/libpfring.so.1')
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpfring.so -> /lib/libpfring.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
+                raise Exception('An error occurred while linking libpfring.so - {}'.format(e))
         # CentOS linker libraries
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so.1'),
@@ -471,14 +470,14 @@ class SuricataInstaller:
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpcap.so.1 -> /usr/local/lib/libpcap.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
+                raise Exception('An error occurred while linking libpcap.so.1 - {}'.format(e))
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'),
                        '/usr/local/lib/libpfring.so.1')
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpfring.so -> /usr/local/lib/libpfring.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
+                raise Exception('An error occurred while linking libpfring.so - {}'.format(e))
         time.sleep(5)
         suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
         if not suricata_compiled:
@@ -495,9 +494,7 @@ class SuricataInstaller:
                     self.configuration_directory))
             subprocess.call('echo SURICATA_CONFIG="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
                             shell=True)
-        suricata_rules_installed = self._setup_suricata_rules(stdout=stdout)
-        if not suricata_rules_installed:
-            return False
+        self._setup_suricata_rules(stdout=stdout)
         config = SuricataConfigurator(self.configuration_directory)
         config.af_packet_interfaces = []
         config.add_afpacket_interface(network_interface, threads='auto', cluster_id=99)
@@ -518,8 +515,6 @@ class SuricataInstaller:
         config.disable_rule('emerging-tftp.rules')
         config.disable_rule('emerging-voip.rules')
         config.write_config()
-
-        return True
 
 
 class SuricataProfiler:

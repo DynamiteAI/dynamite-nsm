@@ -66,7 +66,7 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
             zeek_installer.setup_zeek(network_interface=network_interface)
             zeek_installer.setup_dynamite_zeek_scripts()
         except Exception as e:
-            sys.stderr.write('[-] An error occurred while trying to install Zeek - {}'.format(e))
+            sys.stderr.write('[-] An error occurred while trying to install Zeek - {}\n'.format(e))
             return False
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
