@@ -24,8 +24,9 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
     zeek_installer = zeek.ZeekInstaller(download_zeek_archive=not zeek_profiler.is_downloaded, stdout=True,
                                         verbose=verbose)
     suricata_profiler = suricata.SuricataProfiler()
-    filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_profiler = filebeat.FileBeatProfiler()
+    filebeat_installer = filebeat.FileBeatInstaller(download_filebeat_archive=not filebeat_profiler.is_downloaded,
+                                                    stdout=True, verbose=verbose)
 
     if zeek_profiler.is_installed and suricata_profiler.is_installed and filebeat_profiler.is_installed:
         sys.stderr.write('[-] Agent is already installed. If you wish to re-install, first uninstall.\n')
@@ -66,19 +67,13 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
     else:
         sys.stdout.write('[+] Zeek has already been installed on this system. Skipping Zeek Installation.\n')
 
-    # === Install Filebeat ===
-    if not filebeat_profiler.is_downloaded:
-        filebeat_installer.download_filebeat(stdout=True)
-        filebeat_installer.extract_filebeat(stdout=True)
-    else:
-        sys.stdout.write('[+] FileBeat has already been downloaded to local cache. Skipping FileBeat Download.\n')
     if not filebeat_profiler.is_installed:
         environment_variables = utilities.get_environment_file_dict()
         monitored_paths = [os.path.join(environment_variables.get('ZEEK_HOME'), 'logs/current/*.log')]
         suricata_config = suricata.SuricataConfigurator(configuration_directory=
                                                         environment_variables.get('SURICATA_CONFIG'))
         monitored_paths.append(os.path.join(suricata_config.default_log_directory, 'eve.json'))
-        filebeat_installer.setup_filebeat(stdout=True)
+        filebeat_installer.setup_filebeat()
         filebeat_config = filebeat.FileBeatConfigurator()
         filebeat_config.set_logstash_targets([logstash_target])
         filebeat_config.set_monitor_target_paths(monitored_paths)

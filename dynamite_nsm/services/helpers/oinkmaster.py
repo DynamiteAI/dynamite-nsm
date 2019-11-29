@@ -23,6 +23,7 @@ class OinkmasterInstaller:
                  stdout=True, verbose=False):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/oinkmaster/)
+        :param download_oinkmaster_archive: If True, download the Oinkmaster archive from a mirror
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
         """
