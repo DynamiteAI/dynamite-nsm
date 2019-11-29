@@ -368,6 +368,9 @@ class SuricataInstaller:
         if self.stdout:
             sys.stdout.write('[+] Installing Oinkmaster.\n')
         oink_installer = oinkmaster.OinkmasterInstaller(
+            download_oinkmaster_archive=True,
+            stdout=self.stdout,
+            verbose=self.verbose,
             install_directory=os.path.join(self.install_directory, 'oinkmaster')
         )
         try:
@@ -381,7 +384,7 @@ class SuricataInstaller:
             sys.stderr.write('[-] Unable to extract Oinkmaster: {}'.format(e))
             return False
         try:
-            oink_install_res = oink_installer.setup_oinkmaster(stdout=stdout)
+            oink_install_res = oink_installer.setup_oinkmaster()
         except Exception as e:
             sys.stderr.write('[-] Unable to setup Oinkmaster: {}'.format(e))
             return False
@@ -446,7 +449,6 @@ class SuricataInstaller:
         """
         Setup Suricata IDS with PF_RING support
 
-        :param stdout: Print output to console
         :param network_interface: The interface to listen on
         """
         if not network_interface:
@@ -493,8 +495,8 @@ class SuricataInstaller:
             sys.stderr.write('[-] Failed to re-link libpfring.so -> /usr/local/lib/libpfring.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
                 raise Exception('An error occurred while linking libpfring.so - {}'.format(e))
-        time.sleep(5)
-        suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
+        time.sleep(2)
+        suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install)
         if not suricata_compiled:
             return False
         if 'SURICATA_HOME' not in open('/etc/dynamite/environment').read():

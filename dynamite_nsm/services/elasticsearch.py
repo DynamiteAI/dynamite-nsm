@@ -698,7 +698,8 @@ class ElasticProfiler:
         es_path_conf = env_dict.get('ES_PATH_CONF')
         if not es_path_conf:
             if stderr:
-                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
             if stderr:
