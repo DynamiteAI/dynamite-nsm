@@ -489,7 +489,7 @@ class ZeekInstaller:
             sys.stderr.write(
                 '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
                     network_interface, utilities.get_network_interface_names()))
-            return False
+            raise Exception('Invalid network interface {}'.format(network_interface))
         if self.stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
