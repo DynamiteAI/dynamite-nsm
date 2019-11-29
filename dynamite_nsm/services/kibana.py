@@ -452,6 +452,9 @@ class KibanaProfiler:
             if stderr:
                 sys.stderr.write('[-] Could not locate Kibana binary in {}/bin/\n'.format(kibana_home))
             return False
+        if not utilities.check_user_exists('dynamite'):
+            sys.stderr.write('[-] dynamite user was not created.\n')
+            return False
         return True
 
     @staticmethod
@@ -460,7 +463,8 @@ class KibanaProfiler:
         kibana_path_conf = env_dict.get('KIBANA_PATH_CONF')
         if not kibana_path_conf:
             if stderr:
-                sys.stderr.write('[-] Kibana configuration directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] Kibana configuration directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(kibana_path_conf, 'kibana.yml')):
             if stderr:

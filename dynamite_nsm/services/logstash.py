@@ -500,6 +500,9 @@ class LogstashProfiler:
             if stderr:
                 sys.stderr.write('[-] Could not locate LogStash binary in {}/bin/\n'.format(ls_home))
             return False
+        if not utilities.check_user_exists('dynamite'):
+            sys.stderr.write('[-] dynamite user was not created.\n')
+            return False
         return True
 
     @staticmethod

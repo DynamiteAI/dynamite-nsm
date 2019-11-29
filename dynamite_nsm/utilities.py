@@ -70,6 +70,18 @@ def check_socket(host, port):
             return False
 
 
+def check_user_exists(username):
+    """
+    :param username: The username of the user to check
+    :return: True if the user exists
+    """
+    try:
+        pwd.getpwnam(username)
+        return True
+    except KeyError:
+        return False
+
+
 def create_dynamite_environment_file():
     env_file = open('/etc/dynamite/environment', 'a')
     env_file.write('')

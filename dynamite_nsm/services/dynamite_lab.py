@@ -308,11 +308,17 @@ class DynamiteLabProfiler:
         try:
             p = subprocess.Popen('jupyterhub --version', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             p.communicate()
-            return p.returncode == 0
+            if p.returncode != 0:
+                sys.stderr.write('[-] Jupyterhub is not installed.\n')
+                return False
+            if not utilities.check_user_exists('jupyter'):
+                sys.stderr.write('[-] jupyter user was not created.\n')
+                return False
         except OSError:
             if stderr:
                 sys.stderr.write('[-] Could not locate JupyterHub in $PATH.')
             return False
+        return True
 
     @staticmethod
     def _is_configured(stderr=False):
