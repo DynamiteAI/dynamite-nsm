@@ -765,10 +765,11 @@ def install_logstash(host='0.0.0.0',
         sys.stderr.write('[-] LogStash is already installed. If you wish to re-install, first uninstall.\n')
         return False
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
-        sys.stderr.write('[-] Dynamite Logstash requires at-least 6GB to run currently available [{} GB]\n'.format(
-            utilities.get_memory_available_bytes()/(1000 ** 3)
+        sys.stderr.write('[-] WARNING! Dynamite Logstash should have at-least 6GB to run '
+                         'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes()/(1000 ** 3)
         ))
-        return False
+        if str(utilities.prompt_input('Continue? [y|N]: ')).lower() != 'y':
+            return False
     try:
         ls_installer = LogstashInstaller(host=host,
                                          elasticsearch_host=elasticsearch_host,

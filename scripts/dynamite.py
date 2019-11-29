@@ -280,7 +280,7 @@ if __name__ == '__main__':
                     env_variables = environment_variables = utilities.get_environment_file_dict()
                     kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
                     sys.stdout.write('\n[+] Once started Kibana will be accessible at: ')
-                    sys.stdout.write('\n\tHOST: http://{}{}\n'.format(kb_config.get_server_host(),
+                    sys.stdout.write('\n\tHOST: http://{}:{}\n'.format(kb_config.get_server_host(),
                                                                       kb_config.get_server_port()))
                     sys.stdout.write('\n\tUSER: elastic\n')
                     sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.get_elasticsearch_password()))

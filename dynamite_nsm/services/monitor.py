@@ -10,11 +10,12 @@ def install_monitor(elasticsearch_password='changeme'):
     :return: True, if installation succeeded
     """
     if utilities.get_memory_available_bytes() < 14 * (1000 ** 3):
-        sys.stderr.write('[-] Dynamite standalone monitor requires '
+        sys.stderr.write('[-] WARNING Dynamite standalone monitor requires '
                          'at-least 14GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes() / (1024 ** 3)
         ))
-        return False
+        if str(utilities.prompt_input('Continue? [y|N]: ')).lower() != 'y':
+            return False
     utilities.create_dynamite_user(utilities.generate_random_password(50))
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
