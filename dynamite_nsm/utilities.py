@@ -100,7 +100,7 @@ def create_jupyter_user(password):
     :param password: The password for the user
     """
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
-    subprocess.call('groupadd dynamite; useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
+    subprocess.call('useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
                     shell=True)
 
 
