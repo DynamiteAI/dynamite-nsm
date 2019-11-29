@@ -47,15 +47,10 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
         return False
 
     # === Install Suricata ===
-    suricata_installer = suricata.SuricataInstaller()
-    if not suricata_profiler.is_downloaded:
-        suricata_installer.download_suricata(stdout=True)
-        suricata_installer.extract_suricata(stdout=True)
-    else:
-        sys.stdout.write('[+] Suricata has already been downloaded to local cache. Skipping Suricata Download.\n')
+    suricata_installer = suricata.SuricataInstaller(stdout=True, verbose=verbose,
+                                                    download_suricata_archive=not suricata_profiler.is_downloaded)
     if not suricata_profiler.is_installed:
-        suricata_installer.install_dependencies()
-        suricata_installer.setup_suricata(network_interface=network_interface, stdout=True)
+        suricata_installer.setup_suricata(network_interface=network_interface)
     else:
         sys.stdout.write('[+] Suricata has already been installed on this system. '
                          'Skipping Suricata Installation.\n')

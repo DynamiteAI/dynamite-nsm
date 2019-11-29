@@ -208,7 +208,7 @@ class KibanaInstaller:
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY,
                  download_kibana_archive=True,
-                 stdout=False,
+                 stdout=True,
                  verbose=False):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")

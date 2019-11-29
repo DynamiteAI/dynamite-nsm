@@ -857,7 +857,7 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=Fals
     return es_pw_config.set_all_passwords(password, stdout=stdout)
 
 
-def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False,
+def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=True,
                           verbose=False):
     """
     Install ElasticSearch

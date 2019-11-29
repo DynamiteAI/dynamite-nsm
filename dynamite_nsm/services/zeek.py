@@ -331,13 +331,14 @@ class ZeekInstaller:
 
     def __init__(self,
                  configuration_directory=CONFIGURATION_DIRECTORY,
-                 install_directory=INSTALL_DIRECTORY, download_zeek_archive=True, stdout=False,
+                 install_directory=INSTALL_DIRECTORY, download_zeek_archive=True, stdout=True,
                  verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
         :param download_zeek_archive: If True, download the Zeek archive from a mirror
         :param stdout: Print the output to console
+        :param verbose: Include output from system utilities
         """
 
         self.configuration_directory = configuration_directory
