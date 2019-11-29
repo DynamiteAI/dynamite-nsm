@@ -416,9 +416,8 @@ class LogstashInstaller:
     def setup_logstash(self):
         """
         Create required directories, files, and variables to run LogStash successfully;
-
-        :param stdout: Print output to console
         """
+
         self._create_logstash_directories()
         self._copy_logstash_files_and_directories()
         self._create_logstash_environment_variables()
@@ -774,10 +773,11 @@ def install_logstash(host='0.0.0.0',
         ls_installer = LogstashInstaller(host=host,
                                          elasticsearch_host=elasticsearch_host,
                                          elasticsearch_port=elasticsearch_port,
-                                         elasticsearch_password=elasticsearch_password)
+                                         elasticsearch_password=elasticsearch_password,
+                                         stdout=stdout)
         if install_jdk:
-            utilities.download_java(stdout=True)
-            utilities.extract_java(stdout=True)
+            utilities.download_java(stdout=stdout)
+            utilities.extract_java(stdout=stdout)
             utilities.setup_java()
         if create_dynamite_user:
             utilities.create_dynamite_user(utilities.generate_random_password(50))

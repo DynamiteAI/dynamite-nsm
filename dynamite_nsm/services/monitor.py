@@ -21,11 +21,6 @@ def install_monitor(elasticsearch_password='changeme'):
     utilities.setup_java()
     es_pre_profiler = elasticsearch.ElasticProfiler()
     ls_pre_profiler = logstash.LogstashProfiler()
-    kb_installer = kibana.KibanaInstaller(host='0.0.0.0',
-                                          port=5601,
-                                          elasticsearch_host='localhost',
-                                          elasticsearch_port=9200,
-                                          elasticsearch_password=elasticsearch_password)
     kb_pre_profiler = kibana.KibanaProfiler()
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
@@ -49,10 +44,16 @@ def install_monitor(elasticsearch_password='changeme'):
             return False
     if not kb_pre_profiler.is_installed and elasticsearch.ElasticProfiler().is_installed:
         sys.stdout.write('[+] Installing Kibana on localhost.\n')
+        kb_installer = kibana.KibanaInstaller(host='0.0.0.0',
+                                              port=5601,
+                                              elasticsearch_host='localhost',
+                                              elasticsearch_port=9200,
+                                              elasticsearch_password=elasticsearch_password,
+                                              stdout=True)
         if not kb_pre_profiler.is_downloaded:
             kb_installer.download_kibana(stdout=True)
             kb_installer.extract_kibana(stdout=True)
-        kb_installer.setup_kibana(stdout=True)
+        kb_installer.setup_kibana()
         if not kibana.KibanaProfiler().is_installed:
             sys.stderr.write('[-] Kibana failed to install on localhost.\n')
             return False

@@ -870,10 +870,10 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
         ))
         return False
     try:
-        es_installer = ElasticInstaller(password=password)
+        es_installer = ElasticInstaller(password=password, stdout=stdout)
         if install_jdk:
-            utilities.download_java(stdout=True)
-            utilities.extract_java(stdout=True)
+            utilities.download_java(stdout=stdout)
+            utilities.extract_java(stdout=stdout)
             utilities.setup_java()
         if create_dynamite_user:
             utilities.create_dynamite_user(utilities.generate_random_password(50))

@@ -693,7 +693,7 @@ if __name__ == '__main__':
     elif args.command == 'profile':
         if args.component in ['dynamite-lab', 'lab']:
             try:
-                sys.stdout.write('[+] Profiling ElasticSearch.\n')
+                sys.stdout.write('[+] Profiling DynamiteLab.\n')
                 profile_result = dynamite_lab.DynamiteLabProfiler(stderr=True)
                 sys.stdout.write('[+]   DYNAMITELAB.INSTALLED: {}\n'.format(profile_result.is_installed))
                 sys.stdout.write('[+]  DYNAMITELAB.CONFIGURED: {}\n'.format(profile_result.is_configured))
