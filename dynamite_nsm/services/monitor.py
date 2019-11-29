@@ -9,6 +9,12 @@ def install_monitor(elasticsearch_password='changeme'):
 
     :return: True, if installation succeeded
     """
+    es_pre_profiler = elasticsearch.ElasticProfiler()
+    ls_pre_profiler = logstash.LogstashProfiler()
+    kb_pre_profiler = kibana.KibanaProfiler()
+    if ls_pre_profiler.is_installed and es_pre_profiler.is_installed and kb_pre_profiler.is_installed:
+        sys.stderr.write('[-] Monitor is already installed. If you wish to re-install, first uninstall.\n')
+        return False
     if utilities.get_memory_available_bytes() < 14 * (1000 ** 3):
         sys.stderr.write('[-] WARNING Dynamite standalone monitor requires '
                          'at-least 14GB to run currently available [{} GB]\n'.format(
@@ -20,12 +26,6 @@ def install_monitor(elasticsearch_password='changeme'):
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
     utilities.setup_java()
-    es_pre_profiler = elasticsearch.ElasticProfiler()
-    ls_pre_profiler = logstash.LogstashProfiler()
-    kb_pre_profiler = kibana.KibanaProfiler()
-    if ls_pre_profiler.is_installed and es_pre_profiler.is_installed and kb_pre_profiler.is_installed:
-        sys.stderr.write('[-] Monitor is already installed. If you wish to re-install, first uninstall.\n')
-        return False
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
         es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
