@@ -247,7 +247,7 @@ if __name__ == '__main__':
         elif args.component == 'elasticsearch':
             if elasticsearch.install_elasticsearch(
                 password=utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: '),
-                                                   stdout=True, create_dynamite_user=True, install_jdk=True):
+                    stdout=True, create_dynamite_user=True, install_jdk=True):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to install ElasticSearch.\n')

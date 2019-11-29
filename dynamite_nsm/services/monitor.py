@@ -19,12 +19,7 @@ def install_monitor(elasticsearch_password='changeme'):
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
     utilities.setup_java()
-    es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
-                                                  port=9200,
-                                                  password=elasticsearch_password)
     es_pre_profiler = elasticsearch.ElasticProfiler()
-    ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
-                                              elasticsearch_password=elasticsearch_password)
     ls_pre_profiler = logstash.LogstashProfiler()
     kb_installer = kibana.KibanaInstaller(host='0.0.0.0',
                                           port=5601,
@@ -34,10 +29,10 @@ def install_monitor(elasticsearch_password='changeme'):
     kb_pre_profiler = kibana.KibanaProfiler()
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
-        if not es_pre_profiler.is_downloaded:
-            es_installer.download_elasticsearch(stdout=True)
-            es_installer.extract_elasticsearch(stdout=True)
-        es_installer.setup_elasticsearch(stdout=True)
+        es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
+                                                      port=9200,
+                                                      password=elasticsearch_password)
+        es_installer.setup_elasticsearch()
         if not elasticsearch.ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch failed to install on localhost.\n')
             return False
@@ -45,10 +40,10 @@ def install_monitor(elasticsearch_password='changeme'):
     es_process = elasticsearch.ElasticProcess()
     es_process.start()
     if not ls_pre_profiler.is_installed:
-        if not ls_pre_profiler.is_downloaded:
-            ls_installer.download_logstash(stdout=True)
-            ls_installer.extract_logstash(stdout=True)
-        ls_installer.setup_logstash(stdout=True)
+        ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
+                                                  elasticsearch_password=elasticsearch_password,
+                                                  stdout=True)
+        ls_installer.setup_logstash()
         if not logstash.LogstashProfiler().is_installed:
             sys.stderr.write('[-] LogStash failed to install on localhost.\n')
             return False
