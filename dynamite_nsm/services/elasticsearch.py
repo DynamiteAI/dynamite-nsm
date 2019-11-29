@@ -378,7 +378,9 @@ class ElasticInstaller:
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY,
                  download_elasticsearch_archive=True,
-                 stdout=False):
+                 stdout=False,
+                 verbose=False,
+                 ):
         """
         :param: host: The IP address to listen on (E.G "0.0.0.0")
         :param: port: The port that the ES API is bound to (E.G 9200)
@@ -388,6 +390,7 @@ class ElasticInstaller:
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
         :param download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
         :param stdout: Print output to console
+        :param verbose: Include output from system utilities
         """
 
         self.host = host
@@ -397,6 +400,7 @@ class ElasticInstaller:
         self.install_directory = install_directory
         self.log_directory = log_directory
         self.stdout = stdout
+        self.verbose = verbose
         if download_elasticsearch_archive:
             self.download_elasticsearch(stdout=stdout)
             self.extract_elasticsearch(stdout=stdout)
@@ -476,7 +480,7 @@ class ElasticInstaller:
         if self.stdout:
             sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
         utilities.update_user_file_handle_limits()
-        utilities.update_sysctl()
+        utilities.update_sysctl(verbose=self.verbose)
 
     @staticmethod
     def download_elasticsearch(stdout=False):
@@ -853,7 +857,8 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=Fals
     return es_pw_config.set_all_passwords(password, stdout=stdout)
 
 
-def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):
+def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False,
+                          verbose=False):
     """
     Install ElasticSearch
 
@@ -861,6 +866,7 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
+    :param verbose: Include output from system utilities
     :return: True, if installation succeeded
     """
     es_profiler = ElasticProfiler()
@@ -874,7 +880,7 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
         return False
     try:
         es_installer = ElasticInstaller(password=password, download_elasticsearch_archive=not es_profiler.is_downloaded,
-                                        stdout=stdout)
+                                        stdout=stdout, verbose=verbose)
         if install_jdk:
             utilities.download_java(stdout=stdout)
             utilities.extract_java(stdout=stdout)

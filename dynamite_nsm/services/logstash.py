@@ -233,7 +233,8 @@ class LogstashInstaller:
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY,
                  download_logstash_archive=True,
-                 stdout=False):
+                 stdout=False,
+                 verbose=False):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
         :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
@@ -244,6 +245,7 @@ class LogstashInstaller:
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
         :param download_logstash_archive: If True, download the LogStash archive from a mirror
         :param stdout: Print output to console
+        :param verbose: Include output from system utilities
         """
         self.host = host
         if not elasticsearch_host:
@@ -259,6 +261,7 @@ class LogstashInstaller:
         self.elasticsearch_password = elasticsearch_password
         self.log_directory = log_directory
         self.stdout = stdout
+        self.verbose = verbose
         if download_logstash_archive:
             self.download_logstash(stdout=stdout)
             self.extract_logstash(stdout=stdout)
@@ -331,18 +334,39 @@ class LogstashInstaller:
         if self.stdout:
             sys.stdout.write('[+] Installing Logstash plugins\n')
             sys.stdout.flush()
-        subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
-                        shell=True, env=utilities.get_environment_file_dict())
-        subprocess.call('{}/bin/logstash-plugin install logstash-codec-netflow'.format(self.install_directory),
-                        shell=True, env=utilities.get_environment_file_dict())
-        subprocess.call('{}/bin/logstash-plugin install logstash-filter-dns'.format(self.install_directory),
-                        shell=True, env=utilities.get_environment_file_dict())
-        subprocess.call('{}/bin/logstash-plugin install logstash-filter-geoip'.format(self.install_directory),
-                        shell=True, env=utilities.get_environment_file_dict())
-        subprocess.call('{}/bin/logstash-plugin install logstash-filter-translate'.format(self.install_directory),
-                        shell=True, env=utilities.get_environment_file_dict())
-        subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
-                        shell=True, env=utilities.get_environment_file_dict())
+        if self.verbose:
+            subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict())
+            subprocess.call('{}/bin/logstash-plugin install logstash-codec-netflow'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict())
+            subprocess.call('{}/bin/logstash-plugin install logstash-filter-dns'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict())
+
+            subprocess.call('{}/bin/logstash-plugin install logstash-filter-geoip'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict())
+            subprocess.call('{}/bin/logstash-plugin install logstash-filter-translate'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict())
+            subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict())
+        else:
+            subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict(),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.call('{}/bin/logstash-plugin install logstash-codec-netflow'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict(),
+                            stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            subprocess.call('{}/bin/logstash-plugin install logstash-filter-dns'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict(),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.call('{}/bin/logstash-plugin install logstash-filter-geoip'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict(),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.call('{}/bin/logstash-plugin install logstash-filter-translate'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict(),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.call('{}/bin/logstash-plugin install logstash-input-beats'.format(self.install_directory),
+                            shell=True, env=utilities.get_environment_file_dict(),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def _setup_default_logstash_configs(self):
         sys.stdout.write('[+] Overwriting default configuration.\n')
@@ -750,7 +774,9 @@ def install_logstash(host='0.0.0.0',
                      elasticsearch_password='changeme',
                      install_jdk=True,
                      create_dynamite_user=True,
-                     stdout=False):
+                     stdout=False,
+                     verbose=False
+                     ):
     """
     Install Logstash/ElastiFlow
     :param host: The IP address to bind LogStash listeners too
@@ -761,6 +787,7 @@ def install_logstash(host='0.0.0.0',
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
+    :param verbose: Include output from system utilities
     :return: True, if installation succeeded
     """
     ls_profiler = LogstashProfiler()
@@ -779,7 +806,9 @@ def install_logstash(host='0.0.0.0',
                                          elasticsearch_port=elasticsearch_port,
                                          elasticsearch_password=elasticsearch_password,
                                          download_logstash_archive=not ls_profiler.is_downloaded,
-                                         stdout=stdout)
+                                         stdout=stdout,
+                                         verbose=verbose
+                                         )
         if install_jdk:
             utilities.download_java(stdout=stdout)
             utilities.extract_java(stdout=stdout)

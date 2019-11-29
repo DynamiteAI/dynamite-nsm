@@ -3,7 +3,7 @@ from dynamite_nsm import utilities
 from dynamite_nsm.services import elasticsearch, logstash, kibana
 
 
-def install_monitor(elasticsearch_password='changeme'):
+def install_monitor(elasticsearch_password='changeme', verbose=False):
     """
     Installs Logstash (with ElastiFlow templates modified to work with Zeek), ElasticSearch, and Kibana.
 
@@ -31,7 +31,7 @@ def install_monitor(elasticsearch_password='changeme'):
         es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
                                                       port=9200,
                                                       download_elasticsearch_archive=not ls_pre_profiler.is_downloaded,
-                                                      password=elasticsearch_password)
+                                                      password=elasticsearch_password, stdout=True, verbose=verbose)
         es_installer.setup_elasticsearch()
         if not elasticsearch.ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch failed to install on localhost.\n')
@@ -43,7 +43,7 @@ def install_monitor(elasticsearch_password='changeme'):
         ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
                                                   elasticsearch_password=elasticsearch_password,
                                                   download_logstash_archive=not es_pre_profiler.is_downloaded,
-                                                  stdout=True)
+                                                  stdout=True, verbose=verbose)
         ls_installer.setup_logstash()
         if not logstash.LogstashProfiler().is_installed:
             sys.stderr.write('[-] LogStash failed to install on localhost.\n')
@@ -56,7 +56,7 @@ def install_monitor(elasticsearch_password='changeme'):
                                               elasticsearch_port=9200,
                                               elasticsearch_password=elasticsearch_password,
                                               download_kibana_archive=not kb_pre_profiler.is_downloaded,
-                                              stdout=True)
+                                              stdout=True, verbose=verbose)
         if not kb_pre_profiler.is_downloaded:
             kb_installer.download_kibana(stdout=True)
             kb_installer.extract_kibana(stdout=True)

@@ -247,7 +247,7 @@ if __name__ == '__main__':
         elif args.component == 'elasticsearch':
             if elasticsearch.install_elasticsearch(
                 password=utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: '),
-                    stdout=True, create_dynamite_user=True, install_jdk=True):
+                    stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to install ElasticSearch.\n')
@@ -257,7 +257,7 @@ if __name__ == '__main__':
                                          elasticsearch_password=utilities.prompt_password(
                                              'Enter the password used for logging into ElasticSearch: '
                                          ),
-                                         stdout=True, create_dynamite_user=True, install_jdk=True):
+                                         stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to install Logstash.\n')
@@ -268,7 +268,7 @@ if __name__ == '__main__':
                                          elasticsearch_password=utilities.prompt_password(
                                              'Enter the password used for logging into ElasticSearch: '
                                          ),
-                                         stdout=True, create_dynamite_user=True, install_jdk=True):
+                                         stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
                     sys.exit(0)
                 else:
                     sys.stderr.write('[-] Failed to install Kibana.\n')
@@ -292,7 +292,7 @@ if __name__ == '__main__':
         elif args.component == 'monitor':
             installed = monitor.install_monitor(elasticsearch_password=utilities.prompt_password(
                 'Create a password for logging into ElasticSearch: '
-            ))
+            ), verbose=args.debug)
             if installed:
                 env_variables = environment_variables = utilities.get_environment_file_dict()
                 kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])

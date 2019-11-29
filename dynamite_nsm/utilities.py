@@ -334,9 +334,11 @@ def set_permissions_of_file(file_path, unix_permissions_integer):
     subprocess.call('chmod {} {}'.format(unix_permissions_integer, file_path), shell=True)
 
 
-def update_sysctl():
+def update_sysctl(verbose=False):
     """
     Updates the vm.max_map_count and fs.file-max count
+
+    :param verbose: Include output from system utilities
     """
     new_output = ''
     vm_found = False
@@ -356,9 +358,33 @@ def update_sysctl():
         new_output += 'fs.file-max=65535\n'
     with open('/etc/sysctl.conf', 'w') as f:
         f.write(new_output)
-    subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
-    subprocess.call('sysctl -w fs.file-max=65535', shell=True)
-    subprocess.call('sysctl -p', shell=True)
+    if verbose:
+        subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
+        subprocess.call('sysctl -w fs.file-max=65535', shell=True)
+        subprocess.call('sysctl -p', shell=True)
+    else:
+        subprocess.call('sysctl -w vm.max_map_count=262144', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        subprocess.call('sysctl -w fs.file-max=65535', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        subprocess.call('sysctl -p', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+
+def update_user_file_handle_limits():
+    """
+    Updates the max number of file handles the dynamite user can have open
+    """
+    new_output = ''
+    limit_found = False
+    for line in open('/etc/security/limits.conf').readlines():
+        if line.startswith('dynamite'):
+            new_output += 'dynamite    -   nofile   65535'
+            limit_found = True
+        else:
+            new_output += line.strip()
+        new_output += '\n'
+    if not limit_found:
+        new_output += '\ndynamite    -   nofile   65535\n'
+    with open('/etc/security/limits.conf', 'w') as f:
+        f.write(new_output)
 
 
 def tail_file(path, n=1, bs=1024):
@@ -384,22 +410,3 @@ def tail_file(path, n=1, bs=1024):
     lines = f.readlines()[-l:]
     f.close()
     return lines
-
-
-def update_user_file_handle_limits():
-    """
-    Updates the max number of file handles the dynamite user can have open
-    """
-    new_output = ''
-    limit_found = False
-    for line in open('/etc/security/limits.conf').readlines():
-        if line.startswith('dynamite'):
-            new_output += 'dynamite    -   nofile   65535'
-            limit_found = True
-        else:
-            new_output += line.strip()
-        new_output += '\n'
-    if not limit_found:
-        new_output += '\ndynamite    -   nofile   65535\n'
-    with open('/etc/security/limits.conf', 'w') as f:
-        f.write(new_output)

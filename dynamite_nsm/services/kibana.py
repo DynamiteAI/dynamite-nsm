@@ -208,7 +208,8 @@ class KibanaInstaller:
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY,
                  download_kibana_archive=True,
-                 stdout=False):
+                 stdout=False,
+                 verbose=False):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
         :param port: The port that the Kibana UI/API is bound to (E.G 5601)
@@ -217,8 +218,10 @@ class KibanaInstaller:
         :param elasticsearch_password: The password used for authentication across all builtin ES users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
-        :param download_kibana_archive: If True, download the Kibana archive from a mirror
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
+        :param download_kibana_archive: If True, download the Kibana archive from a mirror
+        :param stdout: Print the output to console
+        :param verbose: Include output from system utilities
         """
         self.host = host
         self.port = port
@@ -234,6 +237,7 @@ class KibanaInstaller:
         self.configuration_directory = configuration_directory
         self.log_directory = log_directory
         self.stdout = stdout
+        self.verbose = verbose
         if download_kibana_archive:
             self.download_kibana()
             self.extract_kibana()
@@ -399,7 +403,7 @@ class KibanaInstaller:
         """
         Create required directories, files, and variables to run ElasticSearch successfully;
         """
-        pacman = OSPackageManager()
+        pacman = OSPackageManager(verbose=self.verbose)
         pacman.refresh_package_indexes()
         pacman.install_packages(['curl'])
         self._create_kibana_directories()
@@ -675,8 +679,7 @@ def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, 
 
 
 def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
-                   install_jdk=True, create_dynamite_user=True,
-                   stdout=False):
+                   install_jdk=True, create_dynamite_user=True, stdout=False, verbose=False):
     """
     Install Kibana/ElastiFlow Dashboards
 
@@ -687,6 +690,7 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elas
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run
     Logstash/ElasticSearch/Kibana
     :param stdout: Print the output to console
+    :param verbose: Include output from system utilities
     :return: True, if installation succeeded
     """
     kb_profiler = KibanaProfiler()
@@ -703,7 +707,7 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elas
                                        elasticsearch_port=elasticsearch_port,
                                        elasticsearch_password=elasticsearch_password,
                                        download_kibana_archive=not kb_profiler.is_downloaded,
-                                       stdout=stdout)
+                                       stdout=stdout, verbose=verbose)
         if install_jdk:
             utilities.download_java(stdout=stdout)
             utilities.extract_java(stdout=stdout)
