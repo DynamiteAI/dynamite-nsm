@@ -377,6 +377,7 @@ class ElasticInstaller:
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY,
+                 download_elasticsearch_archive=True,
                  stdout=False):
         """
         :param: host: The IP address to listen on (E.G "0.0.0.0")
@@ -385,6 +386,7 @@ class ElasticInstaller:
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
+        :param download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
         :param stdout: Print output to console
         """
 
@@ -395,8 +397,9 @@ class ElasticInstaller:
         self.install_directory = install_directory
         self.log_directory = log_directory
         self.stdout = stdout
-        self.download_elasticsearch(stdout=stdout)
-        self.extract_elasticsearch(stdout=stdout)
+        if download_elasticsearch_archive:
+            self.download_elasticsearch(stdout=stdout)
+            self.extract_elasticsearch(stdout=stdout)
 
     def _create_elasticsearch_directories(self):
         if self.stdout:
@@ -870,7 +873,8 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
         ))
         return False
     try:
-        es_installer = ElasticInstaller(password=password, stdout=stdout)
+        es_installer = ElasticInstaller(password=password, download_elasticsearch_archive=not es_profiler.is_downloaded,
+                                        stdout=stdout)
         if install_jdk:
             utilities.download_java(stdout=stdout)
             utilities.extract_java(stdout=stdout)

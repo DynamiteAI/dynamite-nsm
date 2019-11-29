@@ -207,6 +207,7 @@ class KibanaInstaller:
                  install_directory=INSTALL_DIRECTORY,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  log_directory=LOG_DIRECTORY,
+                 download_kibana_archive=True,
                  stdout=False):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
@@ -216,6 +217,7 @@ class KibanaInstaller:
         :param elasticsearch_password: The password used for authentication across all builtin ES users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
+        :param download_kibana_archive: If True, download the Kibana archive from a mirror
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
         """
         self.host = host
@@ -232,8 +234,9 @@ class KibanaInstaller:
         self.configuration_directory = configuration_directory
         self.log_directory = log_directory
         self.stdout = stdout
-        self.download_kibana()
-        self.extract_kibana()
+        if download_kibana_archive:
+            self.download_kibana()
+            self.extract_kibana()
 
     def _create_kibana_directories(self):
         if self.stdout:
@@ -699,6 +702,7 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elas
         kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host,
                                        elasticsearch_port=elasticsearch_port,
                                        elasticsearch_password=elasticsearch_password,
+                                       download_kibana_archive=not kb_profiler.is_downloaded,
                                        stdout=stdout)
         if install_jdk:
             utilities.download_java(stdout=stdout)

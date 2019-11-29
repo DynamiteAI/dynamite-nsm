@@ -99,8 +99,10 @@ class DynamiteLabInstaller:
         self.notebook_home = notebook_home
         self.download_dynamite_sdk(stdout=stdout)
         self.extract_dynamite_sdk(stdout=stdout)
-        self.install_jupyterhub_dependencies(stdout=stdout)
-        self.install_jupyterhub(stdout=stdout)
+        if not self.install_jupyterhub_dependencies(stdout=stdout):
+            raise Exception("Could not install jupyterhub dependencies.")
+        if not self.install_jupyterhub(stdout=stdout):
+            raise Exception("Could not install jupyterhub.")
         if stdout:
             sys.stdout.write('[+] Creating jupyter user in dynamite group.\n')
             sys.stdout.flush()

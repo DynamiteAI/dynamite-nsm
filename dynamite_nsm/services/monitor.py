@@ -27,6 +27,7 @@ def install_monitor(elasticsearch_password='changeme'):
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
         es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
                                                       port=9200,
+                                                      download_elasticsearch_archive=not ls_pre_profiler.is_downloaded,
                                                       password=elasticsearch_password)
         es_installer.setup_elasticsearch()
         if not elasticsearch.ElasticProfiler().is_installed:
@@ -38,6 +39,7 @@ def install_monitor(elasticsearch_password='changeme'):
     if not ls_pre_profiler.is_installed:
         ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
                                                   elasticsearch_password=elasticsearch_password,
+                                                  download_logstash_archive=not es_pre_profiler.is_downloaded,
                                                   stdout=True)
         ls_installer.setup_logstash()
         if not logstash.LogstashProfiler().is_installed:
@@ -50,6 +52,7 @@ def install_monitor(elasticsearch_password='changeme'):
                                               elasticsearch_host='localhost',
                                               elasticsearch_port=9200,
                                               elasticsearch_password=elasticsearch_password,
+                                              download_kibana_archive=not kb_pre_profiler.is_downloaded,
                                               stdout=True)
         if not kb_pre_profiler.is_downloaded:
             kb_installer.download_kibana(stdout=True)

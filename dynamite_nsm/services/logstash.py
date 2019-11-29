@@ -232,6 +232,7 @@ class LogstashInstaller:
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
                  log_directory=LOG_DIRECTORY,
+                 download_logstash_archive=True,
                  stdout=False):
         """
         :param host: The IP address to listen on (E.G "0.0.0.0")
@@ -241,6 +242,7 @@ class LogstashInstaller:
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
+        :param download_logstash_archive: If True, download the LogStash archive from a mirror
         :param stdout: Print output to console
         """
         self.host = host
@@ -248,7 +250,7 @@ class LogstashInstaller:
             if ElasticProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
             else:
-                raise Exception("Elasticsearch must either be installed locally, or a remote host must be specified.")
+                raise Exception("ElasticSearch must either be installed locally, or a remote host must be specified.")
         else:
             self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
@@ -257,8 +259,9 @@ class LogstashInstaller:
         self.elasticsearch_password = elasticsearch_password
         self.log_directory = log_directory
         self.stdout = stdout
-        self.download_logstash(stdout=stdout)
-        self.extract_logstash(stdout=stdout)
+        if download_logstash_archive:
+            self.download_logstash(stdout=stdout)
+            self.extract_logstash(stdout=stdout)
 
     def _copy_logstash_files_and_directories(self):
         if self.stdout:
@@ -775,6 +778,7 @@ def install_logstash(host='0.0.0.0',
                                          elasticsearch_host=elasticsearch_host,
                                          elasticsearch_port=elasticsearch_port,
                                          elasticsearch_password=elasticsearch_password,
+                                         download_logstash_archive=not ls_profiler.is_downloaded,
                                          stdout=stdout)
         if install_jdk:
             utilities.download_java(stdout=stdout)

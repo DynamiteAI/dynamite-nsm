@@ -20,8 +20,8 @@ def install_agent(network_interface, agent_label, logstash_target):
     :param logstash_target: The host port combination for the target Logstash server (E.G "localhost:5044")
     :return: True, if install succeeded
     """
-    zeek_installer = zeek.ZeekInstaller()
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
+    zeek_installer = zeek.ZeekInstaller(download_zeek_archive=not zeek_profiler.is_downloaded, stdout=True)
     suricata_profiler = suricata.SuricataProfiler()
     filebeat_installer = filebeat.FileBeatInstaller()
     filebeat_profiler = filebeat.FileBeatProfiler()
@@ -56,11 +56,6 @@ def install_agent(network_interface, agent_label, logstash_target):
                          'Skipping Suricata Installation.\n')
 
     # === Install Zeek ===
-    if not zeek_profiler.is_downloaded:
-        zeek_installer.download_zeek(stdout=True)
-        zeek_installer.extract_zeek(stdout=True)
-    else:
-        sys.stdout.write('[+] Zeek has already been downloaded to local cache. Skipping Zeek Download.\n')
     if not zeek_profiler.is_installed:
         if not zeek_installer.install_dependencies():
             sys.stderr.write('[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
