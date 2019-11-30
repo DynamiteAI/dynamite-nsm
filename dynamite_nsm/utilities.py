@@ -253,7 +253,7 @@ def get_network_addresses():
     valid_addresses = []
     internal_address, external_address = None, None
     try:
-        site = urlopen("http://checkip.dyndns.org/", timeout=2).read()
+        site = str(urlopen("http://checkip.dyndns.org/", timeout=2).read())
         grab = re.findall('([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)', site)
         external_address = grab[0]
     except (URLError, IndexError, HTTPError):
