@@ -674,21 +674,27 @@ def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, std
 
 
 def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
-                         jupyterhub_password='changeme', stdout=True, verbose=False):
+                         jupyterhub_host=None, jupyterhub_password='changeme', stdout=True, verbose=False):
     """
     Install the DynamiteLab environment
 
     :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: A port number for the target elasticsearch instance
     :param elasticsearch_password: The password used for authentication across all builtin ES users
+    :param jupyterhub_host: The host by which users can access this instance;
+                            (Used for creating kibana -> Jupyter hyperlinks)
     :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
     :param stdout: Print output to console
     :param verbose: Include output from system utilities
     :return: True, if installation was successful
     """
 
-    dynamite_lab_installer = DynamiteLabInstaller(elasticsearch_host, elasticsearch_port, elasticsearch_password,
-                                                  jupyterhub_password, stdout=stdout, verbose=verbose)
+    dynamite_lab_installer = DynamiteLabInstaller(elasticsearch_host=elasticsearch_host,
+                                                  elasticsearch_port=elasticsearch_port,
+                                                  elasticsearch_password=elasticsearch_password,
+                                                  jupyterhub_host=jupyterhub_host,
+                                                  jupyterhub_password=jupyterhub_password,
+                                                  stdout=stdout, verbose=verbose)
     dynamite_lab_installer.setup_dynamite_sdk()
     dynamite_lab_installer.setup_jupyterhub()
     if not dynamite_lab_installer.install_kibana_lab_icon():
