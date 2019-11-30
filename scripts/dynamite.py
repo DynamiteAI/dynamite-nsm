@@ -337,7 +337,6 @@ if __name__ == '__main__':
                 sys.stdout.write('\n\tdynamite configure agent -- <options>\n\n')
                 sys.stdout.write('[+] To start the agent:\n')
                 sys.stdout.write('\n\tdynamite start agent\n')
-                sys.stdout.flush()
                 sys.exit(0)
             sys.exit(1)
         else:
