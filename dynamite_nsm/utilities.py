@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import pwd
 import grp
@@ -256,24 +258,21 @@ def print_coffee_art():
     """
     Print coffee mug art!
     """
-
-    sys.stdout.write(
-        """
-        
-            / / /
-        ____\_\_\____
-       /    / / /    \
-       \_____________/ ___
-       |             |/   \
-       |             |    /
-       |   Coffee    |   /
-       |             |  /
-       |             |_/
-       \_____________/
-        
-        """
-    )
-    sys.stdout.flush()
+    try:
+        coffee_icon = \
+            """
+            
+            ╭╯╭╯╭╯
+            █▓▓▓▓▓█═╮
+            █▓▓▓▓▓█▏︱
+            █▓▓▓▓▓█═╯
+            ◥█████◤
+                
+            """
+        print(coffee_icon)
+        print('\n')
+    except SyntaxError:
+        pass
 
 
 def prompt_input(message):
