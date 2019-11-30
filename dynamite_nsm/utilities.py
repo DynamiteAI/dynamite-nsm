@@ -297,7 +297,7 @@ def run_subprocess_with_status(process, expected_lines=None):
     i = 0
     widgets = [
         '[+] ', progressbar.Percentage(),
-        ' ', progressbar.Variable('task', width=6, precision=6),
+        ' ', progressbar.BouncingBar(),
         ' ', progressbar.ETA()
     ]
     try:
@@ -312,7 +312,7 @@ def run_subprocess_with_status(process, expected_lines=None):
             break
         if output:
             i += 1
-            pb.update(i, task=output)
+            pb.update(i)
             #print(i)
     pb.finish()
     return process.poll()
