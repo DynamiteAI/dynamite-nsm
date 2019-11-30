@@ -252,6 +252,30 @@ def is_root():
     return os.getuid() == 0
 
 
+def print_coffee_art():
+    """
+    Print coffee mug art!
+    """
+
+    sys.stdout.write(
+        """
+        
+            / / /
+        ____\_\_\____
+       /    / / /    \
+       \_____________/ ___
+       |             |/   \
+       |             |    /
+       |   Coffee    |   /
+       |             |  /
+       |             |_/
+       \_____________/
+        
+        """
+    )
+    sys.stdout.flush()
+
+
 def prompt_input(message):
     """
     Compatibility function for Python2/3 for taking in input
@@ -312,8 +336,8 @@ def run_subprocess_with_status(process, expected_lines=None):
             break
         if output:
             i += 1
-            #pb.update(i)
-            print(i)
+            pb.update(i)
+            #print(i)
     pb.finish()
     return process.poll()
 

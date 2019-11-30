@@ -505,8 +505,9 @@ class ZeekInstaller:
                 time.sleep(1)
         if self.stdout:
             sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. '
-                             'Have a cup of coffee.\n')
+                             'Have another cup of coffee.\n')
             sys.stdout.flush()
+            utilities.print_coffee_art()
             time.sleep(1)
         sys.stdout.write('[+] Configuring...\n')
         sys.stdout.flush()

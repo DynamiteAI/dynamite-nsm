@@ -326,8 +326,10 @@ class SuricataInstaller:
         else:
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-1])
         if self.stdout:
-            sys.stdout.write('[+] Compiling Suricata from source. This can take up to 5 to 10 minutes.\n')
+            sys.stdout.write('[+] Compiling Suricata from source. This can take up to 5 to 10 minutes. '
+                             'Have a cup of coffee.\n')
             sys.stdout.flush()
+            utilities.print_coffee_art()
         time.sleep(1)
         sys.stdout.write('[+] Configuring...\n')
         sys.stdout.flush()
@@ -366,7 +368,8 @@ class SuricataInstaller:
                                                         cwd=os.path.join(const.INSTALL_CACHE,
                                                                          const.SURICATA_DIRECTORY_NAME),
                                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process)
+            compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process,
+                                                                                expected_lines=935)
         if compile_suricata_return_code != 0:
             sys.stderr.write('[-] Unable to compile Suricata installation package; error code {}; run with '
                              '--debug flag for more info.\n'.format(
