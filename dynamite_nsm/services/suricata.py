@@ -326,24 +326,47 @@ class SuricataInstaller:
         else:
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-1])
         if self.stdout:
-            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
+            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 to 10 minutes.\n\n')
             sys.stdout.flush()
-        configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
-                                           '--localstatedir=/var/dynamite/suricata --enable-pfring '
-                                           '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
-                                                self.install_directory,
-                                                suricata_config_parent,
-                                                os.path.join(pf_ring_installer.install_directory, 'include'),
-                                                os.path.join(pf_ring_installer.install_directory, 'lib')),
-            shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
+        time.sleep(1)
+        sys.stdout.write('[+] Configuring...\n')
+        if self.verbose:
+            configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
+                                               '--localstatedir=/var/dynamite/suricata --enable-pfring '
+                                               '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
+                                                    self.install_directory,
+                                                    suricata_config_parent,
+                                                    os.path.join(pf_ring_installer.install_directory, 'include'),
+                                                    os.path.join(pf_ring_installer.install_directory, 'lib')),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
+        else:
+            configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
+                                               '--localstatedir=/var/dynamite/suricata --enable-pfring '
+                                               '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
+                                                    self.install_directory,
+                                                    suricata_config_parent,
+                                                    os.path.join(pf_ring_installer.install_directory, 'include'),
+                                                    os.path.join(pf_ring_installer.install_directory, 'lib')),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if configure_result != 0:
             sys.stderr.write('[-] Unable to configure Suricata installation files: {}\n')
             return False
-        compile_result = subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
-            const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)
-        )
-        if compile_result != 0:
-            sys.stderr.write('[-] Unable to compile Suricata installation package: {}\n')
+        sys.stdout.write('[+] Compiling...\n')
+        if self.verbose:
+            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
+                                                        cwd=os.path.join(const.INSTALL_CACHE,
+                                                                         const.SURICATA_DIRECTORY_NAME))
+        else:
+            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
+                                                        cwd=os.path.join(const.INSTALL_CACHE,
+                                                                         const.SURICATA_DIRECTORY_NAME),
+                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        compile_suricata_process.communicate()
+        if compile_suricata_process.returncode != 0:
+            sys.stderr.write('[-] Unable to compile Suricata installation package; error code {}; run with '
+                             '--debug flag for more info.\n'.format(
+                compile_suricata_process.returncode))
             return False
         return True
 

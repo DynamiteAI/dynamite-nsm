@@ -198,7 +198,7 @@ class DynamiteLabInstaller:
             sys.stdout.write('[+] Installing dependencies.\n')
             sys.stdout.flush()
         if pacman.package_manager == 'apt-get':
-            packages = ['python3', 'python3-pip', 'nodejs', 'npm']
+            packages = ['python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm']
         elif pacman.package_manager == 'yum':
             pacman.install_packages(['curl', 'gcc-c++', 'make'])
             p = subprocess.Popen('curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -',
@@ -207,7 +207,7 @@ class DynamiteLabInstaller:
             if p.returncode != 0:
                 sys.stderr.write('[-] Could not install nodejs source rpm.\n')
                 return False
-            packages = ['nodejs', 'python36']
+            packages = ['nodejs', 'python36', 'python36-devel']
             pacman.install_packages(packages)
         if packages:
             pacman.install_packages(packages)
@@ -273,7 +273,11 @@ class DynamiteLabInstaller:
         shutil.copy(os.path.join(sdk_install_cache, 'dynamite_sdk', 'config.cfg.example'),
                            os.path.join(self.configuration_directory, 'config.cfg'))
         utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='jupyter')
-        p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
+        if self.verbose:
+            p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
+        else:
+            p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
         p.communicate()
         dynamite_sdk_config = DynamiteLabConfigurator(configuration_directory=self.configuration_directory)
         dynamite_sdk_config.elasticsearch_url = 'http://{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)

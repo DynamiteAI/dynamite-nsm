@@ -508,12 +508,30 @@ class ZeekInstaller:
             sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.'
                              '\n\n')
             sys.stdout.flush()
-            time.sleep(5)
-        subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
-            self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
-            shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
-        subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
-                                                                           const.ZEEK_DIRECTORY_NAME))
+            time.sleep(1)
+        sys.stdout.write('[+] Configuring...\n')
+        if self.verbose:
+            subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
+                self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
+        else:
+            subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
+                self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        sys.stdout.write('[+] Compiling...\n')
+        if self.verbose:
+            compile_zeek_process = subprocess.Popen('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
+                                                                               const.ZEEK_DIRECTORY_NAME))
+        else:
+            compile_zeek_process = subprocess.Popen('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
+                                                                               const.ZEEK_DIRECTORY_NAME),
+                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        compile_zeek_process.communicate()
+        if compile_zeek_process.returncode != 0:
+            sys.stderr.write('[-] Failed to compile Zeek from source; error code: {}; ; run with '
+                             '--debug flag for more info.\n'.format(compile_zeek_process.returncode))
+            return False
 
         if 'ZEEK_HOME' not in open('/etc/dynamite/environment').read():
             if self.stdout:
