@@ -255,6 +255,9 @@ def is_root():
 
 
 def print_dynamite_logo():
+    """
+    Print the dynamite logo!
+    """
     try:
         dynamite_logo =\
             """
