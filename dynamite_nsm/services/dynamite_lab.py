@@ -736,10 +736,10 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
     configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
     notebook_home = environment_variables.get('NOTEBOOK_HOME')
     dynamite_lab_profiler = DynamiteLabProfiler()
-    dynamite_lab_config = DynamiteLabConfigurator(configuration_directory)
     if not dynamite_lab_profiler.is_installed:
         sys.stderr.write('[-] DynanmiteLab is not installed.\n')
         return False
+    dynamite_lab_config = DynamiteLabConfigurator(configuration_directory)
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING DYNAMITE LAB WILL REMOVE ALL JUPYTER NOTEBOOKS.\n')
         resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')

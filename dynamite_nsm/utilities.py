@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import pwd
 import grp
 import sys
@@ -18,9 +19,14 @@ from contextlib import closing
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
+    from urllib2 import HTTPError
+    from urllib2 import Request
 except Exception:
     from urllib.request import urlopen
     from urllib.error import URLError
+    from urllib.error import HTTPError
+    from urllib.request import Request
+    from urllib.parse import urlencode
 
 import progressbar
 
@@ -236,6 +242,28 @@ def get_network_interface_names():
     :return: A list of network interfaces
     """
     return os.listdir('/sys/class/net')
+
+
+def get_network_addresses():
+    """
+    Returns a list of valid IP addresses for the host
+
+    :return: A tuple containing the internal, and external IP address
+    """
+    valid_addresses = []
+    internal_address, external_address = None, None
+    try:
+        site = urlopen("http://checkip.dyndns.org/", timeout=2).read()
+        grab = re.findall('([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)', site)
+        external_address = grab[0]
+    except (URLError, IndexError, HTTPError):
+        pass
+    internal_address = socket.gethostbyname(socket.gethostname())
+    if internal_address:
+        valid_addresses.append(internal_address)
+    if external_address:
+        valid_addresses.append(external_address)
+    return tuple(valid_addresses)
 
 
 def get_cpu_core_count():
