@@ -299,6 +299,7 @@ def run_subprocess_with_status(process, expected_lines=None):
         pb = progressbar.ProgressBar(max_value=expected_lines)
     except TypeError:
         pb = progressbar.ProgressBar(maxval=expected_lines)
+    pb.start()
     while True:
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
