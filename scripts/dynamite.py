@@ -259,7 +259,10 @@ if __name__ == '__main__':
                                                  jupyterhub_host=selected_hosting_ip,
                                                  jupyterhub_password=password, stdout=True, verbose=args.debug):
                 sys.stdout.write('\n[+] Once started DynamiteLab will be accessible at: ')
-                sys.stdout.write('\n\tHOST: http://{}:{}'.format('0.0.0.0', 8000))
+                if not selected_hosting_ip:
+                    sys.stdout.write('\n\tHOST: http://{}:{}'.format('localhost', 8000))
+                else:
+                    sys.stdout.write('\n\tHOST: http://{}:{}'.format(selected_hosting_ip, 8000))
                 sys.stdout.write('\n\tUSER: jupyter')
                 sys.stdout.write('\n\tPASSWORD: {}\n'.format(password))
                 sys.stdout.flush()
