@@ -254,6 +254,40 @@ def is_root():
     return os.getuid() == 0
 
 
+def print_dynamite_logo():
+    try:
+        dynamite_logo =\
+            """
+            
+                  ,,,,,                  ,▄▄▄▄╓
+              .▄▓▀▀▀░▀▀▀▓▓╓            ╔▓▓▓▓▓▓▓▀▓
+             #∩╓ ▀▓▓▓▓▓▓▓▄▀▓▄         ║▌▓▓▓▓▓▓▓▓╩▓
+                ▀▓"▓▓▓▓▓▓▓▓∩▓▄ ,,▄▄▄▓▓▓▌▓▓▓▓▓▓▓▓╦▓
+                 ▐▓╙▓▓▓▓▓▓▓▓▐▓▀▀▀^╙└"^^▀▓▀▓▓▓▓▀▒▓`
+                 ▐▓]▓▓▓▓▓▓▓▓▐▓           ▀▀▀▀▀▀^
+                ▄▓.▓▓▓▓▓▓▓▓Ü▓▀ ╙╙▀█▒▄▄,,
+            '#ε╙╙▄▓▓▓▓▓▓▓▀▄▓▌        `╙▀▀▓▓▓▓▄▄╓,        ,,
+              "█▓▄▄▓▓▓░▄▓▓▀  ╙╗,            '"▀▀█▓▓▓▓▓▄#╣▓▓▓▓
+                 ║▀"▀▀└,       ▀▓▄                 ^▀▀▀▌▓▓▓▓▓╛
+                ╔▓      ▓        ▀▓▄,╓╓,                ╙▀▀▀"
+               ]▓▌      ╙▌        '▓▓▓▓▓▓⌐
+            ╓▄▄▓▓░       ▓▌        ╫▓▓▓▓▓>
+         ╓▓▀▓▓▓▓▓▀▓      ╙▓▌        ╙╙▀╙
+        ╔▓▒▓▓▓▓▓▓▓░▓      ║▓╕
+        ╚▌║▓▓▓▓▓▓▓╩▓       ▓▓
+         ▀▓▀▓▓▓▓▀╠▓┘       ╚▓▓
+           ▀▀██▀▀╙          ▓▓▓╓
+                           ╫▓▓▓▓▓ε
+    
+            http://dynamite.ai
+            """
+        print(dynamite_logo)
+        print('\n')
+    except SyntaxError:
+        # Your operating system is super lame :(
+        pass
+
+
 def print_coffee_art():
     """
     Print coffee mug art!
@@ -270,6 +304,7 @@ def print_coffee_art():
         print(coffee_icon)
         print('\n')
     except SyntaxError:
+        # Your operating system is super lame :(
         pass
 
 

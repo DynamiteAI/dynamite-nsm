@@ -234,6 +234,8 @@ if __name__ == '__main__':
                 sys.exit(1)
     elif args.command == 'install':
         if args.component in ['dynamite-lab', 'lab']:
+            utilities.print_dynamite_logo()
+            time.sleep(1)
             password = utilities.prompt_password(
                 'Enter the password used for logging into ElasticSearch: ')
             if dynamite_lab.install_dynamite_lab(elasticsearch_host=args.es_host,
@@ -250,6 +252,8 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] Failed to install DynamiteLab.\n')
                 sys.exit(1)
         elif args.component == 'elasticsearch':
+            utilities.print_dynamite_logo()
+            time.sleep(1)
             if elasticsearch.install_elasticsearch(
                 password=utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: '),
                     stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
@@ -258,6 +262,8 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] Failed to install ElasticSearch.\n')
                 sys.exit(1)
         elif args.component == 'logstash':
+            utilities.print_dynamite_logo()
+            time.sleep(1)
             if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          elasticsearch_password=utilities.prompt_password(
                                              'Enter the password used for logging into ElasticSearch: '
@@ -268,6 +274,8 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] Failed to install Logstash.\n')
                 sys.exit(1)
         elif args.component == 'kibana':
+            utilities.print_dynamite_logo()
+            time.sleep(1)
             if not elasticsearch.ElasticProfiler().is_installed:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          elasticsearch_password=utilities.prompt_password(
@@ -295,6 +303,8 @@ if __name__ == '__main__':
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
         elif args.component == 'monitor':
+            utilities.print_dynamite_logo()
+            time.sleep(1)
             installed = monitor.install_monitor(elasticsearch_password=utilities.prompt_password(
                 'Create a password for logging into ElasticSearch: '
             ), verbose=args.debug)
@@ -311,6 +321,8 @@ if __name__ == '__main__':
             sys.exit(1)
 
         elif args.component == 'agent':
+            utilities.print_dynamite_logo()
+            time.sleep(1)
             installed = agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port), verbose=args.debug)
             if installed:
