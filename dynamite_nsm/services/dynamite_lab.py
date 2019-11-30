@@ -429,7 +429,8 @@ class DynamiteLabInstaller:
         try:
             # Patch the icon with the greyed out icon and link
             _id = res['hits']['hits'][0]['_id']
-            new_markdown = '![DynamiteLab](data:image/png;base64,{})'.format(embedded_images.JUPYTER_HUB_IMG_ACTIVATED)
+            new_markdown = '![DynamiteLab](data:image/png;base64,{})'.format(
+                embedded_images.JUPYTER_HUB_IMG_DEACTIVATED)
 
             # Visualization Hacking (Document manipulation)
             vis_stats_loaded = json.loads(res['hits']['hits'][0]['_source']['visualization']['visState'])
