@@ -367,6 +367,10 @@ class DynamiteLabInstaller:
         shutil.copy(os.path.join(sdk_install_cache, 'dynamite_sdk', 'config.cfg.example'),
                            os.path.join(self.configuration_directory, 'config.cfg'))
         utilities.set_ownership_of_file(self.notebook_home, user='jupyter', group='jupyter')
+        if self.stdout:
+            sys.stdout.write('[+] Installing dynamite-sdk-lite (https://github.com/DynamiteAI/dynamite-sdk-lite)\n')
+            sys.stdout.write('[+] Depending on your distribution it may take some time to install all requirements.\n')
+            sys.stdout.flush()
         if self.verbose:
             p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
         else:
