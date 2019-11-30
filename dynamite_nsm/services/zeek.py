@@ -504,9 +504,8 @@ class ZeekInstaller:
                 sys.stdout.flush()
                 time.sleep(1)
         if self.stdout:
-            sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. '
-                             'Have a cup of coffee.\n'
-                             '\n\n')
+            sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. '
+                             'Have a cup of coffee.\n')
             sys.stdout.flush()
             time.sleep(1)
         sys.stdout.write('[+] Configuring...\n')
@@ -526,12 +525,14 @@ class ZeekInstaller:
         if self.verbose:
             compile_zeek_process = subprocess.Popen('make; make install', shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
+            compile_zeek_process.communicate()
+            compile_return_code = compile_zeek_process.returncode
         else:
             compile_zeek_process = subprocess.Popen('make; make install', shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
                                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        compile_zeek_process.communicate()
-        if compile_zeek_process.returncode != 0:
+            compile_return_code = utilities.run_subprocess_with_status(compile_zeek_process)
+        if compile_return_code != 0:
             sys.stderr.write('[-] Failed to compile Zeek from source; error code: {}; ; run with '
                              '--debug flag for more info.\n'.format(compile_zeek_process.returncode))
             return False

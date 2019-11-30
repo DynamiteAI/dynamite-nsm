@@ -291,6 +291,18 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
     return password
 
 
+def run_subprocess_with_status(process):
+    i = 0
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            i += 1
+            print(i)
+    rc = process.poll()
+
+
 def setup_java():
     """
     Installs the latest version of OpenJDK
