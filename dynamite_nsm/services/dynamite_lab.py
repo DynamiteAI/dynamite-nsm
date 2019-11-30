@@ -330,6 +330,7 @@ class DynamiteLabInstaller:
                     headers={'Content-Type': 'application/json', 'kbn-xsrf': True},
                     data=json.dumps({"doc": res['hits']['hits'][0]['_source']}).encode('utf-8')
                 )
+                url_post_request.add_header("Authorization", "Basic %s" % base64string)
                 urlopen(url_post_request)
         except TypeError as e:
             sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
@@ -452,6 +453,7 @@ class DynamiteLabInstaller:
                     headers={'Content-Type': 'application/json', 'kbn-xsrf': True},
                     data=json.dumps({"doc": res['hits']['hits'][0]['_source']}).encode('utf-8')
                 )
+                url_post_request.add_header("Authorization", "Basic %s" % base64string)
                 urlopen(url_post_request)
         except TypeError as e:
             sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
