@@ -312,8 +312,8 @@ def run_subprocess_with_status(process, expected_lines=None):
             break
         if output:
             i += 1
-            pb.update(i)
-            #print(i)
+            #pb.update(i)
+            print(i)
     pb.finish()
     return process.poll()
 

@@ -359,13 +359,15 @@ class SuricataInstaller:
             compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
                                                         cwd=os.path.join(const.INSTALL_CACHE,
                                                                          const.SURICATA_DIRECTORY_NAME))
+            compile_suricata_process.communicate()
+            compile_suricata_return_code = compile_suricata_process.returncode
         else:
             compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
                                                         cwd=os.path.join(const.INSTALL_CACHE,
                                                                          const.SURICATA_DIRECTORY_NAME),
                                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        compile_suricata_process.communicate()
-        if compile_suricata_process.returncode != 0:
+            compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process)
+        if compile_suricata_return_code != 0:
             sys.stderr.write('[-] Unable to compile Suricata installation package; error code {}; run with '
                              '--debug flag for more info.\n'.format(
                 compile_suricata_process.returncode))
