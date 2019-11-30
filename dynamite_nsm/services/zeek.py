@@ -531,7 +531,7 @@ class ZeekInstaller:
             compile_zeek_process = subprocess.Popen('make; make install', shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
                                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            compile_return_code = utilities.run_subprocess_with_status(compile_zeek_process)
+            compile_return_code = utilities.run_subprocess_with_status(compile_zeek_process, expected_lines=6596)
         if compile_return_code != 0:
             sys.stderr.write('[-] Failed to compile Zeek from source; error code: {}; ; run with '
                              '--debug flag for more info.\n'.format(compile_zeek_process.returncode))

@@ -20,6 +20,8 @@ except Exception:
     from urllib.request import urlopen
     from urllib.error import URLError
 
+import progressbar
+
 from dynamite_nsm import const
 
 
@@ -291,15 +293,17 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
     return password
 
 
-def run_subprocess_with_status(process):
+def run_subprocess_with_status(process, expected_lines=None):
     i = 0
+    pb = progressbar.ProgressBar(min_value=0, max_value=expected_lines)
     while True:
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
             break
         if output:
             i += 1
-            print(i)
+            pb.update(i)
+            #print(i)
     return process.poll()
 
 
