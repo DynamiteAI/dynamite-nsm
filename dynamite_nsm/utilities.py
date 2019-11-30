@@ -300,7 +300,7 @@ def run_subprocess_with_status(process):
         if output:
             i += 1
             print(i)
-    rc = process.poll()
+    return process.poll()
 
 
 def setup_java():
