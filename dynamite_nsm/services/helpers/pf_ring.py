@@ -17,20 +17,27 @@ class PFRingInstaller:
     An interface for installing PF_RING kernel module and UserLand requirements
     """
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY):
+    def __init__(self, install_directory=INSTALL_DIRECTORY, verbose=False):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/pf_ring/)
+        :param verbose: Include output from system utilities
         """
         self.install_directory = install_directory
+        self.verbose = verbose
 
     def _compile_pf_ring_modules(self, stdout=False):
         if stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].\n\n')
             sys.stdout.flush()
             time.sleep(2)
-        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
-                        shell=True)
+        if self.verbose:
+            userland_config_ret = subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
+                            shell=True)
+        else:
+            userland_config_ret = subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
+                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n\n')
             sys.stdout.flush()
