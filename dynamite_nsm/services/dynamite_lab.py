@@ -101,6 +101,7 @@ class DynamiteLabInstaller:
                  jupyterhub_password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  notebook_home=NOTEBOOK_HOME,
+                 download_dynamite_sdk_archive=True,
                  stdout=False,
                  verbose=False):
         """
@@ -112,6 +113,7 @@ class DynamiteLabInstaller:
         :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/dynamite_sdk/)
         :param notebook_home: The path where Jupyter notebooks are stored
+        :param download_dynamite_sdk_archive: If True, download the DynamiteSDK archive from a mirror
         :param stdout: Print output to console
         :param verbose: Include output from system utilities
         """
@@ -123,8 +125,9 @@ class DynamiteLabInstaller:
         self.jupyterhub_password = jupyterhub_password
         self.configuration_directory = configuration_directory
         self.notebook_home = notebook_home
-        self.download_dynamite_sdk(stdout=stdout)
-        self.extract_dynamite_sdk(stdout=stdout)
+        if download_dynamite_sdk_archive:
+            self.download_dynamite_sdk(stdout=stdout)
+            self.extract_dynamite_sdk(stdout=stdout)
         if not self.install_jupyterhub_dependencies(stdout=stdout, verbose=verbose):
             raise Exception("Could not install jupyterhub dependencies.")
         if not self.install_jupyterhub(stdout=stdout):
@@ -740,7 +743,8 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
         icon_remove_result = DynamiteLabInstaller(elasticsearch_host=dynamite_lab_config.elasticsearch_url.split(
             '//')[1].split(':')[0], elasticsearch_password=dynamite_lab_config.elasticsearch_password,
                                                   elasticsearch_port=dynamite_lab_config.elasticsearch_url.split(
-                                 '//')[1].split(':')[1].replace('/', '')).uninstall_kibana_lab_icon()
+                                 '//')[1].split(':')[1].replace('/', ''),
+                                                  download_dynamite_sdk_archive=False).uninstall_kibana_lab_icon()
         if not icon_remove_result:
             sys.stderr.write('[-] Failed to restore DynamiteLab Kibana icon.\n')
             # Not fatal...just annoying;
