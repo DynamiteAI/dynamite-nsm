@@ -330,6 +330,7 @@ class SuricataInstaller:
             sys.stdout.flush()
         time.sleep(1)
         sys.stdout.write('[+] Configuring...\n')
+        sys.stdout.flush()
         if self.verbose:
             configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
                                                '--localstatedir=/var/dynamite/suricata --enable-pfring '
@@ -353,6 +354,7 @@ class SuricataInstaller:
             sys.stderr.write('[-] Unable to configure Suricata installation files: {}\n')
             return False
         sys.stdout.write('[+] Compiling...\n')
+        sys.stdout.flush()
         if self.verbose:
             compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
                                                         cwd=os.path.join(const.INSTALL_CACHE,

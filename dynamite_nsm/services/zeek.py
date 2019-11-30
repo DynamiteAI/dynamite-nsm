@@ -510,21 +510,24 @@ class ZeekInstaller:
             sys.stdout.flush()
             time.sleep(1)
         sys.stdout.write('[+] Configuring...\n')
+        sys.stdout.flush()
         if self.verbose:
             subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
                 self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
                 shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
         else:
-            subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={} &>/dev/null'.format(
+            subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
                 self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
                 shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         sys.stdout.write('[+] Compiling...\n')
+        sys.stdout.flush()
+        time.sleep(1)
         if self.verbose:
             compile_zeek_process = subprocess.Popen('make; make install', shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
         else:
-            compile_zeek_process = subprocess.Popen('make; make install &>/dev/null', shell=True,
+            compile_zeek_process = subprocess.Popen('make; make install', shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
                                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         compile_zeek_process.communicate()
