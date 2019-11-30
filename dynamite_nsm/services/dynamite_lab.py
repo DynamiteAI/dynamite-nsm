@@ -321,7 +321,16 @@ class DynamiteLabInstaller:
                 data=json.dumps({"doc": res['hits']['hits'][0]['_source']})
             )
             url_post_request.add_header("Authorization", "Basic %s" % base64string)
-            print(urlopen(url_post_request).read())
+            try:
+                urlopen(url_post_request)
+            except TypeError:
+                url_post_request = Request(
+                    url='http://{}:{}/'.format(self.elasticsearch_host,
+                                               self.elasticsearch_port) + '.kibana/_update/' + _id,
+                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True},
+                    data=json.dumps({"doc": res['hits']['hits'][0]['_source']}).encode('utf-8')
+                )
+                urlopen(url_post_request)
         except TypeError as e:
             sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
             return False
@@ -434,7 +443,16 @@ class DynamiteLabInstaller:
                 data=json.dumps({"doc": res['hits']['hits'][0]['_source']})
             )
             url_post_request.add_header("Authorization", "Basic %s" % base64string)
-            print(urlopen(url_post_request).read())
+            try:
+                urlopen(url_post_request)
+            except TypeError:
+                url_post_request = Request(
+                    url='http://{}:{}/'.format(self.elasticsearch_host,
+                                               self.elasticsearch_port) + '.kibana/_update/' + _id,
+                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True},
+                    data=json.dumps({"doc": res['hits']['hits'][0]['_source']}).encode('utf-8')
+                )
+                urlopen(url_post_request)
         except TypeError as e:
             sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
             return False
