@@ -62,6 +62,21 @@ Zeek + Suricata + FileBeat; responsible for analyzing network traffic on a given
 | update    | Update configurations/mirrors/signatures                                                                  |`dynamite update suricata-rules`                                                          |
 | point     | Point the agent to a new LogStash host.                                                                   |`dynamite point agent --ls-host 160.1.134.130 --ls-port 5044`                             |
 
+
+### lab
+JupyterHub + [DynamiteSDK](https://github.com/DynamiteAI/dynamite-sdk-lite); a whole new way to play with your network data!
+
+| Command   | Description                                                                                          | Example                      |
+|-----------|------------------------------------------------------------------------------------------------------|------------------------------|
+| install   | Install lab components (JupyterHub and DynamiteSDK). |`dynamite install lab`   |
+| uninstall | Uninstall lab components.                                                                            |`dynamite uninstall lab` |
+| start     | Start the lab processes.                                                                         |`dynamite start lab`    |
+| stop      | Stop the lab processes.                                                                          |`dynamite stop lab`     |
+| restart   | Restart the lab processes.                                                                       |`dynamite restart lab`  |
+| status    | Return the status of lab running processes.                                                      |`dynamite status lab`   |
+| profile   | Run a series of checks to determine if lab is installed properly.                                |`dynamite profile lab`  |
+
+
 ### monitor
 ElasticSearch + Logstash + Kibana; combines ElastiFlow and Synesis for normalization and enrichment of NetFlows/Zeek and Suricata logs.
 

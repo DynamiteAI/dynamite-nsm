@@ -44,27 +44,28 @@ python setup.py install
 | [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow (**and now Zeek!**) data collection and visualization.                                                                |
 | [Synesis [1.1.0]](https://github.com/robcowart/synesis_lite_suricata)| Provides Suricata data normalization and visualization.|
 
-#### Traffic Flows 
-<p align="center">
-  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="50%" height="auto">
+#### Event View
+Get direct insight into your network traffic with the powerful events view, compatible with both the provided agent or NetFlow exporters!
+<p float="left">
+  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="45%" height="auto">
+  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="45%" height="auto">
 </p>
 
-#### GeoIp Enrichment
-<p align="center">
-  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="50%" height="auto">
-</p>
-
-#### Signature Alerting 
+#### Alert View
+Quickly find evil on your network with Suricata IDS paired with the [Emerging Threats Rule Sets](https://rules.emergingthreats.net/).
 <p align="center">
   <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
 </p>
 
-#### Threat Deep-Dive 
+#### Baseline Network Assets
+Understand the normal behavior of assets on your network; and gain insight into what is anomalous.
+
 <p align="center">
   <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
 </p>
 
-##### ...over 20 more dashboards!
+#### Monitor Statistics
+Easily track agents and NetFlow devices forwarding traffic to DynamiteNSM.
 
 ### Getting Started
 

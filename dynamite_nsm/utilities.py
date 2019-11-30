@@ -399,7 +399,10 @@ def run_subprocess_with_status(process, expected_lines=None):
             break
         if output:
             i += 1
-            pb.update(i)
+            try:
+                pb.update(i)
+            except ValueError:
+                pass
             #print(i)
     pb.finish()
     return process.poll()
