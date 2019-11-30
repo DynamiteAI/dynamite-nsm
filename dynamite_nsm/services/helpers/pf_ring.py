@@ -64,11 +64,11 @@ class PFRingInstaller:
         if self.verbose:
             subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                             cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
-                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                            shell=True)
         else:
             subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                             cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
-                            shell=True)
+                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n')
             sys.stdout.flush()
