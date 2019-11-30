@@ -736,7 +736,7 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
     configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
     notebook_home = environment_variables.get('NOTEBOOK_HOME')
     dynamite_lab_profiler = DynamiteLabProfiler()
-    if not dynamite_lab_profiler.is_installed:
+    if not (dynamite_lab_profiler.is_installed or dynamite_lab_profiler.is_configured):
         sys.stderr.write('[-] DynanmiteLab is not installed.\n')
         return False
     dynamite_lab_config = DynamiteLabConfigurator(configuration_directory)
