@@ -47,8 +47,7 @@ python setup.py install
 #### Event View
 Get direct insight into your network traffic with the powerful events view, compatible with both the provided agent or NetFlow exporters!
 <p float="left">
-  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-flows.png"  width="45%" height="auto">
-  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-geo.png"  width="45%" height="auto">
+
 </p>
 
 #### Alert View
