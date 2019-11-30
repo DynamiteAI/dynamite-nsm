@@ -188,34 +188,38 @@ if __name__ == '__main__':
                 sys.stderr.write('[-] The agent must be installed before it can be configured.')
                 sys.exit(1)
             if args.config_zeek_cluster:
+                zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
                 try:
-                    zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
                     zeek_node_config.run()
                 except KeyboardInterrupt:
+                    zeek_node_config.setNextForm(None)
                     sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
             elif args.config_zeek_scripts:
+                zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
                 try:
-                    zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
                     zeek_script_config.run()
                 except KeyboardInterrupt:
+                    zeek_script_config.setNextForm(None)
                     sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
             elif args.config_suricata_interfaces:
+                suricata_interface_config = suricata_interface_config_gui.SuricataInstanceConfiguratorApp()
                 try:
-                    suricata_interface_config = suricata_interface_config_gui.SuricataInstanceConfiguratorApp()
                     suricata_interface_config.run()
                 except KeyboardInterrupt:
+                    suricata_interface_config.setNextForm(None)
                     sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
             elif args.config_suricata_rules:
+                suricata_rule_config = suricata_rule_config_gui.SuricataRuleConfiguratorApp()
                 try:
-                    suricata_rule_config = suricata_rule_config_gui.SuricataRuleConfiguratorApp()
                     suricata_rule_config.run()
                 except KeyboardInterrupt:
+                    suricata_rule_config.setNextForm(None)
                     sys.stdout.write('[+] Be sure to restart the agent for changes to take effect!\n')
                     sys.stdout.flush()
                 sys.exit(0)
