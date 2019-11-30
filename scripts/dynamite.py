@@ -247,7 +247,7 @@ if __name__ == '__main__':
                                               'Select an option [1 or 2]: '.format(internal_ip_address, external_ip_address))
                 while str(resp) not in ['', '1', '2']:
                     resp = utilities.prompt_input('Select a valid option [1 or 2]: ')
-                selected_hosting_ip = available_ip_addresses[int(resp)]
+                selected_hosting_ip = available_ip_addresses[int(resp) - 1]
             elif len(available_ip_addresses) == 1:
                 selected_hosting_ip = available_ip_addresses[0]
             else:
