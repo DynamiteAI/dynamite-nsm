@@ -18,6 +18,7 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
     :param agent_label: A descriptive label representing the
     segment/location on your network that your agent is monitoring
     :param logstash_target: The host port combination for the target Logstash server (E.G "localhost:5044")
+    :param verbose: Include output from system utilities
     :return: True, if install succeeded
     """
     zeek_profiler = zeek.ZeekProfiler(stderr=True)
@@ -117,11 +118,12 @@ def point_agent(host, port):
     sys.stdout.write('[+] Agent must be restarted for changes to take effect.\n')
 
 
-def prepare_agent():
+def prepare_agent(verbose=False):
     """
     Install the necessary build dependencies and kernel-headers
     *** IMPORTANT A REBOOT IS REQUIRED AFTER RUNNING THIS METHOD ***
 
+    :param verbose: Include output from system utilities
     :return: True, if successfully prepared
     """
     if is_agent_environment_prepared():
@@ -131,7 +133,7 @@ def prepare_agent():
         sys.stderr.write('[-] \'dynamite install agent\'.\n')
         sys.stderr.flush()
         return False
-    pf_ring_install = pf_ring.PFRingInstaller()
+    pf_ring_install = pf_ring.PFRingInstaller(verbose=verbose)
     if not pf_ring_install.install_dependencies():
         sys.stderr.write('\n[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         return False

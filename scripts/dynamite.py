@@ -176,7 +176,7 @@ if __name__ == '__main__':
             sys.exit(1)
     elif args.command == 'prepare':
         if args.component == 'agent':
-            agent.prepare_agent()
+            agent.prepare_agent(verbose=args.debug)
         else:
             sys.stderr.write('[-] Unrecognized component - {}\n'.format(args.component))
             sys.exit(1)

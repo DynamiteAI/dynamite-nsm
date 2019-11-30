@@ -484,15 +484,15 @@ class SuricataInstaller:
                     network_interface, utilities.get_network_interface_names()))
             raise Exception('Invalid network interface {}'.format(network_interface))
         self._copy_suricata_files_and_directories()
-        pf_ring_install = pf_ring.PFRingInstaller()
-        if not pf_ring.PFRingProfiler().is_installed:
+        pf_ring_profiler = pf_ring.PFRingProfiler()
+        pf_ring_install = pf_ring.PFRingInstaller(downlaod_pf_ring_archive=not pf_ring_profiler.is_downloaded,
+                                                  stdout=self.stdout, verbose=self.verbose)
+        if not pf_ring_profiler.is_installed:
             if self.stdout:
                 sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
                 sys.stdout.flush()
                 time.sleep(1)
-            pf_ring_install.download_pf_ring(stdout=True)
-            pf_ring_install.extract_pf_ring(stdout=True)
-            pf_ring_install.setup_pf_ring(stdout=True)
+            pf_ring_install.setup_pf_ring()
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so.1'), '/lib/libpcap.so.1')
         except Exception as e:

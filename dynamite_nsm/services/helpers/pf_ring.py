@@ -17,16 +17,23 @@ class PFRingInstaller:
     An interface for installing PF_RING kernel module and UserLand requirements
     """
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY, verbose=False):
+    def __init__(self, install_directory=INSTALL_DIRECTORY, downlaod_pf_ring_archive=True, stdout=True, verbose=False):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/pf_ring/)
         :param verbose: Include output from system utilities
         """
         self.install_directory = install_directory
+        self.stdout = stdout
         self.verbose = verbose
 
-    def _compile_pf_ring_modules(self, stdout=False):
-        if stdout:
+        if downlaod_pf_ring_archive:
+            self.download_pf_ring(stdout=stdout)
+            self.extract_pf_ring(stdout=stdout)
+        if not self.install_dependencies(verbose=verbose):
+            raise Exception('Could not install PF_RING dependencies.')
+
+    def _compile_pf_ring_modules(self):
+        if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].\n')
             sys.stdout.flush()
             time.sleep(1)
@@ -38,7 +45,7 @@ class PFRingInstaller:
             subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                             cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n')
             sys.stdout.flush()
             time.sleep(1)
@@ -50,7 +57,7 @@ class PFRingInstaller:
             subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                             cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].\n')
             sys.stdout.flush()
             time.sleep(1)
@@ -62,7 +69,7 @@ class PFRingInstaller:
             subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                             cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
                             shell=True)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n')
             sys.stdout.flush()
             time.sleep(2)
@@ -76,9 +83,9 @@ class PFRingInstaller:
         subprocess.call('modprobe pf_ring min_num_slots=32768', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                              const.PF_RING_DIRECTORY_NAME, 'kernel'))
 
-    def _create_pf_ring_environment_variables(self, stdout=False):
+    def _create_pf_ring_environment_variables(self):
         if 'PF_RING_HOME' not in open('/etc/dynamite/environment').read():
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
                     self.install_directory))
             subprocess.call('echo PF_RING_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
@@ -134,13 +141,15 @@ class PFRingInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     @staticmethod
-    def install_dependencies(stdout=False):
+    def install_dependencies(stdout=False, verbose=False):
         """
         Install required PF_RING dependencies
 
+        :param stdout: Print the output to console
+        :param verbose: Include output from system utilities
         :return: True, if packages were successfully installed
         """
-        pkt_mng = package_manager.OSPackageManager()
+        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
         if stdout:
             sys.stdout.write('[+] Updating Package Indexes.\n')
             sys.stdout.flush()
@@ -160,15 +169,15 @@ class PFRingInstaller:
                              'and apt-get.\n')
             return False
 
-    def setup_pf_ring(self, stdout=False):
+    def setup_pf_ring(self):
         """
         Compile and setup required binaries and kernel modules
 
         :param stdout: Print output to console
         """
-        self._compile_pf_ring_modules(stdout=stdout)
-        self._setup_pf_ring_kernel_modules(stdout=stdout)
-        self._create_pf_ring_environment_variables(stdout=stdout)
+        self._compile_pf_ring_modules()
+        self._setup_pf_ring_kernel_modules(stdout=self.stdout)
+        self._create_pf_ring_environment_variables()
 
 
 class PFRingProfiler:
