@@ -238,13 +238,13 @@ if __name__ == '__main__':
             time.sleep(1)
             password = utilities.prompt_password(
                 'Enter the password used for logging into ElasticSearch: ')
-            available_ip_addresses = utilities.get_network_interface_names()
+            available_ip_addresses = utilities.get_network_addresses()
             if len(available_ip_addresses) == 2:
                 internal_ip_address, external_ip_address = available_ip_addresses
                 resp = utilities.prompt_input('How would you like to access DynamiteLab:\n'
                                               '\t1. On the internal IP: {}\n'
                                               '\t2. On the external IP (may require port forwarding): {}\n'
-                                              'Select an option [1 or 2]:\n'.format(internal_ip_address, external_ip_address))
+                                              'Select an option [1 or 2]: '.format(internal_ip_address, external_ip_address))
                 while str(resp) not in ['', '1', '2']:
                     resp = utilities.prompt_input('Select a valid option [1 or 2]: ')
                 selected_hosting_ip = available_ip_addresses[int(resp)]
