@@ -3,6 +3,7 @@ import os
 import sys
 import pty
 import json
+import time
 import getpass
 import argparse
 import traceback
@@ -321,18 +322,22 @@ if __name__ == '__main__':
                     zeek_node_config.run()
                 except KeyboardInterrupt:
                     zeek_node_config.setNextForm(None)
+                    time.sleep(1)
                 try:
                     zeek_script_config.run()
                 except KeyboardInterrupt:
                     zeek_script_config.setNextForm(None)
+                    time.sleep(1)
                 try:
                     suricata_interface_config.run()
                 except KeyboardInterrupt:
                     suricata_interface_config.setNextForm(None)
+                    time.sleep(1)
                 try:
                     suricata_rule_config.run()
                 except KeyboardInterrupt:
                     suricata_rule_config.setNextForm(None)
+                    time.sleep(1)
                 sys.stdout.write('[+] To configure the agent: \n')
                 sys.stdout.write('\n\tdynamite configure agent -- <options>\n\n')
                 sys.stdout.write('[+] To start the agent:\n')
