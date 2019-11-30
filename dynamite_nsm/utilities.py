@@ -296,11 +296,12 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
 def run_subprocess_with_status(process, expected_lines=None):
     i = 0
     widgets = [
-        progressbar.Percentage(),
-        ' ', progressbar.Bar(marker=progressbar.RotatingMarker()),
+        '[+] ', progressbar.Percentage(),
+        ' ', progressbar.Variable('task', width=6, precision=6),
         ' ', progressbar.ETA()
     ]
     try:
+
         pb = progressbar.ProgressBar(widgets=widgets, max_value=expected_lines)
     except TypeError:
         pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
@@ -311,7 +312,7 @@ def run_subprocess_with_status(process, expected_lines=None):
             break
         if output:
             i += 1
-            pb.update(i)
+            pb.update(i, task=output)
             #print(i)
     pb.finish()
     return process.poll()
