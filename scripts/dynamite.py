@@ -313,22 +313,26 @@ if __name__ == '__main__':
             installed = agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port), verbose=args.debug)
             if installed:
+                zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
+                zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
+                suricata_interface_config = suricata_interface_config_gui.SuricataInstanceConfiguratorApp()
+                suricata_rule_config = suricata_rule_config_gui.SuricataRuleConfiguratorApp()
                 try:
-                    zeek_node_config_gui.ZeekNodeConfiguratorApp().run()
+                    zeek_node_config.run()
                 except KeyboardInterrupt:
-                    pass
+                    zeek_node_config.setNextForm(None)
                 try:
-                    zeek_script_config_gui.ZeekScriptConfiguratorApp().run()
+                    zeek_script_config.run()
                 except KeyboardInterrupt:
-                    pass
+                    zeek_script_config.setNextForm(None)
                 try:
-                    suricata_interface_config_gui.SuricataInstanceConfiguratorApp().run()
+                    suricata_interface_config.run()
                 except KeyboardInterrupt:
-                    pass
+                    suricata_interface_config.setNextForm(None)
                 try:
-                    suricata_rule_config_gui.SuricataRuleConfiguratorApp().run()
+                    suricata_rule_config.run()
                 except KeyboardInterrupt:
-                    pass
+                    suricata_rule_config.setNextForm(None)
                 sys.stdout.write('[+] To configure the agent: \n')
                 sys.stdout.write('\n\tdynamite configure agent -- <options>\n\n')
                 sys.stdout.write('[+] To start the agent:\n')
