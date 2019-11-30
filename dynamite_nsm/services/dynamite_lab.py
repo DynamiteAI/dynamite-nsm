@@ -3,6 +3,7 @@ import pty
 import sys
 import time
 import json
+import base64
 import shutil
 import signal
 import tarfile
@@ -12,12 +13,25 @@ from multiprocessing import Process
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
+from dynamite_nsm.services.data import embedded_images
 from dynamite_nsm.services.elasticsearch import ElasticProfiler
 
 try:
     from ConfigParser import ConfigParser
 except Exception:
     from configparser import ConfigParser
+
+try:
+    from urllib2 import urlopen
+    from urllib2 import URLError
+    from urllib2 import HTTPError
+    from urllib2 import Request
+except Exception:
+    from urllib.request import urlopen
+    from urllib.error import URLError
+    from urllib.error import HTTPError
+    from urllib.request import Request
+    from urllib.parse import urlencode
 
 CONFIGURATION_DIRECTORY = '/etc/dynamite/dynamite_sdk/'
 NOTEBOOK_HOME = '/home/jupyter/lab/'
@@ -83,6 +97,7 @@ class DynamiteLabInstaller:
                  elasticsearch_host=None,
                  elasticsearch_port=None,
                  elasticsearch_password='changeme',
+                 jupyterhub_host=None,
                  jupyterhub_password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  notebook_home=NOTEBOOK_HOME,
@@ -92,6 +107,8 @@ class DynamiteLabInstaller:
         :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
         :param elasticsearch_port: A port number for the target elasticsearch instance
         :param elasticsearch_password: The password used for authentication across all builtin ES users
+        :param jupyterhub_host: The host by which users can access this instance;
+                                (Used for creating kibana -> Jupyter hyperlinks)
         :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/dynamite_sdk/)
         :param notebook_home: The path where Jupyter notebooks are stored
@@ -102,6 +119,7 @@ class DynamiteLabInstaller:
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
         self.elasticsearch_password = elasticsearch_password
+        self.jupyterhub_host = jupyterhub_host
         self.jupyterhub_password = jupyterhub_password
         self.configuration_directory = configuration_directory
         self.notebook_home = notebook_home
@@ -247,6 +265,69 @@ class DynamiteLabInstaller:
             return False
         return True
 
+    def install_kibana_lab_icon(self):
+        """
+        Install a colored (and linkable) version of the JupyterHub icon across Kibana dashboards
+
+        :return: True, if installed successfully
+        """
+        try:
+            base64string = base64.b64encode('%s:%s' % ('elastic', self.elasticsearch_password))
+        except TypeError:
+            encoded_bytes = '{}:{}'.format('elastic', self.elasticsearch_password).encode('utf-8')
+            base64string = base64.b64encode(encoded_bytes).decode('utf-8')
+        # Search for the greyed out Jupyter Notebook Icon in the .kibana index
+        if self.stdout:
+            sys.stdout.write('[+] Installing DynamiteLab Kibana icon.\n')
+            sys.stdout.flush()
+        url_request = Request(
+            url='http://{}:{}/'.format(self.elasticsearch_host, self.elasticsearch_port) +
+                '.kibana/_search?q=visualization.title:"Jupyter:%20Link"',
+            headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
+        )
+        url_request.add_header("Authorization", "Basic %s" % base64string)
+        try:
+            res = json.loads(urlopen(url_request).read())
+        except TypeError as e:
+            sys.stderr.write('[-] Could not decode existing DynamiteLab Kibana icon - {}\n'.format(e))
+            return False
+        except HTTPError as e:
+            sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(e.read()))
+            return False
+        try:
+            # Patch the icon with the new (colored) icon and link
+            if self.jupyterhub_host:
+                jupyterhub_link = 'http://{}:{}'.format(self.jupyterhub_host, 8000)
+            else:
+                # If not specified, assume that JupyterHub is hosted on the same server as ElasticSearch
+                jupyterhub_link = 'http://{}:{}'.format(self.elasticsearch_host, 8000)
+            _id = res['hits']['hits'][0]['_id']
+            new_markdown = '[![DynamiteLab](data:image/png;base64,{})]({})'.format(
+                embedded_images.JUPYTER_HUB_IMG_ACTIVATED, jupyterhub_link)
+
+            # Visualization Hacking (Document manipulation)
+            vis_stats_loaded = json.loads(res['hits']['hits'][0]['_source']['visualization']['visState'])
+            doc_params_loaded = vis_stats_loaded['params']
+            doc_params_loaded['openLinksInNewTab'] = True
+            doc_params_loaded['markdown'] = new_markdown
+            vis_stats_loaded['params'] = doc_params_loaded
+            res['hits']['hits'][0]['_source']['visualization']['visState'] = json.dumps(vis_stats_loaded)
+            url_post_request = Request(
+                url='http://{}:{}/'.format(self.elasticsearch_host, self.elasticsearch_port) + '.kibana/_update/' + _id,
+                headers={'Content-Type': 'application/json', 'kbn-xsrf': True},
+                data=json.dumps({"doc": res['hits']['hits'][0]['_source']})
+            )
+            url_post_request.add_header("Authorization", "Basic %s" % base64string)
+            print(urlopen(url_post_request).read())
+        except TypeError as e:
+            sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
+            return False
+        except HTTPError as e:
+            sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}\n'.format(
+                e.read()))
+            return False
+        return True
+
     def setup_dynamite_sdk(self):
         """
         Sets up sdk files; and installs globally
@@ -302,6 +383,63 @@ class DynamiteLabInstaller:
                 self.configuration_directory), shell=True)
         shutil.copy(source_config, self.configuration_directory)
         self._link_jupyterhub_binaries()
+
+    def uninstall_kibana_lab_icon(self):
+        """
+        Restore the greyed out JupyterHub icon across Kibana dashboards
+
+        :return: True, if restored successfully
+        """
+        try:
+            base64string = base64.b64encode('%s:%s' % ('elastic', self.elasticsearch_password))
+        except TypeError:
+            encoded_bytes = '{}:{}'.format('elastic', self.elasticsearch_password).encode('utf-8')
+            base64string = base64.b64encode(encoded_bytes).decode('utf-8')
+        # Search for the colored Jupyter Notebook Icon in the .kibana index
+        if self.stdout:
+            sys.stdout.write('[+] Installing DynamiteLab Kibana icon.\n')
+            sys.stdout.flush()
+        url_request = Request(
+            url='http://{}:{}/'.format(self.elasticsearch_host, self.elasticsearch_port) +
+                '.kibana/_search?q=visualization.title:"Jupyter:%20Link"',
+            headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
+        )
+        url_request.add_header("Authorization", "Basic %s" % base64string)
+        try:
+            res = json.loads(urlopen(url_request).read())
+        except TypeError as e:
+            sys.stderr.write('[-] Could not decode existing DynamiteLab Kibana icon - {}\n'.format(e))
+            return False
+        except HTTPError as e:
+            sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(e.read()))
+            return False
+        try:
+            # Patch the icon with the greyed out icon and link
+            _id = res['hits']['hits'][0]['_id']
+            new_markdown = '![DynamiteLab](data:image/png;base64,{})'.format(embedded_images.JUPYTER_HUB_IMG_ACTIVATED)
+
+            # Visualization Hacking (Document manipulation)
+            vis_stats_loaded = json.loads(res['hits']['hits'][0]['_source']['visualization']['visState'])
+            doc_params_loaded = vis_stats_loaded['params']
+            doc_params_loaded['openLinksInNewTab'] = True
+            doc_params_loaded['markdown'] = new_markdown
+            vis_stats_loaded['params'] = doc_params_loaded
+            res['hits']['hits'][0]['_source']['visualization']['visState'] = json.dumps(vis_stats_loaded)
+            url_post_request = Request(
+                url='http://{}:{}/'.format(self.elasticsearch_host, self.elasticsearch_port) + '.kibana/_update/' + _id,
+                headers={'Content-Type': 'application/json', 'kbn-xsrf': True},
+                data=json.dumps({"doc": res['hits']['hits'][0]['_source']})
+            )
+            url_post_request.add_header("Authorization", "Basic %s" % base64string)
+            print(urlopen(url_post_request).read())
+        except TypeError as e:
+            sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
+            return False
+        except HTTPError as e:
+            sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}\n'.format(
+                e.read()))
+            return False
+        return True
 
 
 class DynamiteLabProfiler:
@@ -530,6 +668,8 @@ def install_dynamite_lab(elasticsearch_host='localhost', elasticsearch_port=9200
                                                   jupyterhub_password, stdout=stdout, verbose=verbose)
     dynamite_lab_installer.setup_dynamite_sdk()
     dynamite_lab_installer.setup_jupyterhub()
+    if not dynamite_lab_installer.install_kibana_lab_icon():
+        sys.stderr.write('[-] Failed to install DynamiteLab Kibana icon.\n')
     return DynamiteLabProfiler(stderr=True).is_installed
 
 
@@ -566,6 +706,7 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
     configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
     notebook_home = environment_variables.get('NOTEBOOK_HOME')
     dynamite_lab_profiler = DynamiteLabProfiler()
+    dynamite_lab_config = DynamiteLabConfigurator(configuration_directory)
     if not dynamite_lab_profiler.is_installed:
         sys.stderr.write('[-] DynanmiteLab is not installed.\n')
         return False
@@ -595,7 +736,17 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
             env_lines += line.strip() + '\n'
         open('/etc/dynamite/environment', 'w').write(env_lines)
         if stdout:
+            sys.stdout.write('[+] Uninstalling DynamiteLab Kibana Icon.\n')
+        icon_remove_result = DynamiteLabInstaller(elasticsearch_host=dynamite_lab_config.elasticsearch_url.split(
+            '//')[1].split(':')[0], elasticsearch_password=dynamite_lab_config.elasticsearch_password,
+                                                  elasticsearch_port=dynamite_lab_config.elasticsearch_url.split(
+                                 '//')[1].split(':')[1].replace('/', '')).uninstall_kibana_lab_icon()
+        if not icon_remove_result:
+            sys.stderr.write('[-] Failed to restore DynamiteLab Kibana icon.\n')
+            # Not fatal...just annoying;
+        if stdout:
             sys.stdout.write('[+] DynamiteLab uninstalled successfully.\n')
+
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to uninstall DynamiteLab: ')
         traceback.print_exc(file=sys.stderr)
