@@ -505,7 +505,8 @@ class ZeekInstaller:
             pf_ring_install.extract_pf_ring(stdout=True)
             pf_ring_install.setup_pf_ring(stdout=True)
         if self.stdout:
-            sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.'
+            sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. '
+                             'Have a cup of coffee.\n'
                              '\n\n')
             sys.stdout.flush()
             time.sleep(1)

@@ -326,7 +326,7 @@ class SuricataInstaller:
         else:
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-1])
         if self.stdout:
-            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 to 10 minutes.\n\n')
+            sys.stdout.write('[+] Compiling Suricata from source. This can take up to 5 to 10 minutes.\n')
             sys.stdout.flush()
         time.sleep(1)
         sys.stdout.write('[+] Configuring...\n')

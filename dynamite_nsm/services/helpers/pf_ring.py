@@ -27,37 +27,52 @@ class PFRingInstaller:
 
     def _compile_pf_ring_modules(self, stdout=False):
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].\n\n')
+            sys.stdout.write('[+] Compiling PF_RING from source [USERLAND].\n')
             sys.stdout.flush()
-            time.sleep(2)
+            time.sleep(1)
         if self.verbose:
-            userland_config_ret = subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                             cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
                             shell=True)
         else:
-            userland_config_ret = subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
                             cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n\n')
+            sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n')
             sys.stdout.flush()
-            time.sleep(2)
-        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
-                        shell=True)
+            time.sleep(1)
+        if self.verbose:
+            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
+                            shell=True)
+        else:
+            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
+                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].\n\n')
+            sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].\n')
             sys.stdout.flush()
-            time.sleep(2)
-        subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                        cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
-                        shell=True)
+            time.sleep(1)
+        if self.verbose:
+            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
+                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
+                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
+                            shell=True)
         if stdout:
-            sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n\n')
+            sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n')
             sys.stdout.flush()
             time.sleep(2)
-        subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
+        if self.verbose:
+            subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                              const.PF_RING_DIRECTORY_NAME, 'kernel'))
+        else:
+            subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
+                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         subprocess.call('modprobe pf_ring min_num_slots=32768', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
                                                                              const.PF_RING_DIRECTORY_NAME, 'kernel'))
 
