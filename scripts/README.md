@@ -16,9 +16,9 @@ positional arguments:
   command               An action to perform [prepare|install|uninstall|start|
                         stop|restart|status|profile|update|configure|point|chp
                         asswd]
-  component             The component to perform an action against
-                        [agent|monitor|elasticsearch|logstash|kibana|suricata-
-                        rules|mirrors|default-configs]
+  component             The component to perform an action against [agent|monitor|
+                        lab|elasticsearch|logstash|kibana|suricata-rules|
+                        mirrors|default-configs]
 
 optional arguments:
   -h, --help            show this help message and exit
