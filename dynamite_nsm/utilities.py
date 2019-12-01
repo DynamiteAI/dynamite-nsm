@@ -387,8 +387,8 @@ def run_subprocess_with_status(process, expected_lines=None):
         ' ', progressbar.BouncingBar(),
         ' ', progressbar.ETA()
     ]
+    over_max_value = False
     try:
-
         pb = progressbar.ProgressBar(widgets=widgets, max_value=expected_lines)
     except TypeError:
         pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
@@ -400,9 +400,14 @@ def run_subprocess_with_status(process, expected_lines=None):
         if output:
             i += 1
             try:
-                pb.update(i)
+                if not over_max_value:
+                    pb.update(i)
             except ValueError:
-                pass
+                if not over_max_value:
+                    sys.stdout.write('[+] This process is taking a bit longer than normal, '
+                                     'this can occur if resources are currently tapped\n')
+                    sys.stdout.flush()
+                    over_max_value = True
             #print(i)
     pb.finish()
     return process.poll()
