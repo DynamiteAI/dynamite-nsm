@@ -394,7 +394,7 @@ def run_subprocess_with_status(process, expected_lines=None):
         pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
     pb.start()
     while True:
-        output = process.stdout.readline()
+        output = process.stdout.readline().decode()
         print(i, process.poll(), output)
         if output == '' and process.poll() is not None:
             break
