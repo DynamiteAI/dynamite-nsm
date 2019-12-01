@@ -335,7 +335,7 @@ class DynamiteLabInstaller:
                 )
                 url_post_request.add_header("Authorization", "Basic %s" % base64string)
                 urlopen(url_post_request)
-        except TypeError as e:
+        except (IndexError, TypeError) as e:
             sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
             return False
         except HTTPError as e:
@@ -460,7 +460,7 @@ class DynamiteLabInstaller:
             url_post_request.add_header("Authorization", "Basic %s" % base64string)
             try:
                 urlopen(url_post_request)
-            except TypeError:
+            except (IndexError, TypeError):
                 url_post_request = Request(
                     url='http://{}:{}/'.format(self.elasticsearch_host,
                                                self.elasticsearch_port) + '.kibana/_update/' + _id,
