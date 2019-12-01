@@ -54,6 +54,7 @@ Get direct insight into your network traffic with the powerful events view, comp
 </p>
 <br>
 <hr>
+
 #### Alert View
 Quickly find evil on your network with Suricata IDS paired with the [Emerging Threats Rule Sets](https://rules.emergingthreats.net/).
 <p float="left">
@@ -62,6 +63,7 @@ Quickly find evil on your network with Suricata IDS paired with the [Emerging Th
 </p>
 <br>
 <hr>
+
 #### Baseline Network Assets
 Understand the normal behavior of assets on your network; gain insight into what is anomalous.
 
@@ -71,6 +73,7 @@ Understand the normal behavior of assets on your network; gain insight into what
 </p>
 <br>
 <hr>
+
 #### Monitor Statistics
 Easily track agents and NetFlow devices forwarding traffic to DynamiteNSM.
 <p float="left">
