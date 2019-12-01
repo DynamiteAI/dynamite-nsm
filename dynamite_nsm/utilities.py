@@ -392,7 +392,6 @@ def run_subprocess_with_status(process, expected_lines=None):
     i = 0
     widgets = [
         '[+] ', progressbar.Percentage(),
-        ' ', progressbar.BouncingBar(),
         ' ', progressbar.ETA()
     ]
     over_max_value = False
