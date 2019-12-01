@@ -52,22 +52,25 @@ Get direct insight into your network traffic with the powerful events view, comp
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-top-services.png"  width="49%" height="auto">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-top-talkers.png"  width="49%" height="auto">
 </p>
-
+<br>
+<hr>
 #### Alert View
 Quickly find evil on your network with Suricata IDS paired with the [Emerging Threats Rule Sets](https://rules.emergingthreats.net/).
 <p float="left">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-alerts.png"  width="49%" height="auto">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-threats.png"  width="49%" height="auto">
 </p>
-
+<br>
+<hr>
 #### Baseline Network Assets
-Understand the normal behavior of assets on your network; and gain insight into what is anomalous.
+Understand the normal behavior of assets on your network; gain insight into what is anomalous.
 
 <p float="left">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines-overview.png"  width="49%" height="auto">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines.png"  width="49%" height="auto">
 </p>
-
+<br>
+<hr>
 #### Monitor Statistics
 Easily track agents and NetFlow devices forwarding traffic to DynamiteNSM.
 <p float="left">
