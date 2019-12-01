@@ -97,10 +97,11 @@ Install JupyterHub alongside our custom SDK, and explore your data inside Jupyte
 <p float="left">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-lab-install.png"  width="49%" height="auto">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-agent-install.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-configure.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-script.configure.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-rules-configure.png"  width="49%" height="auto">
-
+</p>
+<p float="left">
+<img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-configure.png"  width="29%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-script.configure.png"  width="29%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-rules-configure.png"  width="29%" height="auto">
 </p>
 
 
