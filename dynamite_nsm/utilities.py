@@ -395,6 +395,7 @@ def run_subprocess_with_status(process, expected_lines=None):
     pb.start()
     while True:
         output = process.stdout.readline()
+        print(i, process.poll(), output)
         if output == '' and process.poll() is not None:
             break
         if output:
@@ -410,7 +411,6 @@ def run_subprocess_with_status(process, expected_lines=None):
                                      'this can occur if resources are currently tapped.\n')
                     sys.stdout.flush()
                     over_max_value = True
-            print(i, process.poll(), output)
     if not over_max_value:
         pb.finish()
     return process.poll()
