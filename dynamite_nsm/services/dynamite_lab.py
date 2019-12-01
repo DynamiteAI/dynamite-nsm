@@ -438,6 +438,7 @@ class DynamiteLabInstaller:
             return False
         except URLError as e:
             sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            return False
         try:
             # Patch the icon with the greyed out icon and link
             _id = res['hits']['hits'][0]['_id']
