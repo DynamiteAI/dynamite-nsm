@@ -72,7 +72,7 @@ Understand the normal behavior of assets on your network; gain insight into what
 
 <p float="left">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines-overview.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines2.png"  width="49%" height="auto">
 </p>
 <br>
 <hr>
