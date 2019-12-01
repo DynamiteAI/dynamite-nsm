@@ -298,7 +298,7 @@ class DynamiteLabInstaller:
             sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(e.read()))
             return False
         except URLError as e:
-            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
             return False
         try:
             # Patch the icon with the new (colored) icon and link
@@ -343,7 +343,7 @@ class DynamiteLabInstaller:
                 e.read()))
             return False
         except URLError as e:
-            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
             return False
         return True
 
@@ -437,7 +437,7 @@ class DynamiteLabInstaller:
             sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(e.read()))
             return False
         except URLError as e:
-            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
             return False
         try:
             # Patch the icon with the greyed out icon and link
@@ -477,7 +477,7 @@ class DynamiteLabInstaller:
                 e.read()))
             return False
         except URLError as e:
-            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
             return False
         return True
 
