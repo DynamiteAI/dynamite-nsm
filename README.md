@@ -47,24 +47,34 @@ python setup.py install
 #### Event View
 Get direct insight into your network traffic with the powerful events view, compatible with both the provided agent or NetFlow exporters!
 <p float="left">
-
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-flows.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-geo.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-top-services.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-top-talkers.png"  width="49%" height="auto">
 </p>
 
 #### Alert View
 Quickly find evil on your network with Suricata IDS paired with the [Emerging Threats Rule Sets](https://rules.emergingthreats.net/).
-<p align="center">
-  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-alerts.png"  width="50%" height="auto">
+<p float="left">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-alerts.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-threats.png"  width="49%" height="auto">
 </p>
 
 #### Baseline Network Assets
 Understand the normal behavior of assets on your network; and gain insight into what is anomalous.
 
-<p align="center">
-  <img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-nsm-suricata-threats.png"  width="50%" height="auto">
+<p float="left">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines-overview.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines.png"  width="49%" height="auto">
 </p>
 
 #### Monitor Statistics
 Easily track agents and NetFlow devices forwarding traffic to DynamiteNSM.
+<p float="left">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-overview.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-zeek.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-suricata.png"  width="49%" height="auto">
+</p>
 
 ### Getting Started
 
