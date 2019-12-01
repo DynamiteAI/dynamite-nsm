@@ -344,6 +344,9 @@ if __name__ == '__main__':
             time.sleep(1)
             installed = agent.install_agent(agent_label=args.agent_label, network_interface=args.network_interface,
                                 logstash_target='{}:{}'.format(args.ls_host, args.ls_port), verbose=args.debug)
+            sys.stdout.write('[+] Entering agent configuration TUIs.\n')
+            sys.stdout.flush()
+            time.sleep(1)
             if installed:
                 zeek_node_config = zeek_node_config_gui.ZeekNodeConfiguratorApp()
                 zeek_script_config = zeek_script_config_gui.ZeekScriptConfiguratorApp()
