@@ -44,6 +44,9 @@ python setup.py install
 | [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow (**and now Zeek!**) data collection and visualization.                                                                |
 | [Synesis [1.1.0]](https://github.com/robcowart/synesis_lite_suricata)| Provides Suricata data normalization and visualization.|
 
+### Dynamite Dashboards
+Dynamite monitor is built on top of the ElasticStack, and makes full use of Kibana for visualizing a variety of network metrics.
+
 #### Event View
 Get direct insight into your network traffic with the powerful events view, compatible with both the provided agent or NetFlow exporters!
 <p float="left">
@@ -81,6 +84,25 @@ Easily track agents and NetFlow devices forwarding traffic to DynamiteNSM.
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-zeek.png"  width="49%" height="auto">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-suricata.png"  width="49%" height="auto">
 </p>
+
+### Dynamite Lab
+Install JupyterHub alongside our custom SDK, and explore your data inside Jupyter Notebooks.
+<p float="left">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-lab-startup.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-lab-tutorials.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-lab-notebook-open.png"  width="49%" height="auto">
+</p>
+
+### Install, Manage, and Scale
+<p float="left">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-lab-install.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-agent-install.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-configure.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-script.configure.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-rules-configure.png"  width="49%" height="auto">
+
+</p>
+
 
 ### Getting Started
 
