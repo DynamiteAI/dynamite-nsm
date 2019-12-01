@@ -297,6 +297,9 @@ class DynamiteLabInstaller:
         except HTTPError as e:
             sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(e.read()))
             return False
+        except URLError as e:
+            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            return False
         try:
             # Patch the icon with the new (colored) icon and link
             if self.jupyterhub_host:
@@ -338,6 +341,9 @@ class DynamiteLabInstaller:
         except HTTPError as e:
             sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}\n'.format(
                 e.read()))
+            return False
+        except URLError as e:
+            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
             return False
         return True
 
@@ -430,6 +436,8 @@ class DynamiteLabInstaller:
         except HTTPError as e:
             sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(e.read()))
             return False
+        except URLError as e:
+            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
         try:
             # Patch the icon with the greyed out icon and link
             _id = res['hits']['hits'][0]['_id']
@@ -466,6 +474,9 @@ class DynamiteLabInstaller:
         except HTTPError as e:
             sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}\n'.format(
                 e.read()))
+            return False
+        except URLError as e:
+            sys.stderr.write('[-] Unable to connection to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
             return False
         return True
 
