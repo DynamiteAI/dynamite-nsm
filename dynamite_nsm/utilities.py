@@ -410,7 +410,7 @@ def run_subprocess_with_status(process, expected_lines=None):
                                      'this can occur if resources are currently tapped.\n')
                     sys.stdout.flush()
                     over_max_value = True
-            print(i)
+            print(i, process.poll(), output)
     if not over_max_value:
         pb.finish()
     return process.poll()
