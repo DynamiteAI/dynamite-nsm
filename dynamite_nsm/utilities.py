@@ -381,6 +381,14 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
 
 
 def run_subprocess_with_status(process, expected_lines=None):
+    """
+    Run a subprocess inside a wrapper, that hides the output, and replaces with a progressbar
+
+    :param process: The subprocess.Popen instance
+    :param expected_lines: The number of stdout lines to expect
+    :return: True, if exited with POSIX 0
+    """
+
     i = 0
     widgets = [
         '[+] ', progressbar.Percentage(),
