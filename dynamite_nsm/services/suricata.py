@@ -295,45 +295,90 @@ class SuricataInstaller:
     def __init__(self,
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
-                 log_directory=LOG_DIRECTORY):
+                 log_directory=LOG_DIRECTORY,
+                 download_suricata_archive=True,
+                 stdout=True,
+                 verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
+        :param log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)
+        :param download_suricata_archive: If True, download the Suricata archive from a mirror
+        :param stdout: Print the output to console
+        :param verbose: Include output from system utilities
         """
 
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
+        self.download_suricata_archive = download_suricata_archive
+        self.stdout = stdout
+        self.verbose = verbose
+        if download_suricata_archive:
+            self.download_suricata(stdout=stdout)
+            self.extract_suricata(stdout=stdout)
+        if not self.install_dependencies(verbose=verbose):
+            raise Exception('Could not install Suricata dependencies.')
 
-    def _configure_and_compile_suricata(self, pf_ring_installer, stdout=False):
+    def _configure_and_compile_suricata(self, pf_ring_installer):
         if self.configuration_directory.endswith('/'):
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-2])
         else:
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-1])
-        if stdout:
-            sys.stdout.write('\n\n[+] Compiling Suricata from source. This can take up to 5 minutes.\n\n')
+        if self.stdout:
+            sys.stdout.write('[+] Compiling Suricata from source. This can take up to 5 to 10 minutes. '
+                             'Have a cup of coffee.\n')
             sys.stdout.flush()
-        configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
-                                           '--localstatedir=/var/dynamite/suricata --enable-pfring '
-                                           '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
-                                                self.install_directory,
-                                                suricata_config_parent,
-                                                os.path.join(pf_ring_installer.install_directory, 'include'),
-                                                os.path.join(pf_ring_installer.install_directory, 'lib')),
-            shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
+            utilities.print_coffee_art()
+        time.sleep(1)
+        sys.stdout.write('[+] Configuring...\n')
+        sys.stdout.flush()
+        if self.verbose:
+            configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
+                                               '--localstatedir=/var/dynamite/suricata --enable-pfring '
+                                               '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
+                                                    self.install_directory,
+                                                    suricata_config_parent,
+                                                    os.path.join(pf_ring_installer.install_directory, 'include'),
+                                                    os.path.join(pf_ring_installer.install_directory, 'lib')),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME))
+        else:
+            configure_result = subprocess.call('./configure --prefix={} --sysconfdir={} '
+                                               '--localstatedir=/var/dynamite/suricata --enable-pfring '
+                                               '--with-libpfring-includes={} -with-libpfring-libraries={}'.format(
+                                                    self.install_directory,
+                                                    suricata_config_parent,
+                                                    os.path.join(pf_ring_installer.install_directory, 'include'),
+                                                    os.path.join(pf_ring_installer.install_directory, 'lib')),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if configure_result != 0:
             sys.stderr.write('[-] Unable to configure Suricata installation files: {}\n')
             return False
-        compile_result = subprocess.call('make; make install; make install-conf', shell=True, cwd=os.path.join(
-            const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME)
-        )
-        if compile_result != 0:
-            sys.stderr.write('[-] Unable to compile Suricata installation package: {}\n')
+        sys.stdout.write('[+] Compiling...\n')
+        sys.stdout.flush()
+        if self.verbose:
+            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
+                                                        cwd=os.path.join(const.INSTALL_CACHE,
+                                                                         const.SURICATA_DIRECTORY_NAME))
+            compile_suricata_process.communicate()
+            compile_suricata_return_code = compile_suricata_process.returncode
+        else:
+            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
+                                                        cwd=os.path.join(const.INSTALL_CACHE,
+                                                                         const.SURICATA_DIRECTORY_NAME),
+                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process,
+                                                                                expected_lines=935)
+        if compile_suricata_return_code != 0:
+            sys.stderr.write('[-] Unable to compile Suricata installation package; error code {}; run with '
+                             '--debug flag for more info.\n'.format(
+                compile_suricata_process.returncode))
             return False
         return True
 
-    def _copy_suricata_files_and_directories(self, stdout=False):
-        if stdout:
+    def _copy_suricata_files_and_directories(self):
+        if self.stdout:
             sys.stdout.write('[+] Creating suricata install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
@@ -349,24 +394,27 @@ class SuricataInstaller:
             return False
         return True
 
-    def _setup_suricata_rules(self, stdout=False):
-        if stdout:
+    def _setup_suricata_rules(self):
+        if self.stdout:
             sys.stdout.write('[+] Installing Oinkmaster.\n')
         oink_installer = oinkmaster.OinkmasterInstaller(
+            download_oinkmaster_archive=True,
+            stdout=self.stdout,
+            verbose=self.verbose,
             install_directory=os.path.join(self.install_directory, 'oinkmaster')
         )
         try:
-            oink_installer.download_oinkmaster(stdout=stdout)
+            oink_installer.download_oinkmaster(stdout=self.stdout)
         except Exception as e:
             sys.stderr.write('[-] Unable to download Oinkmaster: {}\n'.format(e))
             return False
         try:
-            oink_installer.extract_oinkmaster(stdout=stdout)
+            oink_installer.extract_oinkmaster(stdout=self.stdout)
         except Exception as e:
             sys.stderr.write('[-] Unable to extract Oinkmaster: {}'.format(e))
             return False
         try:
-            oink_install_res = oink_installer.setup_oinkmaster(stdout=stdout)
+            oink_install_res = oink_installer.setup_oinkmaster()
         except Exception as e:
             sys.stderr.write('[-] Unable to setup Oinkmaster: {}'.format(e))
             return False
@@ -403,37 +451,35 @@ class SuricataInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     @staticmethod
-    def install_dependencies():
+    def install_dependencies(verbose=False):
         """
         Install the required dependencies required by Suricata
 
         :return: True, if all packages installed successfully
         """
-        pacman = package_manager.OSPackageManager()
+        pacman = package_manager.OSPackageManager(verbose=verbose)
         if not pacman.refresh_package_indexes():
             return False
         packages = None
         if pacman.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config',
                         'libpcre3-dev', 'libpcap-dev', 'libyaml-dev', 'libjansson-dev', 'rustc', 'cargo', 'python-pip',
-                        'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev'
+                        'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev',
                         'liblz4-dev']
         elif pacman.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
                         'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip',
-                        'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel', 'file-devel'
+                        'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel', 'file-devel',
                         'lz4-devel']
         if packages:
             return pacman.install_packages(packages)
         return False
 
-    def setup_suricata(self, network_interface=None, stdout=False):
+    def setup_suricata(self, network_interface=None):
         """
         Setup Suricata IDS with PF_RING support
 
-        :param stdout: Print output to console
         :param network_interface: The interface to listen on
-        :return: True, if setup successful
         """
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
@@ -441,29 +487,31 @@ class SuricataInstaller:
             sys.stderr.write(
                 '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
                     network_interface, utilities.get_network_interface_names()))
-            return False
-        self._copy_suricata_files_and_directories(stdout=stdout)
-        pf_ring_install = pf_ring.PFRingInstaller()
-        if not pf_ring.PFRingProfiler().is_installed:
-            if stdout:
+            raise Exception('Invalid network interface {}'.format(network_interface))
+        self._copy_suricata_files_and_directories()
+        pf_ring_profiler = pf_ring.PFRingProfiler()
+        pf_ring_install = pf_ring.PFRingInstaller(downlaod_pf_ring_archive=not pf_ring_profiler.is_downloaded,
+                                                  stdout=self.stdout, verbose=self.verbose)
+        if not pf_ring_profiler.is_installed:
+            if self.stdout:
                 sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
                 sys.stdout.flush()
                 time.sleep(1)
-            pf_ring_install.download_pf_ring(stdout=True)
-            pf_ring_install.extract_pf_ring(stdout=True)
-            pf_ring_install.setup_pf_ring(stdout=True)
+            pf_ring_install.setup_pf_ring()
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so.1'), '/lib/libpcap.so.1')
+            os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so.1'), '/lib64/libpcap.so.1')
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpcap.so.1 -> /lib/libpcap.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
+                raise Exception('An error occurred while linking libpcap.so.1 - {}'.format(e))
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib/libpfring.so.1')
+            os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'), '/lib64/libpfring.so.1')
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpfring.so -> /lib/libpfring.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
+                raise Exception('An error occurred while linking libpfring.so - {}'.format(e))
         # CentOS linker libraries
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpcap.so.1'),
@@ -471,33 +519,31 @@ class SuricataInstaller:
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpcap.so.1 -> /usr/local/lib/libpcap.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
+                raise Exception('An error occurred while linking libpcap.so.1 - {}'.format(e))
         try:
             os.symlink(os.path.join(pf_ring_install.install_directory, 'lib', 'libpfring.so'),
                        '/usr/local/lib/libpfring.so.1')
         except Exception as e:
             sys.stderr.write('[-] Failed to re-link libpfring.so -> /usr/local/lib/libpfring.so.1: {}\n'.format(e))
             if 'exists' not in str(e).lower():
-                return False
-        time.sleep(5)
-        suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install, stdout=stdout)
+                raise Exception('An error occurred while linking libpfring.so - {}'.format(e))
+        time.sleep(2)
+        suricata_compiled = self._configure_and_compile_suricata(pf_ring_installer=pf_ring_install)
         if not suricata_compiled:
             return False
         if 'SURICATA_HOME' not in open('/etc/dynamite/environment').read():
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Updating Suricata default home path [{}]\n'.format(
                     self.install_directory))
             subprocess.call('echo SURICATA_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
         if 'SURICATA_CONFIG' not in open('/etc/dynamite/environment').read():
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Updating Suricata default config path [{}]\n'.format(
                     self.configuration_directory))
-            subprocess.call('echo SURICATA_CONFIG="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
-                            shell=True)
-        suricata_rules_installed = self._setup_suricata_rules(stdout=stdout)
-        if not suricata_rules_installed:
-            return False
+            subprocess.call('echo SURICATA_CONFIG="{}" >> /etc/dynamite/environment'.format(
+                self.configuration_directory), shell=True)
+        self._setup_suricata_rules()
         config = SuricataConfigurator(self.configuration_directory)
         config.af_packet_interfaces = []
         config.add_afpacket_interface(network_interface, threads='auto', cluster_id=99)
@@ -518,8 +564,6 @@ class SuricataInstaller:
         config.disable_rule('emerging-tftp.rules')
         config.disable_rule('emerging-voip.rules')
         config.write_config()
-
-        return True
 
 
 class SuricataProfiler:

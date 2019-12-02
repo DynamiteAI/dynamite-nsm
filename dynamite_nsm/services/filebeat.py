@@ -162,9 +162,19 @@ class FileBeatConfigurator:
 class FileBeatInstaller:
 
     def __init__(self, monitor_paths=(zeek.INSTALL_DIRECTORY + 'logs/current/*.log',),
-                 install_directory=INSTALL_DIRECTORY):
+                 install_directory=INSTALL_DIRECTORY, download_filebeat_archive=True, stdout=True):
+        """
+        :param monitor_paths: The tuple of log paths to monitor
+        :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
+        :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
+        :param stdout: Print the output to console
+        """
         self.monitor_paths = list(monitor_paths)
         self.install_directory = install_directory
+        self.stdout = stdout
+        if download_filebeat_archive:
+            self.download_filebeat(stdout=stdout)
+            self.extract_filebeat(stdout=stdout)
 
     @staticmethod
     def download_filebeat(stdout=False):
@@ -195,21 +205,19 @@ class FileBeatInstaller:
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
-    def setup_filebeat(self, stdout=False):
+    def setup_filebeat(self):
         """
         Creates necessary directory structure, and copies required files, generates a default configuration
-
-        :param stdout: Print output to console
         """
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Creating Filebeat install directory.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Copying Filebeat to install directory.\n')
         utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME), self.install_directory)
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
                     self.install_directory)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Building configurations and setting up permissions.\n')
         beats_config = FileBeatConfigurator(self.install_directory)
         beats_config.set_monitor_target_paths(self.monitor_paths)
@@ -217,7 +225,7 @@ class FileBeatInstaller:
         utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
                                           unix_permissions_integer=501)
         if 'FILEBEAT_HOME' not in open('/etc/dynamite/environment').read():
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Updating FileBeat default script path [{}]\n'.format(
                     self.install_directory)
                 )

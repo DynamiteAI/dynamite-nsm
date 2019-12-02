@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import os
+import re
 import pwd
 import grp
 import sys
@@ -16,9 +19,16 @@ from contextlib import closing
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
+    from urllib2 import HTTPError
+    from urllib2 import Request
 except Exception:
     from urllib.request import urlopen
     from urllib.error import URLError
+    from urllib.error import HTTPError
+    from urllib.request import Request
+    from urllib.parse import urlencode
+
+import progressbar
 
 from dynamite_nsm import const
 
@@ -70,6 +80,18 @@ def check_socket(host, port):
             return False
 
 
+def check_user_exists(username):
+    """
+    :param username: The username of the user to check
+    :return: True if the user exists
+    """
+    try:
+        pwd.getpwnam(username)
+        return True
+    except KeyError:
+        return False
+
+
 def create_dynamite_environment_file():
     env_file = open('/etc/dynamite/environment', 'a')
     env_file.write('')
@@ -85,12 +107,23 @@ def create_dynamite_root_directory():
 
 def create_dynamite_user(password):
     """
-    Create the dynamite user
+    Create the dynamite user and group
 
     :param password: The password for the user
     """
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
+
+
+def create_jupyter_user(password):
+    """
+    Create the jupyter user w/ home
+
+    :param password: The password for the user
+    """
+    pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
+    subprocess.call('useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
+                    shell=True)
 
 
 def download_file(url, filename, stdout=False):
@@ -211,6 +244,28 @@ def get_network_interface_names():
     return os.listdir('/sys/class/net')
 
 
+def get_network_addresses():
+    """
+    Returns a list of valid IP addresses for the host
+
+    :return: A tuple containing the internal, and external IP address
+    """
+    valid_addresses = []
+    internal_address, external_address = None, None
+    try:
+        site = str(urlopen("http://checkip.dyndns.org/", timeout=2).read())
+        grab = re.findall('([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)', site)
+        external_address = grab[0]
+    except (URLError, IndexError, HTTPError):
+        pass
+    internal_address = socket.gethostbyname(socket.gethostname())
+    if internal_address:
+        valid_addresses.append(internal_address)
+    if external_address:
+        valid_addresses.append(external_address)
+    return tuple(valid_addresses)
+
+
 def get_cpu_core_count():
     """
     :return: The count of CPU cores available on the system
@@ -225,6 +280,63 @@ def is_root():
     :return: True, if the user is root
     """
     return os.getuid() == 0
+
+
+def print_dynamite_logo():
+    """
+    Print the dynamite logo!
+    """
+    try:
+        dynamite_logo =\
+            """
+            
+                  ,,,,,                  ,▄▄▄▄╓
+              .▄▓▀▀▀░▀▀▀▓▓╓            ╔▓▓▓▓▓▓▓▀▓
+             #∩╓ ▀▓▓▓▓▓▓▓▄▀▓▄         ║▌▓▓▓▓▓▓▓▓╩▓
+                ▀▓"▓▓▓▓▓▓▓▓∩▓▄ ,,▄▄▄▓▓▓▌▓▓▓▓▓▓▓▓╦▓
+                 ▐▓╙▓▓▓▓▓▓▓▓▐▓▀▀▀^╙└"^^▀▓▀▓▓▓▓▀▒▓`
+                 ▐▓]▓▓▓▓▓▓▓▓▐▓           ▀▀▀▀▀▀^
+                ▄▓.▓▓▓▓▓▓▓▓Ü▓▀ ╙╙▀█▒▄▄,,
+            '#ε╙╙▄▓▓▓▓▓▓▓▀▄▓▌        `╙▀▀▓▓▓▓▄▄╓,        ,,
+              "█▓▄▄▓▓▓░▄▓▓▀  ╙╗,            '"▀▀█▓▓▓▓▓▄#╣▓▓▓▓
+                 ║▀"▀▀└,       ▀▓▄                 ^▀▀▀▌▓▓▓▓▓╛
+                ╔▓      ▓        ▀▓▄,╓╓,                ╙▀▀▀"
+               ]▓▌      ╙▌        '▓▓▓▓▓▓⌐
+            ╓▄▄▓▓░       ▓▌        ╫▓▓▓▓▓>
+         ╓▓▀▓▓▓▓▓▀▓      ╙▓▌        ╙╙▀╙
+        ╔▓▒▓▓▓▓▓▓▓░▓      ║▓╕
+        ╚▌║▓▓▓▓▓▓▓╩▓       ▓▓
+         ▀▓▀▓▓▓▓▀╠▓┘       ╚▓▓
+           ▀▀██▀▀╙          ▓▓▓╓
+                           ╫▓▓▓▓▓ε
+    
+            http://dynamite.ai
+            """
+        print(dynamite_logo)
+        print('\n')
+    except SyntaxError:
+        # Your operating system is super lame :(
+        pass
+
+
+def print_coffee_art():
+    """
+    Print coffee mug art!
+    """
+    try:
+        coffee_icon = \
+            """
+        ╭╯╭╯╭╯
+        █▓▓▓▓▓█═╮
+        █▓▓▓▓▓█▏︱
+        █▓▓▓▓▓█═╯
+        ◥█████◤
+            """
+        print(coffee_icon)
+        print('\n')
+    except SyntaxError:
+        # Your operating system is super lame :(
+        pass
 
 
 def prompt_input(message):
@@ -268,6 +380,49 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
     return password
 
 
+def run_subprocess_with_status(process, expected_lines=None):
+    """
+    Run a subprocess inside a wrapper, that hides the output, and replaces with a progressbar
+
+    :param process: The subprocess.Popen instance
+    :param expected_lines: The number of stdout lines to expect
+    :return: True, if exited with POSIX 0
+    """
+
+    i = 0
+    widgets = [
+        '[+] ', progressbar.Percentage(),
+        ' ', progressbar.Bar(),
+        ' ', progressbar.ETA()
+    ]
+    over_max_value = False
+    try:
+        pb = progressbar.ProgressBar(widgets=widgets, max_value=expected_lines)
+    except TypeError:
+        pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
+    pb.start()
+    while True:
+        output = process.stdout.readline().decode()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            i += 1
+            try:
+                if not over_max_value:
+                    pb.update(i)
+            except ValueError:
+                if not over_max_value:
+                    pb.finish()
+                    sys.stdout.write('[+] This process is taking a bit longer than normal, '
+                                     'this can occur if resources are currently tapped.\n')
+                    sys.stdout.flush()
+                    over_max_value = True
+        # print(i, process.poll(), output)
+    if not over_max_value:
+        pb.finish()
+    return process.poll()
+
+
 def setup_java():
     """
     Installs the latest version of OpenJDK
@@ -282,14 +437,16 @@ def setup_java():
         subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/dynamite/environment', shell=True)
 
 
-def set_ownership_of_file(path):
+def set_ownership_of_file(path, user='dynamite', group='dynamite'):
     """
-    Set the ownership of a file to dynamite user/group at a given path
+    Set the ownership of a file given a user/group and a path
 
     :param path: The path to the file
+    :param user: The name of the user
+    :param group: The group of the user
     """
-    uid = pwd.getpwnam('dynamite').pw_uid
-    group = grp.getgrnam('dynamite').gr_gid
+    uid = pwd.getpwnam(user).pw_uid
+    group = grp.getgrnam(group).gr_gid
     for root, dirs, files in os.walk(path):
         for momo in dirs:
             os.chown(os.path.join(root, momo), uid, group)
@@ -309,9 +466,11 @@ def set_permissions_of_file(file_path, unix_permissions_integer):
     subprocess.call('chmod {} {}'.format(unix_permissions_integer, file_path), shell=True)
 
 
-def update_sysctl():
+def update_sysctl(verbose=False):
     """
     Updates the vm.max_map_count and fs.file-max count
+
+    :param verbose: Include output from system utilities
     """
     new_output = ''
     vm_found = False
@@ -331,9 +490,33 @@ def update_sysctl():
         new_output += 'fs.file-max=65535\n'
     with open('/etc/sysctl.conf', 'w') as f:
         f.write(new_output)
-    subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
-    subprocess.call('sysctl -w fs.file-max=65535', shell=True)
-    subprocess.call('sysctl -p', shell=True)
+    if verbose:
+        subprocess.call('sysctl -w vm.max_map_count=262144', shell=True)
+        subprocess.call('sysctl -w fs.file-max=65535', shell=True)
+        subprocess.call('sysctl -p', shell=True)
+    else:
+        subprocess.call('sysctl -w vm.max_map_count=262144', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        subprocess.call('sysctl -w fs.file-max=65535', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        subprocess.call('sysctl -p', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+
+def update_user_file_handle_limits():
+    """
+    Updates the max number of file handles the dynamite user can have open
+    """
+    new_output = ''
+    limit_found = False
+    for line in open('/etc/security/limits.conf').readlines():
+        if line.startswith('dynamite'):
+            new_output += 'dynamite    -   nofile   65535'
+            limit_found = True
+        else:
+            new_output += line.strip()
+        new_output += '\n'
+    if not limit_found:
+        new_output += '\ndynamite    -   nofile   65535\n'
+    with open('/etc/security/limits.conf', 'w') as f:
+        f.write(new_output)
 
 
 def tail_file(path, n=1, bs=1024):
@@ -359,22 +542,3 @@ def tail_file(path, n=1, bs=1024):
     lines = f.readlines()[-l:]
     f.close()
     return lines
-
-
-def update_user_file_handle_limits():
-    """
-    Updates the max number of file handles the dynamite user can have open
-    """
-    new_output = ''
-    limit_found = False
-    for line in open('/etc/security/limits.conf').readlines():
-        if line.startswith('dynamite'):
-            new_output += 'dynamite    -   nofile   65535'
-            limit_found = True
-        else:
-            new_output += line.strip()
-        new_output += '\n'
-    if not limit_found:
-        new_output += '\ndynamite    -   nofile   65535\n'
-    with open('/etc/security/limits.conf', 'w') as f:
-        f.write(new_output)

@@ -3,41 +3,38 @@ from dynamite_nsm import utilities
 from dynamite_nsm.services import elasticsearch, logstash, kibana
 
 
-def install_monitor(elasticsearch_password='changeme'):
+def install_monitor(elasticsearch_password='changeme', verbose=False):
     """
     Installs Logstash (with ElastiFlow templates modified to work with Zeek), ElasticSearch, and Kibana.
 
+    :param elasticsearch_password: The password used for authentication across all builtin ES users
+    :param verbose: Include output from system utilities
     :return: True, if installation succeeded
     """
+    es_pre_profiler = elasticsearch.ElasticProfiler()
+    ls_pre_profiler = logstash.LogstashProfiler()
+    kb_pre_profiler = kibana.KibanaProfiler()
+    if ls_pre_profiler.is_installed and es_pre_profiler.is_installed and kb_pre_profiler.is_installed:
+        sys.stderr.write('[-] Monitor is already installed. If you wish to re-install, first uninstall.\n')
+        return False
     if utilities.get_memory_available_bytes() < 14 * (1000 ** 3):
-        sys.stderr.write('[-] Dynamite standalone monitor requires '
+        sys.stderr.write('[-] WARNING Dynamite standalone monitor requires '
                          'at-least 14GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes() / (1024 ** 3)
         ))
-        return False
+        if str(utilities.prompt_input('Continue? [y|N]: ')).lower() != 'y':
+            return False
     utilities.create_dynamite_user(utilities.generate_random_password(50))
     utilities.download_java(stdout=True)
     utilities.extract_java(stdout=True)
     utilities.setup_java()
-    es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
-                                                  port=9200,
-                                                  password=elasticsearch_password)
-    es_pre_profiler = elasticsearch.ElasticProfiler()
-    ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
-                                              elasticsearch_password=elasticsearch_password)
-    ls_pre_profiler = logstash.LogstashProfiler()
-    kb_installer = kibana.KibanaInstaller(host='0.0.0.0',
-                                          port=5601,
-                                          elasticsearch_host='localhost',
-                                          elasticsearch_port=9200,
-                                          elasticsearch_password=elasticsearch_password)
-    kb_pre_profiler = kibana.KibanaProfiler()
     if not es_pre_profiler.is_installed:
         sys.stdout.write('[+] Installing Elasticsearch on localhost.\n')
-        if not es_pre_profiler.is_downloaded:
-            es_installer.download_elasticsearch(stdout=True)
-            es_installer.extract_elasticsearch(stdout=True)
-        es_installer.setup_elasticsearch(stdout=True)
+        es_installer = elasticsearch.ElasticInstaller(host='0.0.0.0',
+                                                      port=9200,
+                                                      download_elasticsearch_archive=not ls_pre_profiler.is_downloaded,
+                                                      password=elasticsearch_password, stdout=True, verbose=verbose)
+        es_installer.setup_elasticsearch()
         if not elasticsearch.ElasticProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch failed to install on localhost.\n')
             return False
@@ -45,19 +42,27 @@ def install_monitor(elasticsearch_password='changeme'):
     es_process = elasticsearch.ElasticProcess()
     es_process.start()
     if not ls_pre_profiler.is_installed:
-        if not ls_pre_profiler.is_downloaded:
-            ls_installer.download_logstash(stdout=True)
-            ls_installer.extract_logstash(stdout=True)
-        ls_installer.setup_logstash(stdout=True)
+        ls_installer = logstash.LogstashInstaller(host='0.0.0.0',
+                                                  elasticsearch_password=elasticsearch_password,
+                                                  download_logstash_archive=not es_pre_profiler.is_downloaded,
+                                                  stdout=True, verbose=verbose)
+        ls_installer.setup_logstash()
         if not logstash.LogstashProfiler().is_installed:
             sys.stderr.write('[-] LogStash failed to install on localhost.\n')
             return False
     if not kb_pre_profiler.is_installed and elasticsearch.ElasticProfiler().is_installed:
         sys.stdout.write('[+] Installing Kibana on localhost.\n')
+        kb_installer = kibana.KibanaInstaller(host='0.0.0.0',
+                                              port=5601,
+                                              elasticsearch_host='localhost',
+                                              elasticsearch_port=9200,
+                                              elasticsearch_password=elasticsearch_password,
+                                              download_kibana_archive=not kb_pre_profiler.is_downloaded,
+                                              stdout=True, verbose=verbose)
         if not kb_pre_profiler.is_downloaded:
             kb_installer.download_kibana(stdout=True)
             kb_installer.extract_kibana(stdout=True)
-        kb_installer.setup_kibana(stdout=True)
+        kb_installer.setup_kibana()
         if not kibana.KibanaProfiler().is_installed:
             sys.stderr.write('[-] Kibana failed to install on localhost.\n')
             return False

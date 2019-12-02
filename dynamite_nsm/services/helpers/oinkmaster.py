@@ -18,11 +18,21 @@ class OinkmasterInstaller:
     """
     An interface for installing OinkMaster Suricata update script
     """
-    def __init__(self, install_directory=INSTALL_DIRECTORY):
+
+    def __init__(self, install_directory=INSTALL_DIRECTORY, download_oinkmaster_archive=True,
+                 stdout=True, verbose=False):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/oinkmaster/)
+        :param download_oinkmaster_archive: If True, download the Oinkmaster archive from a mirror
+        :param stdout: Print the output to console
+        :param verbose: Include output from system utilities
         """
         self.install_directory = install_directory
+        self.stdout = stdout
+        self.verbose = verbose
+        if download_oinkmaster_archive:
+            self.download_oinkmaster(stdout=stdout)
+            self.extract_oinkmaster(stdout=stdout)
 
     @staticmethod
     def download_oinkmaster(stdout=False):
@@ -52,13 +62,13 @@ class OinkmasterInstaller:
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
-    def setup_oinkmaster(self, stdout=False):
+    def setup_oinkmaster(self):
         try:
             os.mkdir(self.install_directory)
         except Exception as e:
             if 'exists' not in str(e).lower():
                 return False
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Copying oinkmaster files.\n')
         try:
             utilities.copytree(os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME),
@@ -68,12 +78,12 @@ class OinkmasterInstaller:
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))
             return False
         if 'OINKMASTER_HOME' not in open('/etc/dynamite/environment').read():
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Updating Oinkmaster default home path [{}]\n'.format(
                     self.install_directory))
             subprocess.call('echo OINKMASTER_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Updating oinkmaster.conf with emerging-threats URL.\n')
         try:
             with open(os.path.join(self.install_directory, 'oinkmaster.conf'), 'a') as f:

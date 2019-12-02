@@ -331,14 +331,25 @@ class ZeekInstaller:
 
     def __init__(self,
                  configuration_directory=CONFIGURATION_DIRECTORY,
-                 install_directory=INSTALL_DIRECTORY):
+                 install_directory=INSTALL_DIRECTORY, download_zeek_archive=True, stdout=True,
+                 verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+        :param download_zeek_archive: If True, download the Zeek archive from a mirror
+        :param stdout: Print the output to console
+        :param verbose: Include output from system utilities
         """
 
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
+        self.stdout = stdout
+        self.verbose = verbose
+        if download_zeek_archive:
+            self.download_zeek(stdout=stdout)
+            self.extract_zeek(stdout=stdout)
+        if not self.install_dependencies(verbose=verbose):
+            raise Exception('Could not install Zeek dependencies.')
 
     @staticmethod
     def download_zeek(stdout=False):
@@ -369,13 +380,13 @@ class ZeekInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     @staticmethod
-    def install_dependencies():
+    def install_dependencies(verbose=False):
         """
         Install the required dependencies required by Zeek
 
         :return: True, if all packages installed successfully
         """
-        pacman = package_manager.OSPackageManager()
+        pacman = package_manager.OSPackageManager(verbose=verbose)
         if not pacman.refresh_package_indexes():
             return False
         packages = None
@@ -397,6 +408,8 @@ class ZeekInstaller:
         """
         scripts = ''
         redefs = ''
+        if self.stdout:
+            sys.stdout.write('[+] Setting up Zeek scripts.\n')
         install_cache_extra_scripts_path = \
             os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'dynamite_extra_scripts')
         if not os.path.exists(install_cache_extra_scripts_path):
@@ -407,6 +420,8 @@ class ZeekInstaller:
             os.mkdir(os.path.join(self.configuration_directory, 'dynamite_extra_scripts'))
         except OSError:
             pass
+        if self.stdout:
+            sys.stdout.write('[+] Installing third-party Zeek scripts.\n')
         extra_scripts_path = os.path.join(self.configuration_directory, 'dynamite_extra_scripts')
         utilities.copytree(install_cache_extra_scripts_path, extra_scripts_path)
         with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'r') as rf:
@@ -421,66 +436,8 @@ class ZeekInstaller:
             for script_dir in os.listdir(extra_script_install_path):
                 wf.write('@load {}\n'.format(os.path.join(extra_script_install_path, script_dir)))
             wf.write(redefs)
-        return True
-
-    def setup_zeek(self, network_interface=None, stdout=False):
-        """
-        Setup Zeek NSM with PF_RING support
-
-        :param stdout: Print output to console
-        :param network_interface: The interface to listen on
-        :return: True, if setup successful
-        """
-        if not network_interface:
-            network_interface = utilities.get_network_interface_names()[0]
-        if network_interface not in utilities.get_network_interface_names():
-            sys.stderr.write(
-                '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
-                    network_interface, utilities.get_network_interface_names()))
-            return False
-        if stdout:
-            sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
-        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        pf_ring_install = pf_ring.PFRingInstaller()
-        if not pf_ring.PFRingProfiler().is_installed:
-            if stdout:
-                sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
-                sys.stdout.flush()
-                time.sleep(1)
-            pf_ring_install.download_pf_ring(stdout=True)
-            pf_ring_install.extract_pf_ring(stdout=True)
-            pf_ring_install.setup_pf_ring(stdout=True)
-        if stdout:
-            sys.stdout.write('\n\n[+] Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.'
-                             '\n\n')
-            sys.stdout.flush()
-            time.sleep(5)
-        subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
-            self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
-            shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
-        subprocess.call('make; make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
-                                                                           const.ZEEK_DIRECTORY_NAME))
-
-        if 'ZEEK_HOME' not in open('/etc/dynamite/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
-                    self.install_directory))
-            subprocess.call('echo ZEEK_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
-                            shell=True)
-        if 'ZEEK_SCRIPTS' not in open('/etc/dynamite/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating Zeek default script path [{}]\n'.format(
-                    self.configuration_directory))
-            subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
-                            shell=True)
-        if stdout:
-            sys.stdout.write('[+] Overwriting default Script | Node configurations.\n')
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'broctl-nodes.cfg'),
-                    os.path.join(self.install_directory, 'etc', 'node.cfg'))
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'local.bro'),
-                    os.path.join(self.configuration_directory, 'site', 'local.bro'))
-
+        if self.stdout:
+            sys.stdout.write('[+] Disabling unneeded Zeek scripts.\n')
         # Disable Unneeded Zeek scripts
         script_config = ZeekScriptConfigurator()
         script_config.disable_script('protocols/ftp/detect')
@@ -517,6 +474,88 @@ class ZeekInstaller:
         script_config.disable_script('frameworks/files/hash-all-files')
         script_config.disable_script('policy/frameworks/notice/extend-email/hostnames')
         script_config.write_config()
+        return True
+
+    def setup_zeek(self, network_interface=None):
+        """
+        Setup Zeek NSM with PF_RING support
+
+        :param stdout: Print output to console
+        :param network_interface: The interface to listen on
+        :return: True, if setup successful
+        """
+        if not network_interface:
+            network_interface = utilities.get_network_interface_names()[0]
+        if network_interface not in utilities.get_network_interface_names():
+            sys.stderr.write(
+                '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
+                    network_interface, utilities.get_network_interface_names()))
+            raise Exception('Invalid network interface {}'.format(network_interface))
+        if self.stdout:
+            sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
+        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
+        pf_ring_profiler = pf_ring.PFRingProfiler()
+        pf_ring_install = pf_ring.PFRingInstaller(downlaod_pf_ring_archive=not pf_ring_profiler.is_downloaded,
+                                                  stdout=self.stdout, verbose=self.verbose)
+        if not pf_ring_profiler.is_installed:
+            if self.stdout:
+                sys.stdout.write('[+] Installing PF_RING kernel modules and dependencies.\n')
+                sys.stdout.flush()
+                time.sleep(1)
+        if self.stdout:
+            sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. '
+                             'Have another cup of coffee.\n')
+            sys.stdout.flush()
+            utilities.print_coffee_art()
+            time.sleep(1)
+        sys.stdout.write('[+] Configuring...\n')
+        sys.stdout.flush()
+        if self.verbose:
+            subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
+                self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
+        else:
+            subprocess.call('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
+                self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
+                shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        sys.stdout.write('[+] Compiling...\n')
+        sys.stdout.flush()
+        time.sleep(1)
+        if self.verbose:
+            compile_zeek_process = subprocess.Popen('make; make install', shell=True,
+                                                    cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
+            compile_zeek_process.communicate()
+            compile_return_code = compile_zeek_process.returncode
+        else:
+            compile_zeek_process = subprocess.Popen('make; make install', shell=True,
+                                                    cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
+                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            compile_return_code = utilities.run_subprocess_with_status(compile_zeek_process, expected_lines=6596)
+        if compile_return_code != 0:
+            sys.stderr.write('[-] Failed to compile Zeek from source; error code: {}; ; run with '
+                             '--debug flag for more info.\n'.format(compile_zeek_process.returncode))
+            return False
+
+        if 'ZEEK_HOME' not in open('/etc/dynamite/environment').read():
+            if self.stdout:
+                sys.stdout.write('[+] Updating Zeek default home path [{}]\n'.format(
+                    self.install_directory))
+            subprocess.call('echo ZEEK_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
+                            shell=True)
+        if 'ZEEK_SCRIPTS' not in open('/etc/dynamite/environment').read():
+            if self.stdout:
+                sys.stdout.write('[+] Updating Zeek default script path [{}]\n'.format(
+                    self.configuration_directory))
+            subprocess.call('echo ZEEK_SCRIPTS="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
+                            shell=True)
+        if self.stdout:
+            sys.stdout.write('[+] Overwriting default Script | Node configurations.\n')
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'broctl-nodes.cfg'),
+                    os.path.join(self.install_directory, 'etc', 'node.cfg'))
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'local.bro'),
+                    os.path.join(self.configuration_directory, 'site', 'local.bro'))
 
         node_config = ZeekNodeConfigurator(self.install_directory)
 
@@ -561,7 +600,8 @@ class ZeekProfiler:
         zeek_scripts = env_dict.get('ZEEK_SCRIPTS')
         if not zeek_home:
             if stderr:
-                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ZEEK_HOME installation directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not zeek_scripts:
             if stderr:

@@ -376,14 +376,21 @@ class ElasticInstaller:
                  password='changeme',
                  configuration_directory=CONFIGURATION_DIRECTORY,
                  install_directory=INSTALL_DIRECTORY,
-                 log_directory=LOG_DIRECTORY):
+                 log_directory=LOG_DIRECTORY,
+                 download_elasticsearch_archive=True,
+                 stdout=False,
+                 verbose=False,
+                 ):
         """
         :param: host: The IP address to listen on (E.G "0.0.0.0")
         :param: port: The port that the ES API is bound to (E.G 9200)
         :param: password: The password used for authentication across all builtin users
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/f/)
+        :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
+        :param download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
+        :param stdout: Print output to console
+        :param verbose: Include output from system utilities
         """
 
         self.host = host
@@ -392,16 +399,21 @@ class ElasticInstaller:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
+        self.stdout = stdout
+        self.verbose = verbose
+        if download_elasticsearch_archive:
+            self.download_elasticsearch(stdout=stdout)
+            self.extract_elasticsearch(stdout=stdout)
 
-    def _create_elasticsearch_directories(self, stdout=False):
-        if stdout:
+    def _create_elasticsearch_directories(self):
+        if self.stdout:
             sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
         subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
         subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
 
-    def _copy_elasticsearch_files_and_directories(self, stdout=False):
+    def _copy_elasticsearch_files_and_directories(self):
         config_paths = [
             'config/elasticsearch.yml',
             'config/jvm.options',
@@ -415,7 +427,7 @@ class ElasticInstaller:
             'plugins/'
         ]
         for path in config_paths:
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Copying {} -> {}\n'.format(
                     os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                     self.configuration_directory))
@@ -426,7 +438,7 @@ class ElasticInstaller:
             except shutil.Error as e:
                 sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         for path in install_paths:
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] Copying {} -> {}\n'.format(
                     os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                     self.install_directory))
@@ -450,13 +462,13 @@ class ElasticInstaller:
             subprocess.call('echo ES_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
                             shell=True)
 
-    def _setup_default_elasticsearch_configs(self, stdout=False):
-        if stdout:
+    def _setup_default_elasticsearch_configs(self):
+        if self.stdout:
             sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
                     self.configuration_directory)
         es_config = ElasticConfigurator(configuration_directory=self.configuration_directory)
-        if stdout:
+        if self.stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
         es_config.set_jvm_initial_memory(4)
         es_config.set_jvm_maximum_memory(4)
@@ -464,11 +476,11 @@ class ElasticInstaller:
         es_config.set_network_port(self.port)
         es_config.write_configs()
 
-    def _update_sysctl(self, stdout=False):
-        if stdout:
+    def _update_sysctl(self):
+        if self.stdout:
             sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
         utilities.update_user_file_handle_limits()
-        utilities.update_sysctl()
+        utilities.update_sysctl(verbose=self.verbose)
 
     @staticmethod
     def download_elasticsearch(stdout=False):
@@ -499,24 +511,22 @@ class ElasticInstaller:
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
-    def setup_elasticsearch(self, stdout=False):
+    def setup_elasticsearch(self):
         """
         Create required directories, files, and variables to run ElasticSearch successfully;
         Setup Java environment
-
-        :param stdout: Print output to console
         """
-        self._create_elasticsearch_directories(stdout=stdout)
-        self._copy_elasticsearch_files_and_directories(stdout=stdout)
-        self._create_elasticsearch_environment_variables(stdout=stdout)
-        self._setup_default_elasticsearch_configs(stdout=stdout)
-        self._update_sysctl(stdout=stdout)
-        utilities.set_ownership_of_file('/etc/dynamite/')
-        utilities.set_ownership_of_file('/opt/dynamite/')
-        utilities.set_ownership_of_file('/var/log/dynamite')
-        self.setup_passwords(stdout=stdout)
+        self._create_elasticsearch_directories()
+        self._copy_elasticsearch_files_and_directories()
+        self._create_elasticsearch_environment_variables()
+        self._setup_default_elasticsearch_configs()
+        self._update_sysctl()
+        utilities.set_ownership_of_file('/etc/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/opt/dynamite/', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
+        self.setup_passwords()
 
-    def setup_passwords(self, stdout=False):
+    def setup_passwords(self):
         env_dict = utilities.get_environment_file_dict()
 
         def setup_from_bootstrap(s):
@@ -546,15 +556,16 @@ class ElasticInstaller:
         if not os.path.exists(es_cert_keystore):
             sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n\t'.format(cert_p_res))
             return False
-        utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'))
+        utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'),
+                                        user='dynamite', group='dynamite')
         if not ElasticProfiler().is_running:
-            ElasticProcess().start(stdout=stdout)
+            ElasticProcess().start(stdout=self.stdout)
             sys.stdout.flush()
             while not ElasticProfiler().is_listening:
-                if stdout:
+                if self.stdout:
                     sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
                 time.sleep(5)
-            if stdout:
+            if self.stdout:
                 sys.stdout.write('[+] ElasticSearch API is up.\n')
                 sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
                 sys.stdout.flush()
@@ -634,6 +645,9 @@ class ElasticProfiler:
             if stderr:
                 sys.stderr.write('[-] Could not locate ElasticSearch binary in {}/bin/\n'.format(es_home))
             return False
+        if not utilities.check_user_exists('dynamite'):
+            sys.stderr.write('[-] dynamite user was not created.\n')
+            return False
         return True
 
     @staticmethod
@@ -684,7 +698,8 @@ class ElasticProfiler:
         es_path_conf = env_dict.get('ES_PATH_CONF')
         if not es_path_conf:
             if stderr:
-                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in /etc/dynamite/environment.\n')
+                sys.stderr.write('[-] ElasticSearch configuration directory could not be located in '
+                                 '/etc/dynamite/environment.\n')
             return False
         if not os.path.exists(os.path.join(es_path_conf, 'elasticsearch.yml')):
             if stderr:
@@ -740,7 +755,7 @@ class ElasticProcess:
                 utilities.get_environment_file_str(), self.config.es_home), shell=True)
         if not os.path.exists('/var/run/dynamite/elasticsearch/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
-        utilities.set_ownership_of_file('/var/run/dynamite')
+        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
 
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
@@ -843,7 +858,8 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=Fals
     return es_pw_config.set_all_passwords(password, stdout=stdout)
 
 
-def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=False):
+def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite_user=True, stdout=True,
+                          verbose=False):
     """
     Install ElasticSearch
 
@@ -851,6 +867,7 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
+    :param verbose: Include output from system utilities
     :return: True, if installation succeeded
     """
     es_profiler = ElasticProfiler()
@@ -863,16 +880,15 @@ def install_elasticsearch(password='changeme', install_jdk=True, create_dynamite
         ))
         return False
     try:
-        es_installer = ElasticInstaller(password=password)
+        es_installer = ElasticInstaller(password=password, download_elasticsearch_archive=not es_profiler.is_downloaded,
+                                        stdout=stdout, verbose=verbose)
         if install_jdk:
-            utilities.download_java(stdout=True)
-            utilities.extract_java(stdout=True)
+            utilities.download_java(stdout=stdout)
+            utilities.extract_java(stdout=stdout)
             utilities.setup_java()
         if create_dynamite_user:
             utilities.create_dynamite_user(utilities.generate_random_password(50))
-        es_installer.download_elasticsearch(stdout=True)
-        es_installer.extract_elasticsearch(stdout=True)
-        es_installer.setup_elasticsearch(stdout=True)
+        es_installer.setup_elasticsearch()
     except Exception:
         sys.stderr.write('[-] A fatal error occurred while attempting to install ElasticSearch: ')
         traceback.print_exc(file=sys.stderr)
@@ -892,8 +908,10 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
     :param prompt_user: Print a warning before continuing
     :return: True, if uninstall succeeded
     """
+    environment_variables = utilities.get_environment_file_dict()
+    configuration_directory = environment_variables.get('ES_PATH_CONF')
     es_profiler = ElasticProfiler()
-    es_config = ElasticConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
+    es_config = ElasticConfigurator(configuration_directory=configuration_directory)
     if not es_profiler.is_installed:
         sys.stderr.write('[-] ElasticSearch is not installed.\n')
         return False

@@ -181,7 +181,7 @@ class ElastiFlowInstaller:
             sys.stdout.write('[+] Copying elastiflow configurations\n')
         utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'zeek'),
                            self.install_directory)
-        utilities.set_ownership_of_file(self.install_directory)
+        utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         if 'ELASTIFLOW_DICT_PATH' not in open('/etc/dynamite/environment').read():
             dict_path = os.path.join(self.install_directory, 'dictionaries')
             if stdout:
