@@ -17,7 +17,7 @@ No need to download a huge ISO image or install a dedicated operating system!
 python setup.py install
 ```
 
-**...And checkout the** [commandline walkthrough](https://github.com/vlabsio/dynamite-nsm/tree/master/scripts/README.md)
+**...And checkout the** [Wiki](https://github.com/DynamiteAI/dynamite-nsm/wiki)
 
 
 ### The Agent
