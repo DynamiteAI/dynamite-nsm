@@ -50,10 +50,10 @@ Dynamite monitor is built on top of the ElasticStack, and makes full use of Kiba
 #### Event View
 Get direct insight into your network traffic with the powerful events view, compatible with both the provided agent or NetFlow exporters!
 <p float="left">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-flows.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-geo.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-top-services.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-top-talkers.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-flows.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-geo.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-top-services.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-top-talkers.png"  width="49%" height="auto">
 </p>
 <br>
 <hr>
@@ -61,8 +61,8 @@ Get direct insight into your network traffic with the powerful events view, comp
 #### Alert View
 Quickly find evil on your network with Suricata IDS paired with the [Emerging Threats Rule Sets](https://rules.emergingthreats.net/).
 <p float="left">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-alerts.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-threats.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-suricata-alerts.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-suricata-threats.png"  width="49%" height="auto">
 </p>
 <br>
 <hr>
@@ -71,8 +71,8 @@ Quickly find evil on your network with Suricata IDS paired with the [Emerging Th
 Understand the normal behavior of assets on your network; gain insight into what is anomalous.
 
 <p float="left">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines-overview.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-baselines2.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-baselines-overview.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-baselines2.png"  width="49%" height="auto">
 </p>
 <br>
 <hr>
@@ -80,31 +80,31 @@ Understand the normal behavior of assets on your network; gain insight into what
 #### Monitor Statistics
 Easily track agents and NetFlow devices forwarding traffic to DynamiteNSM.
 <p float="left">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-overview.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-zeek.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-stats-suricata.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-stats-overview.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-stats-zeek.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-stats-suricata.png"  width="49%" height="auto">
 </p>
 
 ### Dynamite Lab
 Install JupyterHub alongside our custom SDK, and explore your data inside Jupyter Notebooks.
 <p float="left">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-lab-startup.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-lab-tutorials.png"  width="49%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-lab-notebook-open.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-lab-startup.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-lab-tutorials.png"  width="49%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-lab-notebook-open.png"  width="49%" height="auto">
 </p>
 
 ### Install, Manage, and Scale
 Easily add new agents and monitoring components into your environment through intuitive installation.
 <p float="left">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-lab-install.png"  width="30%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-agent-install.png"  width="64%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-lab-install.png"  width="30%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-agent-install.png"  width="64%" height="auto">
 </p>
 
 Configure components without ever having to interact with a configuration file.
 <p float="left">
-<img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-configure.png"  width="22%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-zeek-script.configure.png"  width="36%" height="auto">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/jupyterhub_integration/img/screenshots/dynamite-nsm-suricata-rules-configure.png"  width="34%" height="auto">
+<img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-zeek-configure.png"  width="22%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-zeek-script.configure.png"  width="36%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/feature/master/img/screenshots/dynamite-nsm-suricata-rules-configure.png"  width="34%" height="auto">
 </p>
 
 
