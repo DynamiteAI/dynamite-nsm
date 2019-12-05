@@ -13,7 +13,8 @@ The monitor component builds upon the ELK stack (ElasticSearch, LogStash, Kibana
 
 Dynamite-NSM is designed to be deployed very quickly with minimal configuration. Unlike many other tools, it can be installed and managed with a standalone command-line utility. The system is inherently passive without disruption to the network. There is no need to install agents on every computer, perform network scans, or directly interact with network assets. To start receiving analytics, we just connect agents and optional flow sources to the monitor.
 
-Dynamite NSM can be installed and managed through a standalone commandline utility implemented in pure Python.
+
+Dynamite NSM can be installed and managed through a commandline utility implemented in pure Python.
 
 No need to download a huge ISO image or install a dedicated operating system! 
 
