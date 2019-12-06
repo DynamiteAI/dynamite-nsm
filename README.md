@@ -26,8 +26,9 @@ No need to download a huge ISO image or install a dedicated operating system!
 python setup.py install
 ```
 
-**...And checkout the** [Wiki](https://github.com/DynamiteAI/dynamite-nsm/wiki)
+**...And checkout the** [Wiki](https://github.com/DynamiteAI/dynamite-nsm/wiki).
 
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/screenshots/Dynamite Components.png"  width="49%" height="auto">
 
 ### The Agent
 
