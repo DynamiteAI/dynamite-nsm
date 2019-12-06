@@ -23,7 +23,7 @@ No need to download a huge ISO image or install a dedicated operating system!
 #### Install With...
 
 ```bash
-python setup.py install
+pip install dynamite-nsm
 ```
 
 **...And checkout the** [Wiki](https://github.com/DynamiteAI/dynamite-nsm/wiki).
@@ -138,7 +138,7 @@ Linux Kernel: 2.6.32+
 Grab the the release, and install.
 
 ```bash
-python setup.py install
+pip install dynamite-nsm
 ```
 
 Install the monitoring components all on the same machine.
@@ -166,7 +166,7 @@ Linux Kernel: 2.6.32+
 Grab the the release, and install.
 
 ```bash
-python setup.py install
+pip install dynamite-nsm
 ```
 
 Prepare the agent, this installs any required kernel-headers needed to install the PF_RING kernel module. 
