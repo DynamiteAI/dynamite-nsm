@@ -27,8 +27,9 @@ python setup.py install
 ```
 
 **...And checkout the** [Wiki](https://github.com/DynamiteAI/dynamite-nsm/wiki).
-
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/screenshots/Dynamite Components.png"  width="49%" height="auto">
+<p float="center">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/Dynamite%20Components.jpeg"  width="70%" height="auto">
+</p>
 
 ### The Agent
 
