@@ -185,8 +185,11 @@ class KibanaConfigurator:
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         kibana_config_backup = os.path.join(backup_configurations, 'kibana.yml.backup.{}'.format(timestamp))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.move(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
-        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'a') as kibana_search_config_obj:
+        try:
+            shutil.move(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
+        except OSError:
+            shutil.copy(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
+        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'w') as kibana_search_config_obj:
             for k, v in self.kb_config_options.items():
                 if k == 'elasticsearch.hosts':
                     kibana_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
