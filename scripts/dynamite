@@ -293,10 +293,12 @@ if __name__ == '__main__':
         elif args.component == 'logstash':
             utilities.print_dynamite_logo()
             time.sleep(1)
+            if args.initial_password:
+                password = args.initial_password
+            else:
+                password = utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: ')
             if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(
-                                             'Enter the password used for logging into ElasticSearch: '
-                                         ),
+                                         elasticsearch_password=password,
                                          stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
                 sys.exit(0)
             else:
