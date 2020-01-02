@@ -314,7 +314,7 @@ def print_dynamite_logo():
             """
         print(dynamite_logo)
         print('\n')
-    except SyntaxError:
+    except (SyntaxError, UnicodeEncodeError):
         # Your operating system is super lame :(
         pass
 
@@ -334,7 +334,7 @@ def print_coffee_art():
             """
         print(coffee_icon)
         print('\n')
-    except SyntaxError:
+    except (SyntaxError, UnicodeEncodeError):
         # Your operating system is super lame :(
         pass
 

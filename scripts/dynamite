@@ -62,6 +62,9 @@ def _get_parser():
     parser.add_argument('--es-port', type=int, dest='es_port', default=9200,
                         help='Target ElasticSearch cluster; A valid port [1-65535]')
 
+    parser.add_argument('--password', type=str, dest='initial_password', required=False,
+                        help='The password for a component on first install.')
+
     # Config Modes
 
     parser.add_argument('--zeek-cluster', default=False, dest='config_zeek_cluster', action='store_true',
@@ -236,8 +239,11 @@ if __name__ == '__main__':
         if args.component in ['dynamite-lab', 'lab']:
             utilities.print_dynamite_logo()
             time.sleep(1)
-            password = utilities.prompt_password(
-                'Enter the password used for logging into ElasticSearch: ')
+            if args.initial_password:
+                password = args.initial_password
+            else:
+                password = utilities.prompt_password(
+                    'Enter the password used for logging into ElasticSearch: ')
             available_ip_addresses = utilities.get_network_addresses()
             if len(available_ip_addresses) == 2:
                 internal_ip_address, external_ip_address = available_ip_addresses
@@ -273,8 +279,12 @@ if __name__ == '__main__':
         elif args.component == 'elasticsearch':
             utilities.print_dynamite_logo()
             time.sleep(1)
+            if args.initial_password:
+                password = args.initial_password
+            else:
+                password = utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: ')
             if elasticsearch.install_elasticsearch(
-                password=utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: '),
+                password=password,
                     stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
                 sys.exit(0)
             else:
@@ -283,10 +293,12 @@ if __name__ == '__main__':
         elif args.component == 'logstash':
             utilities.print_dynamite_logo()
             time.sleep(1)
+            if args.initial_password:
+                password = args.initial_password
+            else:
+                password = utilities.prompt_password(prompt='Create a password for logging into ElasticSearch: ')
             if logstash.install_logstash(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(
-                                             'Enter the password used for logging into ElasticSearch: '
-                                         ),
+                                         elasticsearch_password=password,
                                          stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
                 sys.exit(0)
             else:
@@ -295,19 +307,29 @@ if __name__ == '__main__':
         elif args.component == 'kibana':
             utilities.print_dynamite_logo()
             time.sleep(1)
+            if args.initial_password:
+                password = args.initial_password
+            else:
+                password = utilities.prompt_password(
+                    'Enter the password used for logging into ElasticSearch: '
+                )
             if not elasticsearch.ElasticProfiler().is_installed:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(
-                                             'Enter the password used for logging into ElasticSearch: '
-                                         ),
+                                         elasticsearch_password=password,
                                          stdout=True, create_dynamite_user=True, install_jdk=True, verbose=args.debug):
                     sys.exit(0)
                 else:
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
             else:
+                if args.initial_password:
+                    password = args.initial_password
+                else:
+                    password = utilities.prompt_password(
+                        'Enter the password used for logging into ElasticSearch: '
+                    )
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
-                                         elasticsearch_password=utilities.prompt_password(),
+                                         elasticsearch_password=password,
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     env_variables = environment_variables = utilities.get_environment_file_dict()
                     kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
@@ -324,9 +346,13 @@ if __name__ == '__main__':
         elif args.component == 'monitor':
             utilities.print_dynamite_logo()
             time.sleep(1)
-            installed = monitor.install_monitor(elasticsearch_password=utilities.prompt_password(
-                'Create a password for logging into ElasticSearch: '
-            ), verbose=args.debug)
+            if args.initial_password:
+                password = args.initial_password
+            else:
+                password = utilities.prompt_password(
+                    'Enter the password used for logging into ElasticSearch: '
+                )
+            installed = monitor.install_monitor(elasticsearch_password=password, verbose=args.debug)
             if installed:
                 env_variables = environment_variables = utilities.get_environment_file_dict()
                 kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
