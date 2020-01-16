@@ -63,7 +63,7 @@ class KibanaAPIConfigurator:
                     self.kibana_config.get_server_port())
         curl_command = 'curl -X POST {} -u {}:"{}" --form file=@{} -H "kbn-xsrf: true" ' \
                        '-H "Content-Type: multipart/form-data" -v'.format(
-            kibana_api_import_url, 'kibana', self.kibana_config.get_elasticsearch_password(), kibana_api_objects_path
+            kibana_api_import_url, 'elastic', self.kibana_config.get_elasticsearch_password(), kibana_api_objects_path
         )
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
