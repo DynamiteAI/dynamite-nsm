@@ -108,8 +108,11 @@ class KibanaConfigurator:
                     v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
                     kb_config_options[k] = v
                 else:
-                    k, v = line.strip().split(':')
-                    kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
+                    try:
+                        k, v = line.strip().split(':')
+                        kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
+                    except ValueError as e:
+                        sys.stderr.write('[-] Issue parsing Kibana parameter. {}'.format(e))
         return kb_config_options
 
     def _parse_environment_file(self):
