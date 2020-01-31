@@ -26,6 +26,7 @@ class FileBeatConfigurator:
     tokens = {
         'inputs': ('filebeat.inputs',),
         'logstash_targets': ('output.logstash', 'hosts'),
+        'kafka_targets': ('output.kafka', 'hosts'),
         'processors': ('processors',)
     }
 
@@ -34,6 +35,7 @@ class FileBeatConfigurator:
 
         self.inputs = None
         self.logstash_targets = None
+        self.kafka_targets = None
         self.processors = None
 
         self._parse_filebeatyaml()
@@ -50,9 +52,12 @@ class FileBeatConfigurator:
                 return False
             key_path = self.tokens[variable_name]
             value = data
-            for k in key_path:
-                value = value[k]
-            setattr(self, var_name, value)
+            try:
+                for k in key_path:
+                    value = value[k]
+                setattr(self, var_name, value)
+            except KeyError:
+                pass
             return True
 
         with open(os.path.join(self.install_directory, 'filebeat.yml'), 'r') as configyaml:
