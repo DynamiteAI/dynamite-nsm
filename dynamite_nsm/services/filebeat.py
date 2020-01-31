@@ -146,7 +146,10 @@ class FileBeatConfigurator:
             """
             partial_config_data = self.config_data
             for i in range(0, len(path) - 1):
-                partial_config_data = partial_config_data[path[i]]
+                try:
+                    partial_config_data = partial_config_data[path[i]]
+                except KeyError:
+                    pass
             partial_config_data.update({path[-1]: value})
 
         timestamp = int(time.time())
