@@ -154,9 +154,9 @@ class FileBeatConfigurator:
 
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.install_directory, 'config_backups/')
-        suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
+        filebeat_config_backup = os.path.join(backup_configurations, 'filebeat.yml.backup.{}'.format(timestamp))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.copy(os.path.join(self.install_directory, 'filebeat.yml'), suricata_config_backup)
+        shutil.copy(os.path.join(self.install_directory, 'filebeat.yml'), filebeat_config_backup)
 
         for k, v in vars(self).items():
             if k not in self.tokens:

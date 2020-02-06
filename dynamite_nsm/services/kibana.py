@@ -22,6 +22,13 @@ except Exception:
     from urllib.request import Request
     from urllib.parse import urlencode
 
+from yaml import load, dump
+
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.package_manager import OSPackageManager
@@ -78,46 +85,59 @@ class KibanaAPIConfigurator:
 
 
 class KibanaConfigurator:
-    """
-    Wrapper for configuring kibana.yml
-    """
+
+    tokens = {
+        'server_host': ('server.host',),
+        'server_port': ('server.port', ),
+        'elasticsearch_hosts': ('elasticsearch.hosts',),
+        'elasticsearch_username': ('elasticsearch.username',),
+        'elasticsearch_password': ('elasticsearch.password',),
+    }
+
     def __init__(self, configuration_directory=CONFIGURATION_DIRECTORY):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
-        """
         self.configuration_directory = configuration_directory
-        self.kb_config_options = self._parse_kibanayaml()
         self.kibana_home = None
         self.kibana_path_conf = None
         self.kibana_logs = None
+        self.server_host = None
+        self.server_port = None
+        self.elasticsearch_hosts = None
+        self.elasticsearch_username = None
+        self.elasticsearch_password = None
         self._parse_environment_file()
+        self._parse_kibanayaml()
 
     def _parse_kibanayaml(self):
-        """
-        Parse kibana.yml, return a object representing the config
-        :return: A dictionary of config options and their values
-        """
-        kb_config_options = {}
-        config_path = os.path.join(self.configuration_directory, 'kibana.yml')
-        if not os.path.exists(config_path):
-            return kb_config_options
-        for line in open(config_path).readlines():
-            if not line.startswith('#') and ':' in line:
-                if line.startswith('elasticsearch.hosts:'):
-                    k = 'elasticsearch.hosts'
-                    v = json.loads(line.replace('elasticsearch.hosts:', '').strip())
-                    kb_config_options[k] = v
-                else:
-                    try:
-                        k, v = line.strip().split(':')
-                        kb_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
-                    except ValueError as e:
-                        sys.stderr.write('[-] Issue parsing Kibana parameter. {}'.format(e))
-        return kb_config_options
+
+        def set_instance_var_from_token(variable_name, data):
+            """
+            :param variable_name: The name of the instance variable to update
+            :param data: The parsed yaml object
+            :return: True if successfully located
+            """
+            if variable_name not in self.tokens.keys():
+                return False
+            key_path = self.tokens[variable_name]
+            value = data
+            try:
+                for k in key_path:
+                    value = value[k]
+                setattr(self, var_name, value)
+            except KeyError:
+                pass
+            return True
+
+        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'r') as configyaml:
+            self.config_data = load(configyaml, Loader=Loader)
+
+        for var_name in vars(self).keys():
+            set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
     def _parse_environment_file(self):
         """
-        Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, KIBANA_PATH_CONF, KIBANA_HOME; KIBANA_LOGS
+        Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, KIBANA_PATH_CONF, KIBANA_HOME;
+        KIBANA_LOGS
+
         stores the results in class variables of the same name
         """
         for line in open('/etc/dynamite/environment').readlines():
@@ -130,74 +150,36 @@ class KibanaConfigurator:
             elif line.startswith('KIBANA_LOGS'):
                 self.kibana_logs = line.split('=')[1].strip()
 
-    def get_server_host(self):
-        """
-        :return: The host the Kibana is running on
-        """
-        return self.kb_config_options['server.host']
+    def write_config(self):
 
-    def get_server_port(self):
-        """
-        :return: The port the Kibana is running on
-        """
-        return self.kb_config_options['server.port']
+        def update_dict_from_path(path, value):
+            """
+            :param path: A tuple representing each level of a nested path in the yaml document
+                        ('vars', 'address-groups', 'HOME_NET') = /vars/address-groups/HOME_NET
+            :param value: The new value
+            :return: None
+            """
+            partial_config_data = self.config_data
+            for i in range(0, len(path) - 1):
+                try:
+                    partial_config_data = partial_config_data[path[i]]
+                except KeyError:
+                    pass
+            partial_config_data.update({path[-1]: value})
 
-    def get_elasticsearch_hosts(self):
-        """
-        :return: A list of elasticsearch hosts to connect too
-        """
-        return self.kb_config_options['elasticsearch.hosts']
-
-    def get_elasticsearch_password(self):
-        """
-        :return: The password to the ElasticSearch 'kibana' user
-        """
-        return self.kb_config_options['elasticsearch.password']
-
-    def set_server_host(self, host='0.0.0.0'):
-        """
-        :param host: The IP address for Kibana service to listen on
-        """
-        self.kb_config_options['server.host'] = host
-
-    def set_server_port(self, port=5601):
-        """
-        :param port: The port number of the for Kibana service to listen on
-        """
-        self.kb_config_options['server.port'] = str(port)
-
-    def set_elasticsearch_hosts(self, host_list):
-        """
-        :param host_list: A list of ElasticSearch hosts for Kibana to connect too
-        """
-        if not isinstance(host_list, list):
-            raise TypeError("host_list must be of type: 'list'")
-        self.kb_config_options['elasticsearch.hosts'] = host_list
-
-    def set_elasticsearch_password(self, password):
-        """
-        :param password: The ElasticSearch password for the 'kibana' user
-        """
-        self.kb_config_options['elasticsearch.password'] = password
-
-    def write_configs(self):
-        """
-        Write (and backs-up) kibana.yml configuration
-        """
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        kibana_config_backup = os.path.join(backup_configurations, 'kibana.yml.backup.{}'.format(timestamp))
+        filebeat_config_backup = os.path.join(backup_configurations, 'kibana.yaml.backup.{}'.format(timestamp))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        try:
-            shutil.move(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
-        except OSError:
-            shutil.copy(os.path.join(self.configuration_directory, 'kibana.yml'), kibana_config_backup)
-        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'w') as kibana_search_config_obj:
-            for k, v in self.kb_config_options.items():
-                if k == 'elasticsearch.hosts':
-                    kibana_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
-                else:
-                    kibana_search_config_obj.write('{}: {}\n'.format(k, v))
+        shutil.copy(os.path.join(self.configuration_directory, 'kibana.yml'), filebeat_config_backup)
+
+        for k, v in vars(self).items():
+            if k not in self.tokens:
+                continue
+            token_path = self.tokens[k]
+            update_dict_from_path(token_path, v)
+        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'w') as configyaml:
+            dump(self.config_data, configyaml, default_flow_style=False)
 
 
 class KibanaInstaller:
@@ -369,12 +351,13 @@ class KibanaInstaller:
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'kibana', 'kibana.yml'),
                     self.configuration_directory)
         local_config = KibanaConfigurator(self.configuration_directory)
-        local_config.set_elasticsearch_hosts(['http://{}:{}'.format(self.elasticsearch_host,
-                                                                    self.elasticsearch_port)])
-        local_config.set_server_host(self.host)
-        local_config.set_server_port(self.port)
-        local_config.set_elasticsearch_password(self.elasticsearch_password)
-        local_config.write_configs()
+        local_config.elasticsearch_hosts = ['http://{}:{}'.format(self.elasticsearch_host,
+                                                                    self.elasticsearch_port)]
+        local_config.server_host = self.host
+        local_config.server_port = self.port
+        local_config.elasticsearch_password = self.elasticsearch_password
+        local_config.elasticsearch_username = 'elastic'
+        local_config.write_config()
 
     @staticmethod
     def download_kibana(stdout=False):
