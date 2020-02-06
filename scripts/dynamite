@@ -307,12 +307,6 @@ if __name__ == '__main__':
         elif args.component == 'kibana':
             utilities.print_dynamite_logo()
             time.sleep(1)
-            if args.initial_password:
-                password = args.initial_password
-            else:
-                password = utilities.prompt_password(
-                    'Enter the password used for logging into ElasticSearch: '
-                )
             if not elasticsearch.ElasticProfiler().is_installed:
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          elasticsearch_password=password,
@@ -337,7 +331,7 @@ if __name__ == '__main__':
                     sys.stdout.write('\n\tHOST: http://{}:{}'.format(kb_config.server_host,
                                                                       kb_config.server_port))
                     sys.stdout.write('\n\tUSER: {}'.format(kb_config.elasticsearch_username))
-                    sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.elasticsearch_username))
+                    sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.elasticsearch_password))
                     sys.stdout.flush()
                     sys.exit(0)
                 else:
@@ -359,7 +353,7 @@ if __name__ == '__main__':
                 sys.stdout.write('\n[+] Once started Kibana will be accessible at: ')
                 sys.stdout.write('\n\tHOST: http://{}:{}'.format(kb_config.server_host,
                                                                 kb_config.server_port))
-                sys.stdout.write('\n\tUSER: elastic')
+                sys.stdout.write('\n\tUSER: {}'.format(kb_config.elasticsearch_username))
                 sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.elasticsearch_password))
                 sys.stdout.flush()
                 sys.exit(0)
