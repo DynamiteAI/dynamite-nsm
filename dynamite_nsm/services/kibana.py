@@ -60,17 +60,18 @@ class KibanaAPIConfigurator:
         kibana_api_objects_path = os.path.join(const.INSTALL_CACHE, const.DEFAULT_CONFIGS, 'kibana', 'objects',
                                                'saved_objects.ndjson')
 
-        server_host = self.kibana_config.get_server_host()
+        server_host = self.kibana_config.server_host
         if server_host.strip() == '0.0.0.0':
             server_host = 'localhost'
 
         # This isn't ideal, but given there is no easy way to use the urllib/urllib2 libraries for multipart/form-data
         # Shelling out is a reasonable workaround
         kibana_api_import_url = '{}:{}/api/saved_objects/_import'.format(server_host,
-                    self.kibana_config.get_server_port())
+                    self.kibana_config.server_port)
         curl_command = 'curl -X POST {} -u {}:"{}" --form file=@{} -H "kbn-xsrf: true" ' \
                        '-H "Content-Type: multipart/form-data" -v'.format(
-            kibana_api_import_url, 'elastic', self.kibana_config.get_elasticsearch_password(), kibana_api_objects_path
+            kibana_api_import_url, self.kibana_config.elasticsearch_username, self.kibana_config.elasticsearch_password,
+            kibana_api_objects_path
         )
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
