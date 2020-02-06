@@ -504,8 +504,8 @@ class KibanaProfiler:
             if stderr:
                 sys.stderr.write('[-] Un-parsable elasticsearch.yml or jvm.options \n')
             return False
-        host = kibana_config.get_server_host()
-        port = kibana_config.get_server_port()
+        host = kibana_config.server_host
+        port = kibana_config.server_port
         if host.strip() == '0.0.0.0':
             host = 'localhost'
         return utilities.check_socket(host, port)
@@ -662,8 +662,8 @@ def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, 
                 sys.stdout.write('[+] Exiting\n')
             return False
     kb_config = KibanaConfigurator(configuration_directory=CONFIGURATION_DIRECTORY)
-    kb_config.set_elasticsearch_password(password=password)
-    kb_config.write_configs()
+    kb_config.elasticsearch_password = password
+    kb_config.write_config()
     return KibanaProcess().restart(stdout=True)
 
 
