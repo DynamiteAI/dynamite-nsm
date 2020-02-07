@@ -8,6 +8,7 @@ import shutil
 import tarfile
 import traceback
 import subprocess
+from yaml import load, dump
 from multiprocessing import Process
 
 from dynamite_nsm import const
@@ -25,6 +26,11 @@ except Exception:
     from urllib.request import Request
     from urllib.parse import urlencode
 
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 CONFIGURATION_DIRECTORY = '/etc/dynamite/elasticsearch/'
 INSTALL_DIRECTORY = '/opt/dynamite/elasticsearch/'
 LOG_DIRECTORY = '/var/log/dynamite/elasticsearch/'
@@ -34,57 +40,81 @@ class ElasticConfigurator:
     """
     Wrapper for configuring elasticsearch.yml and jvm.options
     """
+
+    tokens = {
+        'node_name': ('node.name',),
+        'cluster_name': ('cluster.name',),
+        'seed_hosts': ('discovery.seed_hosts',),
+        'initial_master_nodes': ('cluster.initial_master_nodes',),
+        'network_host': ('network.host',),
+        'http_port': ('http.port',),
+        'path_data': ('path.data',),
+        'path_logs': ('path.logs',),
+        'search_max_buckets': ('search.max_buckets',),
+    }
+
     def __init__(self, configuration_directory):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         """
         self.configuration_directory = configuration_directory
-        self.es_config_options = self._parse_elasticyaml()
-        self.jvm_config_options = self._parse_jvm_options()
         self.java_home = None
-        self.es_home = None
-        self.es_path_conf = None
+        self.ls_home = None
+        self.ls_path_conf = None
+        self.java_initial_memory = None
+        self.java_maximum_memory = None
+
+        self.node_name = None
+        self.cluster_name = None
+        self.seed_hosts = None
+        self.initial_master_nodes = None
+        self.network_host = None
+        self.http_port = None
+        self.path_data = None
+        self.path_logs = None
+        self.search_max_buckets = None
+        
         self._parse_environment_file()
+        self._parse_jvm_options()
+        self._parse_elasticyaml()
 
     def _parse_elasticyaml(self):
-        """
-        Parse elasticsearch.yml, return a object representing the config
-        :return: A dictionary of config options and their values
-        """
-        es_config_options = {}
-        config_path = os.path.join(self.configuration_directory, 'elasticsearch.yml')
-        if not os.path.exists(config_path):
-            return es_config_options
-        for line in open(config_path).readlines():
-            if not line.startswith('#') and ':' in line:
-                if line.startswith('discovery.seed_hosts:'):
-                    k = 'discovery.seed_hosts'
-                    v = json.loads(line.replace('discovery.seed_hosts:', '').strip())
-                    es_config_options[k] = v
-                elif line.startswith('cluster.initial_master_nodes:'):
-                    k = 'cluster.initial_master_nodes'
-                    v = json.loads(line.replace('cluster.initial_master_nodes:', '').strip())
-                    es_config_options[k] = v
-                else:
-                    k, v = line.strip().split(':')
-                    es_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
-        return es_config_options
+
+        def set_instance_var_from_token(variable_name, data):
+            """
+            :param variable_name: The name of the instance variable to update
+            :param data: The parsed yaml object
+            :return: True if successfully located
+            """
+            if variable_name not in self.tokens.keys():
+                return False
+            key_path = self.tokens[variable_name]
+            value = data
+            try:
+                for k in key_path:
+                    value = value[k]
+                setattr(self, var_name, value)
+            except KeyError:
+                pass
+            return True
+
+        with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'r') as configyaml:
+            self.config_data = load(configyaml, Loader=Loader)
+
+        for var_name in vars(self).keys():
+            set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
     def _parse_jvm_options(self):
         """
         Parses the initial and max heap allocation from jvm.options configuration
         :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
-        jvm_options = {}
         config_path = os.path.join(self.configuration_directory, 'jvm.options')
-        if not os.path.exists(config_path):
-            return jvm_options
         for line in open(config_path).readlines():
             if not line.startswith('#') and '-Xms' in line:
-                jvm_options['initial_memory'] = line.replace('-Xms', '').strip()
+                self.java_initial_memory = line.replace('-Xms', '').strip()
             elif not line.startswith('#') and '-Xmx' in line:
-                jvm_options['maximum_memory'] = line.replace('-Xmx', '').strip()
-        return jvm_options
+                self.java_maximum_memory = line.replace('-Xmx', '').strip()
 
     def _parse_environment_file(self):
         """
@@ -99,154 +129,64 @@ class ElasticConfigurator:
             elif line.startswith('ES_HOME'):
                 self.es_home = line.split('=')[1].strip()
 
-    def _overwrite_jvm_options(self):
+    def write_jvm_config(self):
         """
         Overwrites the JVM initial/max memory if settings were updated
         """
         new_output = ''
         for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
             if not line.startswith('#') and '-Xms' in line:
-                new_output += '-Xms' + self.jvm_config_options['initial_memory']
+                new_output += '-Xms' + str(self.java_initial_memory) + 'g'
             elif not line.startswith('#') and '-Xmx' in line:
-                new_output += '-Xmx' + self.jvm_config_options['maximum_memory']
+                new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
             else:
                 new_output += line
             new_output += '\n'
+
+        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
+        java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
+            int(time.time())
+        ))
+        shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
         open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
-    def get_cluster_name(self):
-        """
-        :return: The name of the ElasticSearch cluster
-        """
-        return self.es_config_options.get('cluster.name')
+    def write_elasticsearch_config(self):
 
-    def get_network_host(self):
-        """
-        :return: The server that the cluster is running on
-        """
-        return self.es_config_options.get('network.host')
+        def update_dict_from_path(path, value):
+            """
+            :param path: A tuple representing each level of a nested path in the yaml document
+                        ('vars', 'address-groups', 'HOME_NET') = /vars/address-groups/HOME_NET
+            :param value: The new value
+            :return: None
+            """
+            partial_config_data = self.config_data
+            for i in range(0, len(path) - 1):
+                try:
+                    partial_config_data = partial_config_data[path[i]]
+                except KeyError:
+                    pass
+            partial_config_data.update({path[-1]: value})
 
-    def get_network_port(self):
-        """
-        :return: The port that the cluster is running on
-        """
-        return self.es_config_options.get('http.port')
+        timestamp = int(time.time())
+        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
+        elastic_config_backup = os.path.join(backup_configurations, 'elastic.yml.backup.{}'.format(timestamp))
+        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        shutil.copy(os.path.join(self.configuration_directory, 'elasticsearch.yml'), elastic_config_backup)
 
-    def get_node_name(self):
-        """
-        :return: The name of the ElasticSearch node
-        """
-        return self.es_config_options.get('node.name')
-
-    def get_data_path(self):
-        """
-        :return: The directory where data is being stored
-        """
-        return self.es_config_options.get('path.data')
-
-    def get_log_path(self):
-        """
-        :return: The directory logs are being stored in
-        """
-        return self.es_config_options.get('path.logs')
-
-    def get_discovery_seed_hosts(self):
-        """
-        :return: A list of hosts also in the cluster
-        """
-        return self.es_config_options.get('discovery.seed_hosts')
-
-    def get_jvm_initial_memory(self):
-        """
-        :return: The initial amount of memory the JVM heap allocates
-        """
-        return self.jvm_config_options.get('initial_memory')
-
-    def get_jvm_maximum_memory(self):
-        """
-        :return: The maximum amount of memory the JVM heap allocates
-        """
-        return self.jvm_config_options.get('maximum_memory')
-
-    def set_cluster_name(self, name):
-        """
-        :param name: The name of the cluster
-        """
-        self.es_config_options['cluster.name'] = name
-
-    def set_network_host(self, host='localhost'):
-        """
-        :param host: The IP address for ElasticSearch service to listen on
-        """
-        self.es_config_options['network.host'] = host
-
-    def set_network_port(self, port=9200):
-        """
-        :param port: The port number of the for ElasticSearch service to listen on
-        """
-        self.es_config_options['http.port'] = str(port)
-
-    def set_node_name(self, name):
-        """
-        :param name: The name of the ElasticSearch node
-        """
-        self.es_config_options['node.name'] = name
-        self.es_config_options['cluster.initial_master_nodes'] = [name]
-
-    def set_data_path(self, path):
-        """
-        :param path: The path to the ElasticSearch node data
-        """
-        self.es_config_options['path.data'] = path
-
-    def set_log_path(self, path):
-        """
-        :param path: The path to the log directory
-        """
-        self.es_config_options['path.logs'] = path
-
-    def set_discovery_seed_host(self, host_list):
-        """
-        :param host_list: A list of hosts also in the cluster
-        """
-        if not isinstance(host_list, list):
-            raise TypeError("host_list must be of type: 'list'")
-        self.es_config_options['discovery.seed_hosts'] = host_list
-
-    def set_jvm_initial_memory(self, gigs):
-        """
-        :param gigs: The amount of initial memory (In Gigabytes) for the JVM to allocate to the heap
-        """
-        self.jvm_config_options['initial_memory'] = str(int(gigs)) + 'g'
-
-    def set_jvm_maximum_memory(self, gigs):
-        """
-        :param gigs: The amount of maximum memory (In Gigabytes) for the JVM to allocate to the heap
-        """
-        self.jvm_config_options['maximum_memory'] = str(int(gigs)) + 'g'
+        for k, v in vars(self).items():
+            if k not in self.tokens:
+                continue
+            token_path = self.tokens[k]
+            update_dict_from_path(token_path, v)
+        with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'w') as configyaml:
+            dump(self.config_data, configyaml, default_flow_style=False)
 
     def write_configs(self):
         """
-        Write (and backs-up) elasticsearch.yml and jvm.option configurations
+        Writes both the JVM and elasticsearch.yml configurations, backs up originals
         """
-        timestamp = int(time.time())
-        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        es_config_backup = os.path.join(backup_configurations, 'elasticsearch.yml.backup.{}'.format(timestamp))
-        java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
-            timestamp
-        ))
-        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.move(os.path.join(self.configuration_directory, 'elasticsearch.yml'), es_config_backup)
-        shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
-        with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'a') as elastic_search_config_obj:
-            for k, v in self.es_config_options.items():
-                if k == 'discovery.seed_hosts':
-                    elastic_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
-                elif k == 'cluster.initial_master_nodes':
-                    elastic_search_config_obj.write('{}: {}\n'.format(k, json.dumps(v)))
-                else:
-                    elastic_search_config_obj.write('{}: {}\n'.format(k, v))
-        self._overwrite_jvm_options()
+        self.write_elasticsearch_config()
+        self.write_jvm_config()
 
 
 class ElasticPasswordConfigurator:
@@ -270,8 +210,8 @@ class ElasticPasswordConfigurator:
                 base64string = base64.b64encode(encoded_bytes).decode('utf-8')
             url_request = Request(
                 url='http://{}:{}/_xpack/security/user/{}/_password'.format(
-                    es_config.get_network_host(),
-                    es_config.get_network_port(),
+                    es_config.network_host,
+                    es_config.http_port,
                     user
                 ),
                 data=json.dumps({'password': password}),
@@ -470,10 +410,10 @@ class ElasticInstaller:
         es_config = ElasticConfigurator(configuration_directory=self.configuration_directory)
         if self.stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
-        es_config.set_jvm_initial_memory(4)
-        es_config.set_jvm_maximum_memory(4)
-        es_config.set_network_host(self.host)
-        es_config.set_network_port(self.port)
+        es_config.java_initial_memory = 4
+        es_config.java_maximum_memory = 4
+        es_config.network_host = self.host
+        es_config.http_port = self.port
         es_config.write_configs()
 
     def _update_sysctl(self):
@@ -715,8 +655,8 @@ class ElasticProfiler:
             if stderr:
                 sys.stderr.write('[-] Un-parsable elasticsearch.yml or jvm.options \n')
             return False
-        host = es_config.get_network_host()
-        port = es_config.get_network_port()
+        host = es_config.network_host
+        port = es_config.http_port
         if host.strip() == '0.0.0.0':
             host = 'localhost'
         return utilities.check_socket(host, port)
@@ -830,7 +770,7 @@ class ElasticProcess:
 
         :return: A dictionary containing the run status and relevant configuration options
         """
-        log_path = os.path.join(self.config.get_log_path(), self.config.get_cluster_name() + '.log')
+        log_path = os.path.join(self.config.path_logs, self.config.cluster_name + '.log')
 
         return {
             'PID': self.pid,
@@ -929,7 +869,7 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
     try:
         shutil.rmtree(es_config.configuration_directory)
         shutil.rmtree(es_config.es_home)
-        shutil.rmtree(es_config.get_log_path())
+        shutil.rmtree(es_config.path_logs)
         shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
         for line in open('/etc/dynamite/environment').readlines():
