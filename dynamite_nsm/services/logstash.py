@@ -792,7 +792,7 @@ def install_logstash(host='0.0.0.0',
         traceback.print_exc(file=sys.stderr)
         return False
     if stdout:
-        sys.stdout.write('[+] *** LogStash + ElastiFlow (w/ Zeek Support) installed successfully. ***\n\n')
+        sys.stdout.write('[+] *** LogStash installed event/alert pipelines. ***\n\n')
         sys.stdout.write('[+] Next, Start your collector: \'dynamite start logstash\'.\n')
         sys.stdout.flush()
     return LogstashProfiler(stderr=False).is_installed
