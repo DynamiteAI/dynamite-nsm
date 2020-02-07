@@ -98,7 +98,7 @@ class ElasticConfigurator:
                 pass
             return True
 
-        with open(os.path.join(self.configuration_directory, 'logstash.yml'), 'r') as configyaml:
+        with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'r') as configyaml:
             self.config_data = load(configyaml, Loader=Loader)
 
         for var_name in vars(self).keys():
