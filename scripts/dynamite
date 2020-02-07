@@ -322,22 +322,16 @@ if __name__ == '__main__':
                     sys.stderr.write('[-] Failed to install Kibana.\n')
                     sys.exit(1)
             else:
-                if args.initial_password:
-                    password = args.initial_password
-                else:
-                    password = utilities.prompt_password(
-                        'Enter the password used for logging into ElasticSearch: '
-                    )
                 if kibana.install_kibana(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
                                          elasticsearch_password=password,
                                          stdout=True, create_dynamite_user=True, install_jdk=True):
                     env_variables = environment_variables = utilities.get_environment_file_dict()
                     kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
                     sys.stdout.write('\n[+] Once started Kibana will be accessible at: ')
-                    sys.stdout.write('\n\tHOST: http://{}:{}'.format(kb_config.get_server_host(),
-                                                                      kb_config.get_server_port()))
-                    sys.stdout.write('\n\tUSER: elastic')
-                    sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.get_elasticsearch_password()))
+                    sys.stdout.write('\n\tHOST: http://{}:{}'.format(kb_config.server_host,
+                                                                      kb_config.server_port))
+                    sys.stdout.write('\n\tUSER: {}'.format(kb_config.elasticsearch_username))
+                    sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.elasticsearch_password))
                     sys.stdout.flush()
                     sys.exit(0)
                 else:
@@ -357,10 +351,10 @@ if __name__ == '__main__':
                 env_variables = environment_variables = utilities.get_environment_file_dict()
                 kb_config = kibana.KibanaConfigurator(env_variables['KIBANA_PATH_CONF'])
                 sys.stdout.write('\n[+] Once started Kibana will be accessible at: ')
-                sys.stdout.write('\n\tHOST: http://{}:{}'.format(kb_config.get_server_host(),
-                                                                kb_config.get_server_port()))
-                sys.stdout.write('\n\tUSER: elastic')
-                sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.get_elasticsearch_password()))
+                sys.stdout.write('\n\tHOST: http://{}:{}'.format(kb_config.server_host,
+                                                                kb_config.server_port))
+                sys.stdout.write('\n\tUSER: {}'.format(kb_config.elasticsearch_username))
+                sys.stdout.write('\n\tPASSWORD: {}\n'.format(kb_config.elasticsearch_password))
                 sys.stdout.flush()
                 sys.exit(0)
             sys.exit(1)
