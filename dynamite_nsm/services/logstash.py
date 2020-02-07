@@ -7,7 +7,13 @@ import shutil
 import tarfile
 import traceback
 import subprocess
+from yaml import load, dump
 from multiprocessing import Process
+
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -24,48 +30,73 @@ class LogstashConfigurator:
     """
     Wrapper for configuring logstash.yml and jvm.options
     """
+
+    tokens = {
+        'node_name': ('node.name',),
+        'path_data': ('path.data',),
+        'path_logs': ('path.logs',),
+        'pipeline_batch_size': ('pipeline.batch.size',),
+        'pipeline_batch_delay': ('pipeline.batch.delay',)
+    }
+
     def __init__(self, configuration_directory):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
         """
         self.configuration_directory = configuration_directory
-        self.ls_config_options = self._parse_logstashyaml()
-        self.jvm_config_options = self._parse_jvm_options()
         self.java_home = None
         self.ls_home = None
         self.ls_path_conf = None
+        self.java_initial_memory = None
+        self.java_maximum_memory = None
+
+        self.node_name = None
+        self.path_data = None
+        self.path_logs = None
+        self.pipeline_batch_size = None
+        self.pipeline_batch_delay = None
+
         self._parse_environment_file()
+        self._parse_jvm_options()
+        self._parse_logstashyaml()
 
     def _parse_logstashyaml(self):
-        """
-        Parse logstash.yaml, return a object representing the config
-        :return: A dictionary of config options and their values
-        """
-        ls_config_options = {}
-        config_path = os.path.join(self.configuration_directory, 'logstash.yml')
-        if not os.path.exists(config_path):
-            return ls_config_options
-        for line in open(config_path).readlines():
-            if not line.startswith('#') and ':' in line:
-                k, v = line.strip().split(':')
-                ls_config_options[k] = str(v).strip().replace('"', '').replace("'", '')
-        return ls_config_options
+
+        def set_instance_var_from_token(variable_name, data):
+            """
+            :param variable_name: The name of the instance variable to update
+            :param data: The parsed yaml object
+            :return: True if successfully located
+            """
+            if variable_name not in self.tokens.keys():
+                return False
+            key_path = self.tokens[variable_name]
+            value = data
+            try:
+                for k in key_path:
+                    value = value[k]
+                setattr(self, var_name, value)
+            except KeyError:
+                pass
+            return True
+
+        with open(os.path.join(self.configuration_directory, 'logstash.yml'), 'r') as configyaml:
+            self.config_data = load(configyaml, Loader=Loader)
+
+        for var_name in vars(self).keys():
+            set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
     def _parse_jvm_options(self):
         """
         Parses the initial and max heap allocation from jvm.options configuration
         :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
-        jvm_options = {}
         config_path = os.path.join(self.configuration_directory, 'jvm.options')
-        if not os.path.exists(config_path):
-            return jvm_options
         for line in open(config_path).readlines():
             if not line.startswith('#') and '-Xms' in line:
-                jvm_options['initial_memory'] = line.replace('-Xms', '').strip()
+                self.java_initial_memory = line.replace('-Xms', '').strip()
             elif not line.startswith('#') and '-Xmx' in line:
-                jvm_options['maximum_memory'] = line.replace('-Xmx', '').strip()
-        return jvm_options
+                self.java_maximum_memory = line.replace('-Xmx', '').strip()
 
     def _parse_environment_file(self):
         """
@@ -80,21 +111,6 @@ class LogstashConfigurator:
             elif line.startswith('LS_HOME'):
                 self.ls_home = line.split('=')[1].strip()
 
-    def _overwrite_jvm_options(self):
-        """
-        Overwrites the JVM initial/max memory if settings were updated
-        """
-        new_output = ''
-        for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
-            if not line.startswith('#') and '-Xms' in line:
-                new_output += '-Xms' + self.jvm_config_options['initial_memory']
-            elif not line.startswith('#') and '-Xmx' in line:
-                new_output += '-Xmx' + self.jvm_config_options['maximum_memory']
-            else:
-                new_output += line
-            new_output += '\n'
-        open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
-
     @staticmethod
     def get_elasticsearch_password():
         """
@@ -102,49 +118,6 @@ class LogstashConfigurator:
         """
         elastiflow_config = elastiflow.ElastiflowConfigurator()
         return elastiflow_config.es_passwd
-
-    def get_log_path(self):
-        """
-        :return: The path to Logstash logs on filesystem
-        """
-        return self.ls_config_options.get('path.logs')
-
-    def get_node_name(self):
-        """
-        :return: The name of the LogStash collector node
-        """
-        return self.ls_config_options.get('node.name')
-
-    def get_data_path(self):
-        """
-        :return: The directory where data (persistent queues) are being stored
-        """
-        return self.ls_config_options.get('path.data')
-
-    def get_pipeline_batch_size(self):
-        """
-        :return: The number of events to retrieve from inputs before sending to filters+workers
-        """
-        return self.ls_config_options.get('pipeline.batch.size')
-
-    def get_pipeline_batch_delay(self):
-        """
-        :return: The number of milliseconds while polling for the next event before dispatching an
-        undersized batch to filters+outputs
-        """
-        return self.ls_config_options.get('pipeline.batch.delay')
-
-    def get_jvm_initial_memory(self):
-        """
-        :return: The initial amount of memory the JVM heap allocates
-        """
-        return self.jvm_config_options.get('initial_memory')
-
-    def get_jvm_maximum_memory(self):
-        """
-        :return: The maximum amount of memory the JVM heap allocates
-        """
-        return self.jvm_config_options.get('maximum_memory')
 
     @staticmethod
     def set_elasticsearch_password(password):
@@ -158,66 +131,64 @@ class LogstashConfigurator:
         elastiflow_config.write_environment_variables()
         synesis_config.write_environment_variables()
 
-    def set_log_path(self, path):
+    def write_jvm_config(self):
         """
-        :param path: The path to Logstash logs on the filesystem
+        Overwrites the JVM initial/max memory if settings were updated
         """
-        self.ls_config_options['path.logs'] = path
+        new_output = ''
+        for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
+            if not line.startswith('#') and '-Xms' in line:
+                new_output += '-Xms' + self.java_initial_memory
+            elif not line.startswith('#') and '-Xmx' in line:
+                new_output += '-Xmx' + self.java_maximum_memory
+            else:
+                new_output += line
+            new_output += '\n'
 
-    def set_node_name(self, name):
-        """
-        :param name: The name of the Logstash collector node
-        """
-        self.ls_config_options['node.name'] = name
+        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
+        java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
+            int(time.time())
+        ))
+        shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
+        open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
 
-    def set_data_path(self, path):
-        """
-        :param path: The path to the Logstash collector node
-        """
-        self.ls_config_options['path.data'] = path
+    def write_logstash_config(self):
 
-    def set_pipeline_batch_size(self, event_count):
-        """
-        :param event_count: How many events to retrieve from inputs before sending to filters+workers
-        """
-        self.ls_config_options['pipeline.batch.size'] = event_count
+        def update_dict_from_path(path, value):
+            """
+            :param path: A tuple representing each level of a nested path in the yaml document
+                        ('vars', 'address-groups', 'HOME_NET') = /vars/address-groups/HOME_NET
+            :param value: The new value
+            :return: None
+            """
+            partial_config_data = self.config_data
+            for i in range(0, len(path) - 1):
+                try:
+                    partial_config_data = partial_config_data[path[i]]
+                except KeyError:
+                    pass
+            partial_config_data.update({path[-1]: value})
 
-    def set_pipeline_batch_delay(self, delay_millisecs):
-        """
-        :param delay_millisecs: How long to wait in milliseconds while polling for the next event before dispatching an
-        undersized batch to filters+outputs
-        """
-        self.ls_config_options['pipeline.batch.delay'] = delay_millisecs
+        timestamp = int(time.time())
+        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
+        suricata_config_backup = os.path.join(backup_configurations, 'logstash.yaml.backup.{}'.format(timestamp))
+        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        shutil.copy(os.path.join(self.configuration_directory, 'logstash.yml'), suricata_config_backup)
 
-    def set_jvm_initial_memory(self, gigs):
-        """
-        :param gigs: The amount of initial memory (In Gigabytes) for the JVM to allocate to the heap
-        """
-        self.jvm_config_options['initial_memory'] = str(int(gigs)) + 'g'
-
-    def set_jvm_maximum_memory(self, gigs):
-        """
-        :param gigs: The amount of maximum memory (In Gigabytes) for the JVM to allocate to the heap
-        """
-        self.jvm_config_options['maximum_memory'] = str(int(gigs)) + 'g'
+        for k, v in vars(self).items():
+            if k not in self.tokens:
+                continue
+            token_path = self.tokens[k]
+            update_dict_from_path(token_path, v)
+        with open(os.path.join(self.configuration_directory, 'logstash.yml'), 'w') as configyaml:
+            dump(self.config_data, configyaml, default_flow_style=False)
 
     def write_configs(self):
         """
-        Write (and backs-up) logstash.yml and jvm.option configurations
+        Writes both the JVM and logstash.yaml configurations, backs up originals
         """
-        timestamp = int(time.time())
-        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        es_config_backup = os.path.join(backup_configurations, 'logstash.yml.backup.{}'.format(timestamp))
-        java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
-            timestamp
-        ))
-        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.move(os.path.join(self.configuration_directory, 'logstash.yml'), es_config_backup)
-        shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
-        with open(os.path.join(self.configuration_directory, 'logstash.yml'), 'a') as logstash_search_config_obj:
-            for k, v in self.ls_config_options.items():
-                logstash_search_config_obj.write('{}: {}\n'.format(k, v))
-        self._overwrite_jvm_options()
+        self.write_logstash_config()
+        self.write_jvm_config()
 
 
 class LogstashInstaller:
@@ -354,7 +325,7 @@ class LogstashInstaller:
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             subprocess.call('{}/bin/logstash-plugin install logstash-codec-netflow'.format(self.install_directory),
                             shell=True, env=utilities.get_environment_file_dict(),
-                            stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             subprocess.call('{}/bin/logstash-plugin install logstash-filter-dns'.format(self.install_directory),
                             shell=True, env=utilities.get_environment_file_dict(),
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -377,8 +348,8 @@ class LogstashInstaller:
         if self.stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
             sys.stdout.flush()
-        ls_config.set_jvm_initial_memory(4)
-        ls_config.set_jvm_maximum_memory(4)
+        ls_config.java_initial_memory = 4
+        ls_config.java_maximum_memory = 4
         ls_config.write_configs()
 
     def _setup_elastiflow(self):
@@ -743,7 +714,7 @@ class LogstashProcess:
 
         :return: A dictionary containing the run status and relevant configuration options
         """
-        log_path = os.path.join(self.config.get_log_path(), 'logstash-plain.log')
+        log_path = os.path.join(self.config.path_logs, 'logstash-plain.log')
 
         return {
             'PID': self.pid,
@@ -856,7 +827,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
     try:
         shutil.rmtree(ls_config.ls_path_conf)
         shutil.rmtree(ls_config.ls_home)
-        shutil.rmtree(ls_config.get_log_path())
+        shutil.rmtree(ls_config.path_logs)
         shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
         env_lines = ''
         for line in open('/etc/dynamite/environment').readlines():
