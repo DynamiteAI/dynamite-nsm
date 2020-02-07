@@ -171,9 +171,9 @@ class LogstashConfigurator:
 
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        suricata_config_backup = os.path.join(backup_configurations, 'logstash.yaml.backup.{}'.format(timestamp))
+        logstash_config_backup = os.path.join(backup_configurations, 'logstash.yml.backup.{}'.format(timestamp))
         subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'logstash.yml'), suricata_config_backup)
+        shutil.copy(os.path.join(self.configuration_directory, 'logstash.yml'), logstash_config_backup)
 
         for k, v in vars(self).items():
             if k not in self.tokens:
