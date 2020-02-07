@@ -138,9 +138,9 @@ class LogstashConfigurator:
         new_output = ''
         for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
             if not line.startswith('#') and '-Xms' in line:
-                new_output += '-Xms' + str(self.java_initial_memory)
+                new_output += '-Xms' + str(self.java_initial_memory) + 'g'
             elif not line.startswith('#') and '-Xmx' in line:
-                new_output += '-Xmx' + str(self.java_maximum_memory)
+                new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
             else:
                 new_output += line
             new_output += '\n'
