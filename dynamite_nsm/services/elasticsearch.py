@@ -50,7 +50,7 @@ class ElasticConfigurator:
         'http_port': ('http.port',),
         'path_data': ('path.data',),
         'path_logs': ('path.logs',),
-        'search_max_buckets': ('search.max.buckets',),
+        'search_max_buckets': ('search.max_buckets',),
     }
 
     def __init__(self, configuration_directory):
