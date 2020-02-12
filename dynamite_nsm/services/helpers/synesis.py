@@ -15,7 +15,7 @@ class SynesisConfigurator:
     """
 
     def __init__(self):
-        self.suricata_es_passwd = 'changeme'
+        self.es_passwd = 'changeme'
         self.suricata_resolve_ip2host = True
         self.suricata_nameserver = '127.0.0.1'
         self.suricata_dns_hit_cache_size = 25000
@@ -30,8 +30,8 @@ class SynesisConfigurator:
 
     def _parse_environment_file(self):
         for line in open('/etc/dynamite/environment').readlines():
-            if line.startswith('SYNLITE_SURICATA_ES_PASSWD'):
-                self.suricata_es_passwd = line.split('=')[1].strip()
+            if line.startswith('ES_PASSWD'):
+                self.es_passwd = line.split('=')[1].strip()
             elif line.startswith('SYNLITE_SURICATA_RESOLVE_IP2HOST'):
                 self.suricata_resolve_ip2host = line.split('=')[1].strip()
             elif line.startswith('SYNLITE_SURICATA_NAMESERVER'):
@@ -59,7 +59,10 @@ class SynesisConfigurator:
         new_env_content = ''
         lines = open('/etc/dynamite/environment').readlines()
         for var in vars(self):
-            synlite_key = 'SYNLITE_' + str(var).upper()
+            if str(var).upper() == 'ES_PASSWD':
+                synlite_key = str(var).upper()
+            else:
+                synlite_key = 'SYNLITE_' + str(var).upper()
             synlite_vars_map[synlite_key] = getattr(self, var)
         for line in lines:
             if '=' in line:
@@ -68,7 +71,7 @@ class SynesisConfigurator:
                     line = '{}={}'.format(env_key, synlite_vars_map[env_key])
                     synlite_vars_map.pop(env_key, None)
             if line.strip() != '':
-                new_env_content += line + '\n'
+                new_env_content += line.strip() + '\n'
         for unwritten_key, unwritten_val in synlite_vars_map.items():
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
         with open('/etc/dynamite/environment', 'w') as f:

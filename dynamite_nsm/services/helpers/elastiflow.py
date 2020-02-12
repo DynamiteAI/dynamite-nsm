@@ -53,7 +53,7 @@ class ElastiflowConfigurator:
         stores the results in class variables of the same name
         """
         for line in open('/etc/dynamite/environment').readlines():
-            if line.startswith('ELASTIFLOW_ES_PASSWD'):
+            if line.startswith('ES_PASSWD'):
                 self.es_passwd = line.split('=')[1].strip()
             elif line.startswith('ELASTIFLOW_NETFLOW_IPV4_HOST'):
                 self.netflow_ipv4_host = line.split('=')[1].strip()
@@ -120,7 +120,10 @@ class ElastiflowConfigurator:
         new_env_content = ''
         lines = open('/etc/dynamite/environment').readlines()
         for var in vars(self):
-            elastiflow_key = 'ELASTIFLOW_' + str(var).upper()
+            if str(var).upper() == 'ES_PASSWD':
+                elastiflow_key = str(var).upper()
+            else:
+                elastiflow_key = 'ELASTIFLOW_' + str(var).upper()
             elastiflow_vars_map[elastiflow_key] = getattr(self, var)
         for line in lines:
             if '=' in line:
@@ -129,7 +132,7 @@ class ElastiflowConfigurator:
                     line = '{}={}'.format(env_key, elastiflow_vars_map[env_key])
                     elastiflow_vars_map.pop(env_key, None)
             if line.strip() != '':
-                new_env_content += line + '\n'
+                new_env_content += line.strip() + '\n'
         for unwritten_key, unwritten_val in elastiflow_vars_map.items():
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
         with open('/etc/dynamite/environment', 'w') as f:

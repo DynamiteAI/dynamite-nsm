@@ -127,7 +127,7 @@ class LogstashConfigurator:
         elastiflow_config = elastiflow.ElastiflowConfigurator()
         synesis_config = synesis.SynesisConfigurator()
         elastiflow_config.es_passwd = password
-        synesis_config.suricata_es_passwd = password
+        synesis_config.es_passwd = password
         elastiflow_config.write_environment_variables()
         synesis_config.write_environment_variables()
 
@@ -838,6 +838,8 @@ def uninstall_logstash(stdout=False, prompt_user=True):
             elif 'ELASTIFLOW_' in line:
                 continue
             elif 'SYNLITE_' in line:
+                continue
+            elif 'ES_PASSWD' in line:
                 continue
             elif line.strip() == '':
                 continue
