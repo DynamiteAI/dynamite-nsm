@@ -31,7 +31,7 @@ class SynesisConfigurator:
     def _parse_environment_file(self):
         for line in open('/etc/dynamite/environment').readlines():
             if line.startswith('ES_PASSWD'):
-                self.suricata_es_passwd = line.split('=')[1].strip()
+                self.es_passwd = line.split('=')[1].strip()
             elif line.startswith('SYNLITE_SURICATA_RESOLVE_IP2HOST'):
                 self.suricata_resolve_ip2host = line.split('=')[1].strip()
             elif line.startswith('SYNLITE_SURICATA_NAMESERVER'):
