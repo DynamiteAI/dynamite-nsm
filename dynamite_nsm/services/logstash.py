@@ -839,6 +839,8 @@ def uninstall_logstash(stdout=False, prompt_user=True):
                 continue
             elif 'SYNLITE_' in line:
                 continue
+            elif 'ES_PASSWD' in line:
+                continue
             elif line.strip() == '':
                 continue
             env_lines += line.strip() + '\n'
