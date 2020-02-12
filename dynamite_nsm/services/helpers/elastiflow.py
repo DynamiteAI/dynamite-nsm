@@ -132,7 +132,7 @@ class ElastiflowConfigurator:
                     line = '{}={}'.format(env_key, elastiflow_vars_map[env_key])
                     elastiflow_vars_map.pop(env_key, None)
             if line.strip() != '':
-                new_env_content += line + '\n'
+                new_env_content += line.strip() + '\n'
         for unwritten_key, unwritten_val in elastiflow_vars_map.items():
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
         with open('/etc/dynamite/environment', 'w') as f:
