@@ -372,7 +372,7 @@ class LogstashInstaller:
         syn_config = synesis.SynesisConfigurator()
         syn_config.suricata_es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
         syn_config.suricata_resolve_ip2host = True
-        syn_config.suricata_es_passwd = self.elasticsearch_password
+        syn_config.es_passwd = self.elasticsearch_password
         syn_config.write_environment_variables()
 
     @staticmethod
