@@ -30,6 +30,8 @@ SYNESIS_DIRECTORY_NAME = 'synesis_lite_suricata-vlabs-0.1.0-1.1.0'
 SURICATA_DIRECTORY_NAME = 'suricata-4.1.4'
 ZEEK_DIRECTORY_NAME = 'bro-2.6.1'
 
+CONFIG_PATH = "/etc/dynamite/"
+BIN_PATH = "/bin/dynamite/"
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"

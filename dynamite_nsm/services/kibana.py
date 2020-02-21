@@ -744,7 +744,7 @@ def uninstall_kibana(stdout=False, prompt_user=True):
         shutil.rmtree(kb_config.kibana_path_conf)
         shutil.rmtree(kb_config.kibana_home)
         shutil.rmtree(kb_config.kibana_logs)
-        shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
+        shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
         env_lines = ''
         for line in open('/etc/dynamite/environment').readlines():
             if 'KIBANA_PATH_CONF' in line:
