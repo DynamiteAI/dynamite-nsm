@@ -19,6 +19,7 @@ def update_default_configurations():
                   const.DEFAULT_CONFIGS_ARCHIVE_NAME, stdout=True)
     shutil.rmtree(const.DEFAULT_CONFIGS, ignore_errors=True)
     time.sleep(1)
+    shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     try:
         sys.stdout.write('[+] Copying default_configs -> {}\n'.format(const.DEFAULT_CONFIGS))
         extract_archive(os.path.join(const.INSTALL_CACHE, 'default_configs.tar.gz'), '/etc/dynamite/')
@@ -37,6 +38,7 @@ def update_mirrors():
     create_dynamite_root_directory()
     download_file(const.MIRRORS_CONFIG_URL,
                   const.MIRRORS_CONFIG_ARCHIVE_NAME, stdout=True)
+    shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     shutil.rmtree(const.MIRRORS, ignore_errors=True)
     try:
         sys.stdout.write('[+] Copying mirrors -> {}\n'.format(const.MIRRORS))
