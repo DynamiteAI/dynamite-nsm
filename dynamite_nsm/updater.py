@@ -3,7 +3,6 @@ import sys
 import time
 import shutil
 from dynamite_nsm import const
-from dynamite_nsm import utilities
 from dynamite_nsm.utilities import download_file
 from dynamite_nsm.utilities import extract_archive
 from dynamite_nsm.utilities import create_dynamite_root_directory
@@ -15,13 +14,12 @@ def update_default_configurations():
 
     :return: True, if retrieved successfully
     """
+    shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     create_dynamite_root_directory()
     download_file(const.DEFAULT_CONFIGS_URL,
                   const.DEFAULT_CONFIGS_ARCHIVE_NAME, stdout=True)
     shutil.rmtree(const.DEFAULT_CONFIGS, ignore_errors=True)
     time.sleep(1)
-    shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
-    utilities.create_dynamite_root_directory()
     try:
         sys.stdout.write('[+] Copying default_configs -> {}\n'.format(const.DEFAULT_CONFIGS))
         extract_archive(os.path.join(const.INSTALL_CACHE, 'default_configs.tar.gz'), const.CONFIG_PATH)
@@ -37,12 +35,11 @@ def update_mirrors():
 
     :return: True, if retrieved successfully
     """
+    shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     create_dynamite_root_directory()
     download_file(const.MIRRORS_CONFIG_URL,
                   const.MIRRORS_CONFIG_ARCHIVE_NAME, stdout=True)
-    shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     shutil.rmtree(const.MIRRORS, ignore_errors=True)
-    utilities.create_dynamite_root_directory()
     try:
         sys.stdout.write('[+] Copying mirrors -> {}\n'.format(const.MIRRORS))
         extract_archive(os.path.join(const.INSTALL_CACHE, 'mirrors.tar.gz'), const.CONFIG_PATH)
