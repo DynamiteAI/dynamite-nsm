@@ -828,7 +828,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
         shutil.rmtree(ls_config.ls_path_conf)
         shutil.rmtree(ls_config.ls_home)
         shutil.rmtree(ls_config.path_logs)
-        shutil.rmtree('/tmp/dynamite/install_cache/', ignore_errors=True)
+        shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
         env_lines = ''
         for line in open('/etc/dynamite/environment').readlines():
             if 'LS_PATH_CONF' in line:

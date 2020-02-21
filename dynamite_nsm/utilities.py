@@ -100,9 +100,9 @@ def create_dynamite_environment_file():
 
 
 def create_dynamite_root_directory():
-    subprocess.call('mkdir -p /opt/dynamite/', shell=True)
-    subprocess.call('mkdir -p /etc/dynamite/', shell=True)
-    subprocess.call('mkdir -p /tmp/dynamite/install_cache/', shell=True)
+    subprocess.call('mkdir -p {}'.format(const.BIN_PATH), shell=True)
+    subprocess.call('mkdir -p {}'.format(const.CONFIG_PATH), shell=True)
+    subprocess.call('mkdir -p {}'.format(const.INSTALL_CACHE), shell=True)
 
 
 def create_dynamite_user(password):

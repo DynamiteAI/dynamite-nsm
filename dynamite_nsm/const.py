@@ -1,5 +1,5 @@
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.64/default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.64/mirrors.tar.gz'
+DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.65/default_configs.tar.gz'
+MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.65/mirrors.tar.gz'
 
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
@@ -30,6 +30,8 @@ SYNESIS_DIRECTORY_NAME = 'synesis_lite_suricata-vlabs-0.1.0-1.1.0'
 SURICATA_DIRECTORY_NAME = 'suricata-4.1.4'
 ZEEK_DIRECTORY_NAME = 'bro-2.6.1'
 
+CONFIG_PATH = "/etc/dynamite/"
+BIN_PATH = "/bin/dynamite/"
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
