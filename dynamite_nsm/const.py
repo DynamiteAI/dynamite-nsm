@@ -36,7 +36,7 @@ INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
 
-DYNAMITE_SDK_MIRRORS = '/etc/dynamite/mirrors/dynamite-sdk-0.1.1'
+DYNAMITE_SDK_MIRRORS = '/etc/dynamite/mirrors/dynamite-sdk-0.1.2'
 ELASTIFLOW_MIRRORS = "/etc/dynamite/mirrors/elastiflow-3.5.0"
 ELASTICSEARCH_MIRRORS = "/etc/dynamite/mirrors/elasticsearch-7.2.0"
 FILE_BEAT_MIRRORS = "/etc/dynamite/mirrors/filebeat-7.2.0"
