@@ -1,5 +1,5 @@
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.65/default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.65/mirrors.tar.gz'
+DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.66/default_configs.tar.gz'
+MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.66/mirrors.tar.gz'
 
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
