@@ -9,7 +9,7 @@ from dynamite_nsm.services import filebeat, zeek, suricata
 
 
 def is_agent_environment_prepared():
-    return os.path.exists('/opt/dynamite/.agent_environment_prepared')
+    return os.path.exists(os.path.join(const.BIN_PATH, '.agent_environment_prepared'))
 
 
 def install_agent(network_interface, agent_label, logstash_target, verbose=False):
@@ -127,7 +127,7 @@ def prepare_agent(verbose=False):
     :return: True, if successfully prepared
     """
     if is_agent_environment_prepared():
-        agent_preparation_date = open('/opt/dynamite/.agent_environment_prepared').read()
+        agent_preparation_date = open(os.path.join(const.BIN_PATH, '.agent_environment_prepared')).read()
         sys.stderr.write('[-] This environment has already been prepared ({}). '
                          'You can proceed with agent installation.\n'.format(agent_preparation_date))
         sys.stderr.write('[-] \'dynamite install agent\'.\n')
@@ -137,7 +137,7 @@ def prepare_agent(verbose=False):
     if not pf_ring_install.install_dependencies():
         sys.stderr.write('\n[-] Could not find a native package manager. Currently [APT-GET/YUM are supported]\n')
         return False
-    with open('/opt/dynamite/.agent_environment_prepared', 'w') as f:
+    with open(os.path.join(const.BIN_PATH, '.agent_environment_prepared'), 'w') as f:
         f.write(str(datetime.utcnow()))
     sys.stdout.write('[+] *** Development Kernel Packages & Build Tools Installed. Please Reboot ***\n\n')
     sys.stdout.write('[+] After reboot, continue installation with: \'dynamite install agent\'.\n')
