@@ -97,17 +97,25 @@ class PFRingInstaller:
             if 'pf_ring' not in open('/etc/modules').read():
                 if stdout:
                     sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
-                subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
+                subprocess.call('echo pf_ring min_num_slots=32768 enable_tx_capture=0 >> /etc/modules', shell=True)
         except IOError:
-            if os.path.exists('/etc/modules-load.d'):
+            if os.path.exists('/etc/modules-load.d' and os.path.exists('/etc/modprobe.d'):
                 pf_ring_module_found = False
+                pf_ring_mod_opts_found = False 
                 for mod_conf in os.listdir('/etc/modules-load.d/'):
                     mod_conf_path = os.path.join('/etc/modules-load.d', mod_conf)
                     if 'pf_ring' in open(mod_conf_path).read():
                         pf_ring_module_found = True
                         break
+                for mod_opt in os.listdir('/etc/modprobe.d'):
+                    mod_opt_path = os.path.join('/etc/modprobe.d', mod_opt)
+                    if 'options pf_ring' in open(mod_opt_path).read():
+                        pf_ring_mod_opts_found = True
+                        break
                 if not pf_ring_module_found:
-                    subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules-load.d/pf_ring.conf', shell=True)
+                    subprocess.call('echo "pf_ring" >> /etc/modules-load.d/pf_ring.conf', shell=True)
+                if not pf_ring_mod_opts_found:
+                    subprocess.call('echo "options pf_ring min_num_slots=32768 enable_tx_capture=0" >> /etc/modprobe.d/pf_ring.conf', shell=True)
             else:
                 sys.stderr.write('[-] Could not determine a method to enable pf_ring kernel module. '
                                  'You must enable manually using a tool such as \'modprobe\'.\n')
