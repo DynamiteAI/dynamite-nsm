@@ -1,0 +1,20 @@
+[Unit]
+Description=Zeek Network Traffic Monitor 
+After=network.target
+PartOf=dynamite.target
+
+[Service]
+ExecStartPre=-/opt/dynamite/zeek/bin/broctl cleanup
+ExecStartPre=/opt/dynamite/zeek/bin/broctl check
+ExecStartPre=/opt/dynamite/zeek/bin/broctl install
+ExecStart=/opt/dynamite/zeek/bin/broctl start
+ExecStop=/opt/dynamite/zeek/bin/broctl stop
+RestartSec=10s
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStopSec=600
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=dynamite.target
