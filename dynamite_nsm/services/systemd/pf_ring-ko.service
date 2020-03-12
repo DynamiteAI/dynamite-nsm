@@ -1,0 +1,11 @@
+[Unit]
+Description=Configure PF_RING Kernel Module 
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/modprobe pf_ring min_num_slots=32768 enable_tx_capture=0
+RemainAfterExit=yes
+
+[Install]
+RequiredBy=dynamite.target

@@ -1,0 +1,20 @@
+[Unit]
+Description=Suricata IDS
+After=network.target
+Requires=network.target
+
+[Service]
+Type=forking
+Environment=LD_PREDLOAD=/usr/lib/libtcmalloc_minimal.so.4
+Environment=SURI_CFG=/etc/dynamite/suricata/suricata.yaml SURI_PID=/var/run/dynamite/suricata.pid
+CapabilityBoundingSet=CAP_NET_ADMIN
+PIDFile=/var/run/dynamite/suricata.pid
+ExecStart=/opt/dynamite/suricata/bin/suricata -D -i ens37 -c $SURI_CFG --pidfile $SURI_PID -D
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill $MAINPID
+PrivateTmp=yes
+InaccessibleDirectories=/home /root
+ReadOnlyDirectories=/boot /usr /etc
+
+[Install]
+WantedBy=dynamite.target
