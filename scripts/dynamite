@@ -16,7 +16,8 @@ from dynamite_nsm.guis import zeek_node_config_gui, zeek_script_config_gui, suri
 
 
 COMPONENTS = [
-    'agent', 'monitor', 'lab', 'elasticsearch', 'logstash', 'kibana', 'suricata-rules', 'mirrors', 'default-configs'
+    'agent', 'monitor', 'lab', 'elasticsearch', 'logstash', 'kibana', 'kibana-objects', 'suricata-rules', 'mirrors',
+    'default-configs'
 ]
 
 COMMANDS = [
@@ -275,6 +276,22 @@ if __name__ == '__main__':
                 sys.exit(0)
             else:
                 sys.stderr.write('[-] Failed to install DynamiteLab.\n')
+                sys.exit(1)
+        elif args.components == 'kibana-objects':
+            utilities.print_dynamite_logo()
+            time.sleep(1)
+            if args.initial_password:
+                password = args.initial_password
+            else:
+                password = utilities.prompt_password(
+                    'Enter the password used for logging into ElasticSearch: '
+                )
+
+            if kibana.install_kibana_objects(elasticsearch_host=args.es_host, elasticsearch_port=args.es_port,
+                                         elasticsearch_password=password, stdout=True, verbose=args.debug):
+                sys.exit(0)
+            else:
+                sys.stderr.write('[-] Failed to install Kibana Objects.\n')
                 sys.exit(1)
         elif args.component == 'elasticsearch':
             utilities.print_dynamite_logo()

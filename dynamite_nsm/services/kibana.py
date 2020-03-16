@@ -405,6 +405,12 @@ class KibanaInstaller:
         utilities.set_ownership_of_file('/opt/dynamite/', user='dynamite', group='dynamite')
         utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
 
+    def setup_kibana_objects(self):
+        pacman = OSPackageManager(verbose=self.verbose)
+        pacman.refresh_package_indexes()
+        pacman.install_packages(['curl'])
+        self._install_kibana_objects()
+
 
 class KibanaProfiler:
     """
@@ -714,6 +720,22 @@ def install_kibana(elasticsearch_host='localhost', elasticsearch_port=9200, elas
         sys.stdout.write('[+] Next, Start your collector: \'dynamite start kibana\'.\n')
         sys.stdout.flush()
     return KibanaProfiler(stderr=False).is_installed
+
+
+def install_kibana_objects(elasticsearch_host='localhost', elasticsearch_port=9200,
+                              elasticsearch_password='changeme', stdout=False, verbose=False):
+    kb_installer = KibanaInstaller(elasticsearch_host=elasticsearch_host,
+                                   elasticsearch_port=elasticsearch_port,
+                                   elasticsearch_password=elasticsearch_password,
+                                   download_kibana_archive=False,
+                                   stdout=stdout, verbose=verbose)
+    try:
+        kb_installer.setup_kibana_objects()
+    except Exception:
+        sys.stderr.write('[-] A fatal error occurred while attempting to install Kibana Objects: ')
+        traceback.print_exc(file=sys.stderr)
+        return False
+    return True
 
 
 def uninstall_kibana(stdout=False, prompt_user=True):
