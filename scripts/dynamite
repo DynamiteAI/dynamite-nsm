@@ -277,7 +277,7 @@ if __name__ == '__main__':
             else:
                 sys.stderr.write('[-] Failed to install DynamiteLab.\n')
                 sys.exit(1)
-        elif args.components == 'kibana-objects':
+        elif args.component == 'kibana-objects':
             utilities.print_dynamite_logo()
             time.sleep(1)
             if args.initial_password:
