@@ -2,4 +2,7 @@
 Description=Dynamite Agent Service 
 Requires=network-online.target
 After=network-online.target
-Wants=suricata.service zeek.service
+Wants=suricata.service zeek.service filebeat.service
+
+[Install]
+Alias="dynamite-agent.service"

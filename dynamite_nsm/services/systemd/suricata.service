@@ -6,9 +6,7 @@ PartOf=dynamite.target
 
 [Service]
 Type=forking
-#Environment=LD_PREDLOAD=/usr/lib/libtcmalloc_minimal.so.4
 Environment=SURI_CFG=/etc/dynamite/suricata/suricata.yaml SURI_PID=/var/dynamite/suricata/run/suricata.pid
-#CapabilityBoundingSet=CAP_NET_ADMIN
 PIDFile=/var/dynamite/suricata/run/suricata.pid
 ExecStart=/opt/dynamite/suricata/bin/suricata -i ens37 -D --pidfile $SURI_PID -c $SURI_CFG
 ExecReload=/bin/kill -SIGHUP $MAINPID

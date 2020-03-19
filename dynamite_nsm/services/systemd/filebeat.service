@@ -1,0 +1,16 @@
+[Unit]
+Description=Filebeat Log Collector
+Wants=network-online.target
+After=network-online.target
+PartOf=dynamite.target
+
+[Service]
+Environment="FILEBEAT_HOME=/opt/dynamite/filebeat/"
+Environment="BEAT_LOG_OPTS=-e"
+Environment="BEAT_CONFIG_OPTS=-c /opt/dynamite/filebeat/filebeat.yml"
+PIDFile=/var/run/dynamite/filebeat/filebeat.pid
+ExecStart=/opt/dynamite/filebeat/filebeat $BEAT_CONFIG_OPTS
+Restart=always
+
+[Install]
+WantedBy=dynamite.target
