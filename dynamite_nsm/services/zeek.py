@@ -400,6 +400,53 @@ class ZeekInstaller:
             return pacman.install_packages(packages)
         return False
 
+    def setup_zeek_community_id_script(self):
+        bro_commmunity_id_script_path = \
+            os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'uncompiled_scripts', 'bro-community-id')
+        if self.stdout:
+            sys.stdout.write('[+] Compiling Zeek Corelight_CommunityID plugin\n')
+        if self.verbose:
+            config_zeek_community_id_script_process = subprocess.Popen('./configure --bro-dist {} --install-root {}'
+                                                                       ''.format(
+                os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
+                self.configuration_directory), shell=True,
+                cwd=bro_commmunity_id_script_path
+           )
+        else:
+            config_zeek_community_id_script_process = subprocess.Popen('./configure --bro-dist {} --install-root {}'
+                                                                       ''.format(
+                os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
+                self.configuration_directory),
+                shell=True, cwd=bro_commmunity_id_script_path,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        config_zeek_community_id_script_process.communicate()
+        if config_zeek_community_id_script_process.returncode != 0:
+            sys.stderr.write('[-] An error occurred while configuring Corelight_CommunityID plugin; exited {}\n'.format(
+                config_zeek_community_id_script_process.returncode))
+            return False
+        if self.verbose:
+            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
+                                                cwd=bro_commmunity_id_script_path)
+        else:
+            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
+                                                cwd=bro_commmunity_id_script_path,
+                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        compile_zeek_community_id_script_process.communicate()
+        if compile_zeek_community_id_script_process.returncode != 0:
+            sys.stderr.write('[-] An error occurred while compiling community_id script: exited {}\n'.format(
+                compile_zeek_community_id_script_process.returncode))
+            return False
+        try:
+            shutil.copytree(os.path.join(self.configuration_directory, 'Corelight_CommunityID'),
+                            os.path.join(self.install_directory, 'lib', 'bro', 'plugins', 'Corelight_CommunityID'))
+        except Exception as e:
+            if not 'FileExist' in str(e):
+                sys.stderr.write('[-] An error occurred while installing Corelight_CommunityID plugin; error: {}\n'
+                                 ''.format(e))
+                return False
+        return True
+
     def setup_dynamite_zeek_scripts(self):
         """
         Installs and enables extra dynamite Zeek scripts
@@ -436,6 +483,12 @@ class ZeekInstaller:
             for script_dir in os.listdir(extra_script_install_path):
                 wf.write('@load {}\n'.format(os.path.join(extra_script_install_path, script_dir)))
             wf.write(redefs)
+
+        if self.stdout:
+            sys.stdout.write('[+] Installing Corelight_CommunityID plugin.\n')
+            res = self.setup_zeek_community_id_script()
+            if not res:
+                return False
         if self.stdout:
             sys.stdout.write('[+] Disabling unneeded Zeek scripts.\n')
         # Disable Unneeded Zeek scripts

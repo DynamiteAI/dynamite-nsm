@@ -1,5 +1,5 @@
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.66/default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.66/mirrors.tar.gz'
+DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.67/default_configs.tar.gz'
+MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.67/mirrors.tar.gz'
 
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
@@ -36,15 +36,15 @@ INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
 
-DYNAMITE_SDK_MIRRORS = '/etc/dynamite/mirrors/dynamite-sdk-0.1.2'
-ELASTIFLOW_MIRRORS = "/etc/dynamite/mirrors/elastiflow-3.5.0"
-ELASTICSEARCH_MIRRORS = "/etc/dynamite/mirrors/elasticsearch-7.2.0"
-FILE_BEAT_MIRRORS = "/etc/dynamite/mirrors/filebeat-7.2.0"
-LOGSTASH_MIRRORS = "/etc/dynamite/mirrors/logstash-7.2.0"
-KIBANA_MIRRORS = "/etc/dynamite/mirrors/kibana-7.2.1"
+DYNAMITE_SDK_MIRRORS = '/etc/dynamite/mirrors/dynamite_sdk'
+ELASTIFLOW_MIRRORS = "/etc/dynamite/mirrors/elastiflow"
+ELASTICSEARCH_MIRRORS = "/etc/dynamite/mirrors/elasticsearch"
+FILE_BEAT_MIRRORS = "/etc/dynamite/mirrors/filebeat"
+LOGSTASH_MIRRORS = "/etc/dynamite/mirrors/logstash"
+KIBANA_MIRRORS = "/etc/dynamite/mirrors/kibana"
 JAVA_MIRRORS = "/etc/dynamite/mirrors/java-11"
-OINKMASTER_MIRRORS = "/etc/dynamite/mirrors/oinkmaster-nightly"
-PF_RING_MIRRORS = "/etc/dynamite/mirrors/pf_ring-7.4.0"
-SURICATA_MIRRORS = "/etc/dynamite/mirrors/suricata-4.1.4"
-SYNESIS_MIRRORS = "/etc/dynamite/mirrors/synesis_lite_suricata-1.1.0"
-ZEEK_MIRRORS = "/etc/dynamite/mirrors/zeek-2.6.1"
+OINKMASTER_MIRRORS = "/etc/dynamite/mirrors/oinkmaster_nightly"
+PF_RING_MIRRORS = "/etc/dynamite/mirrors/pf_ring"
+SURICATA_MIRRORS = "/etc/dynamite/mirrors/suricata"
+SYNESIS_MIRRORS = "/etc/dynamite/mirrors/synesis_lite_suricata"
+ZEEK_MIRRORS = "/etc/dynamite/mirrors/zeek"
