@@ -6,9 +6,6 @@ import subprocess
 import inspect
 #from dynamite_nsm.services.helpers import pf_ring
 
-UNIT_FILE_DIR = '/etc/systemd/system'
-AGENT_UNITS = ['dynamite.target', 'filebeat.service', 'suricata.service', 'zeek.service']
-
 class cmdResult:
     """
     Container class for parsed and decoded systemctl command output
@@ -22,8 +19,12 @@ class cmdResult:
 
 class dynctl:
     """
-    Provides a wrapper around systemctl for managing Dynamite Services.
+    Provides a wrapper for systemctl for managing Dynamite services.
     """
+    # Class variables
+    UNIT_FILE_DIR = '/etc/systemd/system'
+    AGENT_UNITS = ['dynamite.target', 'filebeat.service', 'suricata.service', 'zeek.service']
+
     def __init__(self,
                 stdout=True,
                 verbose=False):
@@ -53,6 +54,18 @@ class dynctl:
         """
         return self._exec('status', svc, [])        
 
+    def _enable_svc(self, svc):
+        """
+        Execute the systemctl enable command for the given service. 
+        """
+        return self._exec('enable', svc, [])   
+    
+    def _disable_svc(self, svc):
+        """
+        Execute the systemctl disable command for the given service. 
+        """
+        return self._exec('disable', svc, [])   
+
     def _get_comp_state(self, component):
         """
         Retrieve the ActiveState and LoadState from systemctl for a given unit name. 
@@ -63,6 +76,22 @@ class dynctl:
             state = {l.split('=')[0].strip() : l.split('=')[1].strip() for l in res.out.split('\n') if '=' in l}
         return state 
  
+    def _get_comp_status(self, component):
+        """
+        Convert ActiveState and LoadState to status report for a given component. 
+        
+        :return: dict() with keys 'RUNNING' and 'ENABLED'
+        """
+        status = {'ENABLED':False, 'RUNNING':False}
+        res = self._exec('show', component, ['-p ActiveState -p LoadState'])
+        if res.exit == 0 and res.err == '' and res.out != '':
+            state = {l.split('=')[0].strip() : l.split('=')[1].strip() for l in res.out.split('\n') if '=' in l}
+            if state['LoadState'] == 'loaded':
+                status['ENABLED'] = True
+            if state['ActiveState'] == 'active':
+                status['RUNNING'] = True
+        return status 
+
     def _update_comp_status(self, component):
         """
         Updated the status attributes of the given component based on the state reported by systemctl.
@@ -81,9 +110,9 @@ class dynctl:
         else:
             self.__setattr__(comp_running, True)
 
-        return (comp, self.__getattribute__(comp_running))
+        return (comp, self.__getattribute__(comp_running), self.__getattribute__(comp_enabled))
 
-    def _exec(self, cmd, svc, args):
+    def _exec(self, cmd=None, svc=None, args=None):
         """
         Wrapper for systemctl cli utility. 
 
@@ -105,60 +134,148 @@ class dynctl:
 
     def _exec_update(self, cmd, svc):
         """
-        Executes the systemctl command and updates the component's status. 
+        Executes the given systemctl cmd for the given component and updates the component's status in the instance object. 
 
-        :return: 
+        :return:  A tuple in the form of: (<"service name">, Running (T/F), Enabled (T/F))
         """
         self._exec(cmd, svc, [])
         return self._update_comp_status(svc)
 
+    def daemon_reload(self):
+        """
+        Executes `systemctl daemon-reload` to reload all systemd unit files.   
+
+        :return:  True if successful.  False otherwise. 
+        """
+        p = subprocess.Popen('systemctl daemon-reload', stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE, shell=True)
+        if p.returncode == 0:
+            return True
+        else:
+            return False 
+
+    def enable(self, svc):
+        """
+        Enable the given service. This will cause it to run at boot after network services have started.
+
+        :return: True if successful. False otherwise. 
+        """
+        sys.stderr.write("[+] Enabling {}\n".format(svc))
+        if svc == 'dynamite':
+            svc = 'dynamite.target'
+        res = self._exec_update("enable", svc)
+        if res[2] == True:
+            sys.stderr.write("[+] {} was enabled successfully.\n".format(svc))
+            return True 
+        else:
+            sys.stderr.write("[-] Unable to enable {}\n".format(svc))
+            return False 
+
+    def disable(self, svc):
+        """
+        Disable the given service. This will prevent it from running at boot. 
+        """
+        sys.stderr.write("[+] Disabling {}\n".format(svc))
+        if svc == 'dynamite':
+            svc = 'dynamite.target'
+        res = self._exec_update("disable", svc)
+        if res[2] == False:
+            sys.stderr.write("[+] Successfully disabled {}.\n".format(svc))
+        else:
+            sys.stderr.write("[-] Failed to disable {}.\n".format(svc))
+        
     def status(self, svc):
         """
-        Displays the full systemctl status output of the given service. 
+        Displays the full systemctl status output for the given service. 
         """
+        sys.stderr.write("[+] {} status:\n".format(svc))
         if svc == 'dynamite':
             svc = 'dynamite.target'
         res = self._get_svc_status(svc)
-        print("[+] {} status:\n{}".format(svc, res.out))
+        sys.stderr.write(res.out)
 
-    def start(self, svc):
+    def _start(self, svc, stdout=False):
         """
         Start the specified service and show the result. 
         """
-        print("[+] Starting {}\n".format(svc))
+        if stdout:
+            sys.stdout.write("[+] Starting {}\n".format(svc))
+
+        if svc == 'dynamite':
+            svc = 'dynamite.target'
         res = self._exec_update("start", svc)
         if res[1] == True:
-            print("[+] Success. {} is running\n".format(svc))
+            if stdout:
+                sys.stderr.write("[+] {} started successfully\n".format(svc))
         else:
-            print("[-] Failed. {} is not running\n".format(svc))
+            sys.stderr.write("[-] {} failed to start\n".format(svc))
+
+    # Need this for each agent service 
+    # 'INSTALLED': self.is_installed,
+    # 'RUNNING': self.is_running,
+
+    def dynamite_status(self, stdout=False):
+        """
+        Test if the Dynamite services target is enabled and running. 
+
+        :return: dict() of {'ENABLED': True/False, 'RUNNING': True/False}
+        """
+        return self._get_comp_status('dynamite.target')
+
+    def zeek_status(self, stdout=False):
+        """
+        Test if Zeek is enabled and running. 
+
+        :return: dict() of {'ENABLED': True/False, 'RUNNING': True/False}
+        """
+        return self._get_comp_status('zeek')
+
+    def suricata_status(self, stdout=False):
+        """
+        Test if Suricata is enabled and running. 
+
+        :return: dict() of {'ENABLED': True/False, 'RUNNING': True/False}
+        """
+        return self._get_comp_status('suricata')
+
+    def filebeat_status(self, stdout=False):
+        """
+        Test if Filebeat is enabled and running. 
+
+        :return: dict() of {'ENABLED': True/False, 'RUNNING': True/False}
+        """
+        return self._get_comp_status('filebeat')
+
+    def _stop(self, svc):
+        """
+        Stop the specified service and show the result. 
+        """
+        sys.stderr.write("[+] Stopping {}\n".format(svc))
+        if svc == 'dynamite':
+            svc = 'dynamite.target'
+        res = self._exec_update("stop", svc)
+        if res[1] == False:
+            sys.stderr.write("[+] Successfully stopped {}\n".format(svc))
+        else:
+            sys.stderr.write("[-] Failed to stop {}\n".format(svc))
         
-    def start_dynamite(self, stdout=False):
+    def start_agent(self, stdout=False):
         """
-        Start Dynamite Services
-        What gets started depends on the node type.  If running as Agent this will start
-        zeek, suricata and filebeat. 
+        Start Dynamite Agent services zeek, suricata and filebeat. 
         """
-        print("Starting Dynamite Services\n")
-        res = self._exec_update("start", "dynamite.target")
-        print("Dynamite Services Running: {}\n".format(res[1]))
+        self._start("dynamite")
         
-    def stop_dynamite(self, stdout=False):
+    def stop_agent(self, stdout=False):
         """
-        Stop all Dynamite services.
-        What gets stopped depends on the node type.  If running as Agent this will stop
-        zeek, suricata and filebeat. 
+        Stop all Dynamite Agent services zeek, suricata and filebeat.
         """
-        print("Stopping Dynamite Services\n")
-        res = self._exec_update("stop", "dynamite.target")
-        print("Dynamite Services Running: {}\n".format(res[1]))
+        self._stop("dynamite")
 
     def stop_zeek(self, stdout=False):
         """
         Stop Zeek Services
         """
-        print("Stopping Zeek\n")
-        res = self._exec_update("stop", "zeek")
-        print("Zeek is running: {}\n".format(res[1]))
+        self._stop("zeek")
 
     def start_zeek(self, stdout=False):
         """
@@ -166,9 +283,7 @@ class dynctl:
 
         :return: Print output to console
         """
-        print("Starting Zeek\n")
-        res = self._exec_update("start", "zeek")
-        print("Zeek is running: {}\n".format(res[1]))
+        self._start("zeek")
 
     def restart_zeek(self, stdout=False):
         """
@@ -178,18 +293,15 @@ class dynctl:
 
         :return: Print output to console
         """
-        print("Restarting Zeek\n")
-        self._exec_update("stop", "zeek")
-        res = self._exec_update("start", "zeek")
-        print("Zeek is running: {}\n".format(res[1]))
+        sys.stderr.write("Restarting Zeek\n")
+        self._stop("zeek")
+        self._start("zeek")
 
     def start_suricata(self, stdout=False):
         """
         Start Suricata services.  
         """
-        print("Starting Suricata\n")
-        res = self._exec_update("start", "suricata")
-        print("Suricata is running: {}\n".format(res[1]))
+        self._start("suricata")
 
     def stop_suricata(self, stdout=False):
         """
@@ -197,9 +309,7 @@ class dynctl:
 
         :return: Print output to console
         """
-        print("Stopping Suricata\n")
-        res = self._exec_update("stop", "suricata")
-        print("Suricata is running: {}\n".format(res[1]))
+        self._stop("suricata")
 
     def restart_suricata(self, stdout=False):
         """
@@ -207,20 +317,17 @@ class dynctl:
 
         :return: Print output to console
         """
-        print("Restarting Suricata\n")
-        self._exec_update("stop", "suricata")
-        res = self._exec_update("start", "suricata")
-        print("Suricata is running: {}\n".format(res[1]))
-
+        sys.stderr.write("Restarting Suricata\n")
+        self._stop("suricata")
+        self._start("suricata")
+        
     def start_filebeat(self, stdout=False):
         """
         Start Filebeat services.  
 
         :return: Print output to console
         """
-        print("Starting Filebeat\n")
-        res = self._exec_update("start", "filebeat")
-        print("Filebeat is running: {}\n".format(res[1]))
+        self._start("filebeat")
 
     def stop_filebeat(self, stdout=False):
         """
@@ -228,81 +335,42 @@ class dynctl:
 
         :return: Print output to console
         """
-        print("Stopping Filebeat\n")
-        res = self._exec_update("stop", "filebeat")
-        print("Filebeat is running: {}\n".format(res[1]))
+        self._stop("filebeat")
 
-    def restart_filebeat(stdout=False):
+    def restart_filebeat(self, stdout=False):
         """
         Restart Filebeat services.  
 
         :return: Print output to console
         """
-        print("Restarting Filebeat\n")
-        self._exec_update("stop", "filebeat")
-        res = self._exec_update("start", "filebeat")
-        print("Filebeat is running: {}\n".format(res[1]))
-
-class SystemdConfigurator:
-    """
-    Provides an interface for installing, enabling and disabling Dynamite Services.
-    """
-    def __init__(self,
-                 interfaces=None,
-                 stdout=True,
-                 verbose=False):
-        """
-        :param interfaces: List of inspection interfaces to monitor
-        :param stdout: Print the output to console
-        :param verbose: Include output from system utilities
-        """
-        if not path.exists(UNIT_FILE_DIR):
-            raise Exception("Systemd unit file directory not found. Is systemd installed? {}".format(UNIT_FILE_DIR))
-        else:
-            self.unit_file_dir = UNIT_FILE_DIR
-
-        # Verify systemctl is installed and in path, bail if not 
-        p = subprocess.Popen('which systemctl', stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, shell=True)
-        p.communicate()
-        if p.returncode != 0:
-            raise Exception('Systemctl not found, is it installed?  {}\n'.format(p.stderr.read()))
-
-        self.stdout = stdout
-        self.verbose = verbose
-        self.interfaces = interfaces
-
-    # @staticmethod
-    # def pfring_is_loaded():
-    #     """
-    #     Verify PF_RING kernel module is loaded
-
-    #     :return: bool
-    #     """
-    #     return pf_ring.PFRingProfiler().is_running
-    # )
-
+        sys.stderr.write("Restarting Filebeat\n")
+        self._stop("filebeat")
+        self._start("filebeat")
+        
     def install_agent_unit_files(self, stdout=False):
         """
         Install Dynamite Agent systemd unit files 
-
-        :return: Print output to console
         """
-        if stdout:
-            sys.stdout.write('[+] Installing Dynamite Agent Services.\n')
-            sys.stdout.flush()
+        sys.stdout.write('[+] Installing Dynamite Agent services.\n')
+        sys.stdout.flush()
 
         for sfile in AGENT_UNITS:
             try:
                 copy(sfile, self.unit_file_dir)
             except Exception as e:
-                sys.stderr.write("[-] Failed to install unit file: {}\n".format(e))
+                sys.stderr.write("[-] Failed to install unit file {}: {}\n".format(sfile, e))
+                sys.stderr.flush()
                 return False
-        
-        p = subprocess.Popen('systemctl enable dynamite.target', stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE, shell=True)
-        p.communicate()
-        if p.returncode != 0:
-            sys.stderr.write('[-] Failed to enable the Dynamite service: {}\n'.format(p.stderr.read()))
+
+        if self.enable("dynamite.target"):
+            sys.stdout.write('[+] Dynamite Agent services installed and enabled.\n')
+            sys.stdout.flush()
+            return True 
+        else:
+            sys.stderr.write("[-] Failed to enabled Dynamite Agent services\n".format(sfile, e))
+            sys.stderr.flush()
             return False
-        return True
+
+
+    
+        

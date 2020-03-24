@@ -6,6 +6,7 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.helpers import pf_ring
 from dynamite_nsm.services import filebeat, zeek, suricata
+from dynamite_nsm.services.systemd import dynctl 
 
 
 def is_agent_environment_prepared():
@@ -94,15 +95,20 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
         return False
     if zeek_post_install_profiler.is_installed and filebeat_post_install_profiler.is_installed:
         if suricata_post_profiler.is_installed:
-            sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
-            sys.stdout.flush()
-            return True
+            dc = dynctl()
+            if dc.install_agent_unit_files():
+                sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
+                sys.stdout.flush()
+                return True
+            else:
+                sys.stderr.write('[-] Agent installation failed. Unable to configure systemd.\n')
+                sys.stderr.flush()
+                return False
         else:
             sys.stderr.write('[-] Agent installation failed. Suricata did not install properly.\n')
             sys.stderr.flush()
             return False
     return False
-
 
 def point_agent(host, port):
     """
@@ -162,47 +168,26 @@ def profile_agent():
         ZEEK=zeek_profiler.get_profile()
     )
 
-
 def start_agent():
     """
     Start the Zeek (BroCtl) and FileBeats processes
 
     :return: True, if started successfully
     """
+    dc = dynctl()
+    pf_ring_profiler = pf_ring.PFRingProfiler()
 
-    # Load service profilers
-    pf_ring_profiler = pf_ring.PFRingProfiler(stderr=False)
-    filebeat_profiler = filebeat.FileBeatProfiler(stderr=False)
-    zeek_profiler = zeek.ZeekProfiler(stderr=False)
-    suricata_profiler = suricata.SuricataProfiler(stderr=False)
-
-    # Load service processes
-    filebeat_p = filebeat.FileBeatProcess()
-    zeek_p = zeek.ZeekProcess()
-
-    if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
+    if not (dc.filebeat_enabled or dc.zeek_enabled):
         sys.stderr.write('[-] Could not start agent. Is it installed?\n')
-        sys.stderr.write('[-] dynamite install agent\n')
+        sys.stderr.write('[-] Try \'dynamite prepare agent; dynamite install agent\'\n')
         return False
     if not pf_ring_profiler.is_running:
         sys.stderr.write('[-] PF_RING kernel modules were not loaded. Try running '
                          '\'modprobe pf_ring min_num_slots=32768\' as root.\n')
         return False
-    sys.stdout.write('[+] Starting agent processes.\n')
-    if suricata_profiler.is_installed:
-        # Load Suricata process
-        suricata_p = suricata.SuricataProcess()
-        if not suricata_p.start(stdout=True):
-            sys.stderr.write('[-] Could not start agent.suricata_process.\n')
-            return False
-    if not zeek_p.start(stdout=True):
-        sys.stderr.write('[-] Could not start agent.zeek_process.\n')
-        return False
-    if not filebeat_p.start(stdout=True):
-        sys.stderr.write('[-] Could not start agent.filebeat.\n')
-        return False
-    return True
 
+    sys.stdout.write('[+] Starting agent services.\n')
+    return dc.start_agent_services(stdout=True)
 
 def status_agent():
     """
@@ -211,34 +196,19 @@ def status_agent():
     :return: A tuple, where the first element is the zeek process status (string), and second element are
              the FileBeats and PF_RING status
     """
-
-    # Load service processes
-    zeek_p = zeek.ZeekProcess()
-    filebeat_p = filebeat.FileBeatProcess()
+    dc = dynctl()
 
     # Load service profilers
     pf_ring_profiler = pf_ring.PFRingProfiler(stderr=False)
-    filebeat_profiler = filebeat.FileBeatProfiler(stderr=False)
-    zeek_profiler = zeek.ZeekProfiler(stderr=False)
-    suricata_profiler = suricata.SuricataProfiler(stderr=False)
 
-    if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
-        sys.stderr.write('[-] Could not start agent. Is it installed?\n')
-        sys.stderr.write('[-] dynamite install agent\n')
-        return False
     agent_status = dict(
-        agent_processes={
-            'zeek': zeek_p.status(),
+            'dynamite.target': dc.dynamite_status(),
             'pf_ring': pf_ring_profiler.get_profile(),
-            'filebeat': filebeat_p.status()
-        }
+            'suricata': dc.suricata_status(),
+            'zeek': dc.zeek_status(),
+            'filebeat': dc.filebeat_status()
     )
-    if suricata_profiler.is_installed:
-        # Load Suricata process
-        suricata_p = suricata.SuricataProcess()
-        agent_status['agent_processes']['suricata'] = suricata_p.status()
     return agent_status
-
 
 def stop_agent():
     """
@@ -247,34 +217,12 @@ def stop_agent():
     :return: True, if stopped successfully
     """
     sys.stdout.write('[+] Stopping agent processes.\n')
-
-    # Load service profilers
-    filebeat_profiler = filebeat.FileBeatProfiler()
-    zeek_profiler = zeek.ZeekProfiler()
-    suricata_profiler = suricata.SuricataProfiler()
-
-    # Load service processes
-    zeek_p = zeek.ZeekProcess()
-    filebeat_p = filebeat.FileBeatProcess()
-
-    if not (filebeat_profiler.is_installed or zeek_profiler.is_installed):
-        sys.stderr.write('[-] Could not start agent. Is it installed?\n')
-        sys.stderr.write('[-] dynamite install agent\n')
-        return False
-    if suricata_profiler.is_installed:
-        # Load Suricata process
-        suricata_p = suricata.SuricataProcess()
-        if not suricata_p.stop(stdout=True):
-            sys.stderr.write('[-] Could not stop agent.suricata_process.\n')
-            return False
-    if not zeek_p.stop(stdout=True):
-        sys.stderr.write('[-] Could not stop agent.zeek_process.\n')
-        return False
-    elif not filebeat_p.stop(stdout=True):
-        sys.stderr.write('[-] Could not stop agent.filebeat.\n')
-        return False
-    return True
-
+    dc = dynctl()
+    if not dc.dynamite_enabled:
+        sys.stderr.write('[-] Could not stop Dynamite Agent services. Target not enabled.\n')
+    elif not dc.dynamite_running:
+        sys.stderr.write('[-] Could not stop Dynamite Agent services. Target not active.\n')
+    return dc.stop_agent_services(stdout=True)
 
 def uninstall_agent(prompt_user=True):
     """
