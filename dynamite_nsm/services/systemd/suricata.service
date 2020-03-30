@@ -8,7 +8,7 @@ PartOf=dynamite.target
 Type=forking
 Environment=SURI_CFG=/etc/dynamite/suricata/suricata.yaml SURI_PID=/var/dynamite/suricata/run/suricata.pid
 PIDFile=/var/dynamite/suricata/run/suricata.pid
-ExecStart=/opt/dynamite/suricata/bin/suricata -i ens37 -D --pidfile $SURI_PID -c $SURI_CFG
+ExecStart=/opt/dynamite/suricata/bin/suricata -c $SURI_CFG --af-packet -D --pidfile $SURI_PID 
 ExecReload=/bin/kill -SIGHUP $MAINPID
 ExecStop=/bin/kill -SIGTERM $MAINPID
 PrivateTmp=yes
