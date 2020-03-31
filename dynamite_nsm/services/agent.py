@@ -220,9 +220,11 @@ def stop_agent():
     dc = dynctl()
     if not dc.dynamite_enabled:
         sys.stderr.write('[-] Could not stop Dynamite Agent services. Target not enabled.\n')
+        return False
     elif not dc.dynamite_running:
         sys.stderr.write('[-] Could not stop Dynamite Agent services. Target not active.\n')
-    return dc.stop_agent_services(stdout=True)
+        return False
+    return dc.stop_agent(stdout=True)
 
 def uninstall_agent(prompt_user=True):
     """

@@ -181,8 +181,10 @@ class dynctl:
         res = self._exec_update("disable", svc)
         if res[2] == False:
             sys.stderr.write("[+] Successfully disabled {}.\n".format(svc))
+            return True
         else:
             sys.stderr.write("[-] Failed to disable {}.\n".format(svc))
+            return False 
         
     def status(self, svc):
         """
@@ -207,8 +209,10 @@ class dynctl:
         if res[1] == True:
             if stdout:
                 sys.stderr.write("[+] {} started successfully\n".format(svc))
+            return True
         else:
             sys.stderr.write("[-] {} failed to start\n".format(svc))
+            return False 
 
     # Need this for each agent service 
     # 'INSTALLED': self.is_installed,
@@ -256,9 +260,23 @@ class dynctl:
         res = self._exec_update("stop", svc)
         if res[1] == False:
             sys.stderr.write("[+] Successfully stopped {}\n".format(svc))
+            return True 
         else:
             sys.stderr.write("[-] Failed to stop {}\n".format(svc))
-        
+            return False 
+
+    def enable_agent(self, stdout=False):
+        """
+        Enable Dynamite Agent services. 
+        """
+        return self.enable("dynamite")
+
+    def disable_agent(self, stdout=False):
+        """
+        Disable Dynamite Agent services. 
+        """
+        return self.disable("dynamite")
+
     def start_agent(self, stdout=False):
         """
         Start Dynamite Agent services zeek, suricata and filebeat. 
@@ -293,7 +311,8 @@ class dynctl:
 
         :return: Print output to console
         """
-        sys.stderr.write("Restarting Zeek\n")
+        if stdout:
+            sys.stdout.write("[+] Restarting Zeek.\n")
         self._stop("zeek")
         self._start("zeek")
 
@@ -370,6 +389,24 @@ class dynctl:
             sys.stderr.write("[-] Failed to enabled Dynamite Agent services\n".format(sfile, e))
             sys.stderr.flush()
             return False
+
+    def uninstall_agent_unit_files(self, stdout=False):
+        """
+        Uninstall Dynamite Agent systemd services 
+        """
+        sys.stdout.write('[+] Uninstalling Dynamite Agent services.\n')
+        sys.stdout.flush()
+
+        if self.dynamite_running:
+            self.stop_agent()
+        self.disable_agent()
+        for sfile in AGENT_UNITS:
+            try:
+                os.remove(os.path.join(self.unit_file_dir, sfile))
+            except Exception as e:
+                sys.stderr.write("[-] Failed to delete unit file {}: {}\n".format(sfile, e))
+                sys.stderr.flush()
+        self.daemon_reload()
 
 
     
