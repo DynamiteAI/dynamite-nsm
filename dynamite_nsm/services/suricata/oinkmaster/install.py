@@ -11,15 +11,13 @@ except Exception:
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 
-INSTALL_DIRECTORY = '/opt/dynamite/oinkmaster/'
 
-
-class OinkmasterInstaller:
+class InstallManager:
     """
     An interface for installing OinkMaster Suricata update script
     """
 
-    def __init__(self, install_directory=INSTALL_DIRECTORY, download_oinkmaster_archive=True,
+    def __init__(self, install_directory, download_oinkmaster_archive=True,
                  stdout=True, verbose=False):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/oinkmaster/)
@@ -63,6 +61,7 @@ class OinkmasterInstaller:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
     def setup_oinkmaster(self):
+        env_file = os.path.join(const.CONFIG_PATH, 'environment')
         try:
             os.mkdir(self.install_directory)
         except Exception as e:
@@ -77,11 +76,11 @@ class OinkmasterInstaller:
             sys.stderr.write('[-] Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e))
             return False
-        if 'OINKMASTER_HOME' not in open('/etc/dynamite/environment').read():
+        if 'OINKMASTER_HOME' not in open(env_file).read():
             if self.stdout:
                 sys.stdout.write('[+] Updating Oinkmaster default home path [{}]\n'.format(
                     self.install_directory))
-            subprocess.call('echo OINKMASTER_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
+            subprocess.call('echo OINKMASTER_HOME="{}" >> {}'.format(self.install_directory, env_file),
                             shell=True)
         if self.stdout:
             sys.stdout.write('[+] Updating oinkmaster.conf with emerging-threats URL.\n')
