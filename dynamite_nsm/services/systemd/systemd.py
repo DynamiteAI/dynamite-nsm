@@ -1,5 +1,5 @@
 
-from os import path
+import os
 from shutil import copy 
 import sys 
 import subprocess
@@ -39,7 +39,7 @@ class dynctl:
         if p.returncode != 0:
             raise Exception('Systemctl not found, is it installed?  {}\n'.format(p.stderr.read()))
 
-        for svc in AGENT_UNITS:
+        for svc in self.AGENT_UNITS:
             self._update_comp_status(svc)
         
     def __getattribute__(self, name):
@@ -97,7 +97,7 @@ class dynctl:
         Updated the status attributes of the given component based on the state reported by systemctl.
         """
         state = self._get_comp_state(component)
-
+        
         comp = component.split('.')[0]
         comp_enabled = comp + "_enabled"
         comp_running = comp + "_running"
@@ -149,6 +149,7 @@ class dynctl:
         """
         p = subprocess.Popen('systemctl daemon-reload', stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
         if p.returncode == 0:
             return True
         else:
@@ -175,7 +176,6 @@ class dynctl:
         """
         Disable the given service. This will prevent it from running at boot. 
         """
-        sys.stderr.write("[+] Disabling {}\n".format(svc))
         if svc == 'dynamite':
             svc = 'dynamite.target'
         res = self._exec_update("disable", svc)
@@ -194,7 +194,7 @@ class dynctl:
         if svc == 'dynamite':
             svc = 'dynamite.target'
         res = self._get_svc_status(svc)
-        sys.stderr.write(res.out)
+        sys.stderr.write(res.out + '\n')
 
     def _start(self, svc, stdout=False):
         """
@@ -373,13 +373,16 @@ class dynctl:
         sys.stdout.write('[+] Installing Dynamite Agent services.\n')
         sys.stdout.flush()
 
-        for sfile in AGENT_UNITS:
+        for sfile in self.AGENT_UNITS:
             try:
-                copy(sfile, self.unit_file_dir)
+                copy(sfile, self.UNIT_FILE_DIR)
             except Exception as e:
                 sys.stderr.write("[-] Failed to install unit file {}: {}\n".format(sfile, e))
                 sys.stderr.flush()
                 return False
+
+        # Tell systemd to reload unit files 
+        self.daemon_reload()
 
         if self.enable("dynamite.target"):
             sys.stdout.write('[+] Dynamite Agent services installed and enabled.\n')
@@ -400,9 +403,9 @@ class dynctl:
         if self.dynamite_running:
             self.stop_agent()
         self.disable_agent()
-        for sfile in AGENT_UNITS:
+        for sfile in self.AGENT_UNITS:
             try:
-                os.remove(os.path.join(self.unit_file_dir, sfile))
+                os.remove(os.path.join(self.UNIT_FILE_DIR, sfile))
             except Exception as e:
                 sys.stderr.write("[-] Failed to delete unit file {}: {}\n".format(sfile, e))
                 sys.stderr.flush()

@@ -576,6 +576,7 @@ if __name__ == '__main__':
             elif args.component == 'agent':
                 try:
                     agent_status = agent.status_agent()
+                    sys.stdout.write("[+] Dynamite Agent status:\n")
                     sys.stdout.write(json.dumps(agent_status, indent=1))
                     sys.stdout.flush()
                     sys.exit(0)

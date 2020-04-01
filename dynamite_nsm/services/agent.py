@@ -6,7 +6,7 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.helpers import pf_ring
 from dynamite_nsm.services import filebeat, zeek, suricata
-from dynamite_nsm.services.systemd import dynctl 
+from systemd.systemd import dynctl
 
 
 def is_agent_environment_prepared():
@@ -202,11 +202,11 @@ def status_agent():
     pf_ring_profiler = pf_ring.PFRingProfiler(stderr=False)
 
     agent_status = dict(
-            'dynamite.target': dc.dynamite_status(),
-            'pf_ring': pf_ring_profiler.get_profile(),
-            'suricata': dc.suricata_status(),
-            'zeek': dc.zeek_status(),
-            'filebeat': dc.filebeat_status()
+            agent=dc.dynamite_status(),
+            pf_ring=pf_ring_profiler.get_profile(),
+            suricata=dc.suricata_status(),
+            zeek=dc.zeek_status(),
+            filebeat=dc.filebeat_status()
     )
     return agent_status
 
@@ -252,10 +252,10 @@ def uninstall_agent(prompt_user=True):
             if resp != 'yes':
                 sys.stdout.write('[+] Exiting\n')
                 return False
-    if filebeat_profiler.is_running:
-        filebeat.FileBeatProcess().stop(stdout=True)
-    if zeek_profiler.is_running:
-        zeek.ZeekProcess().stop()
+
+    dc = dynctl()
+    dc.uninstall_agent_unit_files()
+
     if pf_profiler.is_installed:
         shutil.rmtree(environment_variables.get('PF_RING_HOME'))
         os.remove('/opt/dynamite/.agent_environment_prepared')
