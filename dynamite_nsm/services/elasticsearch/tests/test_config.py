@@ -53,8 +53,7 @@ class Tests(unittest.TestCase):
 
         self.config_manager = config.ConfigManager(configuration_directory=self.config_directory)
 
-    def test_elasticyaml_update_1(self):
-        print("Modifying elasticsearch.yml - 'path_logs'")
+    def test_elasticyaml_update_path_logs(self):
         self.config_manager.path_logs = '/var/log/dynamite/test/logs'
         self.config_manager.write_elasticsearch_config()
 
@@ -62,8 +61,7 @@ class Tests(unittest.TestCase):
 
         assert(config_manager_read.path_logs == '/var/log/dynamite/test/logs')
 
-    def test_elasticyaml_update_2(self):
-        print("Modifying elasticsearch.yml - 'cluster_name'")
+    def test_elasticyaml_update_cluster_name(self):
         self.config_manager.cluster_name = 'my-new-cluster'
         self.config_manager.write_elasticsearch_config()
 
@@ -71,14 +69,22 @@ class Tests(unittest.TestCase):
 
         assert(config_manager_read.cluster_name == 'my-new-cluster')
 
-    def test_elasticyaml_update_3(self):
-        print("Modifying elasticsearch.yml - 'network_host'")
+    def test_elasticyaml_update_network_host(self):
         self.config_manager.network_host = 'myhost.local'
         self.config_manager.write_elasticsearch_config()
 
         config_manager_read = config.ConfigManager(self.config_directory)
 
         assert(config_manager_read.network_host == 'myhost.local')
+
+    def test_javaopts_update_heapsize(self):
+        self.config_manager.java_maximum_memory = 10
+        self.config_manager.java_initial_memory = 10
+        self.config_manager.write_jvm_config()
+
+        config_manager_read = config.ConfigManager(self.config_directory)
+
+        assert(config_manager_read.java_initial_memory == 10 and config_manager_read.java_maximum_memory == 10)
 
     def tearDown(self):
         shutil.rmtree(self.config_root, ignore_errors=True)
