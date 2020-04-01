@@ -103,24 +103,26 @@ class ConfigManager:
         :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
         config_path = os.path.join(self.configuration_directory, 'jvm.options')
-        for line in open(config_path).readlines():
-            if not line.startswith('#') and '-Xms' in line:
-                self.java_initial_memory = line.replace('-Xms', '').strip()
-            elif not line.startswith('#') and '-Xmx' in line:
-                self.java_maximum_memory = line.replace('-Xmx', '').strip()
+        with open(config_path) as config_f:
+            for line in config_f.readlines():
+                if not line.startswith('#') and '-Xms' in line:
+                    self.java_initial_memory = line.replace('-Xms', '').strip()
+                elif not line.startswith('#') and '-Xmx' in line:
+                    self.java_maximum_memory = line.replace('-Xmx', '').strip()
 
     def _parse_environment_file(self):
         """
         Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, ES_PATH_CONF, ES_HOME;
         stores the results in class variables of the same name
         """
-        for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
-            if line.startswith('JAVA_HOME'):
-                self.java_home = line.split('=')[1].strip()
-            elif line.startswith('ES_PATH_CONF'):
-                self.es_path_conf = line.split('=')[1].strip()
-            elif line.startswith('ES_HOME'):
-                self.es_home = line.split('=')[1].strip()
+        with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
+            for line in env_f.readlines():
+                if line.startswith('JAVA_HOME'):
+                    self.java_home = line.split('=')[1].strip()
+                elif line.startswith('ES_PATH_CONF'):
+                    self.es_path_conf = line.split('=')[1].strip()
+                elif line.startswith('ES_HOME'):
+                    self.es_home = line.split('=')[1].strip()
 
     def write_jvm_config(self):
         """
