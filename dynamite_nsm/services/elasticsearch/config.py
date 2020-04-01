@@ -106,9 +106,9 @@ class ConfigManager:
         with open(config_path) as config_f:
             for line in config_f.readlines():
                 if not line.startswith('#') and '-Xms' in line:
-                    self.java_initial_memory = line.replace('-Xms', '').strip()
+                    self.java_initial_memory = line.replace('-Xms', '').strip()[0:-1]
                 elif not line.startswith('#') and '-Xmx' in line:
-                    self.java_maximum_memory = line.replace('-Xmx', '').strip()
+                    self.java_maximum_memory = line.replace('-Xmx', '').strip()[0:-1]
 
     def _parse_environment_file(self):
         """
