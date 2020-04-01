@@ -129,21 +129,23 @@ class ConfigManager:
         Overwrites the JVM initial/max memory if settings were updated
         """
         new_output = ''
-        for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
-            if not line.startswith('#') and '-Xms' in line:
-                new_output += '-Xms' + str(self.java_initial_memory) + 'g'
-            elif not line.startswith('#') and '-Xmx' in line:
-                new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
-            else:
-                new_output += line
-            new_output += '\n'
+        with open(os.path.join(self.configuration_directory, 'jvm.options')) as config_f:
+            for line in config_f.readlines():
+                if not line.startswith('#') and '-Xms' in line:
+                    new_output += '-Xms' + str(self.java_initial_memory) + 'g'
+                elif not line.startswith('#') and '-Xmx' in line:
+                    new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
+                else:
+                    new_output += line
+                new_output += '\n'
 
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
+        java_config_backup = os.path.join(backup_configurations, 'jvm.options.backup.{}'.format(
             int(time.time())
         ))
         shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
-        open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
+        with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
+            config_f.write(new_output)
 
     def write_elasticsearch_config(self):
 

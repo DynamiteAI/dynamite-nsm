@@ -82,11 +82,12 @@ class ConfigManager:
         :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
         config_path = os.path.join(self.configuration_directory, 'jvm.options')
-        for line in open(config_path).readlines():
-            if not line.startswith('#') and '-Xms' in line:
-                self.java_initial_memory = line.replace('-Xms', '').strip()
-            elif not line.startswith('#') and '-Xmx' in line:
-                self.java_maximum_memory = line.replace('-Xmx', '').strip()
+        with open(config_path) as config_f:
+            for line in config_f.readlines():
+                if not line.startswith('#') and '-Xms' in line:
+                    self.java_initial_memory = int(line.replace('-Xms', '').strip()[0:-1])
+                elif not line.startswith('#') and '-Xmx' in line:
+                    self.java_maximum_memory = int(line.replace('-Xmx', '').strip()[0:-1])
 
     def _parse_environment_file(self):
         """
@@ -126,21 +127,23 @@ class ConfigManager:
         Overwrites the JVM initial/max memory if settings were updated
         """
         new_output = ''
-        for line in open(os.path.join(self.configuration_directory, 'jvm.options')).readlines():
-            if not line.startswith('#') and '-Xms' in line:
-                new_output += '-Xms' + str(self.java_initial_memory) + 'g'
-            elif not line.startswith('#') and '-Xmx' in line:
-                new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
-            else:
-                new_output += line
-            new_output += '\n'
+        with open(os.path.join(self.configuration_directory, 'jvm.options')) as config_f:
+            for line in config_f.readlines():
+                if not line.startswith('#') and '-Xms' in line:
+                    new_output += '-Xms' + str(self.java_initial_memory) + 'g'
+                elif not line.startswith('#') and '-Xmx' in line:
+                    new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
+                else:
+                    new_output += line
+                new_output += '\n'
 
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        java_config_backup = os.path.join(backup_configurations, 'java.options.backup.{}'.format(
+        java_config_backup = os.path.join(backup_configurations, 'jvm.options.backup.{}'.format(
             int(time.time())
         ))
         shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
-        open(os.path.join(self.configuration_directory, 'jvm.options'), 'w').write(new_output)
+        with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
+            config_f.write(new_output)
 
     def write_logstash_config(self):
 
