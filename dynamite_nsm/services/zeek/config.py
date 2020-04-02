@@ -1,7 +1,6 @@
 import os
 import time
 import shutil
-import subprocess
 
 try:
     from ConfigParser import ConfigParser
@@ -110,7 +109,7 @@ class ScriptConfigManager:
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         zeek_config_backup = os.path.join(backup_configurations, 'local.bro.backup.{}'.format(timestamp))
 
-        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        os.makedirs(backup_configurations, exist_ok=True)
         for e_script in self.list_enabled_scripts():
             output_str += '@load {}\n'.format(e_script)
         for d_script in self.list_disabled_scripts():

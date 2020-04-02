@@ -4,7 +4,6 @@ import json
 import time
 import base64
 import shutil
-import subprocess
 from yaml import load, dump
 
 from dynamite_nsm import utilities

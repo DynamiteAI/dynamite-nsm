@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import shutil
-import subprocess
 from yaml import load, dump
 
 try:
@@ -141,6 +140,7 @@ class ConfigManager:
         java_config_backup = os.path.join(backup_configurations, 'jvm.options.backup.{}'.format(
             int(time.time())
         ))
+        os.makedirs(backup_configurations, exist_ok=True)
         shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
         with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
             config_f.write(new_output)
@@ -165,7 +165,7 @@ class ConfigManager:
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         logstash_config_backup = os.path.join(backup_configurations, 'logstash.yml.backup.{}'.format(timestamp))
-        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        os.makedirs(backup_configurations, exist_ok=True)
         shutil.copy(os.path.join(self.configuration_directory, 'logstash.yml'), logstash_config_backup)
 
         for k, v in vars(self).items():

@@ -146,8 +146,8 @@ class ConfigManager:
 
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        filebeat_config_backup = os.path.join(backup_configurations, 'kibana.yaml.backup.{}'.format(timestamp))
-        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        filebeat_config_backup = os.path.join(backup_configurations, 'kibana.yml.backup.{}'.format(timestamp))
+        os.makedirs(backup_configurations, exist_ok=True)
         shutil.copy(os.path.join(self.configuration_directory, 'kibana.yml'), filebeat_config_backup)
 
         for k, v in vars(self).items():
