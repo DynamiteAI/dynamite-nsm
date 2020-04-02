@@ -5,7 +5,7 @@ import unittest
 from dynamite_nsm.services.kibana import config
 
 
-def create_dummy_kibanayaml(es_config_directory):
+def create_dummy_kibanayaml(kb_config_directory):
     example_config_string =\
     '''
 elasticsearch.hosts:
@@ -16,7 +16,7 @@ pid.file: /var/run/dynamite/kibana/kibana.pid
 server.host: 0.0.0.0
 server.port: 5601
     '''
-    with open(os.path.join(es_config_directory, 'kibana.yml'), 'w') as f:
+    with open(os.path.join(kb_config_directory, 'kibana.yml'), 'w') as f:
         f.write(example_config_string)
 
 
@@ -32,13 +32,21 @@ class Tests(unittest.TestCase):
 
         self.config_manager = config.ConfigManager(configuration_directory=self.config_directory)
 
-    def test_kibanayaml_update_configuration_directory(self):
-        self.config_manager.configuration_directory = '/etc/dynamite/kibana/test/config'
+    def test_kibanayaml_update_server_host(self):
+        self.config_manager.server_host = 'localhost'
         self.config_manager.write_config()
 
         config_manager_read = config.ConfigManager(self.config_directory)
 
-        assert(config_manager_read.configuration_directory == '/etc/dynamite/kibana/test/config')
+        assert(config_manager_read.server_host == 'localhost')
+
+    def test_kibanayaml_update_server_port(self):
+        self.config_manager.server_port = 9999
+        self.config_manager.write_config()
+
+        config_manager_read = config.ConfigManager(self.config_directory)
+
+        assert(config_manager_read.server_port == 9999)
 
     def test_kibanayaml_update_username(self):
         self.config_manager.elasticsearch_username = 'jamin123'
