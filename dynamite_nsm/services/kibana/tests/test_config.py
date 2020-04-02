@@ -32,15 +32,15 @@ class Tests(unittest.TestCase):
 
         self.config_manager = config.ConfigManager(configuration_directory=self.config_directory)
 
-    def test_kibanayaml_update_path_logs(self):
-        self.config_manager.path_logs = '/etc/dynamite/kibana/test/config'
+    def test_kibanayaml_update_configuration_directory(self):
+        self.config_manager.configuration_directory = '/etc/dynamite/kibana/test/config'
         self.config_manager.write_config()
 
         config_manager_read = config.ConfigManager(self.config_directory)
 
         assert(config_manager_read.configuration_directory == '/etc/dynamite/kibana/test/config')
 
-    def test_kibanayaml_username(self):
+    def test_kibanayaml_update_username(self):
         self.config_manager.elasticsearch_username = 'jamin123'
         self.config_manager.write_config()
 
@@ -48,7 +48,7 @@ class Tests(unittest.TestCase):
 
         assert(config_manager_read.elasticsearch_username == 'jamin123')
 
-    def test_kibanayaml_password(self):
+    def test_kibanayaml_update_password(self):
         self.config_manager.elasticsearch_password = '!jamin111&^@1'
         self.config_manager.write_config()
 
