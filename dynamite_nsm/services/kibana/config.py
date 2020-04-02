@@ -117,7 +117,8 @@ class ConfigManager:
 
         stores the results in class variables of the same name
         """
-        with open('/etc/dynamite/environment') as env_f:
+
+        with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
             for line in env_f.readlines():
                 if line.startswith('JAVA_HOME'):
                     self.java_home = line.split('=')[1].strip()
