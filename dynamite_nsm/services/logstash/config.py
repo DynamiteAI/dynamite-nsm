@@ -93,13 +93,14 @@ class ConfigManager:
         Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, LS_PATH_CONF, LS_HOME;
         stores the results in class variables of the same name
         """
-        for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
-            if line.startswith('JAVA_HOME'):
-                self.java_home = line.split('=')[1].strip()
-            elif line.startswith('LS_PATH_CONF'):
-                self.ls_path_conf = line.split('=')[1].strip()
-            elif line.startswith('LS_HOME'):
-                self.ls_home = line.split('=')[1].strip()
+        with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
+            for line in env_f.readlines():
+                if line.startswith('JAVA_HOME'):
+                    self.java_home = line.split('=')[1].strip()
+                elif line.startswith('LS_PATH_CONF'):
+                    self.ls_path_conf = line.split('=')[1].strip()
+                elif line.startswith('LS_HOME'):
+                    self.ls_home = line.split('=')[1].strip()
 
     @staticmethod
     def get_elasticsearch_password():
