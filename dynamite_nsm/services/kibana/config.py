@@ -117,15 +117,16 @@ class ConfigManager:
 
         stores the results in class variables of the same name
         """
-        for line in open('/etc/dynamite/environment').readlines():
-            if line.startswith('JAVA_HOME'):
-                self.java_home = line.split('=')[1].strip()
-            elif line.startswith('KIBANA_PATH_CONF'):
-                self.kibana_path_conf = line.split('=')[1].strip()
-            elif line.startswith('KIBANA_HOME'):
-                self.kibana_home = line.split('=')[1].strip()
-            elif line.startswith('KIBANA_LOGS'):
-                self.kibana_logs = line.split('=')[1].strip()
+        with open('/etc/dynamite/environment') as env_f:
+            for line in env_f.readlines():
+                if line.startswith('JAVA_HOME'):
+                    self.java_home = line.split('=')[1].strip()
+                elif line.startswith('KIBANA_PATH_CONF'):
+                    self.kibana_path_conf = line.split('=')[1].strip()
+                elif line.startswith('KIBANA_HOME'):
+                    self.kibana_home = line.split('=')[1].strip()
+                elif line.startswith('KIBANA_LOGS'):
+                    self.kibana_logs = line.split('=')[1].strip()
 
     def write_config(self):
 
