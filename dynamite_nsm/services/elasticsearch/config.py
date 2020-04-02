@@ -143,6 +143,7 @@ class ConfigManager:
         java_config_backup = os.path.join(backup_configurations, 'jvm.options.backup.{}'.format(
             int(time.time())
         ))
+        os.makedirs(backup_configurations)
         shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
         with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
             config_f.write(new_output)
@@ -167,7 +168,7 @@ class ConfigManager:
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         elastic_config_backup = os.path.join(backup_configurations, 'elastic.yml.backup.{}'.format(timestamp))
-        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
+        os.makedirs(backup_configurations)
         shutil.copy(os.path.join(self.configuration_directory, 'elasticsearch.yml'), elastic_config_backup)
 
         for k, v in vars(self).items():
