@@ -370,7 +370,6 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=Fals
     :param old_password: The old Elasticsearch password
     :param password: The new Elasticsearch password
     :param stdout: Print status to stdout
-    :return: True, if successful
     """
     from dynamite_nsm.services.elasticsearch import process as elastic_process
     from dynamite_nsm.services.elasticsearch import profile as elastic_profile

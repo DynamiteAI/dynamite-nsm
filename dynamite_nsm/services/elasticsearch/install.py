@@ -53,24 +53,12 @@ class InstallManager:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
-        self.heap_space_gigs = heap_size_gigs
+        self.heap_size_gigs = heap_size_gigs
         self.stdout = stdout
         self.verbose = verbose
         if download_elasticsearch_archive:
             self.download_elasticsearch(stdout=stdout)
             self.extract_elasticsearch(stdout=stdout)
-
-    def _create_elasticsearch_directories(self):
-        if self.stdout:
-            sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
-        try:
-            os.makedirs(self.install_directory, exist_ok=True)
-            os.makedirs(self.configuration_directory, exist_ok=True)
-            os.makedirs(self.log_directory, exist_ok=True)
-            os.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
-        except Exception as e:
-            raise elastic_exceptions.InstallElasticsearchError(
-                "Failed to create required directory structure; {}".format(e))
 
     def _copy_elasticsearch_files_and_directories(self):
         config_paths = [
@@ -118,6 +106,18 @@ class InstallManager:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error while attempting to copy {} to {}; {}".format(path, self.install_directory, e))
 
+    def _create_elasticsearch_directories(self):
+        if self.stdout:
+            sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
+        try:
+            os.makedirs(self.install_directory, exist_ok=True)
+            os.makedirs(self.configuration_directory, exist_ok=True)
+            os.makedirs(self.log_directory, exist_ok=True)
+            os.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "Failed to create required directory structure; {}".format(e))
+
     def _create_elasticsearch_environment_variables(self, stdout=False):
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         try:
@@ -147,9 +147,9 @@ class InstallManager:
                     self.configuration_directory)
         es_config = elastic_configs.ConfigManager(configuration_directory=self.configuration_directory)
         if self.stdout:
-            sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
-        es_config.java_initial_memory = self.heap_space_gigs
-        es_config.java_maximum_memory = self.heap_space_gigs
+            sys.stdout.write('[+] Setting up JVM default heap settings [{}GB]\n'.format(self.heap_size_gigs))
+        es_config.java_initial_memory = int(self.heap_size_gigs)
+        es_config.java_maximum_memory = int(self.heap_size_gigs)
         es_config.network_host = self.host
         es_config.http_port = self.port
         try:
@@ -229,7 +229,7 @@ class InstallManager:
             utilities.set_ownership_of_file(const.LOG_PATH, user='dynamite', group='dynamite')
         except Exception as e:
             raise elastic_exceptions.InstallElasticsearchError(
-                "General error occurred while attempting to set permissions root directories; {}".format(e))
+                "General error occurred while attempting to set permissions on root directories; {}".format(e))
         self.setup_passwords()
 
     def setup_passwords(self):
@@ -361,7 +361,6 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
 
     :param stdout: Print the output to console
     :param prompt_user: Print a warning before continuing
-    :return: True, if uninstall succeeded
     """
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
@@ -369,10 +368,9 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
     es_profiler = elastic_profile.ProcessProfiler()
     es_config = elastic_configs.ConfigManager(configuration_directory=configuration_directory)
     if not es_profiler.is_installed:
-        sys.stderr.write('[-] ElasticSearch is not installed.\n')
-        return
+        raise elastic_exceptions.UninstallElasticsearchError("ElasticSearch is not installed.")
     if prompt_user:
-        sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
+        sys.stderr.write('[-] WARNING! Removing ElasticSearch Will Delete All Data.\n')
         resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
             resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')

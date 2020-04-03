@@ -26,3 +26,28 @@ class ReadLogstashConfigError(exceptions.ReadConfigError):
         msg = "An error occurred when reading logstash.yml configuration: {}".format(message)
         super(ReadLogstashConfigError, self).__init__(msg)
 
+
+class InstallLogstashError(exceptions.InstallError):
+    """
+    Thrown when Logstash fails to install
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while installing logstash: {}".format(message)
+        super(InstallLogstashError, self).__init__(msg)
+
+
+class UninstallLogstashError(exceptions.UninstallError):
+    """
+    Thrown when Logstash fails to uninstall
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while uninstalling logstash: {}".format(message)
+        super(UninstallLogstashError, self).__init__(msg)
