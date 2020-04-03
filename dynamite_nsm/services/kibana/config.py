@@ -13,12 +13,15 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
 
 
 class ApiConfigManager:
     """
     Provides an interface for interacting with the Kibana saved object API
     """
+
     def __init__(self, configuration_directory):
 
         self.configuration_directory = configuration_directory
@@ -50,13 +53,16 @@ class ApiConfigManager:
         p = subprocess.Popen(curl_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         out, err = p.communicate()
         out, err = out.decode('utf-8'), err.decode('utf-8')
+        if p.returncode != 0:
+            raise kibana_exceptions.CreateKibanaObjectsError(
+                "An error occurred while invoking curl; exited with {}; is it installed?".format(p.returncode))
         if "HTTP/1.1 200" in err or "HTTP/1.1 409" in err:
             if stdout:
                 sys.stdout.write('[+] Successfully created ElastiFlow Objects.\n')
-            return True
         else:
             sys.stderr.write('[-] Failed to create ElastiFlow objects - [{}]\n'.format(err))
-        return False
+            raise kibana_exceptions.CreateKibanaObjectsError(
+                "Kibana objects were not created successfully; HTTP Response: {}".format(err))
 
 
 class ConfigManager:
@@ -65,7 +71,7 @@ class ConfigManager:
     """
     tokens = {
         'server_host': ('server.host',),
-        'server_port': ('server.port', ),
+        'server_port': ('server.port',),
         'elasticsearch_hosts': ('elasticsearch.hosts',),
         'elasticsearch_username': ('elasticsearch.username',),
         'elasticsearch_password': ('elasticsearch.password',),
@@ -104,8 +110,15 @@ class ConfigManager:
                 pass
             return True
 
-        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'r') as configyaml:
-            self.config_data = load(configyaml, Loader=Loader)
+        kibanayaml_path = os.path.join(self.configuration_directory, 'kibana.yml')
+        try:
+            with open(kibanayaml_path, 'r') as configyaml:
+                self.config_data = load(configyaml, Loader=Loader)
+        except IOError:
+            raise kibana_exceptions.ReadKibanaConfigError("Could not locate config at {}".format(kibanayaml_path))
+        except Exception as e:
+            raise kibana_exceptions.ReadKibanaConfigError(
+                "General exception when opening/parsing config at {}; {}".format(kibanayaml_path, e))
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
@@ -117,17 +130,24 @@ class ConfigManager:
 
         stores the results in class variables of the same name
         """
+        env_path = os.path.join(const.CONFIG_PATH, 'environment')
+        try:
+            with open(env_path) as env_f:
+                for line in env_f.readlines():
+                    if line.startswith('JAVA_HOME'):
+                        self.java_home = line.split('=')[1].strip()
+                    elif line.startswith('KIBANA_PATH_CONF'):
+                        self.kibana_path_conf = line.split('=')[1].strip()
+                    elif line.startswith('KIBANA_HOME'):
+                        self.kibana_home = line.split('=')[1].strip()
+                    elif line.startswith('KIBANA_LOGS'):
+                        self.kibana_logs = line.split('=')[1].strip()
 
-        with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
-            for line in env_f.readlines():
-                if line.startswith('JAVA_HOME'):
-                    self.java_home = line.split('=')[1].strip()
-                elif line.startswith('KIBANA_PATH_CONF'):
-                    self.kibana_path_conf = line.split('=')[1].strip()
-                elif line.startswith('KIBANA_HOME'):
-                    self.kibana_home = line.split('=')[1].strip()
-                elif line.startswith('KIBANA_LOGS'):
-                    self.kibana_logs = line.split('=')[1].strip()
+        except IOError:
+            raise general_exceptions.ReadConfigError("Could not locate environment config at {}".format(env_path))
+        except Exception as e:
+            raise general_exceptions.ReadConfigError(
+                "General Exception when opening/parsing environment config at {}; {}".format(env_path, e))
 
     def write_config(self):
 
@@ -149,16 +169,32 @@ class ConfigManager:
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         filebeat_config_backup = os.path.join(backup_configurations, 'kibana.yml.backup.{}'.format(timestamp))
-        os.makedirs(backup_configurations, exist_ok=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'kibana.yml'), filebeat_config_backup)
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise kibana_exceptions.WriteKibanaConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+        try:
+            shutil.copy(os.path.join(self.configuration_directory, 'kibana.yml'), filebeat_config_backup)
+        except Exception as e:
+            raise kibana_exceptions.WriteKibanaConfigError(
+                "General error while attempting to copy old kibana.yml file to {}; {}".format(
+                    backup_configurations, e))
 
         for k, v in vars(self).items():
             if k not in self.tokens:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
-        with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'w') as configyaml:
-            dump(self.config_data, configyaml, default_flow_style=False)
+        try:
+            with open(os.path.join(self.configuration_directory, 'kibana.yml'), 'w') as configyaml:
+                dump(self.config_data, configyaml, default_flow_style=False)
+        except IOError:
+            raise kibana_exceptions.WriteKibanaConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise kibana_exceptions.WriteKibanaConfigError(
+                "General error while attempting to write new kibana.yml file to {}; {}".format(
+                    self.configuration_directory, e))
 
 
 def change_kibana_elasticsearch_password(configuration_directory, password='changeme', prompt_user=True, stdout=False):
@@ -187,4 +223,4 @@ def change_kibana_elasticsearch_password(configuration_directory, password='chan
     kb_config = ConfigManager(configuration_directory)
     kb_config.elasticsearch_password = password
     kb_config.write_config()
-    return kibana_process.ProcessManager().restart(stdout=True)
+    kibana_process.ProcessManager().restart(stdout=True)

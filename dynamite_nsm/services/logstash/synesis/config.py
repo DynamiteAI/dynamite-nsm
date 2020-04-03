@@ -1,6 +1,7 @@
 import os
 
 from dynamite_nsm import const
+from dynamite_nsm import exceptions as general_exceptions
 
 
 class ConfigManager:
@@ -67,5 +68,12 @@ class ConfigManager:
                 new_env_content += line.strip() + '\n'
         for unwritten_key, unwritten_val in synlite_vars_map.items():
             new_env_content += '{}={}\n'.format(unwritten_key, unwritten_val)
-        with open(env_file, 'w') as f:
-            f.write(new_env_content)
+        try:
+            with open(env_file, 'w') as f:
+                f.write(new_env_content)
+        except IOError:
+            raise general_exceptions.WriteConfigError(
+                "Could not locate {}".format(const.CONFIG_PATH))
+        except Exception as e:
+            raise general_exceptions.WriteConfigError(
+                "General error while attempting to write new synesis environment variables; {}".format(e))

@@ -18,12 +18,12 @@ except Exception:
     from urllib.request import Request
     from urllib.parse import urlencode
 
-
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.elasticsearch import config as elastic_configs
 from dynamite_nsm.services.elasticsearch import process as elastic_process
 from dynamite_nsm.services.elasticsearch import profile as elastic_profile
+from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 
 
 class InstallManager:
@@ -32,15 +32,16 @@ class InstallManager:
     """
 
     def __init__(self, configuration_directory, install_directory, log_directory, host='0.0.0.0', port=9200,
-                 password='changeme', download_elasticsearch_archive=True, stdout=False, verbose=False,
-                 ):
+                 password='changeme', heap_size_gigs=4, download_elasticsearch_archive=True, stdout=False,
+                 verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
-        :param: host: The IP address to listen on (E.G "0.0.0.0")
-        :param: port: The port that the ES API is bound to (E.G 9200)
-        :param: password: The password used for authentication across all builtin users
+        :param host: The IP address to listen on (E.G "0.0.0.0")
+        :param port: The port that the ES API is bound to (E.G 9200)
+        :param password: The password used for authentication across all builtin users
+        :param heap_size_gigs: The initial/max java heap space to allocate
         :param download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
         :param stdout: Print output to console
         :param verbose: Include output from system utilities
@@ -52,6 +53,7 @@ class InstallManager:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
+        self.heap_space_gigs = heap_size_gigs
         self.stdout = stdout
         self.verbose = verbose
         if download_elasticsearch_archive:
@@ -61,10 +63,14 @@ class InstallManager:
     def _create_elasticsearch_directories(self):
         if self.stdout:
             sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
-        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.configuration_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(self.log_directory), shell=True)
-        subprocess.call('mkdir -p {}'.format(os.path.join(self.install_directory, 'data')), shell=True)
+        try:
+            os.makedirs(self.install_directory, exist_ok=True)
+            os.makedirs(self.configuration_directory, exist_ok=True)
+            os.makedirs(self.log_directory, exist_ok=True)
+            os.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "Failed to create required directory structure; {}".format(e))
 
     def _copy_elasticsearch_files_and_directories(self):
         config_paths = [
@@ -79,41 +85,60 @@ class InstallManager:
             'modules/',
             'plugins/'
         ]
-        for path in config_paths:
-            if self.stdout:
-                sys.stdout.write('[+] Copying {} -> {}\n'.format(
-                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                    self.configuration_directory))
-            try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                            self.configuration_directory)
+        path = None
+        try:
+            for path in config_paths:
+                if self.stdout:
+                    sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                        self.configuration_directory))
+                try:
+                    shutil.copy(
+                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                        self.configuration_directory)
 
-            except shutil.Error as e:
-                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
-        for path in install_paths:
-            if self.stdout:
-                sys.stdout.write('[+] Copying {} -> {}\n'.format(
-                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                    self.install_directory))
-            try:
-                shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                            self.install_directory)
-            except shutil.Error as e:
-                sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+                except shutil.Error as e:
+                    sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error while attempting to copy {} to {}; {}".format(path, self.configuration_directory, e))
+        try:
+            for path in install_paths:
+                if self.stdout:
+                    sys.stdout.write('[+] Copying {} -> {}\n'.format(
+                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                        self.install_directory))
+                try:
+                    shutil.copy(
+                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                        self.install_directory)
+                except shutil.Error as e:
+                    sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error while attempting to copy {} to {}; {}".format(path, self.install_directory, e))
 
     def _create_elasticsearch_environment_variables(self, stdout=False):
-        if 'ES_PATH_CONF' not in open('/etc/dynamite/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating ElasticSearch default configuration path [{}]\n'.format(
-                    self.configuration_directory))
-            subprocess.call('echo ES_PATH_CONF="{}" >> /etc/dynamite/environment'.format(self.configuration_directory),
-                            shell=True)
-        if 'ES_HOME' not in open('/etc/dynamite/environment').read():
-            if stdout:
-                sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
-                    self.install_directory))
-            subprocess.call('echo ES_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
-                            shell=True)
+        env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        try:
+            with open(env_file) as env_f:
+                if 'ES_PATH_CONF' not in env_f.read():
+                    if stdout:
+                        sys.stdout.write('[+] Updating ElasticSearch default configuration path [{}]\n'.format(
+                            self.configuration_directory))
+                    subprocess.call('echo ES_PATH_CONF="{}" >> {}'.format(self.configuration_directory, env_file),
+                                    shell=True)
+                if 'ES_HOME' not in env_f.read():
+                    if stdout:
+                        sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
+                            self.install_directory))
+                    subprocess.call('echo ES_HOME="{}" >> {}'.format(self.install_directory, env_file),
+                                    shell=True)
+        except IOError:
+            raise elastic_exceptions.InstallElasticsearchError("Failed to open {} for reading.".format(env_file))
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error while creating environment variables in {}; {}".format(env_file, e))
 
     def _setup_default_elasticsearch_configs(self):
         if self.stdout:
@@ -123,17 +148,31 @@ class InstallManager:
         es_config = elastic_configs.ConfigManager(configuration_directory=self.configuration_directory)
         if self.stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [4GB]\n')
-        es_config.java_initial_memory = 4
-        es_config.java_maximum_memory = 4
+        es_config.java_initial_memory = self.heap_space_gigs
+        es_config.java_maximum_memory = self.heap_space_gigs
         es_config.network_host = self.host
         es_config.http_port = self.port
-        es_config.write_configs()
+        try:
+            es_config.write_configs()
+        except elastic_exceptions.WriteElasticConfigError:
+            raise elastic_exceptions.InstallElasticsearchError("Failed to write elasticsearch config.")
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while writing elasticsearch configs; {}".format(e))
 
     def _update_sysctl(self):
         if self.stdout:
             sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
-        utilities.update_user_file_handle_limits()
-        utilities.update_sysctl(verbose=self.verbose)
+        try:
+            utilities.update_user_file_handle_limits()
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error while setting user file-handle limits; {}".format(e))
+        try:
+            utilities.update_sysctl(verbose=self.verbose)
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error while setting VM Max Map Count; {}".format(e))
 
     @staticmethod
     def download_elasticsearch(stdout=False):
@@ -142,9 +181,14 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
-        for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
-                break
+        url = None
+        try:
+            for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
+                if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
+                    break
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error while downloading elasticsearch from {}; {}".format(url, e))
 
     @staticmethod
     def extract_elasticsearch(stdout=False):
@@ -163,6 +207,11 @@ class InstallManager:
                 sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+            raise elastic_exceptions.InstallElasticsearchError(
+                "Could not extract elasticsearch archive to {}; {}".format(const.INSTALL_CACHE, e))
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error while attempting to extract elasticsearch archive; {}".format(e))
 
     def setup_elasticsearch(self):
         """
@@ -174,9 +223,13 @@ class InstallManager:
         self._create_elasticsearch_environment_variables()
         self._setup_default_elasticsearch_configs()
         self._update_sysctl()
-        utilities.set_ownership_of_file('/etc/dynamite/', user='dynamite', group='dynamite')
-        utilities.set_ownership_of_file('/opt/dynamite/', user='dynamite', group='dynamite')
-        utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
+        try:
+            utilities.set_ownership_of_file(const.CONFIG_PATH, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(const.BIN_PATH, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(const.LOG_PATH, user='dynamite', group='dynamite')
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while attempting to set permissions root directories; {}".format(e))
         self.setup_passwords()
 
     def setup_passwords(self):
@@ -197,20 +250,36 @@ class InstallManager:
 
         if not elastic_profile.ProcessProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
-            return False
+            raise elastic_exceptions.InstallElasticsearchError(
+                "Elasticsearch must be installed an running to bootstrap passwords.")
         sys.stdout.write('[+] Creating certificate keystore\n')
-        subprocess.call('mkdir -p {}'.format(os.path.join(self.configuration_directory, 'config')), shell=True)
+        es_config_path = os.path.join(self.configuration_directory, 'config')
+        try:
+            os.makedirs(es_config_path, exist_ok=True)
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while attempting to create {} directory; {}".format(es_config_path, e))
         es_cert_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-certutil')
         es_cert_keystore = os.path.join(self.configuration_directory, 'config', 'elastic-certificates.p12')
         cert_p = subprocess.Popen([es_cert_util, 'cert', '-out', es_cert_keystore, '-pass', ''],
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
                                   env=env_dict)
-        cert_p_res = cert_p.communicate()
+        try:
+            cert_p_res = cert_p.communicate()
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while attempting to install SSL keystores; {}".format(e))
         if not os.path.exists(es_cert_keystore):
             sys.stderr.write('[-] Failed to setup SSL certificate keystore: \noutput: {}\n\t'.format(cert_p_res))
-            return False
-        utilities.set_ownership_of_file(os.path.join(self.configuration_directory, 'config'),
-                                        user='dynamite', group='dynamite')
+            raise elastic_exceptions.InstallElasticsearchError("Failed to setup SSL keystore; {}".format(cert_p_res))
+        keystore_config_path = os.path.join(self.configuration_directory, 'config')
+        try:
+            utilities.set_ownership_of_file(keystore_config_path,
+                                            user='dynamite', group='dynamite')
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while attempting to set permissions for {} ; {}".format(keystore_config_path,
+                                                                                                e))
         if not elastic_profile.ProcessProfiler().is_running:
             elastic_process.ProcessManager().start(stdout=self.stdout)
             sys.stdout.flush()
@@ -227,60 +296,63 @@ class InstallManager:
         bootstrap_p = subprocess.Popen([es_password_util, 'auto'],
                                        cwd=self.configuration_directory, stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT, stdin=subprocess.PIPE, env=env_dict)
-        bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
-        if not bootstrap_p_res:
-            sys.stderr.write('[-] Failed to setup new passwords\n')
-            return False
-        if not isinstance(bootstrap_p_res[0], str):
-            return setup_from_bootstrap(bootstrap_p_res[0].decode())
-        else:
-            return setup_from_bootstrap(bootstrap_p_res[0])
+        try:
+            bootstrap_p_res = bootstrap_p.communicate(input=b'y\n')
+            if not bootstrap_p_res:
+                sys.stderr.write('[-] Failed to setup new passwords\n')
+                raise elastic_exceptions.InstallElasticsearchError("Failed to bootstrap password.")
+            if not isinstance(bootstrap_p_res[0], str):
+                if not setup_from_bootstrap(bootstrap_p_res[0].decode()):
+                    raise elastic_exceptions.InstallElasticsearchError("Failed to bootstrap password.")
+            else:
+                if not setup_from_bootstrap(bootstrap_p_res[0]):
+                    raise elastic_exceptions.InstallElasticsearchError("Failed to bootstrap password.")
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while attempting to bootstrap elasticsearch passwords {}".format(e))
 
 
 def install_elasticsearch(configuration_directory, install_directory, log_directory, password='changeme',
-                          install_jdk=True, create_dynamite_user=True, stdout=True, verbose=False):
+                          heap_size_gigs=4, install_jdk=True, create_dynamite_user=True, stdout=True, verbose=False):
     """
     Install ElasticSearch
     :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
     :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
     :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
     :param password: The password used for authentication across all builtin users
+    :param heap_size_gigs: The initial/max java heap space to allocate
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
     :param verbose: Include output from system utilities
-    :return: True, if installation succeeded
     """
     es_profiler = elastic_profile.ProcessProfiler()
     if es_profiler.is_installed:
         sys.stderr.write('[-] ElasticSearch is already installed. If you wish to re-install, first uninstall.\n')
-        return False
+        raise elastic_exceptions.InstallElasticsearchError(
+            "ElasticSearch is already installed. If you wish to re-install, first uninstall.")
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes() / (1000 ** 3)
         ))
-        return False
-    try:
-        es_installer = InstallManager(configuration_directory=configuration_directory,
-                                      install_directory=install_directory, log_directory=log_directory,
-                                      password=password, download_elasticsearch_archive=not es_profiler.is_downloaded,
-                                      stdout=stdout, verbose=verbose)
-        if install_jdk:
-            utilities.download_java(stdout=stdout)
-            utilities.extract_java(stdout=stdout)
-            utilities.setup_java()
-        if create_dynamite_user:
-            utilities.create_dynamite_user(utilities.generate_random_password(50))
-        es_installer.setup_elasticsearch()
-    except Exception:
-        sys.stderr.write('[-] A fatal error occurred while attempting to install ElasticSearch: ')
-        traceback.print_exc(file=sys.stderr)
-        return False
+        raise elastic_exceptions.InstallElasticsearchError(
+            "Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]")
+    es_installer = InstallManager(configuration_directory=configuration_directory,
+                                  install_directory=install_directory, log_directory=log_directory,
+                                  password=password, heap_size_gigs=heap_size_gigs,
+                                  download_elasticsearch_archive=not es_profiler.is_downloaded,
+                                  stdout=stdout, verbose=verbose)
+    if install_jdk:
+        utilities.download_java(stdout=stdout)
+        utilities.extract_java(stdout=stdout)
+        utilities.setup_java()
+    if create_dynamite_user:
+        utilities.create_dynamite_user(utilities.generate_random_password(50))
+    es_installer.setup_elasticsearch()
     if stdout:
         sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
     sys.stdout.flush()
-    return elastic_profile.ProcessProfiler(stderr=False).is_installed
 
 
 def uninstall_elasticsearch(stdout=False, prompt_user=True):
@@ -298,7 +370,7 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
     es_config = elastic_configs.ConfigManager(configuration_directory=configuration_directory)
     if not es_profiler.is_installed:
         sys.stderr.write('[-] ElasticSearch is not installed.\n')
-        return False
+        return
     if prompt_user:
         sys.stderr.write('[-] WARNING! REMOVING ELASTICSEARCH WILL LIKELY RESULT IN ALL DATA BEING LOST.\n')
         resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
@@ -307,7 +379,7 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return False
+            return
     if es_profiler.is_running:
         elastic_process.ProcessManager().stop(stdout=stdout)
     try:
@@ -316,19 +388,19 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
         shutil.rmtree(es_config.path_logs)
         shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
         env_lines = ''
-        for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
-            if 'ES_PATH_CONF' in line:
-                continue
-            elif 'ES_HOME' in line:
-                continue
-            elif line.strip() == '':
-                continue
-            env_lines += line.strip() + '\n'
-        open(env_file, 'w').write(env_lines)
+        with open(env_file) as env_fr:
+            for line in env_fr.readlines():
+                if 'ES_PATH_CONF' in line:
+                    continue
+                elif 'ES_HOME' in line:
+                    continue
+                elif line.strip() == '':
+                    continue
+                env_lines += line.strip() + '\n'
+        with open(env_file, 'w') as env_fw:
+            env_fw.write(env_lines)
         if stdout:
             sys.stdout.write('[+] ElasticSearch uninstalled successfully.\n')
-    except Exception:
-        sys.stderr.write('[-] A fatal error occurred while attempting to uninstall ElasticSearch: ')
-        traceback.print_exc(file=sys.stderr)
-        return False
-    return True
+    except Exception as e:
+        raise elastic_exceptions.UninstallElasticsearchError(
+            "General error occurred while attempting to uninstall elasticsearch; {}".format(e))

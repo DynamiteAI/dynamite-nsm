@@ -1,8 +1,6 @@
 import os
 import time
 import shutil
-import subprocess
-
 from yaml import load, dump
 
 try:
@@ -10,9 +8,10 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
+
 
 class ConfigManager:
-
     tokens = {
         'inputs': ('filebeat.inputs',),
         'logstash_targets': ('output.logstash', 'hosts'),
@@ -50,8 +49,15 @@ class ConfigManager:
                 pass
             return True
 
-        with open(os.path.join(self.install_directory, 'filebeat.yml'), 'r') as configyaml:
-            self.config_data = load(configyaml, Loader=Loader)
+        filebeatyaml_path = os.path.join(self.install_directory, 'filebeat.yml')
+        try:
+            with open(filebeatyaml_path, 'r') as configyaml:
+                self.config_data = load(configyaml, Loader=Loader)
+        except IOError:
+            raise filebeat_exceptions.ReadFilebeatConfigError("Could not locate config at {}".format(filebeatyaml_path))
+        except Exception as e:
+            raise filebeat_exceptions.ReadFilebeatConfigError(
+                "General exception when opening/parsing config at {}; {}".format(filebeatyaml_path, e))
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
@@ -145,13 +151,28 @@ class ConfigManager:
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.install_directory, 'config_backups/')
         filebeat_config_backup = os.path.join(backup_configurations, 'filebeat.yml.backup.{}'.format(timestamp))
-        subprocess.call('mkdir -p {}'.format(backup_configurations), shell=True)
-        shutil.copy(os.path.join(self.install_directory, 'filebeat.yml'), filebeat_config_backup)
-
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise filebeat_exceptions.WriteFilebeatConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+        try:
+            shutil.copy(os.path.join(self.install_directory, 'filebeat.yml'), filebeat_config_backup)
+        except Exception as e:
+            raise filebeat_exceptions.WriteFilebeatConfigError(
+                "General error while attempting to copy old filebeat.yml file to {}; {}".format(
+                    backup_configurations, e))
         for k, v in vars(self).items():
             if k not in self.tokens:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
-        with open(os.path.join(self.install_directory, 'filebeat.yml'), 'w') as configyaml:
-            dump(self.config_data, configyaml, default_flow_style=False)
+        try:
+            with open(os.path.join(self.install_directory, 'filebeat.yml'), 'w') as configyaml:
+                dump(self.config_data, configyaml, default_flow_style=False)
+        except IOError:
+            raise filebeat_exceptions.WriteFilebeatConfigError("Could not locate {}".format(self.install_directory))
+        except Exception as e:
+            raise filebeat_exceptions.WriteFilebeatConfigError(
+                "General error while attempting to write new filebeat.yml file to {}; {}".format(
+                    self.install_directory, e))

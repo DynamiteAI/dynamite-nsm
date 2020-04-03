@@ -8,6 +8,7 @@ except Exception:
     from configparser import ConfigParser
 
 from dynamite_nsm import utilities
+from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
 class ScriptConfigManager:
@@ -29,49 +30,53 @@ class ScriptConfigManager:
         """
         Parse the local.bro configuration file, and determine which scripts are enabled/disabled
         """
-        for line in open(os.path.join(self.configuration_directory, 'site', 'local.bro')).readlines():
-            line = line.replace(' ', '').strip()
-            if '@load-sigs' in line:
-                if line.startswith('#'):
-                    enabled = False
-                    line = line[1:]
-                else:
-                    enabled = True
-                sigs = line.split('@load-sigs')[1]
-                self.zeek_sigs[sigs] = enabled
-            elif '@load' in line:
-                if line.startswith('#'):
-                    enabled = False
-                    line = line[1:]
-                else:
-                    enabled = True
-                script = line.split('@load')[1]
-                self.zeek_scripts[script] = enabled
-            elif line.startswith('redef'):
-                definition, value = line.split('redef')[1].split('=')
-                self.zeek_redefs[definition] = value
+        zeeklocalsite_path = os.path.join(self.configuration_directory, 'site', 'local.bro')
+        try:
+            with open(zeeklocalsite_path) as config_f:
+                for line in config_f.readlines():
+                    line = line.replace(' ', '').strip()
+                    if '@load-sigs' in line:
+                        if line.startswith('#'):
+                            enabled = False
+                            line = line[1:]
+                        else:
+                            enabled = True
+                        sigs = line.split('@load-sigs')[1]
+                        self.zeek_sigs[sigs] = enabled
+                    elif '@load' in line:
+                        if line.startswith('#'):
+                            enabled = False
+                            line = line[1:]
+                        else:
+                            enabled = True
+                        script = line.split('@load')[1]
+                        self.zeek_scripts[script] = enabled
+                    elif line.startswith('redef'):
+                        definition, value = line.split('redef')[1].split('=')
+                        self.zeek_redefs[definition] = value
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeeklocalsite_path))
+        except Exception as e:
+            raise zeek_exceptions.ReadsZeekConfigError(
+                "General exception when opening/parsing config at {}; {}".format(zeeklocalsite_path, e))
 
     def disable_script(self, name):
         """
         :param name: The name of the script (E.G protocols/http/software)
-        :return: True, if the script was successfully disabled
         """
         try:
             self.zeek_scripts[name] = False
-            return True
         except KeyError:
-            return False
+            raise zeek_exceptions.ZeekScriptNotFoundError(name)
 
     def enable_script(self, name):
         """
         :param name: The name of the script (E.G protocols/http/software)
-        :return: True, if the script was successfully enabled
         """
         try:
             self.zeek_scripts[name] = True
-            return True
         except KeyError:
-            return False
+            pass
 
     def list_disabled_scripts(self):
         """
@@ -108,8 +113,11 @@ class ScriptConfigManager:
         output_str = ''
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         zeek_config_backup = os.path.join(backup_configurations, 'local.bro.backup.{}'.format(timestamp))
-
-        os.makedirs(backup_configurations, exist_ok=True)
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
         for e_script in self.list_enabled_scripts():
             output_str += '@load {}\n'.format(e_script)
         for d_script in self.list_disabled_scripts():
@@ -120,9 +128,21 @@ class ScriptConfigManager:
             output_str += '@load-sigs {}\n'.format(d_sig)
         for rdef, val in self.list_redefinitions():
             output_str += 'redef {} = {}\n'.format(rdef, val)
-        shutil.move(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
-        with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
-            f.write(output_str)
+        try:
+            shutil.copy(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
+        except Exception as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to copy old local.bro file to {}; {}".format(
+                    backup_configurations, e))
+        try:
+            with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
+                f.write(output_str)
+        except IOError:
+            raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to write new local.bro file to {}; {}".format(
+                    backup_configurations, e))
 
 
 class NodeConfigManager:
@@ -154,37 +174,31 @@ class NodeConfigManager:
         """
         :param name: The name of the logger
         :param host: The host on which the logger is running
-        :return: True, if added successfully
         """
         self.node_config[name] = {
             'type': 'logger',
             'host': host
         }
-        return True
 
     def add_manager(self, name, host):
         """
         :param name: The name of the manager
         :param host: The host on which the manager is running
-        :return: True, if added successfully
         """
         self.node_config[name] = {
             'type': 'manager',
             'host': host
         }
-        return True
 
     def add_proxy(self, name, host):
         """
         :param name: The name of the proxy
         :param host: The host on which the proxy is running
-        :return: True, if added successfully
         """
         self.node_config[name] = {
             'type': 'proxy',
             'host': host
         }
-        return True
 
     def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0, 1)):
         """
@@ -193,7 +207,6 @@ class NodeConfigManager:
         :param host: The host on which the worker is running
         :param lb_procs: The number of Zeek processes associated with a given worker
         :param pin_cpus: Core affinity for the processes (iterable)
-        :return: True, if added successfully
         """
         if max(pin_cpus) < utilities.get_cpu_core_count() and min(pin_cpus) >= 0:
             pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
@@ -205,61 +218,46 @@ class NodeConfigManager:
                 'pin_cpus': ','.join(pin_cpus),
                 'host': host
             }
-            return True
-        return False
 
     def remove_logger(self, name):
         """
         :param name: The name of the logger
-        :return: True, if successfully removed
         """
         try:
             if self.node_config[name]['type'] == 'logger':
                 del self.node_config[name]
-            else:
-                return False
         except KeyError:
-            return False
+            raise zeek_exceptions.ZeekLoggerNotFoundError(name)
 
     def remove_manager(self, name):
         """
         :param name: The name of the manager
-        :return: True, if successfully removed
         """
         try:
             if self.node_config[name]['type'] == 'manager':
                 del self.node_config[name]
-            else:
-                return False
         except KeyError:
-            return False
+            raise zeek_exceptions.ZeekManagerNotFoundError(name)
 
     def remove_proxy(self, name):
         """
         :param name: The name of the proxy
-        :return: True, if successfully removed
         """
         try:
             if self.node_config[name]['type'] == 'proxy':
                 del self.node_config[name]
-            else:
-                return False
         except KeyError:
-            return False
+            raise zeek_exceptions.ZeekProxyNotFoundError(name)
 
     def remove_worker(self, name):
         """
         :param name: The name of the worker
-        :return: True, if successfully removed
         """
         try:
             if self.node_config[name]['type'] == 'worker':
                 del self.node_config[name]
-            else:
-                return False
         except KeyError:
-            return False
-        return True
+            raise zeek_exceptions.ZeekWorkerNotFoundError(name)
 
     def list_workers(self):
         """
@@ -309,8 +307,15 @@ class NodeConfigManager:
             for k, v in self.node_config[section].items():
                 try:
                     config.add_section(section)
-                except Exception: # Duplicate section
+                except Exception:  # Duplicate section
                     pass
                 config.set(section, k, str(v))
-                with open(os.path.join(self.install_directory, 'etc', 'node.cfg'), 'w') as configfile:
-                    config.write(configfile)
+        try:
+            with open(os.path.join(self.install_directory, 'etc', 'node.cfg'), 'w') as configfile:
+                config.write(configfile)
+        except IOError:
+            raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.install_directory))
+        except Exception as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to write new node.cfg file to {}; {}".format(
+                    self.install_directory, e))

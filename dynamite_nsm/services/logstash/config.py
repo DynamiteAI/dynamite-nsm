@@ -11,7 +11,9 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.logstash.synesis import config as synesis_config
+from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
 from dynamite_nsm.services.logstash.elastiflow import config as elastiflow_config
 
 
@@ -69,8 +71,15 @@ class ConfigManager:
                 pass
             return True
 
-        with open(os.path.join(self.configuration_directory, 'logstash.yml'), 'r') as configyaml:
-            self.config_data = load(configyaml, Loader=Loader)
+        logstashyaml_path = os.path.join(self.configuration_directory, 'logstash.yml')
+        try:
+            with open(logstashyaml_path, 'r') as configyaml:
+                self.config_data = load(configyaml, Loader=Loader)
+        except IOError:
+            raise logstash_exceptions.ReadLogstashConfigError("Could not locate config at {}".format(logstashyaml_path))
+        except Exception as e:
+            raise logstash_exceptions.ReadLogstashConfigError(
+                "General exception when opening/parsing config at {}; {}".format(logstashyaml_path, e))
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
@@ -81,26 +90,39 @@ class ConfigManager:
         :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
         config_path = os.path.join(self.configuration_directory, 'jvm.options')
-        with open(config_path) as config_f:
-            for line in config_f.readlines():
-                if not line.startswith('#') and '-Xms' in line:
-                    self.java_initial_memory = int(line.replace('-Xms', '').strip()[0:-1])
-                elif not line.startswith('#') and '-Xmx' in line:
-                    self.java_maximum_memory = int(line.replace('-Xmx', '').strip()[0:-1])
+        try:
+            with open(config_path) as config_f:
+                for line in config_f.readlines():
+                    if not line.startswith('#') and '-Xms' in line:
+                        self.java_initial_memory = int(line.replace('-Xms', '').strip()[0:-1])
+                    elif not line.startswith('#') and '-Xmx' in line:
+                        self.java_maximum_memory = int(line.replace('-Xmx', '').strip()[0:-1])
+        except IOError:
+            raise general_exceptions.ReadJavaConfigError("Could not locate config at {}".format(config_path))
+        except Exception as e:
+            raise general_exceptions.ReadJavaConfigError(
+                "General Exception when opening/parsing config at {}; {}".format(config_path, e))
 
     def _parse_environment_file(self):
         """
         Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, LS_PATH_CONF, LS_HOME;
         stores the results in class variables of the same name
         """
-        with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
-            for line in env_f.readlines():
-                if line.startswith('JAVA_HOME'):
-                    self.java_home = line.split('=')[1].strip()
-                elif line.startswith('LS_PATH_CONF'):
-                    self.ls_path_conf = line.split('=')[1].strip()
-                elif line.startswith('LS_HOME'):
-                    self.ls_home = line.split('=')[1].strip()
+        env_path = os.path.join(const.CONFIG_PATH, 'environment')
+        try:
+            with open(env_path) as env_f:
+                for line in env_f.readlines():
+                    if line.startswith('JAVA_HOME'):
+                        self.java_home = line.split('=')[1].strip()
+                    elif line.startswith('LS_PATH_CONF'):
+                        self.ls_path_conf = line.split('=')[1].strip()
+                    elif line.startswith('LS_HOME'):
+                        self.ls_home = line.split('=')[1].strip()
+        except IOError:
+            raise general_exceptions.ReadConfigError("Could not locate environment config at {}".format(env_path))
+        except Exception as e:
+            raise general_exceptions.ReadConfigError(
+                "General Exception when opening/parsing environment config at {}; {}".format(env_path, e))
 
     @staticmethod
     def get_elasticsearch_password():
@@ -115,36 +137,65 @@ class ConfigManager:
         """
         :param password: The new password
         """
-        ef_config = elastiflow_config.ConfigManager()
-        syn_config = synesis_config.ConfigManager()
-        ef_config.es_passwd = password
-        syn_config.es_passwd = password
-        ef_config.write_environment_variables()
-        syn_config.write_environment_variables()
+        try:
+            ef_config = elastiflow_config.ConfigManager()
+            syn_config = synesis_config.ConfigManager()
+            ef_config.es_passwd = password
+            syn_config.es_passwd = password
+            ef_config.write_environment_variables()
+            syn_config.write_environment_variables()
+        except general_exceptions.ReadConfigError as e:
+            raise general_exceptions.ResetPasswordError("Failed to read configuration; {}".format(e))
+        except general_exceptions.WriteConfigError as e:
+            raise general_exceptions.ResetPasswordError("Failed to write configuration; {}".format(e))
 
     def write_jvm_config(self):
         """
         Overwrites the JVM initial/max memory if settings were updated
         """
         new_output = ''
-        with open(os.path.join(self.configuration_directory, 'jvm.options')) as config_f:
-            for line in config_f.readlines():
-                if not line.startswith('#') and '-Xms' in line:
-                    new_output += '-Xms' + str(self.java_initial_memory) + 'g'
-                elif not line.startswith('#') and '-Xmx' in line:
-                    new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
-                else:
-                    new_output += line
-                new_output += '\n'
+        jvm_options_path = os.path.join(self.configuration_directory, 'jvm.options')
+        try:
+            with open(jvm_options_path) as config_f:
+                for line in config_f.readlines():
+                    if not line.startswith('#') and '-Xms' in line:
+                        new_output += '-Xms' + str(self.java_initial_memory) + 'g'
+                    elif not line.startswith('#') and '-Xmx' in line:
+                        new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
+                    else:
+                        new_output += line
+                    new_output += '\n'
+        except IOError:
+            raise general_exceptions.ReadJavaConfigError("Could not locate {}".format(jvm_options_path))
+        except Exception as e:
+            raise general_exceptions.ReadJavaConfigError(
+                "General Exception when opening/parsing environment config at {}; {}".format(
+                    self.configuration_directory, e))
 
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         java_config_backup = os.path.join(backup_configurations, 'jvm.options.backup.{}'.format(
             int(time.time())
         ))
-        os.makedirs(backup_configurations, exist_ok=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
-        with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
-            config_f.write(new_output)
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise general_exceptions.WriteJavaConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+        try:
+            shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
+        except Exception as e:
+            raise general_exceptions.WriteJavaConfigError(
+                "General error while attempting to copy old jvm.options file to {}; {}".format(backup_configurations,
+                                                                                               e))
+        try:
+            with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
+                config_f.write(new_output)
+        except IOError:
+            raise general_exceptions.WriteJavaConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise general_exceptions.WriteJavaConfigError(
+                "General error while attempting to write new jvm.options file to {}; {}".format(
+                    self.configuration_directory, e))
 
     def write_logstash_config(self):
 
@@ -166,16 +217,33 @@ class ConfigManager:
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         logstash_config_backup = os.path.join(backup_configurations, 'logstash.yml.backup.{}'.format(timestamp))
-        os.makedirs(backup_configurations, exist_ok=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'logstash.yml'), logstash_config_backup)
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise logstash_exceptions.WriteLogstashConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+        try:
+            shutil.copy(os.path.join(self.configuration_directory, 'logstash.yml'), logstash_config_backup)
+        except Exception as e:
+            raise logstash_exceptions.WriteLogstashConfigError(
+                "General error while attempting to copy old logstash.yml file to {}; {}".format(
+                    backup_configurations, e))
 
         for k, v in vars(self).items():
             if k not in self.tokens:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
-        with open(os.path.join(self.configuration_directory, 'logstash.yml'), 'w') as configyaml:
-            dump(self.config_data, configyaml, default_flow_style=False)
+        try:
+            with open(os.path.join(self.configuration_directory, 'logstash.yml'), 'w') as configyaml:
+                dump(self.config_data, configyaml, default_flow_style=False)
+        except IOError:
+            raise logstash_exceptions.WriteLogstashConfigError(
+                "Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise logstash_exceptions.WriteLogstashConfigError(
+                "General error while attempting to write new logstash.yml file to {}; {}".format(
+                    self.configuration_directory, e))
 
     def write_configs(self):
         """
@@ -210,4 +278,4 @@ def change_logstash_elasticsearch_password(configuration_directory, password='ch
                 sys.stdout.write('[+] Exiting\n')
             return False
     ConfigManager(configuration_directory).set_elasticsearch_password(password=password)
-    return logstash_process.ProcessManager().restart(stdout=True)
+    logstash_process.ProcessManager().restart(stdout=True)

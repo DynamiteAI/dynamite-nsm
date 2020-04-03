@@ -9,10 +9,12 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
+
 
 class ConfigManager:
     """
-    Wrapper for configuring suricata.yml
+    Wrapper for configuring suricata.yaml
     """
     default_suricata_rules = [
         'botcc.rules', 'botcc.portgrouped.rules', 'ciarmy.rules',
@@ -118,8 +120,16 @@ class ConfigManager:
             setattr(self, var_name, value)
             return True
 
-        with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'r') as configyaml:
-            self.config_data = load(configyaml, Loader=Loader)
+        suricatayaml_path = os.path.join(self.configuration_directory, 'suricata.yaml')
+        try:
+            with open(suricatayaml_path, 'r') as configyaml:
+                self.config_data = load(configyaml, Loader=Loader)
+        except IOError:
+            raise suricata_exceptions.ReadsSuricataConfigError(
+                "Could not locate config at {}".format(suricatayaml_path))
+        except Exception as e:
+            raise suricata_exceptions.ReadsSuricataConfigError(
+                "General exception when opening/parsing config at {}; {}".format(suricatayaml_path, e))
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
@@ -150,38 +160,11 @@ class ConfigManager:
 
         self.af_packet_interfaces.append(interface_config)
 
-    def add_pfring_interface(self, interface, threads=None, cluster_id=None, cluster_type='cluster_flow',
-                             bpf_filter=None):
-        """
-        Add a new PF_RING interface to monitor
-
-        :param interface: The name of the interface to monitor (eth0, mon0)
-        :param threads: "auto" or the number of threads
-        :param cluster_id: The PF_RING cluster id; PF_RING will load balance packets based on flow
-        :param cluster_type: Recommended modes are cluster_flow on most boxes and cluster_cpu or cluster_qm on system
-        :param bpf_filter: bpf filter for this interface (E.G tcp)
-        :return: None
-        """
-        interface_config = {
-                'interface': interface
-        }
-        if threads:
-            interface_config['threads'] = threads
-        if cluster_id:
-            interface_config['cluster-id'] = cluster_id
-        if cluster_type:
-            interface_config['cluster-type'] = cluster_type
-        if bpf_filter:
-            interface_config['bpf-filter'] = bpf_filter
-
-        self.pfring_interfaces.append(interface_config)
-
     def remove_afpacket_interface(self, interface):
         """
         Remove an existing AF_PACKET interface
 
         :param interface: The name of the interface to remove (eth0, mon0)
-        :return: None
         """
         new_interface_config = []
         for interface_config in self.af_packet_interfaces:
@@ -189,22 +172,9 @@ class ConfigManager:
                 continue
             else:
                 new_interface_config.append(interface_config)
+        if not new_interface_config:
+            raise suricata_exceptions.SuricataInterfaceNotFoundError(interface)
         self.af_packet_interfaces = new_interface_config
-
-    def remove_pfring_interface(self, interface):
-        """
-        Remove an existing PF_RING interface
-
-        :param interface: The name of the interface to remove (eth0, mon0)
-        :return: None
-        """
-        new_interface_config = []
-        for interface_config in self.pfring_interfaces:
-            if interface_config['interface'] == interface:
-                continue
-            else:
-                new_interface_config.append(interface_config)
-        self.pfring_interfaces = new_interface_config
 
     def list_enabled_rules(self):
         """
@@ -227,7 +197,6 @@ class ConfigManager:
         Enable a rule
 
         :param rule_file: The name of the rule to enable
-        :return: None
         """
         if rule_file not in self.list_enabled_rules():
             self.rule_files.append(rule_file)
@@ -237,10 +206,11 @@ class ConfigManager:
         Disable a rule
 
         :param rule_file: The name of the rule to disable
-        :return: None
         """
         if rule_file in self.list_enabled_rules():
             self.rule_files.remove(rule_file)
+        else:
+            raise suricata_exceptions.SuricataRuleNotFoundError(rule_file)
 
     def write_config(self):
         """
@@ -262,14 +232,30 @@ class ConfigManager:
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
-        os.makedirs(backup_configurations, exist_ok=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'suricata.yaml'), suricata_config_backup)
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise suricata_exceptions.WriteSuricataConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+        try:
+            shutil.copy(os.path.join(self.configuration_directory, 'suricata.yaml'), suricata_config_backup)
+        except Exception as e:
+            raise suricata_exceptions.WriteSuricataConfigError(
+                "General error while attempting to copy old suricata.yaml file to {}; {}".format(
+                    backup_configurations, e))
 
         for k, v in vars(self).items():
             if k not in self.tokens:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
-        with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'w') as configyaml:
-            configyaml.write('%YAML 1.1\n---\n\n')
-            dump(self.config_data, configyaml, default_flow_style=False)
+        try:
+            with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'w') as configyaml:
+                configyaml.write('%YAML 1.1\n---\n\n')
+                dump(self.config_data, configyaml, default_flow_style=False)
+        except IOError:
+            raise suricata_exceptions.WriteSuricataConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise suricata_exceptions.WriteSuricataConfigError(
+                "General error while attempting to write new suricata.yaml file to {}; {}".format(
+                    self.configuration_directory, e))

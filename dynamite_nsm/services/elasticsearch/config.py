@@ -6,8 +6,6 @@ import base64
 import shutil
 from yaml import load, dump
 
-from dynamite_nsm import utilities
-
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
@@ -26,6 +24,9 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import const
+from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 
 
 class ConfigManager:
@@ -90,8 +91,15 @@ class ConfigManager:
                 pass
             return True
 
-        with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'r') as configyaml:
-            self.config_data = load(configyaml, Loader=Loader)
+        elasticyaml_path = os.path.join(self.configuration_directory, 'elasticsearch.yml')
+        try:
+            with open(elasticyaml_path, 'r') as configyaml:
+                self.config_data = load(configyaml, Loader=Loader)
+        except IOError:
+            raise elastic_exceptions.ReadElasticConfigError("Could not locate config at {}".format(elasticyaml_path))
+        except Exception as e:
+            raise elastic_exceptions.ReadElasticConfigError(
+                "General exception when opening/parsing config at {}; {}".format(elasticyaml_path, e))
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
@@ -102,50 +110,87 @@ class ConfigManager:
         :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
         config_path = os.path.join(self.configuration_directory, 'jvm.options')
-        with open(config_path) as config_f:
-            for line in config_f.readlines():
-                if not line.startswith('#') and '-Xms' in line:
-                    self.java_initial_memory = int(line.replace('-Xms', '').strip()[0:-1])
-                elif not line.startswith('#') and '-Xmx' in line:
-                    self.java_maximum_memory = int(line.replace('-Xmx', '').strip()[0:-1])
+        try:
+            with open(config_path) as config_f:
+                for line in config_f.readlines():
+                    if not line.startswith('#') and '-Xms' in line:
+                        self.java_initial_memory = int(line.replace('-Xms', '').strip()[0:-1])
+                    elif not line.startswith('#') and '-Xmx' in line:
+                        self.java_maximum_memory = int(line.replace('-Xmx', '').strip()[0:-1])
+        except IOError:
+            raise general_exceptions.ReadJavaConfigError("Could not locate config at {}".format(config_path))
+        except Exception as e:
+            raise general_exceptions.ReadJavaConfigError(
+                "General Exception when opening/parsing config at {}; {}".format(config_path, e))
 
     def _parse_environment_file(self):
         """
         Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, ES_PATH_CONF, ES_HOME;
         stores the results in class variables of the same name
         """
-        with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
-            for line in env_f.readlines():
-                if line.startswith('JAVA_HOME'):
-                    self.java_home = line.split('=')[1].strip()
-                elif line.startswith('ES_PATH_CONF'):
-                    self.es_path_conf = line.split('=')[1].strip()
-                elif line.startswith('ES_HOME'):
-                    self.es_home = line.split('=')[1].strip()
+        env_path = os.path.join(const.CONFIG_PATH, 'environment')
+        try:
+            with open(env_path) as env_f:
+                for line in env_f.readlines():
+                    if line.startswith('JAVA_HOME'):
+                        self.java_home = line.split('=')[1].strip()
+                    elif line.startswith('ES_PATH_CONF'):
+                        self.es_path_conf = line.split('=')[1].strip()
+                    elif line.startswith('ES_HOME'):
+                        self.es_home = line.split('=')[1].strip()
+        except IOError:
+            raise general_exceptions.ReadConfigError("Could not locate environment config at {}".format(env_path))
+        except Exception as e:
+            raise general_exceptions.ReadConfigError(
+                "General Exception when opening/parsing environment config at {}; {}".format(env_path, e))
 
     def write_jvm_config(self):
         """
         Overwrites the JVM initial/max memory if settings were updated
         """
         new_output = ''
-        with open(os.path.join(self.configuration_directory, 'jvm.options')) as config_f:
-            for line in config_f.readlines():
-                if not line.startswith('#') and '-Xms' in line:
-                    new_output += '-Xms' + str(self.java_initial_memory) + 'g'
-                elif not line.startswith('#') and '-Xmx' in line:
-                    new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
-                else:
-                    new_output += line
-                new_output += '\n'
+        jvm_options_path = os.path.join(self.configuration_directory, 'jvm.options')
+        try:
+            with open(jvm_options_path) as config_f:
+                for line in config_f.readlines():
+                    if not line.startswith('#') and '-Xms' in line:
+                        new_output += '-Xms' + str(self.java_initial_memory) + 'g'
+                    elif not line.startswith('#') and '-Xmx' in line:
+                        new_output += '-Xmx' + str(self.java_maximum_memory) + 'g'
+                    else:
+                        new_output += line
+                    new_output += '\n'
+        except IOError:
+            raise general_exceptions.ReadJavaConfigError("Could not locate {}".format(jvm_options_path))
+        except Exception as e:
+            raise general_exceptions.ReadJavaConfigError(
+                "General Exception when opening/parsing environment config at {}; {}".format(
+                    self.configuration_directory, e))
 
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         java_config_backup = os.path.join(backup_configurations, 'jvm.options.backup.{}'.format(
             int(time.time())
         ))
-        os.makedirs(backup_configurations, exist_ok=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
-        with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
-            config_f.write(new_output)
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise general_exceptions.WriteJavaConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+        try:
+            shutil.copy(os.path.join(self.configuration_directory, 'jvm.options'), java_config_backup)
+        except Exception as e:
+            raise general_exceptions.WriteJavaConfigError(
+                "General error while attempting to copy old jvm.options file to {}; {}".format(backup_configurations,
+                                                                                               e))
+        try:
+            with open(os.path.join(self.configuration_directory, 'jvm.options'), 'w') as config_f:
+                config_f.write(new_output)
+        except IOError:
+            raise general_exceptions.WriteJavaConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise general_exceptions.WriteJavaConfigError(
+                "General error while attempting to write new jvm.options file to {}; {}".format(backup_configurations,
+                                                                                                e))
 
     def write_elasticsearch_config(self):
 
@@ -167,16 +212,31 @@ class ConfigManager:
         timestamp = int(time.time())
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         elastic_config_backup = os.path.join(backup_configurations, 'elastic.yml.backup.{}'.format(timestamp))
-        os.makedirs(backup_configurations, exist_ok=True)
-        shutil.copy(os.path.join(self.configuration_directory, 'elasticsearch.yml'), elastic_config_backup)
-
+        try:
+            os.makedirs(backup_configurations, exist_ok=True)
+        except Exception as e:
+            raise elastic_exceptions.WriteElasticConfigError(
+                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+        try:
+            shutil.copy(os.path.join(self.configuration_directory, 'elasticsearch.yml'), elastic_config_backup)
+        except Exception as e:
+            raise elastic_exceptions.WriteElasticConfigError(
+                "General error while attempting to copy old elasticsearch.yml file to {}; {}".format(
+                    backup_configurations, e))
         for k, v in vars(self).items():
             if k not in self.tokens:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
-        with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'w') as configyaml:
-            dump(self.config_data, configyaml, default_flow_style=False)
+        try:
+            with open(os.path.join(self.configuration_directory, 'elasticsearch.yml'), 'w') as configyaml:
+                dump(self.config_data, configyaml, default_flow_style=False)
+        except IOError:
+            raise elastic_exceptions.WriteElasticConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise elastic_exceptions.WriteElasticConfigError(
+                "General error while attempting to write new elasticsearch.yml file to {}; {}".format(
+                    self.configuration_directory, e))
 
     def write_configs(self):
         """
@@ -199,32 +259,40 @@ class PasswordConfigManager:
     def _set_user_password(self, user, password, stdout=False):
         if stdout:
             sys.stdout.write('[+] Updating password for {}\n'.format(user))
-        es_config = ConfigManager(configuration_directory=self.env_vars.get('ES_PATH_CONF'))
         try:
             try:
-                base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
-            except TypeError:
-                encoded_bytes = '{}:{}'.format(self.auth_user, self.current_password).encode('utf-8')
-                base64string = base64.b64encode(encoded_bytes).decode('utf-8')
-            url_request = Request(
-                url='http://{}:{}/_xpack/security/user/{}/_password'.format(
-                    es_config.network_host,
-                    es_config.http_port,
-                    user
-                ),
-                data=json.dumps({'password': password}),
-                headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
-            )
-            url_request.add_header("Authorization", "Basic %s" % base64string)
+                es_config = ConfigManager(configuration_directory=self.env_vars.get('ES_PATH_CONF'))
+            except general_exceptions.ReadConfigError as e:
+                raise general_exceptions.ResetPasswordError("Could not read configuration; {}".format(e))
             try:
-                urlopen(url_request)
-            except TypeError:
-                urlopen(url_request, data=json.dumps({'password': password}).encode('utf-8'))
-        except HTTPError as e:
-            if e.code != 200:
-                sys.stderr.write('[-] Failed to update {} password - [{}]\n'.format(user, e))
-            return False
-        return True
+                try:
+                    base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
+                except TypeError:
+                    encoded_bytes = '{}:{}'.format(self.auth_user, self.current_password).encode('utf-8')
+                    base64string = base64.b64encode(encoded_bytes).decode('utf-8')
+                url_request = Request(
+                    url='http://{}:{}/_xpack/security/user/{}/_password'.format(
+                        es_config.network_host,
+                        es_config.http_port,
+                        user
+                    ),
+                    data=json.dumps({'password': password}),
+                    headers={'Content-Type': 'application/json', 'kbn-xsrf': True}
+                )
+                url_request.add_header("Authorization", "Basic %s" % base64string)
+                try:
+                    urlopen(url_request)
+                except TypeError:
+                    urlopen(url_request, data=json.dumps({'password': password}).encode('utf-8'))
+            except HTTPError as e:
+                if e.code != 200:
+                    sys.stderr.write('[-] Failed to update {} password - [{}]\n'.format(user, e))
+                    raise general_exceptions.ResetPasswordError(
+                        "Elasticsearch API returned a {} code while attempting to reset user: {} password; {}".format(
+                            e.code, user, e))
+        except Exception as e:
+            raise general_exceptions.ResetPasswordError(
+                "General exception while resetting Elasticsearch password; {}".format(e))
 
     def set_apm_system_password(self, new_password, stdout=False):
         """
@@ -232,9 +300,8 @@ class PasswordConfigManager:
 
         :param new_password: The new password
         :param stdout: Print status to stdout
-        :return: True, if successfully reset
         """
-        return self._set_user_password('apm_system', new_password, stdout=stdout)
+        self._set_user_password('apm_system', new_password, stdout=stdout)
 
     def set_beats_password(self, new_password, stdout=False):
         """
@@ -242,9 +309,8 @@ class PasswordConfigManager:
 
         :param new_password: The new password
         :param stdout: Print status to stdout
-        :return: True, if successfully reset
         """
-        return self._set_user_password('beats_system', new_password, stdout=stdout)
+        self._set_user_password('beats_system', new_password, stdout=stdout)
 
     def set_elastic_password(self, new_password, stdout=False):
         """
@@ -252,9 +318,8 @@ class PasswordConfigManager:
 
         :param new_password: The new password
         :param stdout: Print status to stdout
-        :return: True, if successfully reset
         """
-        return self._set_user_password('elastic', new_password, stdout=stdout)
+        self._set_user_password('elastic', new_password, stdout=stdout)
 
     def set_kibana_password(self, new_password, stdout=False):
         """
@@ -262,9 +327,8 @@ class PasswordConfigManager:
 
         :param new_password: The new password
         :param stdout: Print status to stdout
-        :return: True, if successfully reset
         """
-        return self._set_user_password('kibana', new_password, stdout=stdout)
+        self._set_user_password('kibana', new_password, stdout=stdout)
 
     def set_logstash_system_password(self, new_password, stdout=False):
         """
@@ -272,9 +336,8 @@ class PasswordConfigManager:
 
         :param new_password: The new password
         :param stdout: Print status to stdout
-        :return: True, if successfully reset
         """
-        return self._set_user_password('logstash_system', new_password, stdout=stdout)
+        self._set_user_password('logstash_system', new_password, stdout=stdout)
 
     def set_remote_monitoring_password(self, new_password, stdout=False):
         """
@@ -282,9 +345,8 @@ class PasswordConfigManager:
 
         :param new_password: The new password
         :param stdout: Print status to stdout
-        :return: True, if successfully reset
         """
-        return self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
+        self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
 
     def set_all_passwords(self, new_password, stdout=False):
         """
@@ -292,15 +354,13 @@ class PasswordConfigManager:
 
         :param new_password: The new password
         :param stdout: Print status to stdout
-        :return: True, if successfully reset
         """
-        r = self.set_apm_system_password(new_password, stdout=stdout)
-        r2 = self.set_remote_monitoring_password(new_password, stdout=stdout)
-        r3 = self.set_logstash_system_password(new_password, stdout=stdout)
-        r4 = self.set_kibana_password(new_password, stdout=stdout)
-        r5 = self.set_beats_password(new_password, stdout=stdout)
-        r6 = self.set_elastic_password(new_password, stdout=stdout)
-        return r and r2 and r3 and r4 and r5 and r6
+        self.set_apm_system_password(new_password, stdout=stdout)
+        self.set_remote_monitoring_password(new_password, stdout=stdout)
+        self.set_logstash_system_password(new_password, stdout=stdout)
+        self.set_kibana_password(new_password, stdout=stdout)
+        self.set_beats_password(new_password, stdout=stdout)
+        self.set_elastic_password(new_password, stdout=stdout)
 
 
 def change_elasticsearch_password(old_password, password='changeme', stdout=False):
@@ -317,11 +377,12 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=Fals
 
     if not elastic_process.ProcessManager().start():
         sys.stderr.write('[-] Could not start ElasticSearch Process. Password reset failed.')
-        return False
+        raise general_exceptions.ResetPasswordError(
+            "Elasticsearch process was not able to start, check your elasticsearch logs.")
     while not elastic_profile.ProcessProfiler().is_listening:
         if stdout:
             sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
-        time.sleep(5)
+        time.sleep(1)
     if stdout:
         sys.stdout.write('[+] ElasticSearch API is up.\n')
         sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
@@ -329,4 +390,4 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=Fals
     time.sleep(10)
     es_pw_config = PasswordConfigManager(
         'elastic', current_password=old_password)
-    return es_pw_config.set_all_passwords(password, stdout=stdout)
+    es_pw_config.set_all_passwords(password, stdout=stdout)
