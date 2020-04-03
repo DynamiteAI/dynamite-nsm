@@ -22,7 +22,7 @@ No environment vars passed on cli - Instead use each tool's native config file t
 
 The dynctl() class is meant to be used as a class instance, e.g. `dc = dynctl()`.  The tricky thing about using the systemctl utility is that it will sometimes return a `0` exit code, even if the underlying operation failed.  With that, the general idea is that anytime you interact with the class, the state attributes for the installed components get updated in the dynctl() class instance.  That is, we try to keep track of service/target state dynamically, so we don't have to make a bunch of extra calls to systemctl to find out the outcome of an operation.  
 
-*Install*
+**Install**
 
 Instantiate a class instance. Do this before calling any methods.  
 ```python
@@ -36,35 +36,35 @@ dc.install_agent_unit_files()
 
 This will install the unit files and enable the *dynamite.target*. All agent services will then be set to start at boot after network services have initialized.  
 
-*Uninstall*
+**Uninstall**
 
 Same as above.  This reverses the operations performed during installation.  
 ```python
 dc.uninstall_agent_unit_files()
 ```
 
-*Start the Agent*
+**Start the Agent**
 
 The equivalent of running `dynamite start agent` only using systemd for process management.  
 ```python
 dc.start_agent()
 ```
 
-*Stop the Agent*
+**Stop the Agent**
 
 The equivalent of running `dynamite stop agent` only using systemd for process management.  
 ```python
 dc.stop_agent()
 ```
 
-*Stop a specific service*
+**Stop a specific service**
 
 The equivalent of running `dynamite stop <component>` where component is the service name.  There are convenience methods for each Dynamite agent component.  For example, to stop zeek:
 ```python
 dc.stop_zeek()
 ```
 
-*Enable/disable a specific service*
+**Enable/disable a specific service**
 
 We now have the ability to easily enable and disable specific components after the agent has been installed.  For example, to disable zeek:
 
@@ -75,7 +75,7 @@ Or to temporarily disable all agent services, use the dynctl() convenience metho
 ```python
 dc.disable_agent()
 ```
-Or to do this live on the Linux command line, just use systemctl:
+Or to stop a service live on the Linux command line, just use systemctl:
 ```bash
 sudo systemctl disable zeek.service
 ```

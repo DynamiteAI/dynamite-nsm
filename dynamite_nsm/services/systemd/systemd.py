@@ -23,15 +23,34 @@ class dynctl:
     """
     # Class variables
     UNIT_FILE_DIR = '/etc/systemd/system'
-    AGENT_UNITS = ['dynamite.target', 'filebeat.service', 'suricata.service', 'zeek.service']
+
+    # Map each role type to a list of associated service unit files 
+    ROLE_SVCS = {
+        'agent' : ['dynamite-agent.target', 'filebeat.service', 'suricata.service', 'zeek.service'],
+        'monitor' : ['dynamite-monitor.target', 'elastic.service', 'logstash.service', 'kibana.service'],
+        'scanner' : ['dynamite-scanner.target', 'rumble.service', 'filebeat.service']
+    }
 
     def __init__(self,
                 stdout=True,
-                verbose=False):
+                verbose=False,
+                roles=[]):
         """
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
         """
+        # Placeholder for statically selecting the currently supported roles
+        # we need to replace this with some logic (utilities) that
+        # get the active roles configured at install time and use that to 
+        # determine which services get loaded.
+
+        # For now, if no list is provided to the roles kwarg assume 
+        # the agent role.  
+        # TODO: Pull Dynamite component role list from file system.   
+        # all roles.
+        if len(roles) == 0 or roles == None:
+            roles = ['agent']
+
         # Verify systemctl is installed and in path, bail if not 
         p = subprocess.Popen('which systemctl', stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, shell=True)
@@ -39,9 +58,22 @@ class dynctl:
         if p.returncode != 0:
             raise Exception('Systemctl not found, is it installed?  {}\n'.format(p.stderr.read()))
 
-        for svc in self.AGENT_UNITS:
-            self._update_comp_status(svc)
-        
+        # Update the status for Dynamite services based on the active roles 
+        svcs = self._get_svc_units(roles)
+        for s in svcs:
+            self._update_comp_status(s)
+
+    def _get_svc_units(self, roles):
+        """
+        Returns a unique list of service unit files used by the given roles.
+        """
+        svcs = set()
+        for r in roles:
+            if r in self.ROLE_SVCS:
+                for s in self.ROLE_SVCS[r]: 
+                    svcs.add(s)
+        return svcs
+
     def __getattribute__(self, name):
         """
         Retrieves an attribute by name. 
@@ -94,21 +126,21 @@ class dynctl:
 
     def _update_comp_status(self, component):
         """
-        Updated the status attributes of the given component based on the state reported by systemctl.
+        Update the status attributes of the given component based on the state reported by systemctl.
         """
         state = self._get_comp_state(component)
         
         comp = component.split('.')[0]
         comp_enabled = comp + "_enabled"
         comp_running = comp + "_running"
-        if state['LoadState'] != 'loaded':
-            self.__setattr__(comp_enabled, False)
-        else:
+        if state['LoadState'] == 'loaded':
             self.__setattr__(comp_enabled, True)
-        if state['ActiveState'] != 'active':
-            self.__setattr__(comp_running, False)
         else:
+            self.__setattr__(comp_enabled, False)
+        if state['ActiveState'] == 'active':
             self.__setattr__(comp_running, True)
+        else:
+            self.__setattr__(comp_running, False)
 
         return (comp, self.__getattribute__(comp_running), self.__getattribute__(comp_enabled))
 
@@ -161,15 +193,11 @@ class dynctl:
 
         :return: True if successful. False otherwise. 
         """
-        sys.stderr.write("[+] Enabling {}\n".format(svc))
-        if svc == 'dynamite':
-            svc = 'dynamite.target'
         res = self._exec_update("enable", svc)
         if res[2] == True:
-            sys.stderr.write("[+] {} was enabled successfully.\n".format(svc))
             return True 
         else:
-            sys.stderr.write("[-] Unable to enable {}\n".format(svc))
+            sys.stderr.write("[-] Failed to enable {}\n".format(svc))
             return False 
 
     def disable(self, svc):
@@ -269,13 +297,13 @@ class dynctl:
         """
         Enable Dynamite Agent services. 
         """
-        return self.enable("dynamite")
+        return self.enable("dynamite-agent.target")
 
     def disable_agent(self, stdout=False):
         """
         Disable Dynamite Agent services. 
         """
-        return self.disable("dynamite")
+        return self.disable("dynamite-agent.target")
 
     def start_agent(self, stdout=False):
         """
@@ -366,14 +394,14 @@ class dynctl:
         self._stop("filebeat")
         self._start("filebeat")
         
-    def install_agent_unit_files(self, stdout=False):
+    def install_agent(self, stdout=False):
         """
-        Install Dynamite Agent systemd unit files 
+        Install and enable Dynamite Agent systemd unit files 
         """
         sys.stdout.write('[+] Installing Dynamite Agent services.\n')
         sys.stdout.flush()
 
-        for sfile in self.AGENT_UNITS:
+        for sfile in self.ROLE_SVCS['agent']:
             try:
                 copy(sfile, self.UNIT_FILE_DIR)
             except Exception as e:
@@ -384,7 +412,7 @@ class dynctl:
         # Tell systemd to reload unit files 
         self.daemon_reload()
 
-        if self.enable("dynamite.target"):
+        if self.enable_agent():
             sys.stdout.write('[+] Dynamite Agent services installed and enabled.\n')
             sys.stdout.flush()
             return True 
@@ -393,7 +421,7 @@ class dynctl:
             sys.stderr.flush()
             return False
 
-    def uninstall_agent_unit_files(self, stdout=False):
+    def uninstall_agent(self, stdout=False):
         """
         Uninstall Dynamite Agent systemd services 
         """
@@ -403,7 +431,7 @@ class dynctl:
         if self.dynamite_running:
             self.stop_agent()
         self.disable_agent()
-        for sfile in self.AGENT_UNITS:
+        for sfile in self.ROLE_SVCS['agent']:
             try:
                 os.remove(os.path.join(self.UNIT_FILE_DIR, sfile))
             except Exception as e:

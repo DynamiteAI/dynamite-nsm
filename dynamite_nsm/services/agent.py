@@ -6,7 +6,7 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.helpers import pf_ring
 from dynamite_nsm.services import filebeat, zeek, suricata
-from systemd.systemd import dynctl
+from dynamite_nsm.services.systemd.systemd import dynctl
 
 
 def is_agent_environment_prepared():
@@ -96,7 +96,7 @@ def install_agent(network_interface, agent_label, logstash_target, verbose=False
     if zeek_post_install_profiler.is_installed and filebeat_post_install_profiler.is_installed:
         if suricata_post_profiler.is_installed:
             dc = dynctl()
-            if dc.install_agent_unit_files():
+            if dc.install_agent():
                 sys.stdout.write('[+] Agent installation complete. Start the agent: \'dynamite start agent\'.\n')
                 sys.stdout.flush()
                 return True
@@ -254,7 +254,7 @@ def uninstall_agent(prompt_user=True):
                 return False
 
     dc = dynctl()
-    dc.uninstall_agent_unit_files()
+    dc.uninstall_agent()
 
     if pf_profiler.is_installed:
         shutil.rmtree(environment_variables.get('PF_RING_HOME'))

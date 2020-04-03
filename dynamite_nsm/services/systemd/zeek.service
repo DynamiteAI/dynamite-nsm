@@ -4,7 +4,7 @@ After=network.target
 PartOf=dynamite.target
 
 [Service]
-ExecStartPre=-/opt/dynamite/zeek/bin/broctl cleanup
+ExecStartPre=/opt/dynamite/zeek/bin/broctl cleanup
 ExecStartPre=/opt/dynamite/zeek/bin/broctl check
 ExecStartPre=/opt/dynamite/zeek/bin/broctl install
 ExecStart=/opt/dynamite/zeek/bin/broctl start
