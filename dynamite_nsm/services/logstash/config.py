@@ -177,7 +177,7 @@ class ConfigManager:
             int(time.time())
         ))
         try:
-            os.makedirs(backup_configurations, exist_ok=True)
+            utilities.makedirs(backup_configurations, exist_ok=True)
         except Exception as e:
             raise general_exceptions.WriteJavaConfigError(
                 "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
@@ -218,7 +218,7 @@ class ConfigManager:
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         logstash_config_backup = os.path.join(backup_configurations, 'logstash.yml.backup.{}'.format(timestamp))
         try:
-            os.makedirs(backup_configurations, exist_ok=True)
+            utilities.makedirs(backup_configurations, exist_ok=True)
         except Exception as e:
             raise logstash_exceptions.WriteLogstashConfigError(
                 "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))

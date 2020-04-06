@@ -282,6 +282,14 @@ def is_root():
     return os.getuid() == 0
 
 
+def makedirs(path, exist_ok=True):
+    if exist_ok:
+        if not os.path.exists(path):
+            os.makedirs(path)
+    else:
+        os.makedirs(path)
+
+
 def print_dynamite_logo():
     """
     Print the dynamite logo!

@@ -80,3 +80,29 @@ class UninstallError(Exception):
         """
         msg = "An error occurred while attempting to uninstall component: {}".format(message)
         super(UninstallError, self).__init__(msg)
+
+
+class InvalidOsPackageManagerDetectedError(Exception):
+    def __init__(self):
+        msg = "Did not detect a valid OS package manager; currently APT-GET & YUM are supported."
+        super(InvalidOsPackageManagerDetectedError, self).__init__(msg)
+
+
+class OsPackageManagerInstallError(Exception):
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while attempting to install an OS package: {}".format(message)
+        super(OsPackageManagerInstallError, self).__init__(msg)
+
+
+class OsPackageManagerRefreshError(Exception):
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while attempting to refresh packages: {}".format(message)
+        super(OsPackageManagerRefreshError, self).__init__(msg)

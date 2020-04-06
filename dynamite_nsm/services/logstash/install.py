@@ -122,10 +122,10 @@ class InstallManager:
         if self.stdout:
             sys.stdout.write('[+] Creating logstash install|configuration|logging directories.\n')
         try:
-            os.makedirs(self.install_directory, exist_ok=True)
-            os.makedirs(self.configuration_directory, exist_ok=True)
-            os.makedirs(self.log_directory, exist_ok=True)
-            os.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
+            utilities.makedirs(self.install_directory, exist_ok=True)
+            utilities.makedirs(self.configuration_directory, exist_ok=True)
+            utilities.makedirs(self.log_directory, exist_ok=True)
+            utilities.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
         except Exception as e:
             raise logstash_exceptions.InstallLogstashError(
                 "Failed to create required directory structure; {}".format(e))
@@ -276,12 +276,13 @@ class InstallManager:
         """
         url = None
         try:
-            for url in open(const.LOGSTASH_MIRRORS, 'r').readlines():
-                if utilities.download_file(url, const.LOGSTASH_ARCHIVE_NAME, stdout=stdout):
-                    break
+            with open(const.LOGSTASH_MIRRORS, 'r') as ls_archive:
+                for url in ls_archive.readlines():
+                    if utilities.download_file(url, const.LOGSTASH_ARCHIVE_NAME, stdout=stdout):
+                        break
         except Exception as e:
             raise logstash_exceptions.InstallLogstashError(
-                "General error while downloading elasticsearch from {}; {}".format(url, e))
+                "General error while downloading logstash from {}; {}".format(url, e))
 
     @staticmethod
     def extract_logstash(stdout=False):
@@ -371,9 +372,13 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
                                   verbose=verbose
                                   )
     if install_jdk:
-        utilities.download_java(stdout=stdout)
-        utilities.extract_java(stdout=stdout)
-        utilities.setup_java()
+        try:
+            utilities.download_java(stdout=stdout)
+            utilities.extract_java(stdout=stdout)
+            utilities.setup_java()
+        except Exception as e:
+            raise logstash_exceptions.InstallLogstashError(
+                "General error occurred while attempting to setup Java; {}".format(e))
     if create_dynamite_user:
         utilities.create_dynamite_user(utilities.generate_random_password(50))
     ls_installer.setup_logstash()

@@ -233,7 +233,7 @@ class ConfigManager:
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
         try:
-            os.makedirs(backup_configurations, exist_ok=True)
+            utilities.makedirs(backup_configurations, exist_ok=True)
         except Exception as e:
             raise suricata_exceptions.WriteSuricataConfigError(
                 "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))

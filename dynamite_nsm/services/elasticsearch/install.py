@@ -110,10 +110,10 @@ class InstallManager:
         if self.stdout:
             sys.stdout.write('[+] Creating elasticsearch install|configuration|logging directories.\n')
         try:
-            os.makedirs(self.install_directory, exist_ok=True)
-            os.makedirs(self.configuration_directory, exist_ok=True)
-            os.makedirs(self.log_directory, exist_ok=True)
-            os.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
+            utilities.makedirs(self.install_directory, exist_ok=True)
+            utilities.makedirs(self.configuration_directory, exist_ok=True)
+            utilities.makedirs(self.log_directory, exist_ok=True)
+            utilities.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
         except Exception as e:
             raise elastic_exceptions.InstallElasticsearchError(
                 "Failed to create required directory structure; {}".format(e))
@@ -145,7 +145,13 @@ class InstallManager:
             sys.stdout.write('[+] Overwriting default configuration.\n')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'elasticsearch', 'elasticsearch.yml'),
                     self.configuration_directory)
-        es_config = elastic_configs.ConfigManager(configuration_directory=self.configuration_directory)
+        try:
+            es_config = elastic_configs.ConfigManager(configuration_directory=self.configuration_directory)
+        except elastic_exceptions.ReadElasticConfigError:
+            raise elastic_exceptions.InstallElasticsearchError("Failed to read elasticsearch config.")
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while reading elasticsearch configs; {}".format(e))
         if self.stdout:
             sys.stdout.write('[+] Setting up JVM default heap settings [{}GB]\n'.format(self.heap_size_gigs))
         es_config.java_initial_memory = int(self.heap_size_gigs)
@@ -183,9 +189,10 @@ class InstallManager:
         """
         url = None
         try:
-            for url in open(const.ELASTICSEARCH_MIRRORS, 'r').readlines():
-                if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
-                    break
+            with open(const.ELASTICSEARCH_MIRRORS, 'r') as es_archive:
+                for url in es_archive.readlines():
+                    if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
+                        break
         except Exception as e:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error while downloading elasticsearch from {}; {}".format(url, e))
@@ -255,7 +262,7 @@ class InstallManager:
         sys.stdout.write('[+] Creating certificate keystore\n')
         es_config_path = os.path.join(self.configuration_directory, 'config')
         try:
-            os.makedirs(es_config_path, exist_ok=True)
+            utilities.makedirs(es_config_path, exist_ok=True)
         except Exception as e:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error occurred while attempting to create {} directory; {}".format(es_config_path, e))
@@ -343,16 +350,20 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
                                   download_elasticsearch_archive=not es_profiler.is_downloaded,
                                   stdout=stdout, verbose=verbose)
     if install_jdk:
-        utilities.download_java(stdout=stdout)
-        utilities.extract_java(stdout=stdout)
-        utilities.setup_java()
+        try:
+            utilities.download_java(stdout=stdout)
+            utilities.extract_java(stdout=stdout)
+            utilities.setup_java()
+        except Exception as e:
+            raise elastic_exceptions.InstallElasticsearchError(
+                "General error occurred while attempting to setup Java; {}".format(e))
     if create_dynamite_user:
         utilities.create_dynamite_user(utilities.generate_random_password(50))
     es_installer.setup_elasticsearch()
     if stdout:
         sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
         sys.stdout.write('[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
-    sys.stdout.flush()
+        sys.stdout.flush()
 
 
 def uninstall_elasticsearch(stdout=False, prompt_user=True):

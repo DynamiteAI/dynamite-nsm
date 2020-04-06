@@ -8,13 +8,16 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 
+from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.zeek.pf_ring import exceptions as pf_ring_exceptions
+
 
 class InstallManager:
     """
     An interface for installing PF_RING kernel module and UserLand requirements
     """
 
-    def __init__(self, install_directory, downlaod_pf_ring_archive=True, stdout=True, verbose=False):
+    def __init__(self, install_directory, download_pf_ring_archive=True, stdout=True, verbose=False):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/pf_ring/)
         :param verbose: Include output from system utilities
@@ -23,11 +26,11 @@ class InstallManager:
         self.stdout = stdout
         self.verbose = verbose
 
-        if downlaod_pf_ring_archive:
+        if download_pf_ring_archive:
             self.download_pf_ring(stdout=stdout)
             self.extract_pf_ring(stdout=stdout)
         if not self.install_dependencies(verbose=verbose):
-            raise Exception('Could not install PF_RING dependencies.')
+            raise pf_ring_exceptions.InstallPfringError('Could not install PF_RING dependencies.')
 
     def _compile_pf_ring_modules(self):
         if self.stdout:
@@ -35,79 +38,143 @@ class InstallManager:
             sys.stdout.flush()
             time.sleep(1)
         if self.verbose:
-            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
-                            shell=True)
+            config_userland_p = subprocess.Popen(
+                './configure --prefix={} && make install'.format(self.install_directory),
+                cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
+                shell=True)
         else:
-            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
-                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            config_userland_p = subprocess.Popen(
+                './configure --prefix={} && make install'.format(self.install_directory),
+                cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'lib'),
+                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            config_userland_p.communicate()
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error occurred while starting PF_RING USERLAND configuration; {}".format(e))
+        if config_userland_p.returncode != 0:
+            raise pf_ring_exceptions.InstallPfringError(
+                "PF_RING USERLAND configuration returned non-zero; exit-code: {}".format(config_userland_p.returncode))
+
         if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [libpcap].\n')
             sys.stdout.flush()
             time.sleep(1)
         if self.verbose:
-            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
-                            shell=True)
+            config_libpcap_p = subprocess.Popen(
+                './configure --prefix={} && make install'.format(self.install_directory),
+                cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
+                shell=True)
         else:
-            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
-                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            config_libpcap_p = subprocess.Popen(
+                './configure --prefix={} && make install'.format(self.install_directory),
+                cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'libpcap'),
+                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            config_libpcap_p.communicate()
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error occurred while starting PF_RING LIBPCAP configuration; {}".format(e))
+        if config_libpcap_p.returncode != 0:
+            raise pf_ring_exceptions.InstallPfringError(
+                "PF_RING LIBPCAP configuration returned non-zero; exit-code: {}".format(config_userland_p.returncode))
         if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [tcpdump].\n')
             sys.stdout.flush()
             time.sleep(1)
         if self.verbose:
-            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
-                            shell=True)
+            config_tcpdump_p = subprocess.Popen(
+                './configure --prefix={} && make install'.format(self.install_directory),
+                cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
+                shell=True)
         else:
-            subprocess.call('./configure --prefix={} && make install'.format(self.install_directory),
-                            cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
-                            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            config_tcpdump_p = subprocess.Popen(
+                './configure --prefix={} && make install'.format(self.install_directory),
+                cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'userland', 'tcpdump'),
+                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            config_tcpdump_p.communicate()
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error occurred while starting PF_RING TCPDUMP configuration; {}".format(e))
+
+        if config_tcpdump_p.returncode != 0:
+            raise pf_ring_exceptions.InstallPfringError(
+                "PF_RING TCPDUMP configuration returned non-zero; exit-code: {}".format(config_userland_p.returncode))
         if self.stdout:
             sys.stdout.write('[+] Compiling PF_RING from source [KERNEL].\n')
             sys.stdout.flush()
             time.sleep(2)
         if self.verbose:
-            subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
-                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'))
+            compile_p = subprocess.Popen('make && make install', shell=True,
+                                         cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'kernel'))
         else:
-            subprocess.call('make && make install', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
-                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.call('modprobe pf_ring min_num_slots=32768', shell=True, cwd=os.path.join(const.INSTALL_CACHE,
-                                                                             const.PF_RING_DIRECTORY_NAME, 'kernel'))
+            compile_p = subprocess.Popen('make && make install', shell=True,
+                                         cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'kernel'),
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            compile_p.communicate()
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error occurred while compiling PF_RING; {}".format(e))
+        if compile_p.returncode != 0:
+            raise pf_ring_exceptions.InstallPfringError(
+                "PF_RING compile process returned non-zero; exit-code: {}".format(config_userland_p.returncode))
+
+        mod_probe_p = subprocess.Popen('modprobe pf_ring min_num_slots=32768 enable_tx_capture=0', shell=True,
+                                       cwd=os.path.join(const.INSTALL_CACHE, const.PF_RING_DIRECTORY_NAME, 'kernel'))
+        try:
+            mod_probe_p.communicate()
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error occurred while enabling PF_RING kernel modules; {}".format(e))
 
     def _create_pf_ring_environment_variables(self):
-        if 'PF_RING_HOME' not in open('/etc/dynamite/environment').read():
-            if self.stdout:
-                sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
-                    self.install_directory))
-            subprocess.call('echo PF_RING_HOME="{}" >> /etc/dynamite/environment'.format(self.install_directory),
-                            shell=True)
+        env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        with open(env_file) as env_f:
+            if 'PF_RING_HOME' not in env_f.read():
+                if self.stdout:
+                    sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
+                        self.install_directory))
+                subprocess.call('echo PF_RING_HOME="{}" >> {}'.format(self.install_directory, env_file),
+                                shell=True)
 
     @staticmethod
     def _setup_pf_ring_kernel_modules(stdout=False):
         try:
-            if 'pf_ring' not in open('/etc/modules').read():
-                if stdout:
-                    sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
-                subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
+            with open('/etc/modules') as modules_f:
+                if 'pf_ring' not in modules_f.read():
+                    if stdout:
+                        sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
+                    subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
         except IOError:
-            if os.path.exists('/etc/modules-load.d'):
+            if os.path.exists('/etc/modules-load.d') and os.path.exists('/etc/modprobe.d'):
                 pf_ring_module_found = False
+                pf_ring_mod_opts_found = False
                 for mod_conf in os.listdir('/etc/modules-load.d/'):
                     mod_conf_path = os.path.join('/etc/modules-load.d', mod_conf)
-                    if 'pf_ring' in open(mod_conf_path).read():
-                        pf_ring_module_found = True
-                        break
+                    with open(mod_conf_path) as mod_conf_f:
+                        if 'pf_ring' in mod_conf_f.read():
+                            pf_ring_module_found = True
+                            break
+                for mod_opt in os.listdir('/etc/modprobe.d'):
+                    mod_opt_path = os.path.join('/etc/modprobe.d', mod_opt)
+                    with open(mod_opt_path) as mod_opt_f:
+                        if 'options pf_ring' in mod_opt_f.read():
+                            pf_ring_mod_opts_found = True
+                            break
                 if not pf_ring_module_found:
-                    subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules-load.d/pf_ring.conf', shell=True)
+                    subprocess.call('echo "pf_ring" >> /etc/modules-load.d/pf_ring.conf', shell=True)
+                if not pf_ring_mod_opts_found:
+                    subprocess.call(
+                        'echo "options pf_ring min_num_slots=32768 enable_tx_capture=0" >> '
+                        '/etc/modprobe.d/pf_ring.conf',
+                        shell=True)
             else:
-                sys.stderr.write('[-] Could not determine a method to enable pf_ring kernel module. '
+                sys.stderr.write('[-] Could not determine a method to enable pf_ring KERNEL module. '
                                  'You must enable manually using a tool such as \'modprobe\'.\n')
+                raise pf_ring_exceptions.InstallPfringError(
+                    "Could not determine a method to enable pf_ring KERNEL module.")
 
     @staticmethod
     def download_pf_ring(stdout=False):
@@ -116,9 +183,15 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
-        for url in open(const.PF_RING_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.PF_RING_ARCHIVE_NAME, stdout=stdout):
-                break
+        url = None
+        try:
+            with open(const.PF_RING_MIRRORS, 'r') as pfring_archive_f:
+                for url in pfring_archive_f.readlines():
+                    if utilities.download_file(url, const.PF_RING_ARCHIVE_NAME, stdout=stdout):
+                        break
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error while downloading PF_RING from {}; {}".format(url, e))
 
     @staticmethod
     def extract_pf_ring(stdout=False):
@@ -136,6 +209,11 @@ class InstallManager:
             sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+            raise pf_ring_exceptions.InstallPfringError(
+                "Could not extract PF_RING archive to {}; {}".format(const.INSTALL_CACHE, e))
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error while attempting to extract PF_RING archive; {}".format(e))
 
     @staticmethod
     def install_dependencies(stdout=False, verbose=False):
@@ -144,13 +222,11 @@ class InstallManager:
 
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
-        :return: True, if packages were successfully installed
         """
-        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
-        if stdout:
-            sys.stdout.write('[+] Updating Package Indexes.\n')
-            sys.stdout.flush()
-        pkt_mng.refresh_package_indexes()
+        try:
+            pkt_mng = package_manager.OSPackageManager(verbose=verbose)
+        except general_exceptions.InvalidOsPackageManagerDetectedError:
+            raise pf_ring_exceptions.InstallPfringError("No valid OS package manager detected.")
         packages = None
         if stdout:
             sys.stdout.write('[+] Installing dependencies.\n')
@@ -159,12 +235,17 @@ class InstallManager:
             packages = ['make', 'gcc', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
             packages = ['make', 'gcc', 'kernel-devel-$(uname -r)']
-        if packages:
-            return pkt_mng.install_packages(packages)
-        else:
-            sys.stderr.write('[-] A valid package manager could not be found. Currently supports only YUM '
-                             'and apt-get.\n')
-            return False
+        try:
+            if stdout:
+                sys.stdout.write('[+] Updating Package Indexes.\n')
+                sys.stdout.flush()
+            pkt_mng.refresh_package_indexes()
+            if stdout:
+                sys.stdout.write('[+] Installing the following packages: {}.\n'.format(packages))
+                sys.stdout.flush()
+            pkt_mng.install_packages(packages)
+        except general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError:
+            raise pf_ring_exceptions.InstallPfringError("Failed to install one or more packages; {}".format(packages))
 
     def setup_pf_ring(self):
         """

@@ -2,6 +2,7 @@ import os
 import shutil
 import unittest
 
+from dynamite_nsm import utilities
 from dynamite_nsm.services.logstash import config
 
 
@@ -35,7 +36,7 @@ class Tests(unittest.TestCase):
         self.config_directory = os.path.join(self.config_root, 'logstash')
 
         # Setup Test Space
-        os.makedirs(self.config_directory, exist_ok=True)
+        utilities.makedirs(self.config_directory, exist_ok=True)
         create_dummy_logstashyaml(self.config_directory)
         create_dummy_javaopts(self.config_directory)
 

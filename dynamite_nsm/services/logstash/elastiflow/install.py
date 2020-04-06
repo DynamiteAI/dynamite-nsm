@@ -49,7 +49,7 @@ class InstallManager:
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         if stdout:
             sys.stdout.write('[+] Creating elastiflow install|configuration directories.\n')
-        os.makedirs(self.install_directory, exist_ok=True)
+        utilities.makedirs(self.install_directory, exist_ok=True)
         if stdout:
             sys.stdout.write('[+] Copying elastiflow configurations\n')
         utilities.copytree(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'zeek'),

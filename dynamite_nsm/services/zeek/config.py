@@ -114,7 +114,7 @@ class ScriptConfigManager:
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         zeek_config_backup = os.path.join(backup_configurations, 'local.bro.backup.{}'.format(timestamp))
         try:
-            os.makedirs(backup_configurations, exist_ok=True)
+            utilities.makedirs(backup_configurations, exist_ok=True)
         except Exception as e:
             raise zeek_exceptions.WriteZeekConfigError(
                 "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))

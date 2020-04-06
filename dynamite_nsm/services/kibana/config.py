@@ -170,7 +170,7 @@ class ConfigManager:
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
         filebeat_config_backup = os.path.join(backup_configurations, 'kibana.yml.backup.{}'.format(timestamp))
         try:
-            os.makedirs(backup_configurations, exist_ok=True)
+            utilities.makedirs(backup_configurations, exist_ok=True)
         except Exception as e:
             raise kibana_exceptions.WriteKibanaConfigError(
                 "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))

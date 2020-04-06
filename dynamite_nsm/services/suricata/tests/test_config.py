@@ -2,6 +2,7 @@ import os
 import shutil
 import unittest
 
+from dynamite_nsm import utilities
 from dynamite_nsm.services.suricata import config
 from dynamite_nsm.services.suricata.tests import data
 
@@ -20,7 +21,7 @@ class Tests(unittest.TestCase):
         self.config_directory = os.path.join(self.config_root, 'suricata')
 
         # Setup Test Space
-        os.makedirs(self.config_directory, exist_ok=True)
+        utilities.makedirs(self.config_directory, exist_ok=True)
         create_dummy_suricatayaml(self.config_directory)
 
         self.config_manager = config.ConfigManager(configuration_directory=self.config_directory)

@@ -90,3 +90,29 @@ class ZeekWorkerNotFoundError(Exception):
         """
         msg = "Zeek interface does not exist: {}".format(worker_name)
         super(ZeekWorkerNotFoundError, self).__init__(msg)
+        
+
+class InstallZeekError(exceptions.InstallError):
+    """
+    Thrown when Zeek fails to install
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while installing Zeek: {}".format(message)
+        super(InstallZeekError, self).__init__(msg)
+
+
+class UninstallZeekError(exceptions.UninstallError):
+    """
+    Thrown when Zeek fails to uninstall
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while uninstalling Zeek: {}".format(message)
+        super(UninstallZeekError, self).__init__(msg)

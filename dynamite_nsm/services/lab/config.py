@@ -40,7 +40,8 @@ class ConfigManager:
         :return: A dictionary representing the configurations stored within node.cfg
         """
         config_parser = ConfigParser()
-        config_parser.readfp(open(os.path.join(self.configuration_directory, 'config.cfg')))
+        with open(os.path.join(self.configuration_directory, 'config.cfg')) as configfile:
+            config_parser.readfp(configfile)
         for section in config_parser.sections():
             for item in config_parser.items(section):
                 key, value = item

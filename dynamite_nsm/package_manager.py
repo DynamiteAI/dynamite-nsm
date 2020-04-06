@@ -1,4 +1,5 @@
 import subprocess
+from dynamite_nsm import exceptions as general_exceptions
 
 
 class OSPackageManager:
@@ -6,6 +7,7 @@ class OSPackageManager:
     Interface for interacting with the operating systems package manager system
     Currently supports YUM/apt-get
     """
+
     def __init__(self, verbose=False):
         self.package_manager = self.detect_package_manager(verbose=verbose)
         self.verbose = verbose
@@ -20,16 +22,19 @@ class OSPackageManager:
             apt_get_p = subprocess.Popen('apt-get -h &> /dev/null', shell=True)
         else:
             apt_get_p = subprocess.Popen('apt-get -h &> /dev/null', shell=True,
-                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         apt_get_p.communicate()
-        yum_p = subprocess.Popen('yum -h &> /dev/null', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if verbose:
+            yum_p = subprocess.Popen('yum -h &> /dev/null', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+            yum_p = subprocess.Popen('yum -h &> /dev/null', shell=True)
         yum_p.communicate()
         if apt_get_p.returncode == 0:
             return 'apt-get'
         elif yum_p.returncode == 0:
             return 'yum'
         else:
-            return None
+            raise general_exceptions.InvalidOsPackageManagerDetectedError()
 
     def install_packages(self, packages):
         """
@@ -42,12 +47,14 @@ class OSPackageManager:
             return False
         if self.verbose:
             p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
-                             shell=True)
+                                 shell=True)
         else:
             p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
-                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                 shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
-        return p.returncode == 0
+        if p.returncode != 0:
+            raise general_exceptions.OsPackageManagerInstallError(
+                "OS package manager exited with {}; One or more packages was not installed".format(p.returncode))
 
     def refresh_package_indexes(self):
         """
@@ -64,6 +71,8 @@ class OSPackageManager:
             p = subprocess.Popen('{} {} &> /dev/null'.format(self.package_manager, params), shell=True)
         else:
             p = subprocess.Popen('{} {} &> /dev/null'.format(self.package_manager, params), shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
-        return p.returncode == 0 or p.returncode == 100
+        if p.returncode not in [0, 100]:
+            raise general_exceptions.OsPackageManagerRefreshError(
+                "OS package manager was unable to update; exited with {}".format(p.returncode))

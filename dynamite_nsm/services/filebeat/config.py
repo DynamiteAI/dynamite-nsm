@@ -8,6 +8,7 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+from dynamite_nsm import utilities
 from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
@@ -152,7 +153,7 @@ class ConfigManager:
         backup_configurations = os.path.join(self.install_directory, 'config_backups/')
         filebeat_config_backup = os.path.join(backup_configurations, 'filebeat.yml.backup.{}'.format(timestamp))
         try:
-            os.makedirs(backup_configurations, exist_ok=True)
+            utilities.makedirs(backup_configurations, exist_ok=True)
         except Exception as e:
             raise filebeat_exceptions.WriteFilebeatConfigError(
                 "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
