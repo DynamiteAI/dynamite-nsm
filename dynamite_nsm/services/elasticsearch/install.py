@@ -3,7 +3,6 @@ import sys
 import time
 import shutil
 import tarfile
-import traceback
 import subprocess
 
 try:
@@ -20,6 +19,7 @@ except Exception:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.elasticsearch import config as elastic_configs
 from dynamite_nsm.services.elasticsearch import process as elastic_process
 from dynamite_nsm.services.elasticsearch import profile as elastic_profile
@@ -57,8 +57,11 @@ class InstallManager:
         self.stdout = stdout
         self.verbose = verbose
         if download_elasticsearch_archive:
-            self.download_elasticsearch(stdout=stdout)
-            self.extract_elasticsearch(stdout=stdout)
+            try:
+                self.download_elasticsearch(stdout=stdout)
+                self.extract_elasticsearch(stdout=stdout)
+            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+                raise elastic_exceptions.InstallElasticsearchError("Failed to download/extract Elasticsearch archive.")
 
     def _copy_elasticsearch_files_and_directories(self):
         config_paths = [
@@ -84,7 +87,6 @@ class InstallManager:
                     shutil.copy(
                         os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                         self.configuration_directory)
-
                 except shutil.Error as e:
                     sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         except Exception as e:
@@ -122,13 +124,14 @@ class InstallManager:
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         try:
             with open(env_file) as env_f:
-                if 'ES_PATH_CONF' not in env_f.read():
+                env_str = env_f.read()
+                if 'ES_PATH_CONF' not in env_str:
                     if stdout:
                         sys.stdout.write('[+] Updating ElasticSearch default configuration path [{}]\n'.format(
                             self.configuration_directory))
                     subprocess.call('echo ES_PATH_CONF="{}" >> {}'.format(self.configuration_directory, env_file),
                                     shell=True)
-                if 'ES_HOME' not in env_f.read():
+                if 'ES_HOME' not in env_str:
                     if stdout:
                         sys.stdout.write('[+] Updating ElasticSearch default home path [{}]\n'.format(
                             self.install_directory))
@@ -194,7 +197,7 @@ class InstallManager:
                     if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
                         break
         except Exception as e:
-            raise elastic_exceptions.InstallElasticsearchError(
+            raise general_exceptions.DownloadError(
                 "General error while downloading elasticsearch from {}; {}".format(url, e))
 
     @staticmethod
@@ -214,10 +217,10 @@ class InstallManager:
                 sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-            raise elastic_exceptions.InstallElasticsearchError(
+            raise general_exceptions.ArchiveExtractionError(
                 "Could not extract elasticsearch archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
-            raise elastic_exceptions.InstallElasticsearchError(
+            raise general_exceptions.ArchiveExtractionError(
                 "General error while attempting to extract elasticsearch archive; {}".format(e))
 
     def setup_elasticsearch(self):
@@ -231,9 +234,9 @@ class InstallManager:
         self._setup_default_elasticsearch_configs()
         self._update_sysctl()
         try:
-            utilities.set_ownership_of_file(const.CONFIG_PATH, user='dynamite', group='dynamite')
-            utilities.set_ownership_of_file(const.BIN_PATH, user='dynamite', group='dynamite')
-            utilities.set_ownership_of_file(const.LOG_PATH, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
         except Exception as e:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))

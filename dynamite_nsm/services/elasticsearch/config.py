@@ -79,6 +79,7 @@ class ConfigManager:
             :param data: The parsed yaml object
             :return: True if successfully located
             """
+
             if variable_name not in self.tokens.keys():
                 return False
             key_path = self.tokens[variable_name]
@@ -107,8 +108,8 @@ class ConfigManager:
     def _parse_jvm_options(self):
         """
         Parses the initial and max heap allocation from jvm.options configuration
-        :return: A dictionary containing the initial_memory and maximum_memory allocated to JVM heap
         """
+
         config_path = os.path.join(self.configuration_directory, 'jvm.options')
         try:
             with open(config_path) as config_f:
@@ -128,6 +129,7 @@ class ConfigManager:
         Parses the /etc/dynamite/environment file and returns results for JAVA_HOME, ES_PATH_CONF, ES_HOME;
         stores the results in class variables of the same name
         """
+
         env_path = os.path.join(const.CONFIG_PATH, 'environment')
         try:
             with open(env_path) as env_f:
@@ -148,6 +150,7 @@ class ConfigManager:
         """
         Overwrites the JVM initial/max memory if settings were updated
         """
+
         new_output = ''
         jvm_options_path = os.path.join(self.configuration_directory, 'jvm.options')
         try:
@@ -199,8 +202,8 @@ class ConfigManager:
             :param path: A tuple representing each level of a nested path in the yaml document
                         ('vars', 'address-groups', 'HOME_NET') = /vars/address-groups/HOME_NET
             :param value: The new value
-            :return: None
             """
+
             partial_config_data = self.config_data
             for i in range(0, len(path) - 1):
                 try:
@@ -242,6 +245,7 @@ class ConfigManager:
         """
         Writes both the JVM and elasticsearch.yml configurations, backs up originals
         """
+
         self.write_elasticsearch_config()
         self.write_jvm_config()
 
@@ -301,6 +305,7 @@ class PasswordConfigManager:
         :param new_password: The new password
         :param stdout: Print status to stdout
         """
+
         self._set_user_password('apm_system', new_password, stdout=stdout)
 
     def set_beats_password(self, new_password, stdout=False):
@@ -310,6 +315,7 @@ class PasswordConfigManager:
         :param new_password: The new password
         :param stdout: Print status to stdout
         """
+
         self._set_user_password('beats_system', new_password, stdout=stdout)
 
     def set_elastic_password(self, new_password, stdout=False):
@@ -319,6 +325,7 @@ class PasswordConfigManager:
         :param new_password: The new password
         :param stdout: Print status to stdout
         """
+
         self._set_user_password('elastic', new_password, stdout=stdout)
 
     def set_kibana_password(self, new_password, stdout=False):
@@ -328,6 +335,7 @@ class PasswordConfigManager:
         :param new_password: The new password
         :param stdout: Print status to stdout
         """
+
         self._set_user_password('kibana', new_password, stdout=stdout)
 
     def set_logstash_system_password(self, new_password, stdout=False):
@@ -337,6 +345,7 @@ class PasswordConfigManager:
         :param new_password: The new password
         :param stdout: Print status to stdout
         """
+
         self._set_user_password('logstash_system', new_password, stdout=stdout)
 
     def set_remote_monitoring_password(self, new_password, stdout=False):
@@ -346,6 +355,7 @@ class PasswordConfigManager:
         :param new_password: The new password
         :param stdout: Print status to stdout
         """
+
         self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
 
     def set_all_passwords(self, new_password, stdout=False):
@@ -355,6 +365,7 @@ class PasswordConfigManager:
         :param new_password: The new password
         :param stdout: Print status to stdout
         """
+
         self.set_apm_system_password(new_password, stdout=stdout)
         self.set_remote_monitoring_password(new_password, stdout=stdout)
         self.set_logstash_system_password(new_password, stdout=stdout)
@@ -371,6 +382,7 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=Fals
     :param password: The new Elasticsearch password
     :param stdout: Print status to stdout
     """
+
     from dynamite_nsm.services.elasticsearch import process as elastic_process
     from dynamite_nsm.services.elasticsearch import profile as elastic_profile
 

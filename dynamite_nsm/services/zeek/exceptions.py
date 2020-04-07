@@ -34,7 +34,7 @@ class ZeekScriptNotFoundError(Exception):
 
     def __init__(self, rule):
         """
-        :param message: A suricata rule
+        :param rule: A suricata rule
         """
         msg = "Zeek script does not exist: {}".format(rule)
         super(ZeekScriptNotFoundError, self).__init__(msg)
@@ -73,7 +73,7 @@ class ZeekProxyNotFoundError(Exception):
 
     def __init__(self, proxy_name):
         """
-        :param manager_name: The name of the zeek proxy
+        :param proxy_name: The name of the zeek proxy
         """
         msg = "Zeek proxy does not exist: {}".format(proxy_name)
         super(ZeekProxyNotFoundError, self).__init__(msg)

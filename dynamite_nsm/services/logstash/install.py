@@ -2,7 +2,6 @@ import os
 import sys
 import shutil
 import tarfile
-import traceback
 import subprocess
 
 try:
@@ -64,8 +63,11 @@ class InstallManager:
         self.stdout = stdout
         self.verbose = verbose
         if download_logstash_archive:
-            self.download_logstash(stdout=stdout)
-            self.extract_logstash(stdout=stdout)
+            try:
+                self.download_logstash(stdout=stdout)
+                self.extract_logstash(stdout=stdout)
+            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+                raise logstash_exceptions.InstallLogstashError("Failed to download/extract Logstash archive.")
 
     def _copy_logstash_files_and_directories(self):
         if self.stdout:
@@ -134,13 +136,14 @@ class InstallManager:
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         try:
             with open(env_file) as env_f:
-                if 'LS_PATH_CONF' not in env_f.read():
+                env_str = env_f.read()
+                if 'LS_PATH_CONF' not in env_str:
                     if self.stdout:
                         sys.stdout.write('[+] Updating LogStash default configuration path [{}]\n'.format(
                             self.configuration_directory))
                     subprocess.call('echo LS_PATH_CONF="{}" >> {}'.format(self.configuration_directory, env_file),
                                     shell=True)
-                if 'LS_HOME' not in env_f.read():
+                if 'LS_HOME' not in env_str:
                     if self.stdout:
                         sys.stdout.write('[+] Updating LogStash default home path [{}]\n'.format(
                             self.configuration_directory))
@@ -281,7 +284,7 @@ class InstallManager:
                     if utilities.download_file(url, const.LOGSTASH_ARCHIVE_NAME, stdout=stdout):
                         break
         except Exception as e:
-            raise logstash_exceptions.InstallLogstashError(
+            raise general_exceptions.DownloadError(
                 "General error while downloading logstash from {}; {}".format(url, e))
 
     @staticmethod
@@ -301,10 +304,10 @@ class InstallManager:
                 sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-            raise logstash_exceptions.InstallLogstashError(
+            raise general_exceptions.ArchiveExtractionError(
                 "Could not extract logstash archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
-            raise logstash_exceptions.InstallLogstashError(
+            raise general_exceptions.ArchiveExtractionError(
                 "General error while attempting to extract logstash archive; {}".format(e))
 
     def setup_logstash(self):
@@ -327,12 +330,12 @@ class InstallManager:
             raise logstash_exceptions.InstallLogstashError(
                 "General error while copying pipeline.yml file; {}".format(e))
         try:
-            utilities.set_ownership_of_file(const.CONFIG_PATH, user='dynamite', group='dynamite')
-            utilities.set_ownership_of_file(const.BIN_PATH, user='dynamite', group='dynamite')
-            utilities.set_ownership_of_file(const.LOG_PATH, user='dynamite', group='dynamite')
+            utilities.makedirs(self.install_directory, exist_ok=True)
+            utilities.makedirs(self.configuration_directory, exist_ok=True)
+            utilities.makedirs(self.log_directory, exist_ok=True)
         except Exception as e:
             raise logstash_exceptions.InstallLogstashError(
-                "General error occurred while attempting to set permissions on root directories; {}".format(e))
+                "General error occurred while attempting to create root directories; {}".format(e))
 
 
 def install_logstash(configuration_directory, install_directory, log_directory, host='0.0.0.0',

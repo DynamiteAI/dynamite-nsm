@@ -33,9 +33,16 @@ class InstallManager:
         self.stdout = stdout
         self.verbose = verbose
         if download_zeek_archive:
-            self.download_zeek(stdout=stdout)
-            self.extract_zeek(stdout=stdout)
-        self.install_dependencies(verbose=verbose)
+            try:
+                self.download_zeek(stdout=stdout)
+                self.extract_zeek(stdout=stdout)
+            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+                raise zeek_exceptions.InstallZeekError("Failed to download/extract Zeek archive.")
+        try:
+            self.install_dependencies(verbose=verbose)
+        except (general_exceptions.InvalidOsPackageManagerDetectedError,
+                general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
+            raise zeek_exceptions.InstallZeekError("One or more OS dependencies failed to install.")
 
     @staticmethod
     def download_zeek(stdout=False):
@@ -44,6 +51,7 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
+
         url = None
         try:
             with open(const.ZEEK_MIRRORS, 'r') as zeek_archive:
@@ -51,7 +59,7 @@ class InstallManager:
                     if utilities.download_file(url, const.ZEEK_ARCHIVE_NAME, stdout=stdout):
                         break
         except Exception as e:
-            raise zeek_exceptions.InstallZeekError(
+            raise general_exceptions.DownloadError(
                 "General error while downloading Zeek from {}; {}".format(url, e))
 
     @staticmethod
@@ -61,6 +69,7 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
+
         if stdout:
             sys.stdout.write('[+] Extracting: {} \n'.format(const.ZEEK_ARCHIVE_NAME))
         try:
@@ -70,10 +79,10 @@ class InstallManager:
             sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-            raise zeek_exceptions.InstallZeekError(
+            raise general_exceptions.ArchiveExtractionError(
                 "Could not extract Zeek archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
-            raise zeek_exceptions.InstallZeekError(
+            raise general_exceptions.ArchiveExtractionError(
                 "General error while attempting to extract Zeek archive; {}".format(e))
 
     @staticmethod
@@ -84,10 +93,8 @@ class InstallManager:
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
         """
-        try:
-            pkt_mng = package_manager.OSPackageManager(verbose=verbose)
-        except general_exceptions.InvalidOsPackageManagerDetectedError:
-            raise zeek_exceptions.InstallZeekError("No valid OS package manager detected.")
+
+        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
         packages = None
         if pkt_mng.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
@@ -95,17 +102,14 @@ class InstallManager:
         elif pkt_mng.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
                         'python-devel', 'swig', 'zlib-devel']
-        try:
-            if stdout:
-                sys.stdout.write('[+] Updating Package Indexes.\n')
-                sys.stdout.flush()
-            pkt_mng.refresh_package_indexes()
-            if stdout:
-                sys.stdout.write('[+] Installing the following packages: {}.\n'.format(packages))
-                sys.stdout.flush()
-            pkt_mng.install_packages(packages)
-        except general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError:
-            raise zeek_exceptions.InstallZeekError("Failed to install one or more packages; {}".format(packages))
+        if stdout:
+            sys.stdout.write('[+] Updating Package Indexes.\n')
+            sys.stdout.flush()
+        pkt_mng.refresh_package_indexes()
+        if stdout:
+            sys.stdout.write('[+] Installing the following packages: {}.\n'.format(packages))
+            sys.stdout.flush()
+        pkt_mng.install_packages(packages)
 
     def setup_zeek_community_id_script(self):
         bro_commmunity_id_script_path = \
@@ -269,8 +273,8 @@ class InstallManager:
         Setup Zeek NSM with PF_RING support
 
         :param network_interface: The interface to listen on
-        :return: True, if setup successful
         """
+
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         if not network_interface:
             network_interface = utilities.get_network_interface_names()[0]
@@ -278,11 +282,15 @@ class InstallManager:
             sys.stderr.write(
                 '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
                     network_interface, utilities.get_network_interface_names()))
-            raise Exception('Invalid network interface {}'.format(network_interface))
+            raise zeek_exceptions.InstallZeekError('Invalid network interface {}'.format(network_interface))
         if self.stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
-        utilities.makedirs(self.install_directory, exist_ok=True)
-        utilities.makedirs(self.configuration_directory, exist_ok=True)
+        try:
+            utilities.makedirs(self.install_directory, exist_ok=True)
+            utilities.makedirs(self.configuration_directory, exist_ok=True)
+        except Exception as e:
+            raise zeek_exceptions.InstallZeekError(
+                "General error occurred while attempting to create root directories; {}".format(e))
         pf_ring_profiler = pfring_profile.ModuleProfile()
         try:
             pf_ring_install = pfring_install.InstallManager(self.install_directory,
@@ -298,7 +306,7 @@ class InstallManager:
             raise zeek_exceptions.InstallZeekError("PF_RING could not be installed/configured properly.")
         if self.stdout:
             sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. '
-                             'Have another cup of coffee.\n')
+                             'Have a cup of coffee.\n')
             sys.stdout.flush()
             utilities.print_coffee_art()
             time.sleep(1)
@@ -333,21 +341,22 @@ class InstallManager:
             except Exception as e:
                 raise zeek_exceptions.InstallZeekError(
                     "General error occurred while compiling Zeek; {}".format(e))
-            compile_return_code = compile_zeek_process.returncode
+            compile_zeek_return_code = compile_zeek_process.returncode
         else:
             compile_zeek_process = subprocess.Popen('make; make install', shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
                                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
-                compile_return_code = utilities.run_subprocess_with_status(compile_zeek_process, expected_lines=6596)
+                compile_zeek_return_code = utilities.run_subprocess_with_status(compile_zeek_process,
+                                                                                expected_lines=6596)
             except Exception as e:
                 raise zeek_exceptions.InstallZeekError(
                     "General error occurred while compiling Zeek; {}".format(e))
-        if compile_return_code != 0:
+        if compile_zeek_return_code != 0:
             sys.stderr.write('[-] Failed to compile Zeek from source; error code: {}; ; run with '
                              '--debug flag for more info.\n'.format(compile_zeek_process.returncode))
             raise zeek_exceptions.InstallZeekError(
-                "Zeek compilation process returned non-zero; exit-code: {}".format(compile_return_code))
+                "Zeek compilation process returned non-zero; exit-code: {}".format(compile_zeek_return_code))
         try:
             with open(env_file) as env_f:
                 if 'ZEEK_HOME' not in env_f.read():
@@ -400,4 +409,4 @@ class InstallManager:
         try:
             node_config.write_config()
         except zeek_exceptions.WriteZeekConfigError:
-            raise zeek_exceptions.InstallZeekError("An error occured while writing Zeek configurations.")
+            raise zeek_exceptions.InstallZeekError("An error occurred while writing Zeek configurations.")

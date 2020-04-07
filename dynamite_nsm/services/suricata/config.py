@@ -9,6 +9,7 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+from dynamite_nsm import utilities
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
 

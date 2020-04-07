@@ -31,8 +31,6 @@ SURICATA_DIRECTORY_NAME = 'suricata-4.1.4'
 ZEEK_DIRECTORY_NAME = 'bro-2.6.1'
 
 CONFIG_PATH = "/etc/dynamite/"
-BIN_PATH = "/opt/dynamite/"
-LOG_PATH = "/var/log/dynamite/"
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"

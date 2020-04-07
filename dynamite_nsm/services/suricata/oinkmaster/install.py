@@ -10,6 +10,8 @@ except Exception:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
 
 
 class InstallManager:
@@ -17,8 +19,7 @@ class InstallManager:
     An interface for installing OinkMaster Suricata update script
     """
 
-    def __init__(self, install_directory, download_oinkmaster_archive=True,
-                 stdout=True, verbose=False):
+    def __init__(self, install_directory, download_oinkmaster_archive=True, stdout=True, verbose=False):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/oinkmaster/)
         :param download_oinkmaster_archive: If True, download the Oinkmaster archive from a mirror
@@ -29,8 +30,11 @@ class InstallManager:
         self.stdout = stdout
         self.verbose = verbose
         if download_oinkmaster_archive:
-            self.download_oinkmaster(stdout=stdout)
-            self.extract_oinkmaster(stdout=stdout)
+            try:
+                self.download_oinkmaster(stdout=stdout)
+                self.extract_oinkmaster(stdout=stdout)
+            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+                raise oinkmaster_exceptions.InstallOinkmasterError("Failed to download/extract Oinkmaster archive.")
 
     @staticmethod
     def download_oinkmaster(stdout=False):
@@ -39,9 +43,15 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
-        for url in open(const.OINKMASTER_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.OINKMASTER_ARCHIVE_NAME, stdout=stdout):
-                break
+        url = None
+        try:
+            with open(const.OINKMASTER_MIRRORS, 'r') as oinkmaster_archive:
+                for url in oinkmaster_archive.readlines():
+                    if utilities.download_file(url, const.OINKMASTER_ARCHIVE_NAME, stdout=stdout):
+                        break
+        except Exception as e:
+            raise general_exceptions.DownloadError(
+                "General error while downloading Oinkmaster from {}; {}".format(url, e))
 
     @staticmethod
     def extract_oinkmaster(stdout=False):
@@ -59,14 +69,19 @@ class InstallManager:
             sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+            raise general_exceptions.ArchiveExtractionError(
+                "Could not extract Oinkmaster archive to {}; {}".format(const.INSTALL_CACHE, e))
+        except Exception as e:
+            raise general_exceptions.ArchiveExtractionError(
+                "General error while attempting to extract Oinkmaster archive; {}".format(e))
 
     def setup_oinkmaster(self):
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         try:
-            os.mkdir(self.install_directory)
+            utilities.makedirs(self.install_directory, exist_ok=True)
         except Exception as e:
-            if 'exists' not in str(e).lower():
-                return False
+            raise oinkmaster_exceptions.InstallOinkmasterError(
+                "Failed to create required directory structure; {}".format(e))
         if self.stdout:
             sys.stdout.write('[+] Copying oinkmaster files.\n')
         try:
@@ -89,8 +104,8 @@ class InstallManager:
                 f.write('\nurl = http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz')
         except Exception as e:
             sys.stderr.write('[-] Failed to update oinkmaster.conf: {}.\n'.format(e))
-            return False
-        return True
+            raise oinkmaster_exceptions.InstallOinkmasterError(
+                "Failed to update oinkmaster configuration file; {}".format(e))
 
 
 def update_suricata_rules():
@@ -105,4 +120,6 @@ def update_suricata_rules():
     exit_code = subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(
         os.path.join(suricata_config_directory, 'rules')), cwd=oinkmaster_install_directory, shell=True)
     sys.stdout.write('[+] Agent must be restarted for changes to take effect.\n')
-    return exit_code == 0
+    if exit_code != 0:
+        raise oinkmaster_exceptions.UpdateSuricataRulesError(
+            "Oinkmaster returned a non-zero exit-code: {}".format(exit_code))

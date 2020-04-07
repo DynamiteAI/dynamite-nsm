@@ -30,8 +30,8 @@ class ProcessManager:
         """
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "{} {}/bin/elasticsearch '
-                            '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &>/dev/null &"'.format(
-                utilities.get_environment_file_str(), self.config.es_home), shell=True)
+                            '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &>/dev/null &"'
+                            ''.format(utilities.get_environment_file_str(), self.config.es_home), shell=True)
         if not os.path.exists('/var/run/dynamite/elasticsearch/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
         utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')

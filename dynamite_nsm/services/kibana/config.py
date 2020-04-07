@@ -205,7 +205,6 @@ def change_kibana_elasticsearch_password(configuration_directory, password='chan
     :param password: The new Elasticsearch password
     :param prompt_user: If True, warning prompt is displayed before proceeding
     :param stdout: Print status to stdout
-    :return: True, if successful
     """
 
     from dynamite_nsm.services.kibana import process as kibana_process
@@ -219,8 +218,11 @@ def change_kibana_elasticsearch_password(configuration_directory, password='chan
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return False
-    kb_config = ConfigManager(configuration_directory)
-    kb_config.elasticsearch_password = password
-    kb_config.write_config()
+            return
+    try:
+        kb_config = ConfigManager(configuration_directory)
+        kb_config.elasticsearch_password = password
+        kb_config.write_config()
+    except kibana_exceptions.ReadKibanaConfigError, kibana_exceptions.WriteKibanaConfigError:
+        raise general_exceptions.ResetPasswordError("Could not read/write kibana configuration.")
     kibana_process.ProcessManager().restart(stdout=True)

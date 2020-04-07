@@ -51,3 +51,29 @@ class SuricataInterfaceNotFoundError(Exception):
         """
         msg = "Suricata interface does not exist: {}".format(interface)
         super(SuricataInterfaceNotFoundError, self).__init__(msg)
+
+
+class InstallSuricataError(exceptions.InstallError):
+    """
+    Thrown when Suricata fails to install
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while installing Suricata: {}".format(message)
+        super(InstallSuricataError, self).__init__(msg)
+
+
+class UninstallSuricataError(exceptions.UninstallError):
+    """
+    Thrown when Suricata fails to uninstall
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while uninstalling Suricata: {}".format(message)
+        super(UninstallSuricataError, self).__init__(msg)

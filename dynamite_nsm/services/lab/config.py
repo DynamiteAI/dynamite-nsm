@@ -8,6 +8,8 @@ except Exception:
     from configparser import ConfigParser
 
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.lab import exceptions as lab_exceptions
 
 
 class ConfigManager:
@@ -33,20 +35,23 @@ class ConfigManager:
         self.elasticsearch_password = None
         self.timeout = None
         self.max_results = None
-        self.config = self._parse_lab_config()
+        self.config = None
+        self._parse_lab_config()
 
     def _parse_lab_config(self):
-        """
-        :return: A dictionary representing the configurations stored within node.cfg
-        """
         config_parser = ConfigParser()
-        with open(os.path.join(self.configuration_directory, 'config.cfg')) as configfile:
-            config_parser.readfp(configfile)
+        sdk_config_file = os.path.join(self.configuration_directory, 'config.cfg')
+        try:
+            with open(sdk_config_file) as configfile:
+                config_parser.readfp(configfile)
+        except Exception as e:
+            raise lab_exceptions.ReadLabConfigError(
+                "General error occurred while reading SDK config at {}; {}".format(sdk_config_file, e))
         for section in config_parser.sections():
             for item in config_parser.items(section):
                 key, value = item
                 setattr(self, key, value)
-        return config_parser
+        self.config = config_parser
 
     def write_config(self):
         """
@@ -57,8 +62,12 @@ class ConfigManager:
                 continue
             section = self.tokens[k]
             self.config.set(section, k, v)
-        with open(os.path.join(self.configuration_directory, 'config.cfg'), 'w') as configfile:
-            self.config.write(configfile)
+        try:
+            with open(os.path.join(self.configuration_directory, 'config.cfg'), 'w') as configfile:
+                self.config.write(configfile)
+        except Exception as e:
+            raise lab_exceptions.WriteLabConfigError(
+                "General error occurred while writing SDK config to {}; {}".format(self.configuration_directory, e))
 
 
 def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, stdout=False):
@@ -67,8 +76,8 @@ def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, std
     :param password: The password that the SDK will use to connect to ElasticSearch
     :param prompt_user: Whether or not to warn the user
     :param stdout: Print output to console
-    :return: True if changed successfully
     """
+
     environment_variables = utilities.get_environment_file_dict()
     configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
     if prompt_user:
@@ -80,20 +89,21 @@ def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, std
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return False
+            return
     dynamite_lab_config = ConfigManager(configuration_directory=configuration_directory)
-    dynamite_lab_config.elasticsearch_password = password
-    dynamite_lab_config.write_config()
-    return True
+    try:
+        dynamite_lab_config.elasticsearch_password = password
+        dynamite_lab_config.write_config()
+    except lab_exceptions.WriteLabConfigError:
+        raise general_exceptions.ResetPasswordError("Could not write new password to DynamiteSDK config.cfg.")
 
 
 def prompt_password_change_options():
     """
     Provide the user with a choice between changing the jupyter user password (logging into jupyterhub)
     or changing the password that the SDK uses to connect to ElasticSearch.
-
-    :return: True, if successfully changed
     """
+
     resp = utilities.prompt_input(
         '1. Change the password the SDK uses to connect to Elasticsearch.\n'
         '2. Change the password for logging into Jupyterhub (jupyter user).\n\n'
@@ -105,4 +115,3 @@ def prompt_password_change_options():
                                                  prompt_user=False)
     else:
         pty.spawn(['passwd', 'jupyter'])
-    return True

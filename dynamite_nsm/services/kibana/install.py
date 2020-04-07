@@ -52,15 +52,19 @@ class InstallManager:
             if elastic_profile.ProcessProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
             else:
-                raise Exception("ElasticSearch must either be installed locally, or a remote host must be specified.")
+                raise kibana_exceptions.InstallKibanaError(
+                    "ElasticSearch must either be installed locally, or a remote host must be specified.")
         self.install_directory = install_directory
         self.configuration_directory = configuration_directory
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
         if download_kibana_archive:
-            self.download_kibana()
-            self.extract_kibana()
+            try:
+                self.download_kibana()
+                self.extract_kibana()
+            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+                raise kibana_exceptions.InstallKibanaError("Failed to download/extract Kibana archive.")
 
     def _copy_kibana_files_and_directories(self):
         config_paths = [
@@ -249,7 +253,7 @@ class InstallManager:
                     if utilities.download_file(url, const.KIBANA_ARCHIVE_NAME, stdout=stdout):
                         break
         except Exception as e:
-            raise kibana_exceptions.InstallKibanaError(
+            raise general_exceptions.DownloadError(
                 "General error while downloading kibana from {}; {}".format(url, e))
 
     @staticmethod
@@ -269,10 +273,10 @@ class InstallManager:
                 sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-            raise kibana_exceptions.InstallKibanaError(
+            raise general_exceptions.ArchiveExtractionError(
                 "Could not extract kibana archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
-            raise kibana_exceptions.InstallKibanaError(
+            raise general_exceptions.ArchiveExtractionError(
                 "General error while attempting to extract kibana archive; {}".format(e))
 
     def setup_kibana(self):
@@ -294,9 +298,9 @@ class InstallManager:
         self._setup_default_kibana_configs()
         self._install_kibana_objects()
         try:
-            utilities.set_ownership_of_file(const.CONFIG_PATH, user='dynamite', group='dynamite')
-            utilities.set_ownership_of_file(const.BIN_PATH, user='dynamite', group='dynamite')
-            utilities.set_ownership_of_file(const.LOG_PATH, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
         except Exception as e:
             raise kibana_exceptions.InstallKibanaError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
@@ -385,17 +389,19 @@ def uninstall_kibana(configuration_directory, stdout=False, prompt_user=True):
         shutil.rmtree(kb_config.kibana_logs)
         shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
         env_lines = ''
-        for line in open(env_file).readlines():
-            if 'KIBANA_PATH_CONF' in line:
-                continue
-            elif 'KIBANA_HOME' in line:
-                continue
-            elif 'KIBANA_LOGS' in line:
-                continue
-            elif line.strip() == '':
-                continue
-            env_lines += line.strip() + '\n'
-        open(env_file, 'w').write(env_lines)
+        with open(env_file) as env_fr:
+            for line in env_fr.readlines():
+                if 'KIBANA_PATH_CONF' in line:
+                    continue
+                elif 'KIBANA_HOME' in line:
+                    continue
+                elif 'KIBANA_LOGS' in line:
+                    continue
+                elif line.strip() == '':
+                    continue
+                env_lines += line.strip() + '\n'
+        with open(env_file, 'w') as env_fw:
+            env_fw.write(env_lines)
         if stdout:
             sys.stdout.write('[+] Kibana uninstalled successfully.\n')
     except Exception as e:

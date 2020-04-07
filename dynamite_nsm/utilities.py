@@ -93,16 +93,11 @@ def check_user_exists(username):
 
 
 def create_dynamite_environment_file():
-    env_file = open('/etc/dynamite/environment', 'a')
+    env_file = os.path.join(const.CONFIG_PATH, 'environment')
+    env_file = open(env_file, 'a')
     env_file.write('')
     env_file.close()
-    set_permissions_of_file('/etc/dynamite/environment', 700)
-
-
-def create_dynamite_root_directory():
-    subprocess.call('mkdir -p {}'.format(const.BIN_PATH), shell=True)
-    subprocess.call('mkdir -p {}'.format(const.CONFIG_PATH), shell=True)
-    subprocess.call('mkdir -p {}'.format(const.INSTALL_CACHE), shell=True)
+    set_permissions_of_file(env_file, 700)
 
 
 def create_dynamite_user(password):

@@ -1,61 +1,25 @@
-class WriteConfigError(Exception):
+class ArchiveExtractionError(Exception):
     """
-    Thrown when an config option fails to write
-    """
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred when writing configuration: {}".format(message)
-        super(WriteConfigError, self).__init__(msg)
-
-
-class ReadConfigError(Exception):
-    """
-    Thrown when an config option fails to read
+    Thrown when a archive fails extract
     """
     def __init__(self, message):
         """
         :param message: A more specific error message
         """
-        msg = "An error occurred when writing configuration: {}".format(message)
-        super(ReadConfigError, self).__init__(msg)
+        msg = "An error occurred while attempting to extract archive: {}".format(message)
+        super(ArchiveExtractionError, self).__init__(msg)
 
 
-class WriteJavaConfigError(WriteConfigError):
+class DownloadError(Exception):
     """
-    Thrown when an config jvm.options option fails to write
-    """
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred when writing jvm.options configuration: {}".format(message)
-        super(WriteJavaConfigError, self).__init__(msg)
-
-
-class ReadJavaConfigError(ReadConfigError):
-    """
-    Thrown when a jvm.options option fails to read
+    Thrown when a file fails download
     """
     def __init__(self, message):
         """
         :param message: A more specific error message
         """
-        msg = "An error occurred when writing jvm.options configuration: {}".format(message)
-        super(ReadConfigError, self).__init__(msg)
-
-
-class ResetPasswordError(Exception):
-    """
-    Thrown when a password fails to reset
-    """
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred while attempting to reset password: {}".format(message)
-        super(ResetPasswordError, self).__init__(msg)
+        msg = "An error occurred while attempting to download file: {}".format(message)
+        super(DownloadError, self).__init__(msg)
 
 
 class InstallError(Exception):
@@ -68,18 +32,6 @@ class InstallError(Exception):
         """
         msg = "An error occurred while attempting to install component: {}".format(message)
         super(InstallError, self).__init__(msg)
-
-
-class UninstallError(Exception):
-    """
-    Thrown when a component fails to uninstall
-    """
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred while attempting to uninstall component: {}".format(message)
-        super(UninstallError, self).__init__(msg)
 
 
 class InvalidOsPackageManagerDetectedError(Exception):
@@ -106,3 +58,75 @@ class OsPackageManagerRefreshError(Exception):
         """
         msg = "An error occurred while attempting to refresh packages: {}".format(message)
         super(OsPackageManagerRefreshError, self).__init__(msg)
+
+
+class ReadConfigError(Exception):
+    """
+    Thrown when an config option fails to read
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing configuration: {}".format(message)
+        super(ReadConfigError, self).__init__(msg)
+
+
+class ReadJavaConfigError(ReadConfigError):
+    """
+    Thrown when a jvm.options option fails to read
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing jvm.options configuration: {}".format(message)
+        super(ReadConfigError, self).__init__(msg)
+
+
+class ResetPasswordError(Exception):
+    """
+    Thrown when a password fails to reset
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while attempting to reset password: {}".format(message)
+        super(ResetPasswordError, self).__init__(msg)
+
+
+class UninstallError(Exception):
+    """
+    Thrown when a component fails to uninstall
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while attempting to uninstall component: {}".format(message)
+        super(UninstallError, self).__init__(msg)
+
+
+class WriteConfigError(Exception):
+    """
+    Thrown when an config option fails to write
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing configuration: {}".format(message)
+        super(WriteConfigError, self).__init__(msg)
+
+
+class WriteJavaConfigError(WriteConfigError):
+    """
+    Thrown when an config jvm.options option fails to write
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing jvm.options configuration: {}".format(message)
+        super(WriteJavaConfigError, self).__init__(msg)

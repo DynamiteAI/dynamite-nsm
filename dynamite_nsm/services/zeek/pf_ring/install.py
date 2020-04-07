@@ -27,10 +27,17 @@ class InstallManager:
         self.verbose = verbose
 
         if download_pf_ring_archive:
-            self.download_pf_ring(stdout=stdout)
-            self.extract_pf_ring(stdout=stdout)
-        if not self.install_dependencies(verbose=verbose):
-            raise pf_ring_exceptions.InstallPfringError('Could not install PF_RING dependencies.')
+            try:
+                self.download_pf_ring(stdout=stdout)
+                self.extract_pf_ring(stdout=stdout)
+            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+                raise pf_ring_exceptions.InstallPfringError("Failed to download/extract PF_RING archive.")
+
+        try:
+            self.install_dependencies(verbose=verbose)
+        except (general_exceptions.InvalidOsPackageManagerDetectedError,
+                general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
+            raise pf_ring_exceptions.InstallPfringError("One or more OS dependencies failed to install.")
 
     def _compile_pf_ring_modules(self):
         if self.stdout:
@@ -131,13 +138,20 @@ class InstallManager:
 
     def _create_pf_ring_environment_variables(self):
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        with open(env_file) as env_f:
-            if 'PF_RING_HOME' not in env_f.read():
-                if self.stdout:
-                    sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
-                        self.install_directory))
-                subprocess.call('echo PF_RING_HOME="{}" >> {}'.format(self.install_directory, env_file),
-                                shell=True)
+        try:
+            with open(env_file) as env_f:
+                if 'PF_RING_HOME' not in env_f.read():
+                    if self.stdout:
+                        sys.stdout.write('[+] Updating PF_RING default home path [{}]\n'.format(
+                            self.install_directory))
+                    subprocess.call('echo PF_RING_HOME="{}" >> {}'.format(self.install_directory, env_file),
+                                    shell=True)
+        except IOError:
+            raise pf_ring_exceptions.InstallPfringError(
+                "Failed to open {} for reading.".format(env_file))
+        except Exception as e:
+            raise pf_ring_exceptions.InstallPfringError(
+                "General error while creating environment variables in {}; {}".format(env_file, e))
 
     @staticmethod
     def _setup_pf_ring_kernel_modules(stdout=False):
@@ -183,6 +197,7 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
+
         url = None
         try:
             with open(const.PF_RING_MIRRORS, 'r') as pfring_archive_f:
@@ -190,7 +205,7 @@ class InstallManager:
                     if utilities.download_file(url, const.PF_RING_ARCHIVE_NAME, stdout=stdout):
                         break
         except Exception as e:
-            raise pf_ring_exceptions.InstallPfringError(
+            raise general_exceptions.DownloadError(
                 "General error while downloading PF_RING from {}; {}".format(url, e))
 
     @staticmethod
@@ -200,6 +215,7 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
+
         if stdout:
             sys.stdout.write('[+] Extracting: {} \n'.format(const.PF_RING_ARCHIVE_NAME))
         try:
@@ -209,10 +225,10 @@ class InstallManager:
             sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-            raise pf_ring_exceptions.InstallPfringError(
+            raise general_exceptions.ArchiveExtractionError(
                 "Could not extract PF_RING archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
-            raise pf_ring_exceptions.InstallPfringError(
+            raise general_exceptions.ArchiveExtractionError(
                 "General error while attempting to extract PF_RING archive; {}".format(e))
 
     @staticmethod
@@ -223,10 +239,9 @@ class InstallManager:
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
         """
-        try:
-            pkt_mng = package_manager.OSPackageManager(verbose=verbose)
-        except general_exceptions.InvalidOsPackageManagerDetectedError:
-            raise pf_ring_exceptions.InstallPfringError("No valid OS package manager detected.")
+
+        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
+
         packages = None
         if stdout:
             sys.stdout.write('[+] Installing dependencies.\n')
@@ -235,24 +250,20 @@ class InstallManager:
             packages = ['make', 'gcc', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
             packages = ['make', 'gcc', 'kernel-devel-$(uname -r)']
-        try:
-            if stdout:
-                sys.stdout.write('[+] Updating Package Indexes.\n')
-                sys.stdout.flush()
-            pkt_mng.refresh_package_indexes()
-            if stdout:
-                sys.stdout.write('[+] Installing the following packages: {}.\n'.format(packages))
-                sys.stdout.flush()
-            pkt_mng.install_packages(packages)
-        except general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError:
-            raise pf_ring_exceptions.InstallPfringError("Failed to install one or more packages; {}".format(packages))
+        if stdout:
+            sys.stdout.write('[+] Updating Package Indexes.\n')
+            sys.stdout.flush()
+        pkt_mng.refresh_package_indexes()
+        if stdout:
+            sys.stdout.write('[+] Installing the following packages: {}.\n'.format(packages))
+            sys.stdout.flush()
+        pkt_mng.install_packages(packages)
 
     def setup_pf_ring(self):
         """
         Compile and setup required binaries and kernel modules
-
-        :param stdout: Print output to console
         """
+
         self._compile_pf_ring_modules()
         self._setup_pf_ring_kernel_modules(stdout=self.stdout)
         self._create_pf_ring_environment_variables()
