@@ -28,7 +28,7 @@ class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
         exec_strategy.BaseExecStrategy.__init__(self, strategy_name="elasticsearch_uninstall",
                                                 strategy_description="Uninstall Elasticsearch.")
         self.add_function(
-            install.uninstall_elasticsearch(), {
+            install.uninstall_elasticsearch, {
                 "stdout": bool(stdout),
                 "verbose": bool(verbose)
             }
