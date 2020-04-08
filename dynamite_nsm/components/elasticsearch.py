@@ -24,13 +24,13 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
 
 class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
 
-    def __init__(self, stdout, verbose):
+    def __init__(self, stdout, prompt_user):
         exec_strategy.BaseExecStrategy.__init__(self, strategy_name="elasticsearch_uninstall",
                                                 strategy_description="Uninstall Elasticsearch.")
         self.add_function(
             install.uninstall_elasticsearch, {
                 "stdout": bool(stdout),
-                "verbose": bool(verbose)
+                "prompt_user": bool(prompt_user)
             }
         )
 
@@ -49,7 +49,7 @@ def run_install_strategy():
 def run_uninstall_strategy():
     es_elastic_uninstall_strategy = ElasticsearchUninstallStrategy(
         stdout=True,
-        verbose=True
+        prompt_user=True
     )
     es_elastic_uninstall_strategy.execute_strategy()
 
