@@ -37,6 +37,19 @@ class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
             })
 
 
+class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
+    def __init__(self, stdout, status):
+        exec_strategy.BaseExecStrategy.__init__(self, strategy_name="elasticsearch_start",
+                                                strategy_description="Start Elasticsearch process.")
+        self.add_function(process.start, {
+            "stdout": stdout
+        })
+
+        if status:
+            self.add_function(
+                process.status, {})
+
+
 def run_install_strategy():
     es_elastic_install_strategy = ElasticsearchInstallStrategy(
         password="changeme",
@@ -56,7 +69,16 @@ def run_uninstall_strategy():
     es_elastic_uninstall_strategy.execute_strategy()
 
 
+def run_process_start_strategy():
+    es_elastic_start_strategy = ElasticsearchProcessStartStrategy(
+        stdout=True,
+        status=True
+    )
+    es_elastic_start_strategy.execute_strategy()
+
+
 if __name__ == '__main__':
-    # run_install_strategy()
+    run_install_strategy()
+    run_process_start_strategy()
     run_uninstall_strategy()
     pass
