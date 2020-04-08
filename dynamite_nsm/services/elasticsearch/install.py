@@ -94,14 +94,12 @@ class InstallManager:
                 "General error while attempting to copy {} to {}; {}".format(path, self.configuration_directory, e))
         try:
             for path in install_paths:
+                src_install_path = os.path.join(const.INSTALL_CACHE, const.ELASTIFLOW_DIRECTORY_NAME, path)
+                dst_install_path = os.path.join(self.install_directory, path)
                 if self.stdout:
-                    sys.stdout.write('[+] Copying {} -> {}\n'.format(
-                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                        self.install_directory))
+                    sys.stdout.write('[+] Copying {} -> {}\n'.format(src_install_path, dst_install_path))
                 try:
-                    shutil.copytree(
-                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                        self.install_directory)
+                    utilities.copytree(src_install_path, dst_install_path)
                 except shutil.Error as e:
                     sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         except Exception as e:

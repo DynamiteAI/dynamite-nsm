@@ -14,6 +14,8 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
                 "log_directory": "/var/log/dynamite/elasticsearch/",
                 "password": str(password),
                 "heap_size_gigs": int(heap_size_gigs),
+                "install_jdk": False,
+                "create_dynamite_user": True,
                 "stdout": bool(stdout),
                 "verbose": bool(verbose)
 
