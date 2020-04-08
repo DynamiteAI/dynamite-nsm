@@ -450,6 +450,7 @@ def set_ownership_of_file(path, user='dynamite', group='dynamite'):
     """
     uid = pwd.getpwnam(user).pw_uid
     group = grp.getgrnam(group).gr_gid
+    os.chown(path, uid, group)
     for root, dirs, files in os.walk(path):
         for momo in dirs:
             os.chown(os.path.join(root, momo), uid, group)

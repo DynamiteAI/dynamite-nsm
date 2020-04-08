@@ -377,11 +377,11 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
     """
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
-    configuration_directory = environment_variables.get('ES_PATH_CONF')
     es_profiler = elastic_profile.ProcessProfiler()
-    es_config = elastic_configs.ConfigManager(configuration_directory=configuration_directory)
     if not es_profiler.is_installed:
         raise elastic_exceptions.UninstallElasticsearchError("ElasticSearch is not installed.")
+    configuration_directory = environment_variables.get('ES_PATH_CONF')
+    es_config = elastic_configs.ConfigManager(configuration_directory=configuration_directory)
     if prompt_user:
         sys.stderr.write('[-] WARNING! Removing ElasticSearch Will Delete All Data.\n')
         resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
