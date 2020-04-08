@@ -363,10 +363,6 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
     if create_dynamite_user:
         utilities.create_dynamite_user(utilities.generate_random_password(50))
     es_installer.setup_elasticsearch()
-    if stdout:
-        sys.stdout.write('[+] *** ElasticSearch installed successfully. ***\n\n')
-        sys.stdout.write('[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
-        sys.stdout.flush()
 
 
 def uninstall_elasticsearch(stdout=False, prompt_user=True):

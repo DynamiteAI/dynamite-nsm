@@ -1,3 +1,4 @@
+import sys
 from dynamite_nsm.components.base import exec_strategy
 from dynamite_nsm.services.elasticsearch import install, process
 
@@ -23,6 +24,9 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
         self.add_function(process.stop, {
             "stdout": False
         })
+
+        self.add_function(sys.stdout.write, '[+] *** ElasticSearch installed successfully. ***\n\n')
+        self.add_function(sys.stdout.write, '[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
 
 
 class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
