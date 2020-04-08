@@ -26,3 +26,15 @@ class ReadFilebeatConfigError(exceptions.ReadConfigError):
         msg = "An error occurred when reading filebeat.yml configuration: {}".format(message)
         super(ReadFilebeatConfigError, self).__init__(msg)
 
+
+class InstallFilebeatError(exceptions.InstallError):
+    """
+    Thrown when Filebeat fails to install
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while installing Filebeat: {}".format(message)
+        super(InstallFilebeatError, self).__init__(msg)

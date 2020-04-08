@@ -11,7 +11,9 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.filebeat import config as filebeat_configs
+from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
 class InstallManager:
@@ -28,8 +30,11 @@ class InstallManager:
         self.install_directory = install_directory
         self.stdout = stdout
         if download_filebeat_archive:
-            self.download_filebeat(stdout=stdout)
-            self.extract_filebeat(stdout=stdout)
+            try:
+                self.download_filebeat(stdout=stdout)
+                self.extract_filebeat(stdout=stdout)
+            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+                raise filebeat_exceptions.InstallFilebeatError("Failed to download/extract Filebeat archive.")
 
     @staticmethod
     def download_filebeat(stdout=False):
@@ -38,9 +43,15 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
-        for url in open(const.FILE_BEAT_MIRRORS, 'r').readlines():
-            if utilities.download_file(url, const.FILE_BEAT_ARCHIVE_NAME, stdout=stdout):
-                break
+        url = None
+        try:
+            with open(const.FILE_BEAT_MIRRORS, 'r') as filebeat_archive:
+                for url in filebeat_archive.readlines():
+                    if utilities.download_file(url, const.FILE_BEAT_ARCHIVE_NAME, stdout=stdout):
+                        break
+        except Exception as e:
+            raise general_exceptions.DownloadError(
+                "General error while downloading elasticsearch from {}; {}".format(url, e))
 
     @staticmethod
     def extract_filebeat(stdout=False):
@@ -59,6 +70,11 @@ class InstallManager:
                 sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+            raise general_exceptions.ArchiveExtractionError(
+                "Could not extract filebeat archive to {}; {}".format(const.INSTALL_CACHE, e))
+        except Exception as e:
+            raise general_exceptions.ArchiveExtractionError(
+                "General error while attempting to extract filebeat archive; {}".format(e))
 
     def setup_filebeat(self):
         """
@@ -67,7 +83,7 @@ class InstallManager:
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         if self.stdout:
             sys.stdout.write('[+] Creating Filebeat install directory.\n')
-        subprocess.call('mkdir -p {}'.format(self.install_directory), shell=True)
+        utilities.makedirs(self.install_directory, exist_ok=True)
         if self.stdout:
             sys.stdout.write('[+] Copying Filebeat to install directory.\n')
         utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME), self.install_directory)
@@ -75,15 +91,29 @@ class InstallManager:
                     self.install_directory)
         if self.stdout:
             sys.stdout.write('[+] Building configurations and setting up permissions.\n')
-        beats_config = filebeat_configs.ConfigManager(self.install_directory)
+        try:
+            beats_config = filebeat_configs.ConfigManager(self.install_directory)
+        except filebeat_exceptions.ReadFilebeatConfigError:
+            raise filebeat_exceptions.InstallFilebeatError("Failed to read filebeat configuration.")
         beats_config.set_monitor_target_paths(self.monitor_paths)
-        beats_config.write_config()
-        utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
-                                          unix_permissions_integer=501)
-        if 'FILEBEAT_HOME' not in open(env_file).read():
-            if self.stdout:
-                sys.stdout.write('[+] Updating FileBeat default script path [{}]\n'.format(
-                    self.install_directory)
-                )
-            subprocess.call('echo FILEBEAT_HOME="{}" >> {}'.format(self.install_directory, env_file),
-                            shell=True)
+        try:
+            beats_config.write_config()
+        except filebeat_exceptions.WriteFilebeatConfigError:
+            raise filebeat_exceptions.InstallFilebeatError("Failed to write filebeat configuration.")
+        try:
+            utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
+                                              unix_permissions_integer=501)
+        except Exception as e:
+            filebeat_exceptions.InstallFilebeatError("Failed to set permissions of filebeat.yml file; {}".format(e))
+        try:
+            with open(env_file) as env_f:
+                if 'FILEBEAT_HOME' not in env_f.read():
+                    if self.stdout:
+                        sys.stdout.write('[+] Updating FileBeat default script path [{}]\n'.format(
+                            self.install_directory)
+                        )
+                    subprocess.call('echo FILEBEAT_HOME="{}" >> {}'.format(self.install_directory, env_file),
+                                    shell=True)
+        except Exception as e:
+            raise filebeat_exceptions.InstallFilebeatError(
+                "General error occurred while attempting to install filebeat; {}".format(e))

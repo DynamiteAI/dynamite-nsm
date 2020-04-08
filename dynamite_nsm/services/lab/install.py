@@ -4,7 +4,6 @@ import json
 import base64
 import shutil
 import tarfile
-import traceback
 import subprocess
 
 try:
@@ -535,8 +534,8 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
 
     :param stdout: Print the output to console
     :param prompt_user: Print a warning before continuing
-    :return: True, if uninstall succeeded
     """
+
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
@@ -561,28 +560,30 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
     shutil.rmtree(notebook_home)
     shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
     env_lines = ''
-    for line in open(env_file).readlines():
-        if 'DYNAMITE_LAB_CONFIG' in line:
-            continue
-        elif 'NOTEBOOK_HOME' in line:
-            continue
-        elif line.strip() == '':
-            continue
-        env_lines += line.strip() + '\n'
-    with open(env_file, 'w') as env_f:
-        env_f.write(env_lines)
-    if stdout:
-        sys.stdout.write('[+] Uninstalling DynamiteLab Kibana Icon.\n')
-    icon_remove_result = InstallManager(
+    try:
+        with open(env_file) as env_fr:
+            for line in env_fr.readlines():
+                if 'DYNAMITE_LAB_CONFIG' in line:
+                    continue
+                elif 'NOTEBOOK_HOME' in line:
+                    continue
+                elif line.strip() == '':
+                    continue
+                env_lines += line.strip() + '\n'
+
+        with open(env_file, 'w') as env_fw:
+            env_fw.write(env_lines)
+        if stdout:
+            sys.stdout.write('[+] Uninstalling DynamiteLab Kibana Icon.\n')
+    except Exception as e:
+        raise lab_exceptions.UninstallLabError(
+            "General error occurred while attempting to uninstall lab; {}".format(e))
+    InstallManager(
         configuration_directory,
         notebook_home,
         elasticsearch_host=dynamite_lab_config.elasticsearch_url.split('//')[1].split(':')[0],
         elasticsearch_password=dynamite_lab_config.elasticsearch_password,
         elasticsearch_port=dynamite_lab_config.elasticsearch_url.split('//')[1].split(':')[1].replace('/', ''),
         download_dynamite_sdk_archive=False).uninstall_kibana_lab_icon()
-    if not icon_remove_result:
-        sys.stderr.write('[-] Failed to restore DynamiteLab Kibana icon.\n')
-        # Not fatal...just annoying;
     if stdout:
         sys.stdout.write('[+] DynamiteLab uninstalled successfully.\n')
-
