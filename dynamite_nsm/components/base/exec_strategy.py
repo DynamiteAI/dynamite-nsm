@@ -31,7 +31,7 @@ if __name__ == '__main__':
     def test_func_2(num1, num2):
         print(num1 + num2)
 
-    strategy = BaseExecStrategy()
+    strategy = BaseExecStrategy("test_strategy", "Test Strategy")
     strategy.add_function(test_func_1, {'msg': "Hello world"})
     strategy.add_function(test_func_2, {"num1": 2, "num2": 3})
     strategy.execute_strategy()

@@ -20,7 +20,7 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
                 "verbose": bool(verbose)
             })
 
-        self.add_function(process.ProcessManager().stop, {
+        self.add_function(process.stop, {
             "stdout": False
         })
 

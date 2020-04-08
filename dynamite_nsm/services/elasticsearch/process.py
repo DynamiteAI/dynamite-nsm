@@ -117,3 +117,19 @@ class ProcessManager:
             'USER': 'dynamite',
             'LOGS': log_path
         }
+
+
+def start(stdout=True):
+    ProcessManager().start(stdout)
+
+
+def stop(stdout=True):
+    ProcessManager().stop(stdout)
+
+
+def restart(stdout=True):
+    ProcessManager().restart(stdout)
+
+
+def status():
+    ProcessManager().status()
