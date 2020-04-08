@@ -60,7 +60,7 @@ class InstallManager:
             try:
                 self.download_elasticsearch(stdout=stdout)
                 self.extract_elasticsearch(stdout=stdout)
-            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 raise elastic_exceptions.InstallElasticsearchError("Failed to download/extract Elasticsearch archive.")
 
     def _copy_elasticsearch_files_and_directories(self):
@@ -99,7 +99,7 @@ class InstallManager:
                         os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                         self.install_directory))
                 try:
-                    shutil.copy(
+                    shutil.copytree(
                         os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                         self.install_directory)
                 except shutil.Error as e:

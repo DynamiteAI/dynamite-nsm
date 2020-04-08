@@ -33,7 +33,7 @@ class InstallManager:
             try:
                 self.download_filebeat(stdout=stdout)
                 self.extract_filebeat(stdout=stdout)
-            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 raise filebeat_exceptions.InstallFilebeatError("Failed to download/extract Filebeat archive.")
 
     @staticmethod

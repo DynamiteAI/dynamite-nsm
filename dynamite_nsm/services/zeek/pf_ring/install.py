@@ -30,7 +30,7 @@ class InstallManager:
             try:
                 self.download_pf_ring(stdout=stdout)
                 self.extract_pf_ring(stdout=stdout)
-            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 raise pf_ring_exceptions.InstallPfringError("Failed to download/extract PF_RING archive.")
 
         try:

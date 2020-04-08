@@ -38,7 +38,7 @@ class InstallManager:
             try:
                 self.download_suricata(stdout=stdout)
                 self.extract_suricata(stdout=stdout)
-            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 raise suricata_exceptions.InstallSuricataError("Failed to download/extract Suricata archive.")
         try:
             self.install_dependencies(verbose=verbose)

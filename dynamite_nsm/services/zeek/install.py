@@ -36,7 +36,7 @@ class InstallManager:
             try:
                 self.download_zeek(stdout=stdout)
                 self.extract_zeek(stdout=stdout)
-            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
+            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 raise zeek_exceptions.InstallZeekError("Failed to download/extract Zeek archive.")
         try:
             self.install_dependencies(verbose=verbose)
