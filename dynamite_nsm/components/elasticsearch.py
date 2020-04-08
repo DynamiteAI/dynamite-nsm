@@ -18,8 +18,11 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
                 "create_dynamite_user": True,
                 "stdout": bool(stdout),
                 "verbose": bool(verbose)
-            }
-        )
+            })
+
+        self.add_function(process.ProcessManager().stop, {
+            "stdout": False
+        })
 
 
 class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
@@ -31,8 +34,7 @@ class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
             install.uninstall_elasticsearch, {
                 "stdout": bool(stdout),
                 "prompt_user": bool(prompt_user)
-            }
-        )
+            })
 
 
 def run_install_strategy():
