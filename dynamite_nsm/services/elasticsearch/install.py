@@ -255,7 +255,7 @@ class InstallManager:
             es_pass_config = elastic_configs.PasswordConfigManager(
                 auth_user='elastic',
                 current_password=bootstrap_users_and_passwords['elastic'])
-            return es_pass_config.set_all_passwords(new_password=self.password, stdout=True)
+            es_pass_config.set_all_passwords(new_password=self.password, stdout=True)
 
         if not elastic_profile.ProcessProfiler().is_installed:
             sys.stderr.write('[-] ElasticSearch must be installed and running to bootstrap passwords.\n')
@@ -310,12 +310,13 @@ class InstallManager:
             if not bootstrap_p_res:
                 sys.stderr.write('[-] Failed to setup new passwords\n')
                 raise elastic_exceptions.InstallElasticsearchError("Failed to bootstrap password.")
-            if not isinstance(bootstrap_p_res[0], str):
-                if not setup_from_bootstrap(bootstrap_p_res[0].decode()):
-                    raise elastic_exceptions.InstallElasticsearchError("Failed to bootstrap password.")
-            else:
-                if not setup_from_bootstrap(bootstrap_p_res[0]):
-                    raise elastic_exceptions.InstallElasticsearchError("Failed to bootstrap password.")
+            try:
+                if not isinstance(bootstrap_p_res[0], str):
+                    setup_from_bootstrap(bootstrap_p_res[0].decode())
+                else:
+                    setup_from_bootstrap(bootstrap_p_res[0])
+            except general_exceptions.ResetPasswordError:
+                raise elastic_exceptions.InstallElasticsearchError("Failed to bootstrap password.")
         except Exception as e:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error occurred while attempting to bootstrap elasticsearch passwords {}".format(e))
