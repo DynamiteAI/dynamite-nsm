@@ -129,6 +129,7 @@ def download_file(url, filename, stdout=False):
     :param filename: The name of the file to store
     :return: None
     """
+    makedirs(const.INSTALL_CACHE, exist_ok=True)
     response = urlopen(url)
     CHUNK = 16 * 1024
     if stdout:
