@@ -25,8 +25,12 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
             "stdout": False
         })
 
-        self.add_function(sys.stdout.write, '[+] *** ElasticSearch installed successfully. ***\n\n')
-        self.add_function(sys.stdout.write, '[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n')
+        self.add_function(sys.stdout.write, {
+            "s": '[+] *** ElasticSearch installed successfully. ***\n\n'
+        })
+        self.add_function(sys.stdout.write, {
+            "s": '[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n'
+        })
 
 
 class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
