@@ -100,7 +100,7 @@ class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
                 }
             ),
             return_formats=(
-                None
+                None,
             )
 
         )
