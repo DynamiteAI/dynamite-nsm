@@ -97,7 +97,7 @@ class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
             arguments=(
                 {
                     "stdout": stdout
-                }
+                },
             ),
             return_formats=(
                 None,
