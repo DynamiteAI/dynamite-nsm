@@ -3,6 +3,10 @@ from dynamite_nsm.components.base import exec_strategy
 from dynamite_nsm.services.elasticsearch import install, process
 
 
+def print_message(msg):
+    print(msg)
+
+
 class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
 
     def __init__(self, password, heap_size_gigs, install_jdk, stdout, verbose):
@@ -25,11 +29,11 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
             "stdout": False
         })
 
-        self.add_function(sys.stdout.write, {
-            "s": '[+] *** ElasticSearch installed successfully. ***\n\n'
+        self.add_function(print_message, {
+            "msg": '[+] *** ElasticSearch installed successfully. ***\n'
         })
         self.add_function(sys.stdout.write, {
-            "s": '[+] Next, Start your cluster: \'dynamite start elasticsearch\'.\n'
+            "msg": '[+] Next, Start your cluster: \'dynamite start elasticsearch\'.'
         })
 
 
