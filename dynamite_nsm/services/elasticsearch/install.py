@@ -416,8 +416,6 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
                 env_lines += line.strip() + '\n'
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if stdout:
-            sys.stdout.write('[+] ElasticSearch uninstalled successfully.\n')
     except Exception as e:
         raise elastic_exceptions.UninstallElasticsearchError(
             "General error occurred while attempting to uninstall elasticsearch; {}".format(e))
