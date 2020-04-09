@@ -9,14 +9,14 @@ def print_json_message(msg_obj):
 class BaseExecStrategy:
 
     def __init__(self, strategy_name, strategy_description, functions=(), arguments=(), return_formats=()):
+        self.strategy_name = strategy_name
+        self.strategy_description = strategy_description
+
+        self.functions = list(functions)
+        self.arguments = list(arguments)
+        self.return_formats = list(return_formats)
+
         if len(self.functions) != len(self.arguments) != len(self.return_formats):
-            self.strategy_name = strategy_name
-            self.strategy_description = strategy_description
-
-            self.functions = list(functions)
-            self.arguments = list(arguments)
-            self.return_formats = list(return_formats)
-
             raise exceptions.StrategyExecutionError(len(self.functions), len(self.arguments), len(return_formats))
 
     @classmethod
