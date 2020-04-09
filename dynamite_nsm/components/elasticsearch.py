@@ -10,31 +10,48 @@ def print_message(msg):
 class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
 
     def __init__(self, password, heap_size_gigs, install_jdk, stdout, verbose):
-        exec_strategy.BaseExecStrategy.__init__(self, strategy_name="elasticsearch_install",
-                                                strategy_description="Install and secure Elasticsearch.")
-        self.add_function(
-            install.install_elasticsearch, {
-                "configuration_directory": "/etc/dynamite/elasticsearch/",
-                "install_directory": "/opt/dynamite/elasticsearch/",
-                "log_directory": "/var/log/dynamite/elasticsearch/",
-                "password": str(password),
-                "heap_size_gigs": int(heap_size_gigs),
-                "install_jdk": bool(install_jdk),
-                "create_dynamite_user": True,
-                "stdout": bool(stdout),
-                "verbose": bool(verbose)
-            })
-
-        self.add_function(process.stop, {
-            "stdout": False
-        })
-
-        self.add_function(print_message, {
-            "msg": '[+] *** ElasticSearch installed successfully. ***\n'
-        })
-        self.add_function(print_message, {
-            "msg": '[+] Next, Start your cluster: \'dynamite start elasticsearch\'.'
-        })
+        exec_strategy.BaseExecStrategy.__init__(self,
+                                                strategy_name="elasticsearch_install",
+                                                strategy_description="Install and secure Elasticsearch.",
+                                                functions=(
+                                                    install.install_elasticsearch,
+                                                    process.stop,
+                                                    print_message,
+                                                    print_message
+                                                ),
+                                                arguments=(
+                                                    # install.install_elasticsearch
+                                                    {
+                                                        "configuration_directory": "/etc/dynamite/elasticsearch/",
+                                                        "install_directory": "/opt/dynamite/elasticsearch/",
+                                                        "log_directory": "/var/log/dynamite/elasticsearch/",
+                                                        "password": str(password),
+                                                        "heap_size_gigs": int(heap_size_gigs),
+                                                        "install_jdk": bool(install_jdk),
+                                                        "create_dynamite_user": True,
+                                                        "stdout": bool(stdout),
+                                                        "verbose": bool(verbose)
+                                                    },
+                                                    # process.stop
+                                                    {
+                                                        "stdout": False
+                                                    },
+                                                    # print_message
+                                                    {
+                                                        "msg": '[+] *** ElasticSearch installed successfully. ***\n'
+                                                    },
+                                                    # print_message
+                                                    {
+                                                        "msg": '[+] Next, Start your cluster: '
+                                                               '\'dynamite start elasticsearch\'.'
+                                                    }
+                                                ),
+                                                return_formats=(
+                                                    None,
+                                                    None,
+                                                    None,
+                                                    None
+                                                ))
 
 
 class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):

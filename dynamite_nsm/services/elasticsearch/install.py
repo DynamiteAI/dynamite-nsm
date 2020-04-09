@@ -300,14 +300,14 @@ class InstallManager:
                 if self.stdout:
                     sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
                 time.sleep(5)
+                attempts += 1
+                if attempts == 10:
+                    raise elastic_exceptions.InstallElasticsearchError(
+                        "Failed to start Elasticsearch API after 10 attempts.")
             if self.stdout:
                 sys.stdout.write('[+] ElasticSearch API is up.\n')
                 sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
                 sys.stdout.flush()
-            attempts += 1
-            if attempts == 5:
-                raise elastic_exceptions.InstallElasticsearchError(
-                    "Failed to start Elasticsearch API after 5 attempts.")
 
         sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
