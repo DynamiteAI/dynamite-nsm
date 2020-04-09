@@ -131,7 +131,26 @@ def download_file(url, filename, stdout=False):
     """
     makedirs(const.INSTALL_CACHE, exist_ok=True)
     response = urlopen(url)
+    try:
+        response_size_bytes = int(response.headers['Content-Length'])
+    except (KeyError, TypeError):
+        response_size_bytes = None
     CHUNK = 16 * 1024
+    widgets = [
+        '[+] ', progressbar.FileTransferSpeed(),
+        ' ', progressbar.Bar(),
+        ' ', progressbar.ETA()
+    ]
+    if response_size_bytes:
+        try:
+            pb = progressbar.ProgressBar(widgets=widgets, max_value=int(response_size_bytes))
+        except TypeError:
+            pb = progressbar.ProgressBar(widgets=widgets, maxval=int(response_size_bytes))
+    else:
+        try:
+            pb = progressbar.ProgressBar(widgets, max_value=progressbar.UnknownLength)
+        except TypeError:
+            pb = progressbar.ProgressBar(widgets, maxval=progressbar.UnknownLength)
     if stdout:
         sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
         sys.stdout.write('[+] Progress: ')
@@ -141,17 +160,15 @@ def download_file(url, filename, stdout=False):
             chunk_num = 0
             while True:
                 chunk = response.read(CHUNK)
-                if stdout:
-                    if chunk_num % 100 == 0:
-                        sys.stdout.write('+')
-                        sys.stdout.flush()
                 if not chunk:
                     break
                 chunk_num += 1
                 f.write(chunk)
+                pb.update(CHUNK)
             if stdout:
                 sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
                 sys.stdout.flush()
+                pb.finish()
     except URLError as e:
         sys.stderr.write('[-] An error occurred while attempting to download file. [{}]\n'.format(e))
         return False

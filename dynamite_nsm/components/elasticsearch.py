@@ -32,7 +32,7 @@ class ElasticsearchInstallStrategy(exec_strategy.BaseExecStrategy):
         self.add_function(print_message, {
             "msg": '[+] *** ElasticSearch installed successfully. ***\n'
         })
-        self.add_function(sys.stdout.write, {
+        self.add_function(print_message, {
             "msg": '[+] Next, Start your cluster: \'dynamite start elasticsearch\'.'
         })
 
@@ -60,6 +60,9 @@ class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
         if status:
             self.add_function(
                 process.status, {})
+
+
+# Test Functions
 
 
 def run_install_strategy():
