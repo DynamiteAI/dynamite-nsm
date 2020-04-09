@@ -153,8 +153,8 @@ def download_file(url, filename, stdout=False):
             pb = progressbar.ProgressBar(widgets, maxval=progressbar.UnknownLength)
     if stdout:
         sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
-        sys.stdout.write('[+] Progress: ')
         sys.stdout.flush()
+        pb.start()
     try:
         with open(os.path.join(const.INSTALL_CACHE, filename), 'wb') as f:
             chunk_num = 0
@@ -164,11 +164,16 @@ def download_file(url, filename, stdout=False):
                     break
                 chunk_num += 1
                 f.write(chunk)
-                pb.update(CHUNK)
+                if stdout:
+                    try:
+                        pb.update(CHUNK * chunk_num)
+                    except ValueError:
+                        pass
             if stdout:
                 sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
                 sys.stdout.flush()
-                pb.finish()
+                if stdout:
+                    pb.finish()
     except URLError as e:
         sys.stderr.write('[-] An error occurred while attempting to download file. [{}]\n'.format(e))
         return False
