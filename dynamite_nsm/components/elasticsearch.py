@@ -1,4 +1,4 @@
-import sys
+import json
 from dynamite_nsm.components.base import exec_strategy
 from dynamite_nsm.services.elasticsearch import install, process
 
@@ -59,7 +59,7 @@ class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
 
         if status:
             self.add_function(
-                process.status, {})
+                process.status, {}, return_format="json")
 
 
 # Test Functions

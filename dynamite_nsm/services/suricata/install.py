@@ -37,9 +37,12 @@ class InstallManager:
         if download_suricata_archive:
             try:
                 self.download_suricata(stdout=stdout)
-                self.extract_suricata(stdout=stdout)
-            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise suricata_exceptions.InstallSuricataError("Failed to download/extract Suricata archive.")
+            except general_exceptions.DownloadError:
+                raise suricata_exceptions.InstallSuricataError("Failed to download Suricata archive.")
+        try:
+            self.extract_suricata(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise suricata_exceptions.InstallSuricataError("Failed to extract Suricata archive")
         try:
             self.install_dependencies(verbose=verbose)
         except (general_exceptions.InvalidOsPackageManagerDetectedError,

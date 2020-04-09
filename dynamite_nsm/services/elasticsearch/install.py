@@ -59,9 +59,12 @@ class InstallManager:
         if download_elasticsearch_archive:
             try:
                 self.download_elasticsearch(stdout=stdout)
-                self.extract_elasticsearch(stdout=stdout)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise elastic_exceptions.InstallElasticsearchError("Failed to download/extract Elasticsearch archive.")
+                raise elastic_exceptions.InstallElasticsearchError("Failed to download Elasticsearch archive.")
+        try:
+            self.extract_elasticsearch(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise elastic_exceptions.InstallElasticsearchError("Failed to extract Elasticsearch archive.")
 
     def _copy_elasticsearch_files_and_directories(self):
         config_paths = [
@@ -292,6 +295,7 @@ class InstallManager:
         if not elastic_profile.ProcessProfiler().is_running:
             elastic_process.ProcessManager().start(stdout=self.stdout)
             sys.stdout.flush()
+            attempts = 0
             while not elastic_profile.ProcessProfiler().is_listening:
                 if self.stdout:
                     sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
@@ -300,6 +304,11 @@ class InstallManager:
                 sys.stdout.write('[+] ElasticSearch API is up.\n')
                 sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
                 sys.stdout.flush()
+            attempts += 1
+            if attempts == 5:
+                raise elastic_exceptions.InstallElasticsearchError(
+                    "Failed to start Elasticsearch API after 5 attempts.")
+
         sys.stdout.write('[+] Bootstrapping passwords.\n')
         es_password_util = os.path.join(self.install_directory, 'bin', 'elasticsearch-setup-passwords')
         bootstrap_p = subprocess.Popen([es_password_util, 'auto'],

@@ -10,6 +10,18 @@ class ArchiveExtractionError(Exception):
         super(ArchiveExtractionError, self).__init__(msg)
 
 
+class CallProcessError(Exception):
+    """
+    Thrown when a process encounters an error state
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while calling process: {}".format(message)
+        super(CallProcessError, self).__init__(msg)
+
+
 class DownloadError(Exception):
     """
     Thrown when a file fails download

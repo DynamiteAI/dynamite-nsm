@@ -35,9 +35,12 @@ class InstallManager:
         if download_zeek_archive:
             try:
                 self.download_zeek(stdout=stdout)
-                self.extract_zeek(stdout=stdout)
-            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise zeek_exceptions.InstallZeekError("Failed to download/extract Zeek archive.")
+            except general_exceptions.DownloadError:
+                raise zeek_exceptions.InstallZeekError("Failed to download Zeek archive.")
+        try:
+            self.extract_zeek(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise zeek_exceptions.InstallZeekError("Failed to extract Zeek archive.")
         try:
             self.install_dependencies(verbose=verbose)
         except (general_exceptions.InvalidOsPackageManagerDetectedError,

@@ -7,15 +7,20 @@ from multiprocessing import Process
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.elasticsearch import config as elastic_configs
+from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 
 
 class ProcessManager:
     """
     An interface for start|stop|status|restart of the ElasticSearch process
     """
+
     def __init__(self):
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('ES_PATH_CONF')
+        if not self.configuration_directory:
+            raise elastic_exceptions.CallElasticProcessError(
+                "Could not resolve ES_PATH_CONF environment variable. Is Elasticsearch installed?")
         self.config = elastic_configs.ConfigManager(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
@@ -28,10 +33,12 @@ class ProcessManager:
         :param stdout: Print output to console
         :return: True, if started successfully
         """
+
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "{} {}/bin/elasticsearch '
                             '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &>/dev/null &"'
                             ''.format(utilities.get_environment_file_str(), self.config.es_home), shell=True)
+
         if not os.path.exists('/var/run/dynamite/elasticsearch/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
         utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
@@ -132,4 +139,4 @@ def restart(stdout=True):
 
 
 def status():
-    ProcessManager().status()
+    return ProcessManager().status()

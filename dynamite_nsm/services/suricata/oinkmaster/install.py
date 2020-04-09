@@ -32,10 +32,12 @@ class InstallManager:
         if download_oinkmaster_archive:
             try:
                 self.download_oinkmaster(stdout=stdout)
-                self.extract_oinkmaster(stdout=stdout)
-            except general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError:
-                raise oinkmaster_exceptions.InstallOinkmasterError("Failed to download/extract Oinkmaster archive.")
-
+            except general_exceptions.DownloadError:
+                raise oinkmaster_exceptions.InstallOinkmasterError("Failed to download Oinkmaster archive.")
+        try:
+            self.extract_oinkmaster(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise oinkmaster_exceptions.InstallOinkmasterError("Failed to extract Oinkmaster archive.")
     @staticmethod
     def download_oinkmaster(stdout=False):
         """

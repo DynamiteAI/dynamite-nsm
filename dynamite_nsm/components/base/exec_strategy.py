@@ -1,5 +1,8 @@
+import json
 from dynamite_nsm.components.base import exceptions
 
+def print_json_message(msg_obj):
+    print(json.dumps(msg_obj, indent=1))
 
 class BaseExecStrategy:
 
@@ -9,8 +12,8 @@ class BaseExecStrategy:
         self.strategy_name = strategy_name
         self.description = strategy_description
 
-    def add_function(self, func, argument_dict):
-        self.functions.append(func)
+    def add_function(self, func, argument_dict, return_format=None):
+        self.functions.append((func, return_format))
         self.arguments.append(argument_dict)
 
     def execute_strategy(self):
@@ -18,9 +21,12 @@ class BaseExecStrategy:
             raise exceptions.StrategyExecutionError(len(self.functions), len(self.arguments))
 
         for i in range(0, len(self.functions)):
-            func = self.functions[i]
+            func, ret_fmt = self.functions[i]
             args = self.arguments[i]
-            func(**args)
+            if not ret_fmt:
+                func(**args)
+            elif str(ret_fmt).lower() == "json":
+                print_json_message(func(**args))
 
 
 if __name__ == '__main__':

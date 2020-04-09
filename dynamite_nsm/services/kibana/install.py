@@ -62,9 +62,12 @@ class InstallManager:
         if download_kibana_archive:
             try:
                 self.download_kibana()
-                self.extract_kibana()
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise kibana_exceptions.InstallKibanaError("Failed to download/extract Kibana archive.")
+                raise kibana_exceptions.InstallKibanaError("Failed to download Kibana archive.")
+        try:
+            self.extract_kibana()
+        except general_exceptions.ArchiveExtractionError:
+            raise kibana_exceptions.InstallKibanaError("Failed to extract Kibana archive.")
 
     def _copy_kibana_files_and_directories(self):
         config_paths = [

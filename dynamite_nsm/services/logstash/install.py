@@ -65,9 +65,12 @@ class InstallManager:
         if download_logstash_archive:
             try:
                 self.download_logstash(stdout=stdout)
-                self.extract_logstash(stdout=stdout)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise logstash_exceptions.InstallLogstashError("Failed to download/extract Logstash archive.")
+                raise logstash_exceptions.InstallLogstashError("Failed to download Logstash archive.")
+        try:
+            self.extract_logstash(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise logstash_exceptions.InstallLogstashError("Failed to extract Logstash archive.")
 
     def _copy_logstash_files_and_directories(self):
         if self.stdout:

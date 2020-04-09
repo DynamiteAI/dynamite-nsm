@@ -64,9 +64,12 @@ class InstallManager:
         if download_dynamite_sdk_archive:
             try:
                 self.download_dynamite_sdk(stdout=stdout)
-                self.extract_dynamite_sdk(stdout=stdout)
-            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise lab_exceptions.InstallLabError("Failed to download/extract DynamiteSDK archive.")
+            except general_exceptions.DownloadError:
+                raise lab_exceptions.InstallLabError("Failed to download DynamiteSDK archive.")
+        try:
+            self.extract_dynamite_sdk(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise lab_exceptions.InstallLabError("Failed to extract DynamiteSDK archive.")
         try:
             self.install_dependencies(stdout=stdout, verbose=verbose)
             self.install_jupyterhub(stdout=stdout)

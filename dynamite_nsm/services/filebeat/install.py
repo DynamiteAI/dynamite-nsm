@@ -18,8 +18,7 @@ from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 class InstallManager:
 
-    def __init__(self, install_directory, monitor_paths,
-                 download_filebeat_archive=True, stdout=True):
+    def __init__(self, install_directory, monitor_paths, download_filebeat_archive=True, stdout=True):
         """
         :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
         :param monitor_paths: The tuple of log paths to monitor
@@ -32,9 +31,12 @@ class InstallManager:
         if download_filebeat_archive:
             try:
                 self.download_filebeat(stdout=stdout)
-                self.extract_filebeat(stdout=stdout)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise filebeat_exceptions.InstallFilebeatError("Failed to download/extract Filebeat archive.")
+                raise filebeat_exceptions.InstallFilebeatError("Failed to download Filebeat archive.")
+        try:
+            self.extract_filebeat(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise filebeat_exceptions.InstallFilebeatError("Failed to extract Filebeat archive.")
 
     @staticmethod
     def download_filebeat(stdout=False):

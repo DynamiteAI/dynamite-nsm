@@ -1,6 +1,18 @@
 from dynamite_nsm import exceptions
 
 
+class CallElasticProcessError(exceptions.CallProcessError):
+    """
+    Thrown when elasticsearch process encounters an error state
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while calling elasticsearch process: {}".format(message)
+        super(CallElasticProcessError, self).__init__(msg)
+
+
 class WriteElasticConfigError(exceptions.WriteConfigError):
     """
     Thrown when an Elasticsearch.yml config option fails to write
@@ -51,3 +63,5 @@ class UninstallElasticsearchError(exceptions.UninstallError):
         """
         msg = "An error occurred while uninstalling elasticsearch: {}".format(message)
         super(UninstallElasticsearchError, self).__init__(msg)
+
+
