@@ -27,13 +27,15 @@ class BaseExecStrategy:
         return exec_strat
 
     def add_function(self, func, argument_dict, return_format=None):
-        self.functions.append((func, return_format))
+        self.functions.append(func)
         self.arguments.append(argument_dict)
+        self.return_formats.append(return_format)
 
     def execute_strategy(self):
         for i in range(0, len(self.functions)):
-            func, ret_fmt = self.functions[i]
+            func = self.functions[i]
             args = self.arguments[i]
+            ret_fmt = self.return_formats[i]
             if not ret_fmt:
                 func(**args)
             elif str(ret_fmt).lower() == "json":
