@@ -87,6 +87,7 @@ class ElasticsearchUninstallStrategy(exec_strategy.BaseExecStrategy):
 
 
 class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
+
     def __init__(self, stdout, status):
         exec_strategy.BaseExecStrategy.__init__(
             self, strategy_name="elasticsearch_start",
@@ -95,6 +96,7 @@ class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
                 process.start,
             ),
             arguments=(
+                # process.start
                 {
                     "stdout": stdout
                 },
@@ -105,11 +107,85 @@ class ElasticsearchProcessStartStrategy(exec_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(
-                process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="json")
+
+
+class ElasticsearchProcessStopStrategy(exec_strategy.BaseExecStrategy):
+
+    def __init__(self, stdout, status):
+        exec_strategy.BaseExecStrategy.__init__(
+            self, strategy_name="elasticsearch_stop",
+            strategy_description="Stop Elasticsearch process.",
+            functions=(
+                process.stop,
+            ),
+            arguments=(
+                # process.start
+                {
+                    "stdout": stdout
+                },
+            ),
+            return_formats=(
+                None,
+            )
+
+        )
+        if status:
+            self.add_function(process.status, {}, return_format="json")
+
+
+class ElasticsearchProcessRestartStrategy(exec_strategy.BaseExecStrategy):
+
+    def __init__(self, stdout, status):
+        exec_strategy.BaseExecStrategy.__init__(
+            self, strategy_name="elasticsearch_restart",
+            strategy_description="Restart Elasticsearch process.",
+            functions=(
+                process.stop,
+                process.start,
+            ),
+            arguments=(
+                # process.start
+                {
+                    "stdout": stdout
+                },
+
+                # process.stop
+                {
+                    "stdout": stdout
+                }
+            ),
+            return_formats=(
+                None,
+                None
+            )
+
+        )
+        if status:
+            self.add_function(process.status, {}, return_format="json")
+
+
+class ElasticsearchProcessStatusStrategy(exec_strategy.BaseExecStrategy):
+
+    def __init__(self):
+        exec_strategy.BaseExecStrategy.__init__(
+            self, strategy_name="elasticsearch_status",
+            strategy_description="Get the status of the Elasticsearch process.",
+            functions=(
+                process.status,
+            ),
+            arguments=(
+                # process.status
+                {},
+            ),
+            return_formats=(
+                'json',
+            )
+        )
 
 
 # Test Functions
+
 
 def run_install_strategy():
     es_elastic_install_strategy = ElasticsearchInstallStrategy(
@@ -138,8 +214,33 @@ def run_process_start_strategy():
     es_elastic_start_strategy.execute_strategy()
 
 
+def run_process_stop_strategy():
+    es_elastic_stop_strategy = ElasticsearchProcessStopStrategy(
+        stdout=True,
+        status=True
+    )
+    es_elastic_stop_strategy.execute_strategy()
+
+
+def run_process_restart_strategy():
+    es_elastic_restart_strategy = ElasticsearchProcessRestartStrategy(
+        stdout=True,
+        status=True
+    )
+    es_elastic_restart_strategy.execute_strategy()
+
+
+def run_process_status_strategy():
+    es_elastic_status_strategy = ElasticsearchProcessStatusStrategy(
+    )
+    es_elastic_status_strategy.execute_strategy()
+
+
 if __name__ == '__main__':
     run_install_strategy()
     run_process_start_strategy()
+    run_process_stop_strategy()
+    run_process_restart_strategy()
+    run_process_status_strategy()
     run_uninstall_strategy()
     pass
