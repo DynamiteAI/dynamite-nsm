@@ -20,7 +20,10 @@ def register_elasticsearch_component_actions(es_component_parser):
                                    )
 
     # === Setup ElasticSearch Component Uninstall Arguments === #
-    es_uninstall_parser = elasticsearch_component_actions_subparsers.add_parser("uninstall", help="Uninstall ElasticSearch.")
+    es_uninstall_parser = elasticsearch_component_actions_subparsers.add_parser("uninstall",
+                                                                                help="Uninstall ElasticSearch.")
+    es_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_elastic_uninstall_prompt", default=False,
+                                     action="store_true", help="Skip prompting uninstall prompt.")
     es_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup ElasticSearch Component Start Arguments === #
@@ -62,9 +65,14 @@ logstash_component_parser.set_defaults(component_name="logstash")
 kibana_component_parser = component_subparsers.add_parser("kibana", help="Install, configure, manage Kibana.")
 kibana_component_parser.set_defaults(component_name="kibana")
 
-
 register_elasticsearch_component_actions(elasticsearch_component_parser)
 
 args = main_parser.parse_args()
-if args.component_name == "elasticsearch":
-    es_commandline_component = ElasticsearchCommandlineComponent(args)
+try:
+    if args.component_name == "elasticsearch":
+        es_commandline_component = ElasticsearchCommandlineComponent(args)
+except AttributeError as e:
+    if 'Namespace' in str(e):
+        main_parser.print_help()
+except Exception as e:
+    print("A fatal error has occurred; try debugging with verbose flag: {}".format(e))
