@@ -35,7 +35,7 @@ class BaseComponent:
 
     @staticmethod
     def validate_strategy(strategy):
-        if not issubclass(strategy, execution_strategy.BaseExecStrategy):
+        if not strategy or not issubclass(strategy.__class__, execution_strategy.BaseExecStrategy):
             raise TypeError("Invalid strategy, must be {}.".format(type(execution_strategy.BaseExecStrategy)))
 
     def register_install_strategy(self, install_strategy):
