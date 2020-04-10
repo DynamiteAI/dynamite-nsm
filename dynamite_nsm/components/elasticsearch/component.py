@@ -86,6 +86,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     status=True
                 )
             )
+            self.stop()
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
                 execution_strategy.ElasticsearchProcessRestartStrategy(
@@ -93,6 +94,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     status=True
                 )
             )
+            self.restart()
 
         elif args.action_name == "status":
             self.register_process_status_strategy(

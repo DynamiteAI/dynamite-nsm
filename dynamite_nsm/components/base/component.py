@@ -58,7 +58,6 @@ class BaseComponent:
         self.validate_strategy(process_restart_strategy)
         self.process_restart_strategy = process_restart_strategy
 
-
     def register_process_status_strategy(self, process_status_strategy):
         self.validate_strategy(process_status_strategy)
         self.process_status_strategy = process_status_strategy
