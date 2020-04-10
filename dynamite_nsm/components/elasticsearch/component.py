@@ -1,11 +1,12 @@
-import argparse
-
 from dynamite_nsm.utilities import prompt_password
 from dynamite_nsm.components.base import component
 from dynamite_nsm.components.elasticsearch import execution_strategy
 
 
 class ElasticsearchComponent(component.BaseComponent):
+    """
+    ElasticSearch Component Wrapper intended for general use
+    """
 
     def __init__(self, install_password='changeme', install_heap_size_gigs=4, install_jdk=True,
                  prompt_on_uninstall=True, stdout=True, verbose=False):
@@ -41,6 +42,9 @@ class ElasticsearchComponent(component.BaseComponent):
 
 
 class ElasticsearchCommandlineComponent(component.BaseComponent):
+    """
+    ElasticSearch Commandline Component intended for commandline use.
+    """
 
     def __init__(self, args):
         component.BaseComponent.__init__(

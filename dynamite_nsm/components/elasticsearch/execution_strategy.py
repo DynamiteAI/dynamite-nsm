@@ -1,9 +1,16 @@
+import os
+import shutil
+from dynamite_nsm import const
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.elasticsearch import install, process
 
 
 def print_message(msg):
     print(msg)
+
+
+def remove_elasticsearch_tar_archive():
+    shutil.rmtree(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME), ignore_errors=True)
 
 
 class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
@@ -14,12 +21,15 @@ class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="elasticsearch_install",
             strategy_description="Install and secure ElasticSearch.",
             functions=(
+                remove_elasticsearch_tar_archive,
                 install.install_elasticsearch,
                 process.stop,
                 print_message,
                 print_message
             ),
             arguments=(
+                # remove_elasticsearch_tar_archive
+                {},
                 # install.install_elasticsearch
                 {
                     "configuration_directory": "/etc/dynamite/elasticsearch/",
@@ -45,10 +55,11 @@ class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
                 # print_message
                 {
                     "msg": '[+] Next, Start your cluster: '
-                           '\'dynamite start elasticsearch\'.'
+                           '\'dynamite elasticsearch start\'.'
                 }
             ),
             return_formats=(
+                None,
                 None,
                 None,
                 None,
