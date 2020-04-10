@@ -63,8 +63,8 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     password=es_password,
                     heap_size_gigs=args.elastic_heap_size,
                     install_jdk=not args.elastic_install_jdk,
-                    stdout=not args.silent,
-                    verbose=args.verbose and not args.silent
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
                 ))
             self.install()
         elif args.action_name == "uninstall":

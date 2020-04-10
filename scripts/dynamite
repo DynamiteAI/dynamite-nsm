@@ -91,7 +91,6 @@ agent_component_parser.set_defaults(component_name="agent")
 
 register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 
-
 if __name__ == '__main__':
 
     if len(argv) < 2:
@@ -99,6 +98,11 @@ if __name__ == '__main__':
         exit(1)
 
     args = main_parser.parse_args()
+    print(args)
+    if 'action_name' not in args:
+        main_parser.print_help()
+        main_parser.error(
+            "Missing {} 'action' (E.G install, uninstall, start, stop, restart, status)".format(args.component_name))
 
     if args.component_name == "elasticsearch":
         es_commandline_component = ElasticsearchCommandlineComponent(args)
