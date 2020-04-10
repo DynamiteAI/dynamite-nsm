@@ -50,12 +50,13 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
         )
 
         if args.action_name == "install":
-            if not args.elastic_password:
-                prompt_password("Enter the password for logging into ElasticSearch: ",
+            es_password = args.elastic_password
+            if not es_password:
+                es_password = prompt_password("Enter the password for logging into ElasticSearch: ",
                                 confirm_prompt="Confirm Password: ")
             self.register_install_strategy(
                 execution_strategy.ElasticsearchInstallStrategy(
-                    password=args.elastic_password,
+                    password=es_password,
                     heap_size_gigs=args.elastic_heap_size,
                     install_jdk=not args.elastic_install_jdk,
                     stdout=not args.silent,

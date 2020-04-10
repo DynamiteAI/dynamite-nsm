@@ -73,11 +73,9 @@ kibana_component_parser.set_defaults(component_name="kibana")
 register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 
 args = main_parser.parse_args()
-try:
-    if args.component_name == "elasticsearch":
-        es_commandline_component = ElasticsearchCommandlineComponent(args)
-except AttributeError as e:
-    if 'Namespace' in str(e):
-        main_parser.print_help()
-except Exception as e:
-    print("A fatal error has occurred; try debugging with verbose flag: {}".format(e))
+if 'component_name' not in args:
+    print(main_parser.print_help())
+
+if args.component_name == "elasticsearch":
+    es_commandline_component = ElasticsearchCommandlineComponent(args)
+
