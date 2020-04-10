@@ -50,6 +50,9 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
         )
 
         if args.action_name == "install":
+            if not args.elastic_password:
+                prompt_password("Enter the password for logging into ElasticSearch: ",
+                                confirm_prompt="Confirm Password: ")
             self.register_install_strategy(
                 execution_strategy.ElasticsearchInstallStrategy(
                     password=args.elastic_password,
@@ -59,6 +62,31 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.silent
                 ))
             self.install()
+        elif args.action_name == "uninstall":
+            execution_strategy.ElasticsearchUninstallStrategy(
+                stdout=not args.silent,
+                prompt_user=not args.skip_elastic_uninstall_prompt
+            ),
+            self.uninstall()
+        elif args.action_name == "start":
+            execution_strategy.ElasticsearchProcessStartStrategy(
+                stdout=not args.silent,
+                status=True
+            )
+            self.start()
+        elif args.action_name == "stop":
+            execution_strategy.ElasticsearchProcessStopStrategy(
+                stdout=not args.silent,
+                status=True
+            )
+        elif args.action_name == "restart":
+            execution_strategy.ElasticsearchProcessRestartStrategy(
+                stdout=not args.silent,
+                status=True
+            )
+        elif args.action_name == "status":
+            execution_strategy.ElasticsearchProcessStatusStrategy()
+            self.status()
 
 
 if __name__ == '__main__':
