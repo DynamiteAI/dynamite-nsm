@@ -63,29 +63,40 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                 ))
             self.install()
         elif args.action_name == "uninstall":
-            execution_strategy.ElasticsearchUninstallStrategy(
-                stdout=not args.silent,
-                prompt_user=not args.skip_elastic_uninstall_prompt
-            ),
+            self.register_uninstall_strategy(
+                execution_strategy.ElasticsearchUninstallStrategy(
+                    stdout=not args.silent,
+                    prompt_user=not args.skip_elastic_uninstall_prompt
+                )
+            )
             self.uninstall()
         elif args.action_name == "start":
-            execution_strategy.ElasticsearchProcessStartStrategy(
-                stdout=not args.silent,
-                status=True
+            self.register_process_start_strategy(
+                execution_strategy.ElasticsearchProcessStartStrategy(
+                    stdout=not args.silent,
+                    status=True
+                )
             )
             self.start()
         elif args.action_name == "stop":
-            execution_strategy.ElasticsearchProcessStopStrategy(
-                stdout=not args.silent,
-                status=True
+            self.register_process_stop_strategy(
+                execution_strategy.ElasticsearchProcessStopStrategy(
+                    stdout=not args.silent,
+                    status=True
+                )
             )
         elif args.action_name == "restart":
-            execution_strategy.ElasticsearchProcessRestartStrategy(
-                stdout=not args.silent,
-                status=True
+            self.register_process_restart_strategy(
+                execution_strategy.ElasticsearchProcessRestartStrategy(
+                    stdout=not args.silent,
+                    status=True
+                )
             )
+
         elif args.action_name == "status":
-            execution_strategy.ElasticsearchProcessStatusStrategy()
+            self.register_process_status_strategy(
+                execution_strategy.ElasticsearchProcessStatusStrategy()
+            )
             self.status()
 
 

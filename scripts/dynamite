@@ -3,10 +3,10 @@ import argparse
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
 
 
-def register_elasticsearch_component_actions(es_component_parser):
+def register_elasticsearch_component_actions(es_component_parser, parent_parsers):
     elasticsearch_component_actions_subparsers = es_component_parser.add_subparsers()
     # === Setup ElasticSearch Component Install Arguments === #
-    es_install_parser = elasticsearch_component_actions_subparsers.add_parser("install", parents=[base_parser])
+    es_install_parser = elasticsearch_component_actions_subparsers.add_parser("install", parents=parent_parsers)
 
     es_install_parser.set_defaults(action_name="install")
     es_install_parser.add_argument("--es-heap-size", dest="elastic_heap_size", type=int, default=4,
@@ -21,25 +21,30 @@ def register_elasticsearch_component_actions(es_component_parser):
 
     # === Setup ElasticSearch Component Uninstall Arguments === #
     es_uninstall_parser = elasticsearch_component_actions_subparsers.add_parser("uninstall",
-                                                                                help="Uninstall ElasticSearch.")
+                                                                                help="Uninstall ElasticSearch.",
+                                                                                parents=parent_parsers)
     es_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_elastic_uninstall_prompt", default=False,
                                      action="store_true", help="Skip prompting uninstall prompt.")
     es_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup ElasticSearch Component Start Arguments === #
-    es_start_parser = elasticsearch_component_actions_subparsers.add_parser("start", help="Start ElasticSearch.")
+    es_start_parser = elasticsearch_component_actions_subparsers.add_parser("start", help="Start ElasticSearch.",
+                                                                            parents=parent_parsers)
     es_start_parser.set_defaults(action_name="start")
 
     # === Setup ElasticSearch Component Stop Arguments === #
-    es_stop_parser = elasticsearch_component_actions_subparsers.add_parser("stop", help="Stop ElasticSearch.")
+    es_stop_parser = elasticsearch_component_actions_subparsers.add_parser("stop", help="Stop ElasticSearch.",
+                                                                           parents=parent_parsers)
     es_stop_parser.set_defaults(action_name="stop")
 
     # === Setup ElasticSearch Component Restart Arguments === #
-    es_restart_parser = elasticsearch_component_actions_subparsers.add_parser("restart", help="Restart ElasticSearch.")
+    es_restart_parser = elasticsearch_component_actions_subparsers.add_parser("restart", help="Restart ElasticSearch.",
+                                                                              parents=parent_parsers)
     es_restart_parser.set_defaults(action_name="restart")
 
     # === Setup ElasticSearch Component Status Arguments === #
-    es_restart_parser = elasticsearch_component_actions_subparsers.add_parser("restart", help="Status ElasticSearch.")
+    es_restart_parser = elasticsearch_component_actions_subparsers.add_parser("restart", help="Status ElasticSearch.",
+                                                                              parents=parent_parsers)
     es_restart_parser.set_defaults(action_name="status")
 
 
@@ -65,7 +70,7 @@ logstash_component_parser.set_defaults(component_name="logstash")
 kibana_component_parser = component_subparsers.add_parser("kibana", help="Install, configure, manage Kibana.")
 kibana_component_parser.set_defaults(component_name="kibana")
 
-register_elasticsearch_component_actions(elasticsearch_component_parser)
+register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 
 args = main_parser.parse_args()
 try:
