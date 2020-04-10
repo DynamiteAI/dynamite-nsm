@@ -1,5 +1,4 @@
 import os
-import shutil
 from dynamite_nsm import const
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.elasticsearch import install, process
@@ -10,7 +9,9 @@ def print_message(msg):
 
 
 def remove_elasticsearch_tar_archive():
-    shutil.rmtree(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME), ignore_errors=True)
+    dir_path = os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME)
+    if os.path.exists(dir_path):
+        os.remove(dir_path)
 
 
 class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):

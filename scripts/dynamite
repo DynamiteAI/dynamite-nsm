@@ -98,7 +98,6 @@ if __name__ == '__main__':
         exit(1)
 
     args = main_parser.parse_args()
-    print(args)
     if 'action_name' not in args:
         main_parser.print_help()
         main_parser.error(
