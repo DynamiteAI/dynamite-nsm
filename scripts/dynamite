@@ -50,7 +50,7 @@ def register_elasticsearch_component_actions(es_component_parser, parent_parsers
 
 
 base_parser = argparse.ArgumentParser(add_help=False)
-base_parser.add_argument("--slient", dest="silent", default=False, action="store_true",
+base_parser.add_argument("--silent", dest="no_stdout", default=False, action="store_true",
                          help="Disable terminal output.")
 
 base_parser.add_argument("--verbose", dest="verbose", default=False, action="store_true",

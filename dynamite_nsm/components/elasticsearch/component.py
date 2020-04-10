@@ -53,7 +53,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
             es_password = args.elastic_password
             if not es_password:
                 es_password = prompt_password("Enter the password for logging into ElasticSearch: ",
-                                confirm_prompt="Confirm Password: ")
+                                              confirm_prompt="Confirm Password: ")
             self.register_install_strategy(
                 execution_strategy.ElasticsearchInstallStrategy(
                     password=es_password,
@@ -66,7 +66,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.ElasticsearchUninstallStrategy(
-                    stdout=not args.silent,
+                    stdout=not args.no_stdout,
                     prompt_user=not args.skip_elastic_uninstall_prompt
                 )
             )
@@ -74,7 +74,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
         elif args.action_name == "start":
             self.register_process_start_strategy(
                 execution_strategy.ElasticsearchProcessStartStrategy(
-                    stdout=not args.silent,
+                    stdout=not args.no_stdout,
                     status=True
                 )
             )
@@ -82,7 +82,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
         elif args.action_name == "stop":
             self.register_process_stop_strategy(
                 execution_strategy.ElasticsearchProcessStopStrategy(
-                    stdout=not args.silent,
+                    stdout=not args.no_stdout,
                     status=True
                 )
             )
@@ -90,7 +90,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
                 execution_strategy.ElasticsearchProcessRestartStrategy(
-                    stdout=not args.silent,
+                    stdout=not args.no_stdout,
                     status=True
                 )
             )
