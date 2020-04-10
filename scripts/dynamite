@@ -1,4 +1,8 @@
+#!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
+
 import argparse
+import argcomplete
 from sys import argv
 
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
@@ -50,6 +54,8 @@ def register_elasticsearch_component_actions(es_component_parser, parent_parsers
 
 
 base_parser = argparse.ArgumentParser(add_help=False)
+argcomplete.autocomplete(base_parser)
+
 base_parser.add_argument("--silent", dest="no_stdout", default=False, action="store_true",
                          help="Disable terminal output.")
 
@@ -66,7 +72,7 @@ elasticsearch_component_parser = component_subparsers.add_parser("elasticsearch"
 elasticsearch_component_parser.set_defaults(component_name="elasticsearch")
 
 logstash_component_parser = component_subparsers.add_parser("logstash",
-                                                            help="Install, configure, manage ElasticSearch.")
+                                                            help="Install, configure, manage LogStash.")
 logstash_component_parser.set_defaults(component_name="logstash")
 
 kibana_component_parser = component_subparsers.add_parser("kibana",
@@ -80,16 +86,19 @@ monitor_component_parser = component_subparsers.add_parser("monitor",
 monitor_component_parser.set_defaults(component_name="monitor")
 
 agent_component_parser = component_subparsers.add_parser("agent",
-                                                         help="Install, configure, manage the Dynamite Agent")
+                                                         help="Install, configure, manage the Dynamite Agent.")
 agent_component_parser.set_defaults(component_name="agent")
 
 register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 
-if len(argv) < 2:
-    main_parser.print_help()
-    exit(1)
 
-args = main_parser.parse_args()
+if __name__ == '__main__':
 
-if args.component_name == "elasticsearch":
-    es_commandline_component = ElasticsearchCommandlineComponent(args)
+    if len(argv) < 2:
+        main_parser.print_help()
+        exit(1)
+
+    args = main_parser.parse_args()
+
+    if args.component_name == "elasticsearch":
+        es_commandline_component = ElasticsearchCommandlineComponent(args)
