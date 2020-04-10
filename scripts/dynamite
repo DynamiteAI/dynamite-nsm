@@ -1,4 +1,5 @@
 import argparse
+from sys import argv
 
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
 
@@ -43,9 +44,9 @@ def register_elasticsearch_component_actions(es_component_parser, parent_parsers
     es_restart_parser.set_defaults(action_name="restart")
 
     # === Setup ElasticSearch Component Status Arguments === #
-    es_restart_parser = elasticsearch_component_actions_subparsers.add_parser("restart", help="Status ElasticSearch.",
-                                                                              parents=parent_parsers)
-    es_restart_parser.set_defaults(action_name="status")
+    es_status_parser = elasticsearch_component_actions_subparsers.add_parser("status", help="Status ElasticSearch.",
+                                                                             parents=parent_parsers)
+    es_status_parser.set_defaults(action_name="status")
 
 
 base_parser = argparse.ArgumentParser(add_help=False)
@@ -59,6 +60,7 @@ main_parser = argparse.ArgumentParser(description="Discover your network.")
 
 component_subparsers = main_parser.add_subparsers()
 
+# === Setup ElasticSearch Components === #
 elasticsearch_component_parser = component_subparsers.add_parser("elasticsearch",
                                                                  help="Install, configure, manage ElasticSearch.")
 elasticsearch_component_parser.set_defaults(component_name="elasticsearch")
@@ -67,15 +69,27 @@ logstash_component_parser = component_subparsers.add_parser("logstash",
                                                             help="Install, configure, manage ElasticSearch.")
 logstash_component_parser.set_defaults(component_name="logstash")
 
-kibana_component_parser = component_subparsers.add_parser("kibana", help="Install, configure, manage Kibana.")
+kibana_component_parser = component_subparsers.add_parser("kibana",
+                                                          help="Install, configure, manage Kibana with pre-built "
+                                                               "Dynamite Analytic Views.")
 kibana_component_parser.set_defaults(component_name="kibana")
+
+monitor_component_parser = component_subparsers.add_parser("monitor",
+                                                           help="Install, configure, manage standalone ELK "
+                                                                "[ElasticSearch + Logstash + Kibana] instance.")
+monitor_component_parser.set_defaults(component_name="monitor")
+
+agent_component_parser = component_subparsers.add_parser("agent",
+                                                         help="Install, configure, manage the Dynamite Agent")
+agent_component_parser.set_defaults(component_name="agent")
 
 register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 
+if len(argv) < 2:
+    main_parser.print_help()
+    exit(1)
+
 args = main_parser.parse_args()
-if 'component_name' not in args:
-    print(main_parser.print_help())
 
 if args.component_name == "elasticsearch":
     es_commandline_component = ElasticsearchCommandlineComponent(args)
-
