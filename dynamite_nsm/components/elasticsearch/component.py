@@ -1,8 +1,11 @@
+import argparse
+
+from dynamite_nsm.utilities import prompt_password
 from dynamite_nsm.components.base import component
 from dynamite_nsm.components.elasticsearch import execution_strategy
 
 
-class ElasticComponent(component.BaseComponent):
+class ElasticsearchComponent(component.BaseComponent):
 
     def __init__(self, install_password='changeme', install_heap_size_gigs=4, install_jdk=True,
                  prompt_on_uninstall=True, stdout=True, verbose=False):
@@ -37,8 +40,29 @@ class ElasticComponent(component.BaseComponent):
         )
 
 
+class ElasticsearchCommandlineComponent(component.BaseComponent):
+
+    def __init__(self, args):
+        component.BaseComponent.__init__(
+            self,
+            component_name="ElasticSearch",
+            component_description="Store and search network events.",
+        )
+
+        if args.action_name == "install":
+            self.register_install_strategy(
+                execution_strategy.ElasticsearchInstallStrategy(
+                    password=args.elastic_password,
+                    heap_size_gigs=args.elastic_heap_size,
+                    install_jdk=not args.elastic_install_jdk,
+                    stdout=not args.silent,
+                    verbose=args.verbose and not args.silent
+                ))
+            self.install()
+
+
 if __name__ == '__main__':
-    es_component = ElasticComponent()
+    es_component = ElasticsearchComponent()
     es_component.install()
     es_component.start()
     es_component.stop()
