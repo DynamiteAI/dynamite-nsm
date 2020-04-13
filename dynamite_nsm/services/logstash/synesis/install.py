@@ -54,5 +54,5 @@ class InstallManager:
                 "Failed to read synesis environment variables; {} ".format(e))
         try:
             synesis_config.ConfigManager().write_environment_variables()
-        except synesis_exceptions.ReadSynesisConfigError, synesis_exceptions.WriteSynesisConfigError:
+        except (synesis_exceptions.ReadSynesisConfigError, synesis_exceptions.WriteSynesisConfigError):
             raise synesis_exceptions.InstallSynesisError("Could not read/write synesis environment variables.")

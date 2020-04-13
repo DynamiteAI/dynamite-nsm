@@ -59,5 +59,5 @@ class InstallManager:
                 "Failed to read elastiflow environment variables; {} ".format(e))
         try:
             elastiflow_config.ConfigManager().write_environment_variables()
-        except elastiflow_exceptions.ReadElastiflowConfigError, elastiflow_exceptions.WriteElastiflowConfigError:
+        except (elastiflow_exceptions.ReadElastiflowConfigError, elastiflow_exceptions.WriteElastiflowConfigError):
             raise elastiflow_exceptions.InstallElastiflowError("Could not read/write elastiflow environment variables.")

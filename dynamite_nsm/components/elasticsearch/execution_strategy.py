@@ -198,51 +198,51 @@ class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 def run_install_strategy():
-    es_elastic_install_strategy = ElasticsearchInstallStrategy(
+    es_install_strategy = ElasticsearchInstallStrategy(
         password="changeme",
         heap_size_gigs=4,
         install_jdk=False,
         stdout=True,
         verbose=True
     )
-    es_elastic_install_strategy.execute_strategy()
+    es_install_strategy.execute_strategy()
 
 
 def run_uninstall_strategy():
-    es_elastic_uninstall_strategy = ElasticsearchUninstallStrategy(
+    es_uninstall_strategy = ElasticsearchUninstallStrategy(
         stdout=True,
         prompt_user=False
     )
-    es_elastic_uninstall_strategy.execute_strategy()
+    es_uninstall_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
-    es_elastic_start_strategy = ElasticsearchProcessStartStrategy(
+    es_start_strategy = ElasticsearchProcessStartStrategy(
         stdout=True,
         status=True
     )
-    es_elastic_start_strategy.execute_strategy()
+    es_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
-    es_elastic_stop_strategy = ElasticsearchProcessStopStrategy(
+    es_stop_strategy = ElasticsearchProcessStopStrategy(
         stdout=True,
         status=True
     )
-    es_elastic_stop_strategy.execute_strategy()
+    es_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
-    es_elastic_restart_strategy = ElasticsearchProcessRestartStrategy(
+    es_restart_strategy = ElasticsearchProcessRestartStrategy(
         stdout=True,
         status=True
     )
-    es_elastic_restart_strategy.execute_strategy()
+    es_restart_strategy.execute_strategy()
 
 
 def run_process_status_strategy():
-    es_elastic_status_strategy = ElasticsearchProcessStatusStrategy()
-    es_elastic_status_strategy.execute_strategy()
+    es_status_strategy = ElasticsearchProcessStatusStrategy()
+    es_status_strategy.execute_strategy()
 
 
 if __name__ == '__main__':
