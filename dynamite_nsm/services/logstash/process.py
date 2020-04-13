@@ -28,8 +28,7 @@ class ProcessManager:
             raise logstash_exceptions.CallLogstashProcessError(
                 "Could not resolve LS_PATH_CONF environment variable. Is Logstash installed?")
         if not os.path.exists('/var/run/dynamite/logstash/'):
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/logstash/'), shell=True)
-
+            utilities.makedirs('/var/run/dynamite/logstash/', exist_ok=True)
         utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
         try:
             self.pid = int(open('/var/run/dynamite/logstash/logstash.pid').read()) + 1
@@ -49,7 +48,6 @@ class ProcessManager:
                       '--path.settings={} &>/dev/null & echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
                 utilities.get_environment_file_str(), self.config.ls_home, self.config.ls_path_conf)
             subprocess.call(command, shell=True, cwd=self.config.ls_home)
-
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:

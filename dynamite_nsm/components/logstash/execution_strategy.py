@@ -2,6 +2,7 @@ import os
 from dynamite_nsm import const
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.logstash import install, process
+from dynamite_nsm.utilities import check_socket, prompt_input
 
 
 def print_message(msg):
@@ -14,15 +15,26 @@ def remove_logstash_tar_archive():
         os.remove(dir_path)
 
 
+def check_elasticsearch_target(host, port, skip=False):
+    if skip:
+        return
+    if check_socket(host, port):
+        print("ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
+        if str(prompt_input('Continue? [y|N]: ')).lower() != 'y':
+            return
+        exit(0)
+
+
 class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, listen_address, elasticsearch_host, elasticsearch_port, elasticsearch_password, heap_size_gigs,
-                 install_jdk, stdout, verbose):
+                 install_jdk, skip_elasticsearch_check, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="logstash_install",
             strategy_description="Install and connect LogStash to ElasticSearch.",
             functions=(
+                check_elasticsearch_target,
                 remove_logstash_tar_archive,
                 install.install_logstash,
                 process.stop,
@@ -30,6 +42,12 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                 print_message
             ),
             arguments=(
+                # check_elasticsearch_target
+                {
+                    "skip": bool(skip_elasticsearch_check),
+                    "host": str(elasticsearch_host),
+                    "port": int(elasticsearch_port)
+                },
                 # remove_logstash_tar_archive
                 {},
                 # install.install_logstash
@@ -105,9 +123,11 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="logstash_start",
+            self,
+            strategy_name="logstash_start",
             strategy_description="Start LogStash process.",
             functions=(
+                check_elasticsearch_target,
                 process.start,
             ),
             arguments=(
