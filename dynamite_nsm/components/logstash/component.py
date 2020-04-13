@@ -68,7 +68,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
                     elasticsearch_host=args.es_host,
                     elasticsearch_port=args.es_port,
                     elasticsearch_password=es_password,
-                    heap_size_gigs=args.elastic_heap_size,
+                    heap_size_gigs=args.logstash_heap_size,
                     install_jdk=not args.elastic_install_jdk,
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
