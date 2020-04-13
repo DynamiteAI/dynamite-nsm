@@ -86,6 +86,7 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
                 None,
                 None,
+                None,
                 None
             ))
 
