@@ -102,7 +102,6 @@ class InstallManager:
                 try:
                     shutil.copy(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
                                 self.configuration_directory)
-
                 except shutil.Error as e:
                     sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         except Exception as e:
@@ -110,7 +109,7 @@ class InstallManager:
                 "General error while attempting to copy {} to {}; {}".format(path, self.configuration_directory, e))
         try:
             for path in install_paths:
-                src_install_path = os.path.join(const.INSTALL_CACHE, const.LOGSTASH_DIRECTORY_NAME, path),
+                src_install_path = os.path.join(const.INSTALL_CACHE, const.LOGSTASH_DIRECTORY_NAME, path)
                 dst_install_path = os.path.join(self.install_directory, path)
                 if self.stdout:
                     sys.stdout.write('[+] Copying {} -> {}\n'.format(src_install_path, dst_install_path))
