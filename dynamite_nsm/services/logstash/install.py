@@ -327,6 +327,7 @@ class InstallManager:
         self._setup_elastiflow()
         self._setup_synesis()
         self._install_logstash_plugins()
+
         try:
             shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'pipelines.yml'),
                         os.path.join(self.configuration_directory, 'pipelines.yml'))
@@ -340,6 +341,13 @@ class InstallManager:
         except Exception as e:
             raise logstash_exceptions.InstallLogstashError(
                 "General error occurred while attempting to create root directories; {}".format(e))
+        try:
+            utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
+        except Exception as e:
+            raise logstash_exceptions.InstallLogstashError(
+                "General error occurred while attempting to set permissions on root directories; {}".format(e))
 
 
 def install_logstash(configuration_directory, install_directory, log_directory, host='0.0.0.0',
