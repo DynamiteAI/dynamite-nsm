@@ -128,7 +128,6 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="logstash_start",
             strategy_description="Start LogStash process.",
             functions=(
-                check_elasticsearch_target,
                 process.start,
             ),
             arguments=(
