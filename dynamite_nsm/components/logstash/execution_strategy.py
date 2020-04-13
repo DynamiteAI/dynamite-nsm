@@ -18,7 +18,7 @@ def remove_logstash_tar_archive():
 def check_elasticsearch_target(host, port, skip=False):
     if skip:
         return
-    if check_socket(host, port):
+    if not check_socket(host, port):
         print("ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
         if str(prompt_input('Continue? [y|N]: ')).lower() != 'y':
             return
