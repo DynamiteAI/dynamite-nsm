@@ -391,11 +391,6 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
         utilities.create_dynamite_user(utilities.generate_random_password(50))
     ls_installer.setup_logstash()
 
-    if stdout:
-        sys.stdout.write('[+] *** LogStash installed event/alert pipelines. ***\n\n')
-        sys.stdout.write('[+] Next, Start your collector: \'dynamite start logstash\'.\n')
-        sys.stdout.flush()
-
 
 def uninstall_logstash(stdout=False, prompt_user=True):
     """
@@ -445,8 +440,6 @@ def uninstall_logstash(stdout=False, prompt_user=True):
                 env_lines += line.strip() + '\n'
             with open(env_file, 'w') as env_fw:
                 env_fw.write(env_lines)
-        if stdout:
-            sys.stdout.write('[+] LogStash uninstalled successfully.\n')
     except Exception as e:
         raise logstash_exceptions.UninstallLogstashError(
             "General error occurred while attempting to uninstall logstash; {}".format(e))

@@ -47,7 +47,7 @@ class LogstashComponent(component.BaseComponent):
 
 class LogstashCommandlineComponent(component.BaseComponent):
     """
-    ElasticSearch Commandline Component intended for commandline use.
+    LogStash Commandline Component intended for commandline use.
     """
 
     def __init__(self, args):
