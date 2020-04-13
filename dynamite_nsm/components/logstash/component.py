@@ -70,8 +70,8 @@ class LogstashCommandlineComponent(component.BaseComponent):
                     elasticsearch_port=args.es_port,
                     elasticsearch_password=es_password,
                     heap_size_gigs=args.logstash_heap_size,
-                    install_jdk=not args.logstash_install_jdk,
-                    skip_elasticsearch_check=args.check_elasticsearch_connection,
+                    install_jdk=not args.skip_logstash_install_jdk,
+                    skip_elasticsearch_check=not args.skip_check_elasticsearch_connection,
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))

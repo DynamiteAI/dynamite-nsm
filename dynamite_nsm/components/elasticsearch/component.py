@@ -62,7 +62,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                 execution_strategy.ElasticsearchInstallStrategy(
                     password=es_password,
                     heap_size_gigs=args.elastic_heap_size,
-                    install_jdk=not args.elastic_install_jdk,
+                    install_jdk=not args.skip_elastic_install_jdk,
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))
