@@ -23,7 +23,7 @@ def register_elasticsearch_component_actions(es_component_parser, parent_parsers
     es_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
                                    help="The password used for logging into ElasticSearch."
                                    )
-    es_install_parser.add_argument("--skip-install-jdk", dest="elastic_install_jdk", default=False,
+    es_install_parser.add_argument("--skip-install-jdk", dest="skip_elastic_install_jdk", default=False,
                                    action="store_true", help="Skip the installation of Java 11 Development Environment."
                                    )
 
@@ -78,10 +78,10 @@ def register_logstash_component_actions(ls_component_parser, parent_parsers):
     ls_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
                                    help="The password used for logging into ElasticSearch."
                                    )
-    ls_install_parser.add_argument("--skip-es-check", dest="check_elasticsearch_connection", default=False,
+    ls_install_parser.add_argument("--skip-es-check", dest="skip_check_elasticsearch_connection", default=False,
                                    action="store_true", help="Skip check to see if ElasticSearch is up and running."
                                    )
-    ls_install_parser.add_argument("--skip-install-jdk", dest="logstash_install_jdk", default=False,
+    ls_install_parser.add_argument("--skip-install-jdk", dest="skip_logstash_install_jdk", default=False,
                                    action="store_true", help="Skip the installation of Java 11 Development Environment."
                                    )
 
