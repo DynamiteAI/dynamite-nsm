@@ -114,7 +114,10 @@ class InstallManager:
                 if self.stdout:
                     sys.stdout.write('[+] Copying {} -> {}\n'.format(src_install_path, dst_install_path))
                 try:
-                    shutil.copytree(src_install_path, dst_install_path)
+                    if os.path.isdir(src_install_path):
+                        shutil.copytree(src_install_path, dst_install_path)
+                    else:
+                        shutil.copy(src_install_path, dst_install_path)
                 except shutil.Error as e:
                     sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         except Exception as e:
