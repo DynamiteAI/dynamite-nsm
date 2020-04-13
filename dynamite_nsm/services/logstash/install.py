@@ -343,7 +343,7 @@ class InstallManager:
 
 def install_logstash(configuration_directory, install_directory, log_directory, host='0.0.0.0',
                      elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
-                     install_jdk=True, create_dynamite_user=True, stdout=False, verbose=False):
+                     heap_size_gigs=4, install_jdk=True, create_dynamite_user=True, stdout=False, verbose=False):
     """
     Install Logstash with ElastiFlow & Synesis
 
@@ -355,6 +355,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     :param elasticsearch_host: A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: A port number for the target elasticsearch instance
     :param elasticsearch_password: The password used for authentication across all builtin ES users
+    :param heap_size_gigs: The initial/max java heap space to allocate
     :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run Logstash/ElasticSearch
     :param stdout: Print the output to console
@@ -373,7 +374,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
             return
     ls_installer = InstallManager(configuration_directory, install_directory, log_directory, host=host,
                                   elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port,
-                                  elasticsearch_password=elasticsearch_password,
+                                  elasticsearch_password=elasticsearch_password, heap_size_gigs=heap_size_gigs,
                                   download_logstash_archive=not ls_profiler.is_downloaded, stdout=stdout,
                                   verbose=verbose
                                   )
