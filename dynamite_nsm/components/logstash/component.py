@@ -10,7 +10,7 @@ class LogstashComponent(component.BaseComponent):
 
     def __init__(self, listen_address="0.0.0.0", elasticsearch_host="localhost", elasticsearch_port=9200,
                  elasticsearch_password='changeme', install_heap_size_gigs=4, install_jdk=True,
-                 prompt_on_uninstall=True, skip_elasticsearch_check=False, stdout=True, verbose=False):
+                 prompt_on_uninstall=True, check_elasticsearch_connection=True, stdout=True, verbose=False):
         component.BaseComponent.__init__(
             self,
             component_name="Logstash",
@@ -22,7 +22,7 @@ class LogstashComponent(component.BaseComponent):
                 elasticsearch_password=elasticsearch_password,
                 heap_size_gigs=install_heap_size_gigs,
                 install_jdk=install_jdk,
-                skip_elasticsearch_check=skip_elasticsearch_check,
+                check_elasticsearch_connection=check_elasticsearch_connection,
                 stdout=stdout,
                 verbose=verbose
             ),
@@ -71,7 +71,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
                     elasticsearch_password=es_password,
                     heap_size_gigs=args.logstash_heap_size,
                     install_jdk=not args.skip_logstash_install_jdk,
-                    skip_elasticsearch_check=not args.skip_check_elasticsearch_connection,
+                    check_elasticsearch_connection=not args.skip_check_elasticsearch_connection,
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))

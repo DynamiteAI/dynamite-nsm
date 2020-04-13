@@ -15,20 +15,20 @@ def remove_logstash_tar_archive():
         os.remove(dir_path)
 
 
-def check_elasticsearch_target(host, port, skip=False):
-    if skip:
+def check_elasticsearch_target(host, port, perform_check=True):
+    if not perform_check:
         return
     if not check_socket(host, port):
         print("ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
         if str(prompt_input('Continue? [y|N]: ')).lower() != 'y':
-            return
-        exit(0)
+            exit(0)
+    return
 
 
 class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, listen_address, elasticsearch_host, elasticsearch_port, elasticsearch_password, heap_size_gigs,
-                 install_jdk, skip_elasticsearch_check, stdout, verbose):
+                 install_jdk, check_elasticsearch_connection, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="logstash_install",
@@ -44,7 +44,7 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # check_elasticsearch_target
                 {
-                    "skip": bool(skip_elasticsearch_check),
+                    "perform_check": bool(check_elasticsearch_connection),
                     "host": str(elasticsearch_host),
                     "port": int(elasticsearch_port)
                 },
