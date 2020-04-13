@@ -12,17 +12,21 @@ except ImportError:
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.logstash import config as logstash_configs
+from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
 
 
 class ProcessManager:
     """
     An interface for start|stop|status|restart of the LogStash process
     """
+
     def __init__(self):
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('LS_PATH_CONF')
         self.config = logstash_configs.ConfigManager(self.configuration_directory)
-
+        if not self.configuration_directory:
+            raise logstash_exceptions.CallLogstashProcessError(
+                "Could not resolve LS_PATH_CONF environment variable. Is Logstash installed?")
         if not os.path.exists('/var/run/dynamite/logstash/'):
             subprocess.call('mkdir -p {}'.format('/var/run/dynamite/logstash/'), shell=True)
 
@@ -45,6 +49,7 @@ class ProcessManager:
                       '--path.settings={} &>/dev/null & echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
                 utilities.get_environment_file_str(), self.config.ls_home, self.config.ls_path_conf)
             subprocess.call(command, shell=True, cwd=self.config.ls_home)
+
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
