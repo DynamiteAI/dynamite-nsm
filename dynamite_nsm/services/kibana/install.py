@@ -309,14 +309,16 @@ class InstallManager:
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
 
 
-def install_kibana(install_directory, configuration_directory, log_directory, elasticsearch_host='localhost',
-                   elasticsearch_port=9200, elasticsearch_password='changeme',
+def install_kibana(install_directory, configuration_directory, log_directory, host='0.0.0.0', port=5601,
+                   elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
                    install_jdk=True, create_dynamite_user=True, stdout=False, verbose=False):
     """
     Install Kibana/ElastiFlow Dashboards
     :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
     :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
     :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
+    :param host: The IP address to listen on (E.G "0.0.0.0")
+    :param port: The port that the Kibana UI/API is bound to (E.G 5601)
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
     :param elasticsearch_password: The password used for authentication across all builtin ES users
@@ -339,6 +341,8 @@ def install_kibana(install_directory, configuration_directory, log_directory, el
         raise kibana_exceptions.InstallKibanaError(
             "Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]")
     kb_installer = InstallManager(install_directory, configuration_directory, log_directory,
+                                  host=host,
+                                  port=port,
                                   elasticsearch_host=elasticsearch_host,
                                   elasticsearch_port=elasticsearch_port,
                                   elasticsearch_password=elasticsearch_password,
