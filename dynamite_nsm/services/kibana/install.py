@@ -177,8 +177,8 @@ class InstallManager:
             try:
                 kibana_proc = kibana_process.ProcessManager()
                 kibana_proc.optimize(stdout=self.stdout)
-                utilities.set_ownership_of_file(const.BIN_PATH, user='dynamite', group='dynamite')
-                utilities.set_ownership_of_file(const.CONFIG_PATH, user='dynamite', group='dynamite')
+                utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
+                utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
                 time.sleep(5)
                 sys.stdout.write('[+] Starting Kibana.\n')
                 kibana_proc.start(stdout=self.stdout)
@@ -355,25 +355,22 @@ def install_kibana(install_directory, configuration_directory, log_directory, el
     if create_dynamite_user:
         utilities.create_dynamite_user(utilities.generate_random_password(50))
     kb_installer.setup_kibana()
-    if stdout:
-        sys.stdout.write('[+] *** Kibana + Dashboards installed successfully. ***\n\n')
-        sys.stdout.write('[+] Next, Start your collector: \'dynamite start kibana\'.\n')
-        sys.stdout.flush()
 
 
-def uninstall_kibana(configuration_directory, stdout=False, prompt_user=True):
+def uninstall_kibana(stdout=False, prompt_user=True):
     """
     Uninstall Kibana/ElastiFlow Dashboards
 
-    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
     :param stdout: Print the output to console
     :param prompt_user: Print a warning before continuing
     """
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
+    environment_variables = utilities.get_environment_file_dict()
     kb_profiler = kibana_profile.ProcessProfiler()
-    kb_config = kibana_configs.ConfigManager(configuration_directory)
     if not kb_profiler.is_installed:
         raise kibana_exceptions.UninstallKibanaError("Kibana is not installed.")
+    configuration_directory = environment_variables.get('KIBANA_PATH_CONF')
+    kb_config = kibana_configs.ConfigManager(configuration_directory)
     if prompt_user:
         sys.stderr.write(
             '[-] WARNING! Removing Kibana will uninstall all visualizations and saved searches previously created.\n')

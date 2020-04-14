@@ -1,30 +1,16 @@
 from dynamite_nsm import exceptions
 
 
-class WriteKibanaConfigError(exceptions.WriteConfigError):
+class CallKibanaProcessError(exceptions.CallProcessError):
     """
-    Thrown when an kibana.yml config option fails to write
+    Thrown when kibana process encounters an error state
     """
-
     def __init__(self, message):
         """
         :param message: A more specific error message
         """
-        msg = "An error occurred when writing kibana.yml configuration: {}".format(message)
-        super(WriteKibanaConfigError, self).__init__(msg)
-
-
-class ReadKibanaConfigError(exceptions.ReadConfigError):
-    """
-    Thrown when an kibana.yml config option fails to read
-    """
-
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred when reading kibana.yml configuration: {}".format(message)
-        super(ReadKibanaConfigError, self).__init__(msg)
+        msg = "An error occurred while calling kibana process: {}".format(message)
+        super(CallKibanaProcessError, self).__init__(msg)
 
 
 class CreateKibanaObjectsError(Exception):
@@ -54,6 +40,19 @@ class InstallKibanaError(exceptions.InstallError):
         super(InstallKibanaError, self).__init__(msg)
 
 
+class ReadKibanaConfigError(exceptions.ReadConfigError):
+    """
+    Thrown when an kibana.yml config option fails to read
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when reading kibana.yml configuration: {}".format(message)
+        super(ReadKibanaConfigError, self).__init__(msg)
+
+
 class UninstallKibanaError(exceptions.UninstallError):
     """
     Thrown when Kibana fails to uninstall
@@ -65,3 +64,16 @@ class UninstallKibanaError(exceptions.UninstallError):
         """
         msg = "An error occurred while uninstalling Kibana: {}".format(message)
         super(UninstallKibanaError, self).__init__(msg)
+
+
+class WriteKibanaConfigError(exceptions.WriteConfigError):
+    """
+    Thrown when an kibana.yml config option fails to write
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing kibana.yml configuration: {}".format(message)
+        super(WriteKibanaConfigError, self).__init__(msg)

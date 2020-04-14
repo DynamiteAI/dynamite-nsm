@@ -23,10 +23,10 @@ class ProcessManager:
     def __init__(self):
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('LS_PATH_CONF')
-        self.config = logstash_configs.ConfigManager(self.configuration_directory)
         if not self.configuration_directory:
             raise logstash_exceptions.CallLogstashProcessError(
                 "Could not resolve LS_PATH_CONF environment variable. Is Logstash installed?")
+        self.config = logstash_configs.ConfigManager(self.configuration_directory)
         if not os.path.exists('/var/run/dynamite/logstash/'):
             utilities.makedirs('/var/run/dynamite/logstash/', exist_ok=True)
         utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')

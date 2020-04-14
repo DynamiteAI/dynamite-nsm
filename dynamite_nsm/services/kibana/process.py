@@ -7,6 +7,7 @@ from multiprocessing import Process
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.kibana import config as kibana_configs
+from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
 
 
 class ProcessManager:
@@ -16,6 +17,9 @@ class ProcessManager:
     def __init__(self):
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('KIBANA_PATH_CONF')
+        if not self.configuration_directory:
+            raise kibana_exceptions.CallElasticProcessError(
+                "Could not resolve ES_PATH_CONF environment variable. Is Elasticsearch installed?")
         self.config = kibana_configs.ConfigManager(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/kibana/kibana.pid').read())
@@ -137,4 +141,20 @@ class ProcessManager:
             self.config.kibana_home,
         ), shell=True, env=utilities.get_environment_file_dict())
         # Pass permissions back to dynamite user
-        utilities.set_ownership_of_file('/var/log/dynamite', user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file(self.config.kibana_logs, user='dynamite', group='dynamite')
+
+
+def start(stdout=True):
+    ProcessManager().start(stdout)
+
+
+def stop(stdout=True):
+    ProcessManager().stop(stdout)
+
+
+def restart(stdout=True):
+    ProcessManager().restart(stdout)
+
+
+def status():
+    return ProcessManager().status()

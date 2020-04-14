@@ -1,7 +1,7 @@
 import os
 from dynamite_nsm import const
+from dynamite_nsm.services.kibana import install, process
 from dynamite_nsm.components.base import execution_strategy
-from dynamite_nsm.services.logstash import install, process
 from dynamite_nsm.utilities import check_socket, prompt_input
 
 
@@ -9,8 +9,8 @@ def print_message(msg):
     print(msg)
 
 
-def remove_logstash_tar_archive():
-    dir_path = os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME)
+def remove_kibana_tar_archive():
+    dir_path = os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME)
     if os.path.exists(dir_path):
         os.remove(dir_path)
 
@@ -25,18 +25,18 @@ def check_elasticsearch_target(host, port, perform_check=True):
     return
 
 
-class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
+class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
 
-    def __init__(self, listen_address, elasticsearch_host, elasticsearch_port, elasticsearch_password, heap_size_gigs,
-                 install_jdk, check_elasticsearch_connection, stdout, verbose):
+    def __init__(self, listen_address, listen_port, elasticsearch_host, elasticsearch_port, elasticsearch_password,
+                 check_elasticsearch_connection, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self,
-            strategy_name="logstash_install",
-            strategy_description="Install and connect LogStash to ElasticSearch.",
+            strategy_name="kibana_install",
+            strategy_description="Install Kibana with Dynamite Analytic views and connect to ElasticSearch.",
             functions=(
                 check_elasticsearch_target,
-                remove_logstash_tar_archive,
-                install.install_logstash,
+                remove_kibana_tar_archive,
+                install.install_kibana,
                 process.stop,
                 print_message,
                 print_message
@@ -48,19 +48,18 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                     "host": str(elasticsearch_host),
                     "port": int(elasticsearch_port)
                 },
-                # remove_logstash_tar_archive
+                # remove_kibana_tar_archive
                 {},
-                # install.install_logstash
+                # install.install_kibana
                 {
-                    "configuration_directory": "/etc/dynamite/logstash/",
-                    "install_directory": "/opt/dynamite/logstash/",
-                    "log_directory": "/var/log/dynamite/logstash/",
+                    "configuration_directory": "/etc/dynamite/kibana/",
+                    "install_directory": "/opt/dynamite/kibana/",
+                    "log_directory": "/var/log/dynamite/kibana/",
                     "host": str(listen_address),
+                    "port": int(listen_port),
                     "elasticsearch_host": str(elasticsearch_host),
                     "elasticsearch_port": int(elasticsearch_port),
                     "elasticsearch_password": str(elasticsearch_password),
-                    "heap_size_gigs": int(heap_size_gigs),
-                    "install_jdk": bool(install_jdk),
                     "create_dynamite_user": True,
                     "stdout": bool(stdout),
                     "verbose": bool(verbose)
@@ -73,12 +72,12 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # print_message
                 {
-                    "msg": '[+] *** LogStash installed successfully. ***\n'
+                    "msg": '[+] *** Kibana installed successfully. ***\n'
                 },
                 # print_message
                 {
                     "msg": '[+] Next, Start your cluster: '
-                           '\'dynamite logstash start\'.'
+                           '\'dynamite kibana start\'.'
                 }
             ),
             return_formats=(
@@ -91,18 +90,18 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
             ))
 
 
-class LogstashUninstallStrategy(execution_strategy.BaseExecStrategy):
+class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, stdout, prompt_user):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="logstash_uninstall",
-            strategy_description="Uninstall LogStash.",
+            self, strategy_name="kibana_uninstall",
+            strategy_description="Uninstall Kibana.",
             functions=(
-                install.uninstall_logstash,
+                install.uninstall_kibana,
                 print_message
             ),
             arguments=(
-                # install.uninstall_logstash
+                # install.uninstall_kibana
                 {
                     "stdout": bool(stdout),
                     "prompt_user": bool(prompt_user)
@@ -110,7 +109,7 @@ class LogstashUninstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # print_message
                 {
-                    "msg": '[+] *** LogStash uninstalled successfully. ***\n'
+                    "msg": '[+] *** Kibana uninstalled successfully. ***\n'
                 },
             ),
             return_formats=(
@@ -120,13 +119,13 @@ class LogstashUninstallStrategy(execution_strategy.BaseExecStrategy):
         )
 
 
-class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
+class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
-            strategy_name="logstash_start",
-            strategy_description="Start LogStash process.",
+            strategy_name="kibana_start",
+            strategy_description="Start Kibana process.",
             functions=(
                 process.start,
             ),
@@ -145,12 +144,12 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {}, return_format="json")
 
 
-class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
+class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="logstash_stop",
-            strategy_description="Stop LogStash process.",
+            self, strategy_name="kibana_stop",
+            strategy_description="Stop Kibana process.",
             functions=(
                 process.stop,
             ),
@@ -169,12 +168,12 @@ class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {}, return_format="json")
 
 
-class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
+class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="logstash_restart",
-            strategy_description="Restart LogStash process.",
+            self, strategy_name="kibana_restart",
+            strategy_description="Restart Kibana process.",
             functions=(
                 process.stop,
                 process.start,
@@ -199,12 +198,12 @@ class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {}, return_format="json")
 
 
-class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
+class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="logstash_status",
-            strategy_description="Get the status of the LogStash process.",
+            self, strategy_name="kibana_status",
+            strategy_description="Get the status of the Kibana process.",
             functions=(
                 process.status,
             ),
@@ -222,55 +221,53 @@ class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 def run_install_strategy():
-    ls_install_strategy = LogstashInstallStrategy(
+    kb_install_strategy = KibanaInstallStrategy(
         listen_address="0.0.0.0",
         elasticsearch_host="localhost",
         elasticsearch_port=9200,
         elasticsearch_password="changeme",
         check_elasticsearch_connection=False,
-        heap_size_gigs=4,
-        install_jdk=False,
         stdout=True,
         verbose=True
     )
-    ls_install_strategy.execute_strategy()
+    kb_install_strategy.execute_strategy()
 
 
 def run_uninstall_strategy():
-    ls_uninstall_strategy = LogstashUninstallStrategy(
+    kb_uninstall_strategy = KibanaUninstallStrategy(
         stdout=True,
         prompt_user=False
     )
-    ls_uninstall_strategy.execute_strategy()
+    kb_uninstall_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
-    ls_start_strategy = LogstashProcessStartStrategy(
+    kb_start_strategy = KibanaProcessStartStrategy(
         stdout=True,
         status=True
     )
-    ls_start_strategy.execute_strategy()
+    kb_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
-    ls_stop_strategy = LogstashProcessStopStrategy(
+    kb_stop_strategy = KibanaProcessStopStrategy(
         stdout=True,
         status=True
     )
-    ls_stop_strategy.execute_strategy()
+    kb_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
-    ls_restart_strategy = LogstashProcessRestartStrategy(
+    kb_restart_strategy = KibanaProcessRestartStrategy(
         stdout=True,
         status=True
     )
-    ls_restart_strategy.execute_strategy()
+    kb_restart_strategy.execute_strategy()
 
 
 def run_process_status_strategy():
-    ls_status_strategy = LogstashProcessStatusStrategy()
-    ls_status_strategy.execute_strategy()
+    kb_status_strategy = KibanaProcessStatusStrategy()
+    kb_status_strategy.execute_strategy()
 
 
 if __name__ == '__main__':
