@@ -223,6 +223,7 @@ class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 def run_install_strategy():
     kb_install_strategy = KibanaInstallStrategy(
         listen_address="0.0.0.0",
+        listen_port=5601,
         elasticsearch_host="localhost",
         elasticsearch_port=9200,
         elasticsearch_password="changeme",

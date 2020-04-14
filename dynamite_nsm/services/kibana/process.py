@@ -18,8 +18,8 @@ class ProcessManager:
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('KIBANA_PATH_CONF')
         if not self.configuration_directory:
-            raise kibana_exceptions.CallElasticProcessError(
-                "Could not resolve ES_PATH_CONF environment variable. Is Elasticsearch installed?")
+            raise kibana_exceptions.CallKibanaProcessError(
+                "Could not resolve KIBANA_PATH_CONF environment variable. Is Kibana installed?")
         self.config = kibana_configs.ConfigManager(self.configuration_directory)
         try:
             self.pid = int(open('/var/run/dynamite/kibana/kibana.pid').read())
