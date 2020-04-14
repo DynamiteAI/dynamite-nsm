@@ -223,6 +223,6 @@ def change_kibana_elasticsearch_password(configuration_directory, password='chan
         kb_config = ConfigManager(configuration_directory)
         kb_config.elasticsearch_password = password
         kb_config.write_config()
-    except kibana_exceptions.ReadKibanaConfigError, kibana_exceptions.WriteKibanaConfigError:
+    except (kibana_exceptions.ReadKibanaConfigError, kibana_exceptions.WriteKibanaConfigError):
         raise general_exceptions.ResetPasswordError("Could not read/write kibana configuration.")
     kibana_process.ProcessManager().restart(stdout=True)
