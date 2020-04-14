@@ -143,8 +143,8 @@ class InstallManager:
                                 shell=True)
             if 'KIBANA_LOGS' not in open(env_file).read():
                 if self.stdout:
-                    sys.stdout.write('[+] Updating Kibana default home path [{}]\n'.format(
-                        self.install_directory))
+                    sys.stdout.write('[+] Updating Kibana default log path [{}]\n'.format(
+                        self.log_directory))
                 subprocess.call('echo KIBANA_LOGS="{}" >> {}'.format(self.log_directory, env_file),
                                 shell=True)
         except IOError:
@@ -154,68 +154,65 @@ class InstallManager:
                 "General error while creating environment variables in {}; {}".format(env_file, e))
 
     def _install_kibana_objects(self):
-        elastic_installed_locally = elastic_profile.ProcessProfiler().is_installed or \
-                                    self.elasticsearch_host != 'localhost'
-        if kibana_profile.ProcessProfiler().is_installed and elastic_installed_locally:
-            if self.stdout:
-                sys.stdout.write('[+] Installing Kibana Dashboards\n')
-            if self.stdout:
-                sys.stdout.write('[+] Waiting for ElasticSearch to become accessible.\n')
-            # Start ElasticSearch if it is installed locally and is not running
-            if self.elasticsearch_host in ['localhost', '127.0.0.1', '0.0.0.0', '::1', '::/128']:
-                sys.stdout.write('[+] Starting ElasticSearch.\n')
-                elastic_process.ProcessManager().start(stdout=self.stdout)
-                sys.stdout.flush()
-                while not elastic_profile.ProcessProfiler().is_listening:
-                    if self.stdout:
-                        sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
-                    time.sleep(5)
+        if self.stdout:
+            sys.stdout.write('[+] Installing Kibana Dashboards\n')
+        if self.stdout:
+            sys.stdout.write('[+] Waiting for ElasticSearch to become accessible.\n')
+        # Start ElasticSearch if it is installed locally and is not running
+        if self.elasticsearch_host in ['localhost', '127.0.0.1', '0.0.0.0', '::1', '::/128']:
+            sys.stdout.write('[+] Starting ElasticSearch.\n')
+            elastic_process.ProcessManager().start(stdout=self.stdout)
+            sys.stdout.flush()
+            while not elastic_profile.ProcessProfiler().is_listening:
                 if self.stdout:
-                    sys.stdout.write('[+] ElasticSearch API is up.\n')
-                    sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
-                    sys.stdout.flush()
-                time.sleep(10)
-            try:
-                kibana_proc = kibana_process.ProcessManager()
-                kibana_proc.optimize(stdout=self.stdout)
-                utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
-                utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+                    sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
                 time.sleep(5)
-                sys.stdout.write('[+] Starting Kibana.\n')
-                kibana_proc.start(stdout=self.stdout)
-            except Exception as e:
-                raise kibana_exceptions.InstallKibanaError("General error while starting Kibana process; {}".format(e))
-            kibana_api_start_attempts = 0
-            while not kibana_profile.ProcessProfiler().is_listening and kibana_api_start_attempts != 5:
-                if self.stdout:
-                    sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
-                kibana_api_start_attempts += 1
-                time.sleep(5)
-            if kibana_api_start_attempts == 5:
-                raise kibana_exceptions.InstallKibanaError(
-                    "Kibana API could not be started after {} attempts.".format(kibana_api_start_attempts))
             if self.stdout:
-                sys.stdout.write('[+] Kibana API is up.\n')
-                sys.stdout.write('[+] Sleeping for 10 seconds, while Kibana API finishes booting.\n')
+                sys.stdout.write('[+] ElasticSearch API is up.\n')
+                sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
                 sys.stdout.flush()
             time.sleep(10)
-            api_config = kibana_configs.ApiConfigManager(self.configuration_directory)
-            kibana_object_create_attempts = 0
-            while kibana_object_create_attempts != 5:
-                try:
-                    api_config.create_dynamite_kibana_objects()
-                except kibana_exceptions.CreateKibanaObjectsError:
-                    if self.stdout:
-                        sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
-                            kibana_object_create_attempts))
-                    kibana_object_create_attempts += 1
-                    time.sleep(10)
-            if kibana_object_create_attempts == 5:
-                raise kibana_exceptions.InstallKibanaError(
-                    "Kibana objects could not be created after {} attempts".format(kibana_object_create_attempts))
+        try:
+            kibana_proc = kibana_process.ProcessManager()
+            kibana_proc.optimize(stdout=self.stdout)
+            utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
+            utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+            time.sleep(5)
+            sys.stdout.write('[+] Starting Kibana.\n')
+            kibana_proc.start(stdout=self.stdout)
+        except Exception as e:
+            raise kibana_exceptions.InstallKibanaError("General error while starting Kibana process; {}".format(e))
+        kibana_api_start_attempts = 0
+        while not kibana_profile.ProcessProfiler().is_listening and kibana_api_start_attempts != 5:
             if self.stdout:
-                sys.stdout.write('[+] Successfully created dashboards/visualizations.\n')
-            kibana_proc.stop()
+                sys.stdout.write('[+] Waiting for Kibana API to become accessible.\n')
+            kibana_api_start_attempts += 1
+            time.sleep(5)
+        if kibana_api_start_attempts == 5:
+            raise kibana_exceptions.InstallKibanaError(
+                "Kibana API could not be started after {} attempts.".format(kibana_api_start_attempts))
+        if self.stdout:
+            sys.stdout.write('[+] Kibana API is up.\n')
+            sys.stdout.write('[+] Sleeping for 10 seconds, while Kibana API finishes booting.\n')
+            sys.stdout.flush()
+        time.sleep(10)
+        api_config = kibana_configs.ApiConfigManager(self.configuration_directory)
+        kibana_object_create_attempts = 0
+        while kibana_object_create_attempts != 5:
+            try:
+                api_config.create_dynamite_kibana_objects()
+            except kibana_exceptions.CreateKibanaObjectsError:
+                if self.stdout:
+                    sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
+                        kibana_object_create_attempts))
+                kibana_object_create_attempts += 1
+                time.sleep(10)
+        if kibana_object_create_attempts == 5:
+            raise kibana_exceptions.InstallKibanaError(
+                "Kibana objects could not be created after {} attempts".format(kibana_object_create_attempts))
+        if self.stdout:
+            sys.stdout.write('[+] Successfully created dashboards/visualizations.\n')
+        kibana_proc.stop()
 
     def _setup_default_kibana_configs(self):
         if self.stdout:
