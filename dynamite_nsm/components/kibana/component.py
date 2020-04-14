@@ -64,7 +64,8 @@ class KibanaCommandlineComponent(component.BaseComponent):
                                               confirm_prompt="Confirm Password: ")
             self.register_install_strategy(
                 execution_strategy.KibanaInstallStrategy(
-                    listen_address=args.ls_addr,
+                    listen_address=args.kb_addr,
+                    listen_port=args.kb_port,
                     elasticsearch_host=args.es_host,
                     elasticsearch_port=args.es_port,
                     elasticsearch_password=es_password,

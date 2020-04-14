@@ -5,9 +5,9 @@ import argparse
 import argcomplete
 from sys import argv
 
+from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
-
 
 
 def register_elasticsearch_component_actions(es_component_parser, parent_parsers):
@@ -114,6 +114,64 @@ def register_logstash_component_actions(ls_component_parser, parent_parsers):
     ls_status_parser.set_defaults(action_name="status")
 
 
+def register_kibana_component_actions(kb_component_parser, parent_parsers):
+    kibana_component_actions_subparsers = kb_component_parser.add_subparsers()
+    # === Setup Kibana Component Install Arguments === #
+    kb_install_parser = kibana_component_actions_subparsers.add_parser("install", help="Install LogStash.",
+                                                                       parents=parent_parsers)
+
+    kb_install_parser.set_defaults(action_name="install")
+    kb_install_parser.add_argument("--kb-listen-addr", dest="kb_addr", type=str, default='0.0.0.0',
+                                   help="The address upon which Kibana web interface listens."
+                                   )
+    kb_install_parser.add_argument("--kb-listen-port", dest="kb_port", type=str, default=5601,
+                                   help="The port upon which Kibana web interface listens."
+                                   )
+    kb_install_parser.add_argument("--es-host", dest="es_host", type=str, default='localhost',
+                                   help="The host where ElasticSearch lives."
+                                   )
+    kb_install_parser.add_argument("--es-port", dest="es_port", type=int, default=9200,
+                                   help="The port that ElasticSearch is listening on."
+                                   )
+    kb_install_parser.add_argument("--ls-heap-size", dest="kibana_heap_size", type=int, default=4,
+                                   help="The amount of memory to designate to LogStash's Java Heap [Gi]"
+                                   )
+    kb_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
+                                   help="The password used for logging into ElasticSearch."
+                                   )
+    kb_install_parser.add_argument("--skip-es-check", dest="skip_check_elasticsearch_connection", default=False,
+                                   action="store_true", help="Skip check to see if ElasticSearch is up and running."
+                                   )
+
+    # === Setup Kibana Component Uninstall Arguments === #
+    kb_uninstall_parser = kibana_component_actions_subparsers.add_parser("uninstall",
+                                                                         help="Uninstall Kibana.",
+                                                                         parents=parent_parsers)
+    kb_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_kibana_uninstall_prompt", default=False,
+                                     action="store_true", help="Skip prompting uninstall prompt.")
+    kb_uninstall_parser.set_defaults(action_name="uninstall")
+
+    # === Setup Kibana Component Start Arguments === #
+    kb_start_parser = kibana_component_actions_subparsers.add_parser("start", help="Start Kibana.",
+                                                                     parents=parent_parsers)
+    kb_start_parser.set_defaults(action_name="start")
+
+    # === Setup Kibana Component Stop Arguments === #
+    kb_stop_parser = kibana_component_actions_subparsers.add_parser("stop", help="Stop Kibana.",
+                                                                    parents=parent_parsers)
+    kb_stop_parser.set_defaults(action_name="stop")
+
+    # === Setup Kibana Component Restart Arguments === #
+    kb_restart_parser = kibana_component_actions_subparsers.add_parser("restart", help="Restart Kibana.",
+                                                                       parents=parent_parsers)
+    kb_restart_parser.set_defaults(action_name="restart")
+
+    # === Setup ElasticSearch Component Status Arguments === #
+    kb_status_parser = kibana_component_actions_subparsers.add_parser("status", help="Status Kibana.",
+                                                                      parents=parent_parsers)
+    kb_status_parser.set_defaults(action_name="status")
+
+
 base_parser = argparse.ArgumentParser(add_help=False)
 argcomplete.autocomplete(base_parser)
 
@@ -152,6 +210,7 @@ agent_component_parser.set_defaults(component_name="agent")
 
 register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 register_logstash_component_actions(logstash_component_parser, parent_parsers=[base_parser])
+register_kibana_component_actions(kibana_component_parser, parent_parsers=[base_parser])
 
 if __name__ == '__main__':
 
@@ -169,3 +228,5 @@ if __name__ == '__main__':
         es_commandline_component = ElasticsearchCommandlineComponent(args)
     elif args.component_name == "logstash":
         ls_commandline_component = LogstashCommandlineComponent(args)
+    elif args.component_name == "kibana":
+        kb_commandline_component = KibanaCommandlineComponent(args)

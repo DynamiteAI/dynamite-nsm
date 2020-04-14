@@ -152,7 +152,7 @@ def download_file(url, filename, stdout=False):
         except TypeError:
             pb = progressbar.ProgressBar(widgets, maxval=progressbar.UnknownLength)
     if stdout:
-        sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
+        sys.stdout.write('[+] Downloading: {}   |   Filename: {}\n'.format(url, filename))
         sys.stdout.flush()
         pb.start()
     try:
