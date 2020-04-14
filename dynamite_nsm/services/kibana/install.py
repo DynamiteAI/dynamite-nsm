@@ -61,11 +61,11 @@ class InstallManager:
         self.verbose = verbose
         if download_kibana_archive:
             try:
-                self.download_kibana()
+                self.download_kibana(stdout=stdout)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 raise kibana_exceptions.InstallKibanaError("Failed to download Kibana archive.")
         try:
-            self.extract_kibana()
+            self.extract_kibana(stdout=stdout)
         except general_exceptions.ArchiveExtractionError:
             raise kibana_exceptions.InstallKibanaError("Failed to extract Kibana archive.")
 
@@ -311,7 +311,7 @@ class InstallManager:
 
 def install_kibana(install_directory, configuration_directory, log_directory, host='0.0.0.0', port=5601,
                    elasticsearch_host='localhost', elasticsearch_port=9200, elasticsearch_password='changeme',
-                   install_jdk=True, create_dynamite_user=True, stdout=False, verbose=False):
+                   create_dynamite_user=True, stdout=False, verbose=False):
     """
     Install Kibana/ElastiFlow Dashboards
     :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
@@ -322,7 +322,6 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
     :param elasticsearch_host: [Optional] A hostname/IP of the target elasticsearch instance
     :param elasticsearch_port: [Optional] A port number for the target elasticsearch instance
     :param elasticsearch_password: The password used for authentication across all builtin ES users
-    :param install_jdk: Install the latest OpenJDK that will be used by Logstash/ElasticSearch
     :param create_dynamite_user: Automatically create the 'dynamite' user, who has privs to run
     Logstash/ElasticSearch/Kibana
     :param stdout: Print the output to console
@@ -339,7 +338,7 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
             utilities.get_memory_available_bytes() / (1000 ** 3)
         ))
         raise kibana_exceptions.InstallKibanaError(
-            "Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]")
+            "Dynamite Kibana requires at-least 2GB to run currently available [{} GB]")
     kb_installer = InstallManager(install_directory, configuration_directory, log_directory,
                                   host=host,
                                   port=port,
@@ -348,14 +347,6 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
                                   elasticsearch_password=elasticsearch_password,
                                   download_kibana_archive=not kb_profiler.is_downloaded, stdout=stdout,
                                   verbose=verbose)
-    if install_jdk:
-        try:
-            utilities.download_java(stdout=stdout)
-            utilities.extract_java(stdout=stdout)
-            utilities.setup_java()
-        except Exception as e:
-            raise kibana_exceptions.InstallKibanaError(
-                "General error occurred while attempting to setup Java; {}".format(e))
     if create_dynamite_user:
         utilities.create_dynamite_user(utilities.generate_random_password(50))
     kb_installer.setup_kibana()
