@@ -200,11 +200,12 @@ class InstallManager:
         kibana_object_create_attempts = 0
         while kibana_object_create_attempts != 5:
             try:
-                api_config.create_dynamite_kibana_objects()
-            except kibana_exceptions.CreateKibanaObjectsError:
                 if self.stdout:
                     sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
                         kibana_object_create_attempts))
+                api_config.create_dynamite_kibana_objects()
+                break
+            except kibana_exceptions.CreateKibanaObjectsError:
                 kibana_object_create_attempts += 1
                 time.sleep(10)
         if kibana_object_create_attempts == 5:
@@ -395,8 +396,6 @@ def uninstall_kibana(stdout=False, prompt_user=True):
                 env_lines += line.strip() + '\n'
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if stdout:
-            sys.stdout.write('[+] Kibana uninstalled successfully.\n')
     except Exception as e:
         raise kibana_exceptions.UninstallKibanaError(
             "General error occurred while attempting to uninstall kibana; {}".format(e))
