@@ -88,24 +88,27 @@ class InstallManager:
         path = None
         try:
             for path in config_paths:
+                src_config_path = os.path.join(const.INSTALL_CACHE, const.KIBANA_DIRECTORY_NAME, path)
+                dst_config_path = os.path.join(self.configuration_directory, path)
                 if self.stdout:
-                    sys.stdout.write('[+] Copying {} -> {}\n'.format(
-                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
-                        self.configuration_directory))
+                    sys.stdout.write('[+] Copying {} -> {}\n'.format(src_config_path, dst_config_path))
                 try:
-                    shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
-                                self.configuration_directory)
-
+                    if os.path.isdir(src_config_path):
+                        shutil.copytree(src_config_path, dst_config_path)
+                    else:
+                        shutil.copy(src_config_path, dst_config_path)
                 except shutil.Error as e:
                     sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
             for path in install_paths:
+                src_install_path = os.path.join(const.INSTALL_CACHE, const.KIBANA_DIRECTORY_NAME, path)
+                dst_install_path = os.path.join(self.install_directory, path)
                 if self.stdout:
-                    sys.stdout.write('[+] Copying {} -> {}\n'.format(
-                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
-                        self.install_directory))
+                    sys.stdout.write('[+] Copying {} -> {}\n'.format(src_install_path, dst_install_path))
                 try:
-                    shutil.move(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.KIBANA_DIRECTORY_NAME, path)),
-                                self.install_directory)
+                    if os.path.isdir(src_install_path):
+                        shutil.copytree(src_install_path, dst_install_path)
+                    else:
+                        shutil.copy(src_install_path, dst_install_path)
                 except shutil.Error as e:
                     sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
         except Exception as e:
