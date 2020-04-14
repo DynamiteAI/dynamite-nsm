@@ -197,7 +197,7 @@ class InstallManager:
             sys.stdout.flush()
         time.sleep(10)
         api_config = kibana_configs.ApiConfigManager(self.configuration_directory)
-        kibana_object_create_attempts = 0
+        kibana_object_create_attempts = 1
         while kibana_object_create_attempts != 5:
             try:
                 if self.stdout:
