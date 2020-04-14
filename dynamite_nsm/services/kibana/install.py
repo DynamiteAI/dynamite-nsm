@@ -293,7 +293,7 @@ class InstallManager:
         try:
             pacman.refresh_package_indexes()
             pacman.install_packages(['curl'])
-        except general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError:
+        except (general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
             raise kibana_exceptions.InstallKibanaError("Failed to install one or more packages; {}".format(["curl"]))
         self._create_kibana_directories()
         self._copy_kibana_files_and_directories()
