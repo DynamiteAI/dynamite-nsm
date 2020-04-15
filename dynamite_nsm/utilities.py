@@ -94,10 +94,10 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 def create_dynamite_environment_file():
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
-    env_file = open(env_file, 'a')
-    env_file.write('')
+    env_file_f = open(env_file, 'a')
+    env_file_f.write('')
+    env_file_f.close()
     set_permissions_of_file(env_file, 700)
-    env_file.close()
 
 
 def create_dynamite_user(password):
