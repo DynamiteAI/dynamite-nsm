@@ -99,7 +99,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
         }, return_format=None)
 
         if not ls_profile.ProcessProfiler().is_installed:
-            self.add_function(func=ls_install, argument_dict={
+            self.add_function(func=ls_install.install_logstash, argument_dict={
                 "configuration_directory": "/etc/dynamite/logstash/",
                 "install_directory": "/opt/dynamite/logstash/",
                 "log_directory": "/var/log/dynamite/logstash/",
