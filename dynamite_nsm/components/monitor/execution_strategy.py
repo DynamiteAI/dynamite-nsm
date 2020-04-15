@@ -342,7 +342,7 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             self, strategy_name="monitor_status",
             strategy_description="Get the status of the Monitor processes.",
             functions=(
-                get_monitor_status
+                get_monitor_status,
             ),
             arguments=(
                 {},
