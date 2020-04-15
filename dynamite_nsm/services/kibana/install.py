@@ -202,7 +202,7 @@ class InstallManager:
         while kibana_object_create_attempts != 5:
             try:
                 if self.stdout:
-                    sys.stdout.write('[+] Attempting to dashboards/visualizations [Attempt {}]\n'.format(
+                    sys.stdout.write('[+] Attempting to install dashboards/visualizations [Attempt {}]\n'.format(
                         kibana_object_create_attempts))
                 api_config.create_dynamite_kibana_objects()
                 break
@@ -374,7 +374,7 @@ def uninstall_kibana(stdout=False, prompt_user=True):
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return
+            exit(0)
     if kb_profiler.is_running:
         kibana_process.ProcessManager().stop(stdout=stdout)
     try:

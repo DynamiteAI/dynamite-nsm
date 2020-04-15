@@ -396,7 +396,7 @@ def uninstall_elasticsearch(stdout=False, prompt_user=True):
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return
+            exit(0)
     if es_profiler.is_running:
         elastic_process.ProcessManager().stop(stdout=stdout)
     try:

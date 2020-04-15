@@ -422,7 +422,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return
+            exit(0)
     if ls_profiler.is_running:
         logstash_process.ProcessManager().stop(stdout=stdout)
     try:
