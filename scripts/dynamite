@@ -6,6 +6,11 @@ from sys import argv
 from dynamite_nsm import const
 from dynamite_nsm import updater
 from dynamite_nsm import utilities
+
+from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
+from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
+from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
+
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
@@ -310,6 +315,30 @@ if __name__ == '__main__':
             kb_commandline_component = KibanaCommandlineComponent(args)
         elif args.component_name == "monitor":
             mon_commandline_component = MonitorCommandlineComponent(args)
+    except elastic_exceptions.AlreadyInstalledElasticsearchError:
+        print("ElasticSearch is already installed. Uninstall first.")
+    except elastic_exceptions.InstallElasticsearchError as e:
+        print("ElasticSearch Install Error: {}".format(e.message))
+    except elastic_exceptions.UninstallElasticsearchError as e:
+        print("ElasticSearch Uninstall Error: {}".format(e.message))
+    except elastic_exceptions.CallElasticProcessError as e:
+        print("ElasticSearch Process Error: {}".format(e.message))
+    except logstash_exceptions.AlreadyInstalledLogstashError:
+        print("LogStash is already installed. Uninstall first.")
+    except logstash_exceptions.InstallLogstashError as e:
+        print("LogStash Install Error: {}".format(e.message))
+    except logstash_exceptions.UninstallLogstashError as e:
+        print("LogStash Uninstall Error: {}".format(e.message))
+    except logstash_exceptions.CallLogstashProcessError as e:
+        print("LogStash Process Error: {}".format(e.message))
+    except kibana_exceptions.AlreadyInstalledKibanaError:
+        print("Kibana is already installed. Uninstall first.")
+    except kibana_exceptions.InstallKibanaError as e:
+        print("Kibana Install Error: {}".format(e.message))
+    except kibana_exceptions.UninstallKibanaError as e:
+        print("Kibana Uninstall Error: {}".format(e.message))
+    except kibana_exceptions.CallKibanaProcessError as e:
+        print("Kibana Process Error: {}".format(e.message))
     except KeyboardInterrupt:
-        print("[+] Exiting")
+        print("\n[+] Exiting")
         exit(0)
