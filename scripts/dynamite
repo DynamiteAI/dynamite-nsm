@@ -2,7 +2,6 @@
 # PYTHON_ARGCOMPLETE_OK
 
 import argparse
-import argcomplete
 from sys import argv
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
@@ -238,7 +237,6 @@ def register_monitor_component_actions(mon_component_parser, parent_parsers):
 
 
 base_parser = argparse.ArgumentParser(add_help=False)
-argcomplete.autocomplete(base_parser)
 
 base_parser.add_argument("--silent", dest="no_stdout", default=False, action="store_true",
                          help="Disable terminal output.")
