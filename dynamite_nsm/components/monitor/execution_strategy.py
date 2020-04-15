@@ -12,7 +12,7 @@ from dynamite_nsm.services.elasticsearch import install as es_install
 from dynamite_nsm.services.elasticsearch import process as es_process
 from dynamite_nsm.services.elasticsearch import profile as es_profile
 
-from dynamite_nsm.utilities import check_socket, prompt_input
+from dynamite_nsm.utilities import prompt_input
 
 
 def print_message(msg):
@@ -35,16 +35,6 @@ def remove_kibana_tar_archive():
     dir_path = os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME)
     if os.path.exists(dir_path):
         os.remove(dir_path)
-
-
-def check_elasticsearch_target(host, port, perform_check=True):
-    if not perform_check:
-        return
-    if not check_socket(host, port):
-        print("ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
-        if str(prompt_input('Continue? [y|N]: ')).lower() != 'y':
-            exit(0)
-    return
 
 
 def prompt_monitor_uninstall(prompt_user=True, stdout=True):
