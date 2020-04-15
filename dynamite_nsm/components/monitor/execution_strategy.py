@@ -123,7 +123,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
         }, return_format=None)
 
         if not kb_profile.ProcessProfiler().is_installed:
-            self.add_function(func=kb_install, argument_dict={
+            self.add_function(func=kb_install.install_kibana, argument_dict={
                 "configuration_directory": "/etc/dynamite/kibana/",
                 "install_directory": "/opt/dynamite/kibana/",
                 "log_directory": "/var/log/dynamite/kibana/",
