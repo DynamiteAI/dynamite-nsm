@@ -1,5 +1,5 @@
 import npyscreen
-from dynamite_nsm.services.zeek import ZeekNodeConfigurator
+from dynamite_nsm.services.zeek import config
 from dynamite_nsm.utilities import get_environment_file_dict
 
 
@@ -372,7 +372,7 @@ class ZeekNodeConfiguratorApp(npyscreen.NPSAppManaged):
 
     def onStart(self):
         env_vars = get_environment_file_dict()
-        self.zeek_config = ZeekNodeConfigurator(env_vars['ZEEK_HOME'])
+        self.zeek_config = config.NodeConfigManager(env_vars['ZEEK_HOME'])
         self.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Cluster Configuration')
         self.addForm('EDITWORKERFM', EditWorkerForm, name='Edit Zeek Worker')
         self.addForm('EDITLOGGERFM', EditLoggerManagerProxy, name='Edit Logger', component_type='logger')

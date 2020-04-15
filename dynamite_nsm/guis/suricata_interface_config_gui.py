@@ -1,6 +1,6 @@
 import npyscreen
 from dynamite_nsm.utilities import get_environment_file_dict
-from dynamite_nsm.services.suricata import SuricataConfigurator
+from dynamite_nsm.services.suricata import config
 
 
 class RemoveNetworkInterfaceButton(npyscreen.ButtonPress):
@@ -159,6 +159,6 @@ class SuricataInstanceConfiguratorApp(npyscreen.NPSAppManaged):
 
     def onStart(self):
         env_vars = get_environment_file_dict()
-        self.suricata_config = SuricataConfigurator(env_vars['SURICATA_CONFIG'])
+        self.suricata_config = config.ConfigManager(env_vars['SURICATA_CONFIG'])
         self.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')
         self.addForm('EDITINTERFACEFM', EditInterfaceForm, name='Edit Suricata Network Interface')

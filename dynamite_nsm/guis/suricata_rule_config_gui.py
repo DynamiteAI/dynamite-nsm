@@ -1,6 +1,6 @@
 import npyscreen
 from dynamite_nsm.utilities import get_environment_file_dict
-from dynamite_nsm.services.suricata import SuricataConfigurator
+from dynamite_nsm.services.suricata import config
 
 
 class SuricataRuleSettingsForm(npyscreen.ActionForm):
@@ -66,5 +66,5 @@ class SuricataRuleConfiguratorApp(npyscreen.NPSAppManaged):
 
     def onStart(self):
         env_vars = get_environment_file_dict()
-        self.suricata_rule_config = SuricataConfigurator(env_vars['SURICATA_CONFIG'])
+        self.suricata_rule_config = config.ConfigManager(env_vars['SURICATA_CONFIG'])
         self.addForm('MAIN', SuricataRuleSettingsForm, name='Suricata Rule Configuration')

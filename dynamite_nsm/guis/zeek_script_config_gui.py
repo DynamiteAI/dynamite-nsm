@@ -1,6 +1,6 @@
 import npyscreen
 from dynamite_nsm.utilities import get_environment_file_dict
-from dynamite_nsm.services.zeek import ZeekScriptConfigurator
+from dynamite_nsm.services.zeek import config
 
 
 class ZeekScriptSettingsForm(npyscreen.ActionForm):
@@ -67,5 +67,5 @@ class ZeekScriptConfiguratorApp(npyscreen.NPSAppManaged):
 
     def onStart(self):
         env_vars = get_environment_file_dict()
-        self.zeek_script_config = ZeekScriptConfigurator(env_vars['ZEEK_SCRIPTS'])
+        self.zeek_script_config = config.ScriptConfigManager(env_vars['ZEEK_SCRIPTS'])
         self.addForm('MAIN', ZeekScriptSettingsForm, name='Zeek Script Configuration')
