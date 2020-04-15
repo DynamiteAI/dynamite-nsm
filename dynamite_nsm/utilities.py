@@ -340,7 +340,7 @@ def print_dynamite_logo(version):
             
             Version: {}
             
-            """
+            """.format(version)
         print(dynamite_logo)
         print('\n')
     except (SyntaxError, UnicodeEncodeError):
