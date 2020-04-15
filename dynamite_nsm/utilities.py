@@ -237,7 +237,7 @@ def get_environment_file_dict():
     :return: The contents of the /etc/dynamite/environment file as a dictionary
     """
     export_dict = {}
-    for line in open('/etc/dynamite/environment').readlines():
+    for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
         if '=' in line:
             key, value = line.strip().split('=')
             export_dict[key] = value
@@ -313,7 +313,7 @@ def print_dynamite_logo():
     Print the dynamite logo!
     """
     try:
-        dynamite_logo =\
+        dynamite_logo = \
             """
             
                   ,,,,,                  ,▄▄▄▄╓
@@ -375,7 +375,7 @@ def prompt_input(message):
     try:
         res = raw_input(message)
     except NameError:
-        res =input(message)
+        res = input(message)
     return res
 
 
@@ -460,7 +460,8 @@ def setup_java():
         sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
         sys.stderr.flush()
     if 'JAVA_HOME' not in open(os.path.join(const.CONFIG_PATH, 'environment')).read():
-        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/dynamite/environment', shell=True)
+        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> {}'.format(const.CONFIG_PATH, 'environment'),
+                        shell=True)
 
 
 def set_ownership_of_file(path, user='dynamite', group='dynamite'):
@@ -557,13 +558,13 @@ def tail_file(path, n=1, bs=1024):
     """
     f = open(path)
     f.seek(0, 2)
-    l = 1-f.read(1).count('\n')
+    l = 1 - f.read(1).count('\n')
     B = f.tell()
     while n >= l and B > 0:
-            block = min(bs, B)
-            B -= block
-            f.seek(B, 0)
-            l += f.read(block).count('\n')
+        block = min(bs, B)
+        B -= block
+        f.seek(B, 0)
+        l += f.read(block).count('\n')
     f.seek(B, 0)
     l = min(l, n)
     lines = f.readlines()[-l:]

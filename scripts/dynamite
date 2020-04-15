@@ -5,6 +5,7 @@ import argparse
 from sys import argv
 from dynamite_nsm import const
 from dynamite_nsm import updater
+from dynamite_nsm import utilities
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
@@ -284,6 +285,10 @@ if __name__ == '__main__':
     if len(argv) < 2:
         main_parser.print_help()
         exit(1)
+
+    if argv[1] in ["-v", "--version"]:
+        utilities.print_dynamite_logo()
+        print("VERSION: {}".format( const.VERSION))
 
     args = main_parser.parse_args()
     if 'action_name' not in args:

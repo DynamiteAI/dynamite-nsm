@@ -47,3 +47,5 @@ PF_RING_MIRRORS = "/etc/dynamite/mirrors/pf_ring"
 SURICATA_MIRRORS = "/etc/dynamite/mirrors/suricata"
 SYNESIS_MIRRORS = "/etc/dynamite/mirrors/synesis_lite_suricata"
 ZEEK_MIRRORS = "/etc/dynamite/mirrors/zeek"
+
+VERSION = "0.7.0"
