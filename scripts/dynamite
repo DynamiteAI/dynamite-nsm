@@ -296,11 +296,15 @@ if __name__ == '__main__':
             updater.update_mirrors()
         if not os.path.exists(const.DEFAULT_CONFIGS):
             updater.update_default_configurations()
-    if args.component_name == "elasticsearch":
-        es_commandline_component = ElasticsearchCommandlineComponent(args)
-    elif args.component_name == "logstash":
-        ls_commandline_component = LogstashCommandlineComponent(args)
-    elif args.component_name == "kibana":
-        kb_commandline_component = KibanaCommandlineComponent(args)
-    elif args.component_name == "monitor":
-        mon_commandline_component = MonitorCommandlineComponent(args)
+    try:
+        if args.component_name == "elasticsearch":
+            es_commandline_component = ElasticsearchCommandlineComponent(args)
+        elif args.component_name == "logstash":
+            ls_commandline_component = LogstashCommandlineComponent(args)
+        elif args.component_name == "kibana":
+            kb_commandline_component = KibanaCommandlineComponent(args)
+        elif args.component_name == "monitor":
+            mon_commandline_component = MonitorCommandlineComponent(args)
+    except KeyboardInterrupt:
+        print("[+] Exiting")
+        exit(0)
