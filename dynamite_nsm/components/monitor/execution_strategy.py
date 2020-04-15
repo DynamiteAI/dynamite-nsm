@@ -47,7 +47,7 @@ def prompt_monitor_uninstall(prompt_user=True, stdout=True):
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return
+            exit(0)
 
 
 def get_monitor_status():
