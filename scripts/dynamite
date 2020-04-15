@@ -246,6 +246,7 @@ base_parser.add_argument("--silent", dest="no_stdout", default=False, action="st
 
 base_parser.add_argument("--verbose", dest="verbose", default=False, action="store_true",
                          help="Show verbose output.")
+base_parser.add_argument("--version", dest="version", default=False, action="store_true")
 
 main_parser = argparse.ArgumentParser(description="Discover your network.")
 
@@ -286,12 +287,10 @@ if __name__ == '__main__':
         main_parser.print_help()
         exit(1)
 
-    if argv[1] in ["-v", "--version"]:
-        utilities.print_dynamite_logo()
-        print("VERSION: {}".format( const.VERSION))
-        exit(0)
-
     args = main_parser.parse_args()
+    if args.version:
+        utilities.print_dynamite_logo(const.VERSION)
+        exit(0)
     if 'action_name' not in args:
         main_parser.print_help()
         main_parser.error(

@@ -308,7 +308,7 @@ def makedirs(path, exist_ok=True):
         os.makedirs(path)
 
 
-def print_dynamite_logo():
+def print_dynamite_logo(version):
     """
     Print the dynamite logo!
     """
@@ -337,12 +337,14 @@ def print_dynamite_logo():
                            ╫▓▓▓▓▓ε
     
             http://dynamite.ai
+            
+            Version: {}
+            
             """
         print(dynamite_logo)
         print('\n')
     except (SyntaxError, UnicodeEncodeError):
-        # Your operating system is super lame :(
-        pass
+        print('http://dynamite.ai\n\nVersion: {}\n'.format(version))
 
 
 def print_coffee_art():
