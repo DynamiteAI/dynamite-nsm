@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-# PYTHON_ARGCOMPLETE_OK
 
+import os
 import argparse
 from sys import argv
+from dynamite_nsm import const
+from dynamite_nsm import updater
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
@@ -289,6 +291,11 @@ if __name__ == '__main__':
         main_parser.error(
             "Missing {} 'action' (E.G install, uninstall, start, stop, restart, status)".format(args.component_name))
 
+    if args.component_name:
+        if not os.path.exists(const.MIRRORS):
+            updater.update_mirrors()
+        if not os.path.exists(const.DEFAULT_CONFIGS):
+            updater.update_default_configurations()
     if args.component_name == "elasticsearch":
         es_commandline_component = ElasticsearchCommandlineComponent(args)
     elif args.component_name == "logstash":

@@ -3,9 +3,9 @@ import sys
 import time
 import shutil
 from dynamite_nsm import const
+from dynamite_nsm.utilities import makedirs
 from dynamite_nsm.utilities import download_file
 from dynamite_nsm.utilities import extract_archive
-from dynamite_nsm.utilities import create_dynamite_root_directory
 
 
 def update_default_configurations():
@@ -15,7 +15,7 @@ def update_default_configurations():
     :return: True, if retrieved successfully
     """
     shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
-    create_dynamite_root_directory()
+    makedirs(const.DEFAULT_CONFIGS, exist_ok=True)
     download_file(const.DEFAULT_CONFIGS_URL,
                   const.DEFAULT_CONFIGS_ARCHIVE_NAME, stdout=True)
     shutil.rmtree(const.DEFAULT_CONFIGS, ignore_errors=True)
@@ -36,7 +36,7 @@ def update_mirrors():
     :return: True, if retrieved successfully
     """
     shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)
-    create_dynamite_root_directory()
+    makedirs(const.MIRRORS, exist_ok=True)
     download_file(const.MIRRORS_CONFIG_URL,
                   const.MIRRORS_CONFIG_ARCHIVE_NAME, stdout=True)
     shutil.rmtree(const.MIRRORS, ignore_errors=True)
