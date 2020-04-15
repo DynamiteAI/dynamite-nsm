@@ -26,6 +26,16 @@ class InstallLogstashError(exceptions.InstallError):
         super(InstallLogstashError, self).__init__(msg)
 
 
+class AlreadyInstalledLogstashError(InstallLogstashError):
+    """
+    Thrown when logstash is already installed
+    """
+
+    def __init__(self):
+        msg = "LogStash is already installed."
+        super(AlreadyInstalledLogstashError, self).__init__(msg)
+
+
 class ReadLogstashConfigError(exceptions.ReadConfigError):
     """
     Thrown when an logstash.yml config option fails to read

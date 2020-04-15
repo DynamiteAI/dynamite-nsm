@@ -40,6 +40,16 @@ class InstallKibanaError(exceptions.InstallError):
         super(InstallKibanaError, self).__init__(msg)
 
 
+class AlreadyInstalledKibanaError(InstallKibanaError):
+    """
+    Thrown when kibana is already installed
+    """
+
+    def __init__(self):
+        msg = "Kibana is already installed."
+        super(AlreadyInstalledKibanaError, self).__init__(msg)
+
+
 class ReadKibanaConfigError(exceptions.ReadConfigError):
     """
     Thrown when an kibana.yml config option fails to read

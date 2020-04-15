@@ -374,8 +374,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     ls_profiler = logstash_profile.ProcessProfiler()
     if ls_profiler.is_installed:
         sys.stderr.write('[-] LogStash is already installed. If you wish to re-install, first uninstall.\n')
-        raise logstash_exceptions.InstallLogstashError(
-            "Logstash is already installed. If you wish to re-install, first uninstall.")
+        raise logstash_exceptions.AlreadyInstalledLogstashError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] WARNING! Dynamite Logstash should have at-least 6GB to run '
                          'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes() / (1000 ** 3)))

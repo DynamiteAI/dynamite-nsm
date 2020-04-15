@@ -26,6 +26,16 @@ class InstallElasticsearchError(exceptions.InstallError):
         super(InstallElasticsearchError, self).__init__(msg)
 
 
+class AlreadyInstalledElasticsearchError(InstallElasticsearchError):
+    """
+    Thrown when elasticsearch is already installed
+    """
+
+    def __init__(self):
+        msg = "ElasticSearch is already installed."
+        super(AlreadyInstalledElasticsearchError, self).__init__(msg)
+
+
 class ReadElasticConfigError(exceptions.ReadConfigError):
     """
     Thrown when an Elasticsearch.yml config option fails to read

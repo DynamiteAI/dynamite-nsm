@@ -330,8 +330,7 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
     kb_profiler = kibana_profile.ProcessProfiler()
     if kb_profiler.is_installed:
         sys.stderr.write('[-] Kibana is already installed. If you wish to re-install, first uninstall.\n')
-        raise kibana_exceptions.InstallKibanaError(
-            "Kibana is already installed. If you wish to re-install, first uninstall.")
+        raise kibana_exceptions.AlreadyInstalledKibanaError()
     if utilities.get_memory_available_bytes() < 2 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite Kibana requires at-least 2GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes() / (1000 ** 3)

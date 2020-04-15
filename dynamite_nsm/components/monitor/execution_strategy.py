@@ -367,7 +367,7 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 def run_install_strategy():
-    ls_install_strategy = MonitorInstallStrategy(
+    mon_install_strategy = MonitorInstallStrategy(
         logstash_listen_address="0.0.0.0",
         kibana_listen_address="0.0.0.0",
         kibana_listen_port=5601,
@@ -380,44 +380,44 @@ def run_install_strategy():
         stdout=True,
         verbose=True
     )
-    ls_install_strategy.execute_strategy()
+    mon_install_strategy.execute_strategy()
 
 
 def run_uninstall_strategy():
-    ls_uninstall_strategy = MonitorUninstallStrategy(
+    mon_uninstall_strategy = MonitorUninstallStrategy(
         stdout=True,
         prompt_user=False
     )
-    ls_uninstall_strategy.execute_strategy()
+    mon_uninstall_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
-    ls_start_strategy = MonitorProcessStartStrategy(
+    mon_start_strategy = MonitorProcessStartStrategy(
         stdout=True,
         status=True
     )
-    ls_start_strategy.execute_strategy()
+    mon_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
-    ls_stop_strategy = MonitorProcessStopStrategy(
+    mon_stop_strategy = MonitorProcessStopStrategy(
         stdout=True,
         status=True
     )
-    ls_stop_strategy.execute_strategy()
+    mon_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
-    ls_restart_strategy = MonitorProcessRestartStrategy(
+    mon_restart_strategy = MonitorProcessRestartStrategy(
         stdout=True,
         status=True
     )
-    ls_restart_strategy.execute_strategy()
+    mon_restart_strategy.execute_strategy()
 
 
 def run_process_status_strategy():
-    ls_status_strategy = MonitorProcessStatusStrategy()
-    ls_status_strategy.execute_strategy()
+    mon_status_strategy = MonitorProcessStatusStrategy()
+    mon_status_strategy.execute_strategy()
 
 
 if __name__ == '__main__':

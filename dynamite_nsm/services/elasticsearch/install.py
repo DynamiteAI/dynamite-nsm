@@ -348,8 +348,7 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
     es_profiler = elastic_profile.ProcessProfiler()
     if es_profiler.is_installed:
         sys.stderr.write('[-] ElasticSearch is already installed. If you wish to re-install, first uninstall.\n')
-        raise elastic_exceptions.InstallElasticsearchError(
-            "ElasticSearch is already installed. If you wish to re-install, first uninstall.")
+        raise elastic_exceptions.AlreadyInstalledElasticsearchError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('[-] Dynamite ElasticSearch requires at-least 6GB to run currently available [{} GB]\n'.format(
             utilities.get_memory_available_bytes() / (1000 ** 3)
