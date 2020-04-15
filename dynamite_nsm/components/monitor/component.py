@@ -1,52 +1,56 @@
 from dynamite_nsm.utilities import prompt_password
 from dynamite_nsm.components.base import component
-from dynamite_nsm.components.logstash import execution_strategy
+from dynamite_nsm.components.monitor import execution_strategy
 
 
-class LogstashComponent(component.BaseComponent):
+class MonitorComponent(component.BaseComponent):
     """
     LogStash Component Wrapper intended for general use
     """
 
-    def __init__(self, listen_address="0.0.0.0", elasticsearch_host="localhost", elasticsearch_port=9200,
-                 elasticsearch_password='changeme', install_heap_size_gigs=4, install_jdk=True,
-                 prompt_on_uninstall=True, check_elasticsearch_connection=True, stdout=True, verbose=False):
+    def __init__(self, logstash_listen_address='0.0.0.0', kibana_listen_address='0.0.0.0', kibana_listen_port=5601,
+                 elasticsearch_host="localhost", elasticsearch_port=9200, elasticsearch_password='changeme',
+                 logstash_heap_size_gigs=4, elasticsearch_heap_size_gigs=4, install_jdk=True, prompt_on_uninstall=True,
+                 stdout=True, verbose=False):
         component.BaseComponent.__init__(
             self,
-            component_name="Logstash",
-            component_description="Process, normalize, and send network events to a data-store.",
-            install_strategy=execution_strategy.LogstashInstallStrategy(
-                listen_address=listen_address,
+            component_name="Monitor",
+            component_description="Process, store, and visualise network data with a standalone Monitor (ElasticStack)."
+                                  "",
+            install_strategy=execution_strategy.MonitorInstallStrategy(
+                logstash_heap_size_gigs=logstash_heap_size_gigs,
+                logstash_listen_address=logstash_listen_address,
+                kibana_listen_address=kibana_listen_address,
+                kibana_listen_port=kibana_listen_port,
+                elasticsearch_heap_size_gigs=elasticsearch_heap_size_gigs,
                 elasticsearch_host=elasticsearch_host,
                 elasticsearch_port=elasticsearch_port,
                 elasticsearch_password=elasticsearch_password,
-                heap_size_gigs=install_heap_size_gigs,
                 install_jdk=install_jdk,
-                check_elasticsearch_connection=check_elasticsearch_connection,
                 stdout=stdout,
                 verbose=verbose
             ),
-            uninstall_strategy=execution_strategy.LogstashUninstallStrategy(
+            uninstall_strategy=execution_strategy.MonitorUninstallStrategy(
                 stdout=stdout,
                 prompt_user=prompt_on_uninstall
             ),
-            process_start_strategy=execution_strategy.LogstashProcessStartStrategy(
+            process_start_strategy=execution_strategy.MonitorProcessStartStrategy(
                 stdout=stdout,
                 status=True
             ),
-            process_stop_strategy=execution_strategy.LogstashProcessStopStrategy(
+            process_stop_strategy=execution_strategy.MonitorProcessStopStrategy(
                 stdout=stdout,
                 status=True
             ),
-            process_restart_strategy=execution_strategy.LogstashProcessRestartStrategy(
+            process_restart_strategy=execution_strategy.MonitorProcessRestartStrategy(
                 stdout=stdout,
                 status=True
             ),
-            process_status_strategy=execution_strategy.LogstashProcessStatusStrategy()
+            process_status_strategy=execution_strategy.MonitorProcessStatusStrategy()
         )
 
 
-class LogstashCommandlineComponent(component.BaseComponent):
+class MonitorCommandlineComponent(component.BaseComponent):
     """
     LogStash Commandline Component intended for commandline use.
     """
@@ -54,8 +58,9 @@ class LogstashCommandlineComponent(component.BaseComponent):
     def __init__(self, args):
         component.BaseComponent.__init__(
             self,
-            component_name="LogStash",
-            component_description="Process, normalize, and send network events to a data-store.",
+            component_name="Monitor",
+            component_description="Process, store, and visualise network data with a standalone Monitor (ElasticStack)."
+                                  "",
         )
 
         if args.action_name == "install":
@@ -64,29 +69,31 @@ class LogstashCommandlineComponent(component.BaseComponent):
                 es_password = prompt_password("Enter the password for logging into ElasticSearch: ",
                                               confirm_prompt="Confirm Password: ")
             self.register_install_strategy(
-                execution_strategy.LogstashInstallStrategy(
-                    listen_address=args.ls_addr,
+                execution_strategy.MonitorInstallStrategy(
+                    logstash_heap_size_gigs=args.ls_heap_size,
+                    logstash_listen_address=args.ls_addr,
+                    kibana_listen_address=args.kb_addr,
+                    kibana_listen_port=args.kb_port,
+                    elasticsearch_heap_size_gigs=args.elastic_heap_size,
                     elasticsearch_host=args.es_host,
                     elasticsearch_port=args.es_port,
                     elasticsearch_password=es_password,
-                    heap_size_gigs=args.logstash_heap_size,
-                    install_jdk=not args.skip_logstash_install_jdk,
-                    check_elasticsearch_connection=not args.skip_check_elasticsearch_connection,
+                    install_jdk=not args.skip_monitor_install_jdk,
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))
             self.install()
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
-                execution_strategy.LogstashUninstallStrategy(
+                execution_strategy.MonitorUninstallStrategy(
                     stdout=not args.no_stdout,
-                    prompt_user=not args.skip_logstash_uninstall_prompt
+                    prompt_user=not args.skip_monitor_uninstall_prompt
                 )
             )
             self.uninstall()
         elif args.action_name == "start":
             self.register_process_start_strategy(
-                execution_strategy.LogstashProcessStartStrategy(
+                execution_strategy.MonitorProcessStartStrategy(
                     stdout=not args.no_stdout,
                     status=True
                 )
@@ -94,7 +101,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
             self.start()
         elif args.action_name == "stop":
             self.register_process_stop_strategy(
-                execution_strategy.LogstashProcessStopStrategy(
+                execution_strategy.MonitorProcessStopStrategy(
                     stdout=not args.no_stdout,
                     status=True
                 )
@@ -102,7 +109,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
             self.stop()
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
-                execution_strategy.LogstashProcessRestartStrategy(
+                execution_strategy.MonitorProcessRestartStrategy(
                     stdout=not args.no_stdout,
                     status=True
                 )
@@ -111,13 +118,13 @@ class LogstashCommandlineComponent(component.BaseComponent):
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
-                execution_strategy.LogstashProcessStatusStrategy()
+                execution_strategy.MonitorProcessStatusStrategy()
             )
             self.status()
 
 
 if __name__ == '__main__':
-    es_component = LogstashComponent()
+    es_component = MonitorComponent()
     es_component.install()
     es_component.start()
     es_component.stop()

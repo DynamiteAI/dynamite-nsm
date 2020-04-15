@@ -4,8 +4,8 @@
 import argparse
 import argcomplete
 from sys import argv
-
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
+from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
 
@@ -117,7 +117,7 @@ def register_logstash_component_actions(ls_component_parser, parent_parsers):
 def register_kibana_component_actions(kb_component_parser, parent_parsers):
     kibana_component_actions_subparsers = kb_component_parser.add_subparsers()
     # === Setup Kibana Component Install Arguments === #
-    kb_install_parser = kibana_component_actions_subparsers.add_parser("install", help="Install LogStash.",
+    kb_install_parser = kibana_component_actions_subparsers.add_parser("install", help="Install Kibana.",
                                                                        parents=parent_parsers)
 
     kb_install_parser.set_defaults(action_name="install")
@@ -172,6 +172,71 @@ def register_kibana_component_actions(kb_component_parser, parent_parsers):
     kb_status_parser.set_defaults(action_name="status")
 
 
+def register_monitor_component_actions(mon_component_parser, parent_parsers):
+    monitor_component_actions_subparsers = mon_component_parser.add_subparsers()
+    # === Setup Monitor Component Install Arguments === #
+    mon_install_parser = monitor_component_actions_subparsers.add_parser("install", help="Install Monitor.",
+                                                                         parents=parent_parsers)
+
+    mon_install_parser.set_defaults(action_name="install")
+    mon_install_parser.add_argument("--ls-listen-addr", dest="ls_addr", type=str, default='0.0.0.0',
+                                    help="The address upon which Monitor input plugins listen."
+                                    )
+    mon_install_parser.add_argument("--kb-listen-addr", dest="kb_addr", type=str, default='0.0.0.0',
+                                    help="The address upon which Kibana web interface listens."
+                                    )
+    mon_install_parser.add_argument("--kb-listen-port", dest="kb_port", type=str, default=5601,
+                                    help="The port upon which Kibana web interface listens."
+                                    )
+    mon_install_parser.add_argument("--es-heap-size", dest="elastic_heap_size", type=int, default=4,
+                                    help="The amount of memory to designate to ElasticSearch's Java Heap [Gi]"
+                                    )
+    mon_install_parser.add_argument("--es-host", dest="es_host", type=str, default='localhost',
+                                    help="The host where ElasticSearch lives."
+                                    )
+    mon_install_parser.add_argument("--es-port", dest="es_port", type=int, default=9200,
+                                    help="The port that ElasticSearch is listening on."
+                                    )
+    mon_install_parser.add_argument("--ls-heap-size", dest="ls_heap_size", type=int, default=4,
+                                    help="The amount of memory to designate to Monitor's Java Heap [Gi]"
+                                    )
+    mon_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
+                                    help="The password used for logging into ElasticSearch."
+                                    )
+    mon_install_parser.add_argument("--skip-install-jdk", dest="skip_monitor_install_jdk", default=False,
+                                    action="store_true",
+                                    help="Skip the installation of Java 11 Development Environment."
+                                    )
+
+    # === Setup Monitor Component Uninstall Arguments === #
+    mon_uninstall_parser = monitor_component_actions_subparsers.add_parser("uninstall",
+                                                                           help="Uninstall Monitor.",
+                                                                           parents=parent_parsers)
+    mon_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_monitor_uninstall_prompt", default=False,
+                                      action="store_true", help="Skip prompting uninstall prompt.")
+    mon_uninstall_parser.set_defaults(action_name="uninstall")
+
+    # === Setup Monitor Component Start Arguments === #
+    mon_start_parser = monitor_component_actions_subparsers.add_parser("start", help="Start Monitor.",
+                                                                       parents=parent_parsers)
+    mon_start_parser.set_defaults(action_name="start")
+
+    # === Setup Monitor Component Stop Arguments === #
+    mon_stop_parser = monitor_component_actions_subparsers.add_parser("stop", help="Stop Monitor.",
+                                                                      parents=parent_parsers)
+    mon_stop_parser.set_defaults(action_name="stop")
+
+    # === Setup Monitor Component Restart Arguments === #
+    mon_restart_parser = monitor_component_actions_subparsers.add_parser("restart", help="Restart Monitor.",
+                                                                         parents=parent_parsers)
+    mon_restart_parser.set_defaults(action_name="restart")
+
+    # === Setup ElasticSearch Component Status Arguments === #
+    ls_status_parser = monitor_component_actions_subparsers.add_parser("status", help="Status Monitor.",
+                                                                       parents=parent_parsers)
+    ls_status_parser.set_defaults(action_name="status")
+
+
 base_parser = argparse.ArgumentParser(add_help=False)
 argcomplete.autocomplete(base_parser)
 
@@ -211,6 +276,8 @@ agent_component_parser.set_defaults(component_name="agent")
 register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 register_logstash_component_actions(logstash_component_parser, parent_parsers=[base_parser])
 register_kibana_component_actions(kibana_component_parser, parent_parsers=[base_parser])
+register_monitor_component_actions(monitor_component_parser, parent_parsers=[base_parser])
+
 
 if __name__ == '__main__':
 
@@ -230,3 +297,5 @@ if __name__ == '__main__':
         ls_commandline_component = LogstashCommandlineComponent(args)
     elif args.component_name == "kibana":
         kb_commandline_component = KibanaCommandlineComponent(args)
+    elif args.component_name == "monitor":
+        mon_commandline_component = MonitorCommandlineComponent(args)
