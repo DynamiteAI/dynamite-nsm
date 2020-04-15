@@ -59,6 +59,7 @@ class InstallManager:
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
+        utilities.create_dynamite_environment_file()
         if download_kibana_archive:
             try:
                 self.download_kibana(stdout=stdout)

@@ -32,6 +32,7 @@ class InstallManager:
         self.install_directory = install_directory
         self.stdout = stdout
         self.verbose = verbose
+        utilities.create_dynamite_environment_file()
         if download_zeek_archive:
             try:
                 self.download_zeek(stdout=stdout)

@@ -34,6 +34,7 @@ class InstallManager:
         self.download_suricata_archive = download_suricata_archive
         self.stdout = stdout
         self.verbose = verbose
+        utilities.create_dynamite_environment_file()
         if download_suricata_archive:
             try:
                 self.download_suricata(stdout=stdout)

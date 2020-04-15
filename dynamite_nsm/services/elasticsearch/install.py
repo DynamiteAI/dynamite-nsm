@@ -56,6 +56,7 @@ class InstallManager:
         self.heap_size_gigs = heap_size_gigs
         self.stdout = stdout
         self.verbose = verbose
+        utilities.create_dynamite_environment_file()
         if download_elasticsearch_archive:
             try:
                 self.download_elasticsearch(stdout=stdout)

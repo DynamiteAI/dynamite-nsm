@@ -62,6 +62,7 @@ class InstallManager:
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
+        utilities.create_dynamite_environment_file()
         if download_logstash_archive:
             try:
                 self.download_logstash(stdout=stdout)

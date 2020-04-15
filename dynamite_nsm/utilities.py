@@ -33,20 +33,6 @@ import progressbar
 from dynamite_nsm import const
 
 
-def copytree(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            try:
-                shutil.copytree(s, d, symlinks, ignore)
-            except Exception:
-                # File exists or handle locked
-                pass
-        else:
-            shutil.copy2(s, d)
-
-
 def check_pid(pid):
     """
     Check For the existence of a unix pid.
@@ -90,6 +76,20 @@ def check_user_exists(username):
         return True
     except KeyError:
         return False
+
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            try:
+                shutil.copytree(s, d, symlinks, ignore)
+            except Exception:
+                # File exists or handle locked
+                pass
+        else:
+            shutil.copy2(s, d)
 
 
 def create_dynamite_environment_file():
@@ -453,13 +453,13 @@ def setup_java():
     """
     Installs the latest version of OpenJDK
     """
-    subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
+    makedirs('/usr/lib/jvm', exist_ok=True)
     try:
         shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
     except shutil.Error as e:
         sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
         sys.stderr.flush()
-    if 'JAVA_HOME' not in open('/etc/dynamite/environment').read():
+    if 'JAVA_HOME' not in open(os.path.join(const.CONFIG_PATH, 'environment')).read():
         subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/dynamite/environment', shell=True)
 
 
