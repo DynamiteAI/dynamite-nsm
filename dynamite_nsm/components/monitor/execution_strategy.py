@@ -4,10 +4,13 @@ from dynamite_nsm import const
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.kibana import install as kb_install
 from dynamite_nsm.services.kibana import process as kb_process
-from dynamite_nsm.services.logstash import install as mon_install
-from dynamite_nsm.services.logstash import process as mon_process
+from dynamite_nsm.services.kibana import profile as kb_profile
+from dynamite_nsm.services.logstash import install as ls_install
+from dynamite_nsm.services.logstash import process as ls_process
+from dynamite_nsm.services.logstash import profile as ls_profile
 from dynamite_nsm.services.elasticsearch import install as es_install
 from dynamite_nsm.services.elasticsearch import process as es_process
+from dynamite_nsm.services.elasticsearch import profile as es_profile
 
 from dynamite_nsm.utilities import check_socket, prompt_input
 
@@ -59,11 +62,11 @@ def prompt_monitor_uninstall(prompt_user=True, stdout=True):
 
 def get_monitor_status():
     return (
-            dict(
-                elasticsearch=es_process.status(),
-                logstash=mon_process.status(),
-                kibana=kb_process.status()
-            )
+        dict(
+            elasticsearch=es_process.status(),
+            logstash=ls_process.status(),
+            kibana=kb_process.status()
+        )
     )
 
 
@@ -76,109 +79,94 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             self,
             strategy_name="monitor_install",
             strategy_description="Install ElasticSearch, LogStash, and Kibana on the same instance.",
-            functions=(
-                remove_elasticsearch_tar_archive,
-                remove_logstash_tar_archive,
-                remove_kibana_tar_archive,
-                es_install.install_elasticsearch,
-                es_process.start,
-                mon_install.install_logstash,
-                mon_process.stop,
-                kb_install.install_kibana,
-                kb_process.stop,
-                es_process.stop,
-                print_message,
-                print_message
-            ),
-            arguments=(
-                # remove_elasticsearch_tar_archive
-                {},
-                # remove_logstash_tar_archive
-                {},
-                # remove_kibana_tar_archive
-                {},
-                # es_install.install_elasticsearch
-                {
-                    "configuration_directory": "/etc/dynamite/elasticsearch/",
-                    "install_directory": "/opt/dynamite/elasticsearch/",
-                    "log_directory": "/var/log/dynamite/elasticsearch/",
-                    "password": str(elasticsearch_password),
-                    "heap_size_gigs": int(elasticsearch_heap_size_gigs),
-                    "install_jdk": bool(install_jdk),
-                    "create_dynamite_user": True,
-                    "stdout": bool(stdout),
-                    "verbose": bool(verbose)
-                },
-                # es_process.start
-                {
-                    "stdout": False
-                },
-                # mon_install.install_logstash
-                {
-                    "configuration_directory": "/etc/dynamite/logstash/",
-                    "install_directory": "/opt/dynamite/logstash/",
-                    "log_directory": "/var/log/dynamite/logstash/",
-                    "host": str(logstash_listen_address),
-                    "elasticsearch_host": str(elasticsearch_host),
-                    "elasticsearch_port": int(elasticsearch_port),
-                    "elasticsearch_password": str(elasticsearch_password),
-                    "heap_size_gigs": int(logstash_heap_size_gigs),
-                    "install_jdk": False,
-                    "create_dynamite_user": False,
-                    "stdout": bool(stdout),
-                    "verbose": bool(verbose)
-                },
-                # mon_process.stop
-                {
-                    "stdout": False
-                },
-                # kb_install.install_kibana
-                {
-                    "configuration_directory": "/etc/dynamite/kibana/",
-                    "install_directory": "/opt/dynamite/kibana/",
-                    "log_directory": "/var/log/dynamite/kibana/",
-                    "host": str(kibana_listen_address),
-                    "port": int(kibana_listen_port),
-                    "elasticsearch_host": str(elasticsearch_host),
-                    "elasticsearch_port": int(elasticsearch_port),
-                    "elasticsearch_password": str(elasticsearch_password),
-                    "create_dynamite_user": True,
-                    "stdout": bool(stdout),
-                    "verbose": bool(verbose)
-                },
-                # kb_process.stop
-                {
-                    "stdout": False
-                },
-                # es_process.stop
-                {
-                    "stdout": False
-                },
-                # print_message
-                {
-                    "msg": '[+] *** Monitor installed successfully. ***\n'
-                },
-                # print_message
-                {
-                    "msg": '[+] Next, Start your monitor: '
-                           '\'dynamite monitor start\'.'
-                }
-            ),
-            return_formats=(
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None
-            )
         )
+        
+        self.add_function(func=remove_elasticsearch_tar_archive, argument_dict={}, return_format=None)
+
+        self.add_function(func=remove_logstash_tar_archive, argument_dict={}, return_format=None)
+
+        self.add_function(func=remove_kibana_tar_archive, argument_dict={}, return_format=None)
+
+        if not es_profile.ProcessProfiler().is_installed:
+            self.add_function(func=es_install.install_elasticsearch, argument_dict={
+                "configuration_directory": "/etc/dynamite/elasticsearch/",
+                "install_directory": "/opt/dynamite/elasticsearch/",
+                "log_directory": "/var/log/dynamite/elasticsearch/",
+                "password": str(elasticsearch_password),
+                "heap_size_gigs": int(elasticsearch_heap_size_gigs),
+                "install_jdk": bool(install_jdk),
+                "create_dynamite_user": True,
+                "stdout": bool(stdout),
+                "verbose": bool(verbose)
+            }, return_format=None)
+        else:
+            self.add_function(func=print_message, argument_dict={
+                "msg": 'Skipping ElasticSearch installation; already installed.'
+            }, return_format=None)
+
+        self.add_function(func=es_process.start, argument_dict={
+            "stdout": False
+        }, return_format=None)
+
+        if not ls_profile.ProcessProfiler().is_installed:
+            self.add_function(func=ls_install, argument_dict={
+                "configuration_directory": "/etc/dynamite/logstash/",
+                "install_directory": "/opt/dynamite/logstash/",
+                "log_directory": "/var/log/dynamite/logstash/",
+                "host": str(logstash_listen_address),
+                "elasticsearch_host": str(elasticsearch_host),
+                "elasticsearch_port": int(elasticsearch_port),
+                "elasticsearch_password": str(elasticsearch_password),
+                "heap_size_gigs": int(logstash_heap_size_gigs),
+                "install_jdk": False,
+                "create_dynamite_user": False,
+                "stdout": bool(stdout),
+                "verbose": bool(verbose)
+            }, return_format=None)
+        else:
+            self.add_function(func=print_message, argument_dict={
+                "msg": 'Skipping LogStash installation; already installed.'
+            }, return_format=None)
+
+        self.add_function(func=ls_process.stop, argument_dict={
+            "stdout": False
+        }, return_format=None)
+
+        if not kb_profile.ProcessProfiler().is_installed:
+            self.add_function(func=kb_install, argument_dict={
+                "configuration_directory": "/etc/dynamite/kibana/",
+                "install_directory": "/opt/dynamite/kibana/",
+                "log_directory": "/var/log/dynamite/kibana/",
+                "host": str(kibana_listen_address),
+                "port": int(kibana_listen_port),
+                "elasticsearch_host": str(elasticsearch_host),
+                "elasticsearch_port": int(elasticsearch_port),
+                "elasticsearch_password": str(elasticsearch_password),
+                "create_dynamite_user": True,
+                "stdout": bool(stdout),
+                "verbose": bool(verbose)
+            }, return_format=None)
+        else:
+            self.add_function(func=print_message, argument_dict={
+                "msg": 'Skipping Kibana installation; already installed.'
+            }, return_format=None)
+
+        self.add_function(func=kb_process.stop, argument_dict={
+            "stdout": False
+        }, return_format=None)
+        
+        self.add_function(func=es_process.stop, argument_dict={
+            "stdout": False
+        }, return_format=None)
+        
+        self.add_function(func=print_message, argument_dict={
+            "msg": '[+] *** Monitor installed successfully. ***\n'
+        }, return_format=None)
+        
+        self.add_function(func=print_message, argument_dict={
+            "msg": '[+] Next, Start your monitor: '
+                   '\'dynamite monitor start\'.'
+        }, return_format=None)
 
 
 class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
@@ -190,7 +178,7 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
             functions=(
                 prompt_monitor_uninstall,
                 kb_install.uninstall_kibana,
-                mon_install.uninstall_logstash,
+                ls_install.uninstall_logstash,
                 es_install.uninstall_elasticsearch,
                 print_message
             ),
@@ -205,7 +193,7 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                     "stdout": bool(stdout),
                     "prompt_user": False
                 },
-                # mon_install.uninstall_logstash
+                # ls_install.uninstall_logstash
                 {
                     "stdout": bool(stdout),
                     "prompt_user": False
@@ -239,7 +227,7 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
             strategy_description="Start Monitor processes.",
             functions=(
                 es_process.start,
-                mon_process.start,
+                ls_process.start,
                 kb_process.start
             ),
             arguments=(
@@ -247,7 +235,7 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
                 {
                     "stdout": stdout
                 },
-                # mon_process.start.start
+                # ls_process.start.start
                 {
                     "stdout": stdout
                 },
@@ -275,12 +263,12 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="monitor_stop",
             strategy_description="Stop Monitor processes.",
             functions=(
-                mon_process.stop,
+                ls_process.stop,
                 kb_process.stop,
                 es_process.stop,
             ),
             arguments=(
-                # mon_process.start.start
+                # ls_process.start.start
                 {
                     "stdout": stdout
                 },
@@ -310,15 +298,15 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             self, strategy_name="monitor_restart",
             strategy_description="Restart Monitor processes.",
             functions=(
-                mon_process.stop,
+                ls_process.stop,
                 kb_process.stop,
                 es_process.stop,
                 es_process.start,
                 kb_process.start,
-                mon_process.start,
+                ls_process.start,
             ),
             arguments=(
-                # mon_process.stop
+                # ls_process.stop
                 {
                     "stdout": stdout
                 },
@@ -338,7 +326,7 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
                 {
                     "stdout": stdout
                 },
-                # mon_process.start
+                # ls_process.start
                 {
                     "stdout": stdout
                 }
@@ -379,7 +367,7 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 def run_install_strategy():
-    mon_install_strategy = MonitorInstallStrategy(
+    ls_install_strategy = MonitorInstallStrategy(
         logstash_listen_address="0.0.0.0",
         kibana_listen_address="0.0.0.0",
         kibana_listen_port=5601,
@@ -392,44 +380,44 @@ def run_install_strategy():
         stdout=True,
         verbose=True
     )
-    mon_install_strategy.execute_strategy()
+    ls_install_strategy.execute_strategy()
 
 
 def run_uninstall_strategy():
-    mon_uninstall_strategy = MonitorUninstallStrategy(
+    ls_uninstall_strategy = MonitorUninstallStrategy(
         stdout=True,
         prompt_user=False
     )
-    mon_uninstall_strategy.execute_strategy()
+    ls_uninstall_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
-    mon_start_strategy = MonitorProcessStartStrategy(
+    ls_start_strategy = MonitorProcessStartStrategy(
         stdout=True,
         status=True
     )
-    mon_start_strategy.execute_strategy()
+    ls_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
-    mon_stop_strategy = MonitorProcessStopStrategy(
+    ls_stop_strategy = MonitorProcessStopStrategy(
         stdout=True,
         status=True
     )
-    mon_stop_strategy.execute_strategy()
+    ls_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
-    mon_restart_strategy = MonitorProcessRestartStrategy(
+    ls_restart_strategy = MonitorProcessRestartStrategy(
         stdout=True,
         status=True
     )
-    mon_restart_strategy.execute_strategy()
+    ls_restart_strategy.execute_strategy()
 
 
 def run_process_status_strategy():
-    mon_status_strategy = MonitorProcessStatusStrategy()
-    mon_status_strategy.execute_strategy()
+    ls_status_strategy = MonitorProcessStatusStrategy()
+    ls_status_strategy.execute_strategy()
 
 
 if __name__ == '__main__':
