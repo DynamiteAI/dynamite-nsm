@@ -9,7 +9,7 @@ from dynamite_nsm.components.base import execution_strategy
 
 def reboot_system(stdout):
     sys.stderr.write(
-        '[-] You must REBOOT for changes to take affect.')
+        '[-] You must REBOOT for changes to take affect.\n')
     resp = prompt_input('Reboot now? ([no]|yes): ')
     while resp not in ['', 'no', 'yes']:
         resp = prompt_input('Reboot now? ([no]|yes): ')
@@ -17,6 +17,7 @@ def reboot_system(stdout):
         if stdout:
             sys.stdout.write('[+] Exiting\n')
         exit(0)
+    os.system('reboot')
 
 
 def mark_agent_dependencies_install():
