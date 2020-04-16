@@ -117,9 +117,9 @@ class LogstashCommandlineComponent(component.BaseComponent):
 
 
 if __name__ == '__main__':
-    es_component = LogstashComponent()
-    es_component.install()
-    es_component.start()
-    es_component.stop()
-    es_component.status()
-    es_component.uninstall()
+    ls_component = LogstashComponent()
+    ls_component.install()
+    ls_component.start()
+    ls_component.stop()
+    ls_component.status()
+    ls_component.uninstall()

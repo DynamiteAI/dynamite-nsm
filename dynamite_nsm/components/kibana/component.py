@@ -115,9 +115,9 @@ class KibanaCommandlineComponent(component.BaseComponent):
 
 
 if __name__ == '__main__':
-    es_component = KibanaComponent()
-    es_component.install()
-    es_component.start()
-    es_component.stop()
-    es_component.status()
-    es_component.uninstall()
+    kb_component = KibanaComponent()
+    kb_component.install()
+    kb_component.start()
+    kb_component.stop()
+    kb_component.status()
+    kb_component.uninstall()

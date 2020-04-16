@@ -124,9 +124,9 @@ class MonitorCommandlineComponent(component.BaseComponent):
 
 
 if __name__ == '__main__':
-    es_component = MonitorComponent()
-    es_component.install()
-    es_component.start()
-    es_component.stop()
-    es_component.status()
-    es_component.uninstall()
+    mon_component = MonitorComponent()
+    mon_component.install()
+    mon_component.start()
+    mon_component.stop()
+    mon_component.status()
+    mon_component.uninstall()
