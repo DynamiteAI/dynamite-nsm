@@ -277,7 +277,7 @@ component_subparsers = main_parser.add_subparsers()
 
 # === Setup Components === #
 agt_deps_component_parser = component_subparsers.add_parser(
-    "agent_dependencies",
+    "agent-dependencies",
     help="Install Linux kernel development headers required for agent installation.")
 agt_deps_component_parser.set_defaults(component_name="agent-deps")
 
@@ -337,7 +337,7 @@ if __name__ == '__main__':
         if not os.path.exists(const.DEFAULT_CONFIGS):
             updater.update_default_configurations()
     try:
-        if args.component_name == "agent-deps":
+        if args.component_name == "agent-dependencies":
             AgentDependencyCommandlineComponent(args)
         elif args.component_name == "elasticsearch":
             es_commandline_component = ElasticsearchCommandlineComponent(args)
