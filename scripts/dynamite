@@ -276,10 +276,10 @@ main_parser = argparse.ArgumentParser(description="Discover your network.")
 component_subparsers = main_parser.add_subparsers()
 
 # === Setup Components === #
-agt_deps_component_parser = component_subparsers.add_parser(
+agent_deps_component_parser = component_subparsers.add_parser(
     "agent-dependencies",
     help="Install Linux kernel development headers required for agent installation.")
-agt_deps_component_parser.set_defaults(component_name="agent-deps")
+agent_deps_component_parser.set_defaults(component_name="agent-dependencies")
 
 
 elasticsearch_component_parser = component_subparsers.add_parser(
@@ -309,7 +309,7 @@ agent_component_parser = component_subparsers.add_parser(
     help="Install, configure, manage the Dynamite Agent.")
 agent_component_parser.set_defaults(component_name="agent")
 
-register_agent_dependency_component_actions(agent_component_parser, parent_parsers=[base_parser])
+register_agent_dependency_component_actions(agent_deps_component_parser, parent_parsers=[base_parser])
 register_elasticsearch_component_actions(elasticsearch_component_parser, parent_parsers=[base_parser])
 register_logstash_component_actions(logstash_component_parser, parent_parsers=[base_parser])
 register_kibana_component_actions(kibana_component_parser, parent_parsers=[base_parser])
