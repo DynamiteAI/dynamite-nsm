@@ -35,8 +35,8 @@ class AgentDependencyCommandlineComponent(component.BaseComponent):
 
             self.register_install_strategy(
                 execution_strategy.AgentDependencyInstallStrategy(
-                    stdout=args.stdout,
-                    verbose=args.verbose
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
                 ))
             self.install()
 
