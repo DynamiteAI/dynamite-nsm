@@ -2,7 +2,9 @@ import os
 import re
 import sys
 import subprocess
+
 from dynamite_nsm import utilities
+from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
 class ProcessManager:
@@ -10,6 +12,9 @@ class ProcessManager:
     def __init__(self):
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('ZEEK_HOME')
+        if not self.install_directory:
+            raise zeek_exceptions.CallZeekProcessError(
+                "Could not resolve ZEEK_HOME environment_variable. Is Zeek installed?")
 
     def start(self, stdout=False):
         """

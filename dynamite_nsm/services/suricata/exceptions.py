@@ -1,17 +1,39 @@
 from dynamite_nsm import exceptions
 
 
-class WriteSuricataConfigError(exceptions.WriteConfigError):
+class InstallSuricataError(exceptions.InstallError):
     """
-    Thrown when an suricata.yaml config option fails to write
+    Thrown when Suricata fails to install
     """
 
     def __init__(self, message):
         """
         :param message: A more specific error message
         """
-        msg = "An error occurred when writing suricata.yaml configuration: {}".format(message)
-        super(WriteSuricataConfigError, self).__init__(msg)
+        msg = "An error occurred while installing Suricata: {}".format(message)
+        super(InstallSuricataError, self).__init__(msg)
+
+
+class AlreadyInstalledSuricataError(InstallSuricataError):
+    """
+    Thrown when suricata is already installed
+    """
+
+    def __init__(self):
+        msg = "Suricata is already installed."
+        super(AlreadyInstalledSuricataError, self).__init__(msg)
+
+
+class CallSuricataProcessError(exceptions.CallProcessError):
+    """
+    Thrown when suricata process encounters an error state
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while calling suricata process: {}".format(message)
+        super(CallSuricataProcessError, self).__init__(msg)
 
 
 class ReadsSuricataConfigError(exceptions.ReadConfigError):
@@ -53,19 +75,6 @@ class SuricataInterfaceNotFoundError(Exception):
         super(SuricataInterfaceNotFoundError, self).__init__(msg)
 
 
-class InstallSuricataError(exceptions.InstallError):
-    """
-    Thrown when Suricata fails to install
-    """
-
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred while installing Suricata: {}".format(message)
-        super(InstallSuricataError, self).__init__(msg)
-
-
 class UninstallSuricataError(exceptions.UninstallError):
     """
     Thrown when Suricata fails to uninstall
@@ -77,3 +86,16 @@ class UninstallSuricataError(exceptions.UninstallError):
         """
         msg = "An error occurred while uninstalling Suricata: {}".format(message)
         super(UninstallSuricataError, self).__init__(msg)
+
+
+class WriteSuricataConfigError(exceptions.WriteConfigError):
+    """
+    Thrown when an suricata.yaml config option fails to write
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing suricata.yaml configuration: {}".format(message)
+        super(WriteSuricataConfigError, self).__init__(msg)

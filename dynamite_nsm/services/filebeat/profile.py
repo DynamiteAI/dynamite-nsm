@@ -6,7 +6,7 @@ from dynamite_nsm import utilities
 from dynamite_nsm.services.filebeat import process as filebeat_process
 
 
-class FileBeatProfiler:
+class ProcessProfiler:
 
     def __init__(self, stderr=False):
         self.is_downloaded = self._is_downloaded(stderr=stderr)

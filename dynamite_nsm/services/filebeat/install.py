@@ -13,6 +13,8 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.filebeat import config as filebeat_configs
+from dynamite_nsm.services.filebeat import profile as filebeat_profile
+from dynamite_nsm.services.filebeat import process as filebeat_process
 from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
@@ -119,3 +121,49 @@ class InstallManager:
         except Exception as e:
             raise filebeat_exceptions.InstallFilebeatError(
                 "General error occurred while attempting to install filebeat; {}".format(e))
+
+
+def install_filebeat(install_directory, monitor_paths, download_filebeat_archive=True, stdout=True):
+    filebeat_profiler = filebeat_profile.ProcessProfiler()
+    if filebeat_profiler.is_installed:
+        raise filebeat_exceptions.AlreadyInstalledFilebeatError()
+    filebeat_installer = InstallManager(install_directory, monitor_paths,
+                                        download_filebeat_archive=download_filebeat_archive, stdout=stdout)
+    filebeat_installer.setup_filebeat()
+
+
+def uninstall_filebeat(stdout=False, prompt_user=True):
+    env_file = os.path.join(const.CONFIG_PATH, 'environment')
+    environment_variables = utilities.get_environment_file_dict()
+    filebeat_profiler = filebeat_profile.ProcessProfiler()
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! Removing Filebeat Will Remove Critical Agent Functionality.\n')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            exit(0)
+    if filebeat_profiler.is_running:
+        try:
+            filebeat_process.ProcessManager().stop()
+        except filebeat_exceptions.CallFilebeatProcessError:
+            raise filebeat_exceptions.AlreadyInstalledFilebeatError()
+    install_directory = environment_variables.get('FILEBEAT_HOME')
+    try:
+        with open(env_file) as env_fr:
+            env_lines = ''
+            for line in env_fr.readlines():
+                if 'FILEBEAT_HOME' in line:
+                    continue
+                elif line.strip() == '':
+                    continue
+                env_lines += line.strip() + '\n'
+        with open(env_file, 'w') as env_fw:
+            env_fw.write(env_lines)
+        if filebeat_profiler.is_installed:
+            shutil.rmtree(install_directory, ignore_errors=True)
+    except Exception as e:
+        raise filebeat_exceptions.UninstallFilebeatError(
+            "General error occurred while attempting to uninstall filebeat; {}".format(e))

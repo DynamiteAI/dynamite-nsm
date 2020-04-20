@@ -7,6 +7,7 @@ from multiprocessing import Process
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.filebeat import config as filebeat_configs
+from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
 class ProcessManager:
@@ -17,11 +18,13 @@ class ProcessManager:
     def __init__(self):
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('FILEBEAT_HOME')
+        if not self.install_directory:
+            raise filebeat_exceptions.CallFilebeatProcessError(
+                "Could not resolve FILEBEAT_HOME environment variable. Is Filebeat installed?")
         self.config = filebeat_configs.ConfigManager(self.install_directory)
 
         if not os.path.exists('/var/run/dynamite/filebeat/'):
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/filebeat/'), shell=True)
-
+            utilities.makedirs('/var/run/dynamite/filebeat/', exist_ok=True)
         try:
             self.pid = int(open('/var/run/dynamite/filebeat/filebeat.pid').read())
         except (IOError, ValueError):
@@ -107,3 +110,29 @@ class ProcessManager:
                 sys.stderr.write('[-] An error occurred while attempting to stop Filebeat: {}\n'.format(e))
                 return False
         return True
+
+    def restart(self, stdout=False):
+        """
+        Restart the Filebeat process
+
+        :param stdout: Print output to console
+        :return: True if started successfully
+        """
+        self.stop(stdout=stdout)
+        return self.start(stdout=stdout)
+
+
+def start(stdout=True):
+    ProcessManager().start(stdout)
+
+
+def stop(stdout=True):
+    ProcessManager().stop(stdout)
+
+
+def restart(stdout=True):
+    ProcessManager().restart(stdout)
+
+
+def status():
+    return ProcessManager().status()

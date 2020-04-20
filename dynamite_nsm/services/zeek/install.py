@@ -10,6 +10,8 @@ from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek import config as zeek_configs
+from dynamite_nsm.services.zeek import profile as zeek_profile
+from dynamite_nsm.services.zeek import process as zeek_process
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 from dynamite_nsm.services.zeek.pf_ring import install as pfring_install
 from dynamite_nsm.services.zeek.pf_ring import profile as pfring_profile
@@ -21,6 +23,8 @@ class InstallManager:
     def __init__(self,
                  configuration_directory, install_directory, download_zeek_archive=True, stdout=True, verbose=False):
         """
+        Install Zeek
+
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
         :param download_zeek_archive: If True, download the Zeek archive from a mirror
@@ -276,7 +280,7 @@ class InstallManager:
         """
         Setup Zeek NSM with PF_RING support
 
-        :param network_interface: The interface to listen on
+        :param network_interface: The interface to capture on (E.G mon0)
         """
 
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
@@ -414,3 +418,82 @@ class InstallManager:
             node_config.write_config()
         except zeek_exceptions.WriteZeekConfigError:
             raise zeek_exceptions.InstallZeekError("An error occurred while writing Zeek configurations.")
+
+
+def install_zeek(configuration_directory, install_directory, network_interface, download_zeek_archive=True, stdout=True,
+                 verbose=False):
+    """
+    Install Zeek
+
+    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
+    :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+    :param network_interface: The interface to capture on (E.G mon0)
+    :param download_zeek_archive: If True, download the Zeek archive from a mirror
+    :param stdout: Print the output to console
+    :param verbose: Include output from system utilities
+    """
+
+    zeek_profiler = zeek_profile.ProcessProfiler()
+    if zeek_profiler.is_installed:
+        raise zeek_exceptions.AlreadyInstalledZeekError()
+    zeek_installer = InstallManager(configuration_directory, install_directory,
+                                    download_zeek_archive=download_zeek_archive, stdout=stdout, verbose=verbose)
+
+    zeek_installer.setup_zeek(network_interface=network_interface)
+    zeek_installer.setup_dynamite_zeek_scripts()
+
+
+def uninstall_zeek(stdout=False, prompt_user=True):
+    """
+    Uninstall Zeek
+
+    :param stdout: Print the output to console
+    :param prompt_user: Print a warning before continuing
+    """
+
+    env_file = os.path.join(const.CONFIG_PATH, 'environment')
+    environment_variables = utilities.get_environment_file_dict()
+    zeek_profiler = zeek_profile.ProcessProfiler()
+    pf_ring_profiler = pfring_profile.ModuleProfile()
+    if not zeek_profiler.is_installed:
+        raise zeek_exceptions.UninstallZeekError("Zeek is not installed.")
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! Removing Zeek Will Remove Critical Agent Functionality.\n')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            exit(0)
+    if zeek_profiler.is_running:
+        try:
+            zeek_process.ProcessManager().stop()
+        except zeek_exceptions.CallZeekProcessError:
+            raise zeek_exceptions.UninstallZeekError("Could not kill Zeek process.")
+
+    if pf_ring_profiler.is_installed:
+        shutil.rmtree(environment_variables.get('PF_RING_HOME'))
+    install_directory = environment_variables.get('ZEEK_HOME')
+    config_directory = environment_variables.get('ZEEK_SCRIPTS')
+    try:
+        with open(env_file) as env_fr:
+            env_lines = ''
+            for line in env_fr.readlines():
+                if 'ZEEK_HOME' in line:
+                    continue
+                elif 'ZEEK_SCRIPTS' in line:
+                    continue
+                elif 'PF_RING_HOME' in line:
+                    continue
+                elif line.strip() == '':
+                    continue
+                env_lines += line.strip() + '\n'
+        with open(env_file, 'w') as env_fw:
+            env_fw.write(env_lines)
+        if zeek_profiler.is_installed:
+            shutil.rmtree(install_directory, ignore_errors=True)
+            shutil.rmtree(config_directory, ignore_errors=True)
+    except Exception as e:
+        raise zeek_exceptions.UninstallZeekError(
+            "General error occurred while attempting to uninstall zeek; {}".format(e))

@@ -10,6 +10,8 @@ from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.suricata import config as suricata_configs
+from dynamite_nsm.services.suricata import process as suricata_process
+from dynamite_nsm.services.suricata import profile as suricata_profile
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 from dynamite_nsm.services.suricata.oinkmaster import install as rules_install
 from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
@@ -139,33 +141,6 @@ class InstallManager:
                     os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
                     os.path.join(self.configuration_directory, 'rules'), e))
 
-    def _setup_suricata_rules(self):
-        if self.stdout:
-            sys.stdout.write('[+] Installing Rules.\n')
-        oink_installer = rules_install.InstallManager(
-            download_oinkmaster_archive=True,
-            stdout=self.stdout,
-            verbose=self.verbose,
-            install_directory=os.path.join(self.install_directory, 'oinkmaster')
-        )
-        try:
-            oink_installer.download_oinkmaster(stdout=self.stdout)
-        except general_exceptions.DownloadError:
-            raise suricata_exceptions.InstallSuricataError("Unable to download Oinkmaster dependency.")
-        try:
-            oink_installer.extract_oinkmaster(stdout=self.stdout)
-        except general_exceptions.ArchiveExtractionError:
-            raise suricata_exceptions.InstallSuricataError("Unable to extract Oinkmaster dependency.")
-        try:
-            oink_installer.setup_oinkmaster()
-        except oinkmaster_exceptions.InstallOinkmasterError:
-            raise suricata_exceptions.InstallSuricataError("Unable to install Oinkmaster dependency.")
-
-        try:
-            rules_install.update_suricata_rules()
-        except oinkmaster_exceptions.UpdateSuricataRulesError:
-            raise suricata_exceptions.InstallSuricataError("Unable to update Suricata rule-sets.")
-
     @staticmethod
     def download_suricata(stdout=False):
         """
@@ -236,11 +211,68 @@ class InstallManager:
             sys.stdout.flush()
         pkt_mng.install_packages(packages)
 
+    def setup_suricata_rules(self):
+        """
+        Installs Oinkmaster, sets up rules, and disables unneeded rule sets.
+        """
+        if self.stdout:
+            sys.stdout.write('[+] Installing Rules.\n')
+        oink_installer = rules_install.InstallManager(
+            download_oinkmaster_archive=True,
+            stdout=self.stdout,
+            verbose=self.verbose,
+            install_directory=os.path.join(self.install_directory, 'oinkmaster')
+        )
+        try:
+            oink_installer.download_oinkmaster(stdout=self.stdout)
+        except general_exceptions.DownloadError:
+            raise suricata_exceptions.InstallSuricataError("Unable to download Oinkmaster dependency.")
+        try:
+            oink_installer.extract_oinkmaster(stdout=self.stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise suricata_exceptions.InstallSuricataError("Unable to extract Oinkmaster dependency.")
+        try:
+            oink_installer.setup_oinkmaster()
+        except oinkmaster_exceptions.InstallOinkmasterError:
+            raise suricata_exceptions.InstallSuricataError("Unable to install Oinkmaster dependency.")
+
+        try:
+            rules_install.update_suricata_rules()
+        except oinkmaster_exceptions.UpdateSuricataRulesError:
+            raise suricata_exceptions.InstallSuricataError("Unable to update Suricata rule-sets.")
+        try:
+            config = suricata_configs.ConfigManager(self.configuration_directory)
+        except suricata_exceptions.ReadsSuricataConfigError:
+            raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
+        config.default_log_directory = self.log_directory
+        config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
+        config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
+        config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')
+
+        # Disable Unneeded Suricata rules
+        try:
+            config.disable_rule('http-events.rules')
+            config.disable_rule('smtp-events.rules')
+            config.disable_rule('dns-events.rules')
+            config.disable_rule('tls-events.rules')
+            config.disable_rule('drop.rules')
+            config.disable_rule('emerging-p2p.rules')
+            config.disable_rule('emerging-pop3.rules')
+            config.disable_rule('emerging-telnet.rules')
+            config.disable_rule('emerging-tftp.rules')
+            config.disable_rule('emerging-voip.rules')
+        except suricata_exceptions.SuricataRuleNotFoundError:
+            raise suricata_exceptions.InstallSuricataError("Could not disable one or more Suricata rules.")
+        try:
+            config.write_config()
+        except suricata_exceptions.WriteSuricataConfigError:
+            suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
+
     def setup_suricata(self, network_interface=None):
         """
         Setup Suricata IDS with PF_RING support
 
-        :param network_interface: The interface to listen on
+        :param network_interface: The interface to capture on (E.G mon0)
         """
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         if not network_interface:
@@ -273,33 +305,81 @@ class InstallManager:
             raise suricata_exceptions.InstallSuricataError(
                 "General error while creating environment variables in {}; {}".format(env_file, e))
 
-        self._setup_suricata_rules()
         try:
             config = suricata_configs.ConfigManager(self.configuration_directory)
         except suricata_exceptions.ReadsSuricataConfigError:
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
         config.af_packet_interfaces = []
         config.add_afpacket_interface(network_interface, threads='auto', cluster_id=99)
-        config.default_log_directory = self.log_directory
-        config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
-        config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
-        config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')
 
-        # Disable Unneeded Suricata rules
+
+def install_suricata(configuration_directory, install_directory, log_directory, network_interface,
+                     download_suricata_archive=True, stdout=True, verbose=False):
+    """
+    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
+    :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
+    :param log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)
+    :param network_interface: The interface to capture on (E.G mon0)
+    :param download_suricata_archive: If True, download the Suricata archive from a mirror
+    :param stdout: Print the output to console
+    :param verbose: Include output from system utilities
+    """
+
+    suricata_profiler = suricata_profile.ProcessProfiler()
+    if suricata_profiler.is_installed:
+        raise suricata_exceptions.AlreadyInstalledSuricataError()
+    suricata_installer = InstallManager(configuration_directory, install_directory, log_directory,
+                                        download_suricata_archive=download_suricata_archive, stdout=stdout,
+                                        verbose=verbose)
+    suricata_installer.setup_suricata(network_interface)
+    suricata_installer.setup_suricata_rules()
+
+
+def uninstall_suricata(stdout=False, prompt_user=True):
+    """
+    Uninstall Suricata
+
+    :param stdout: Print the output to console
+    :param prompt_user: Print a warning before continuing
+    """
+    env_file = os.path.join(const.CONFIG_PATH, 'environment')
+    environment_variables = utilities.get_environment_file_dict()
+    suricata_profiler = suricata_profile.ProcessProfiler()
+    if not suricata_profiler.is_installed:
+        raise suricata_exceptions.UninstallSuricataError("Suricata is not installed.")
+    if prompt_user:
+        sys.stderr.write('[-] WARNING! Removing Suricata Will Remove Critical Agent Functionality.\n')
+        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            exit(0)
+    if suricata_profiler.is_running:
         try:
-            config.disable_rule('http-events.rules')
-            config.disable_rule('smtp-events.rules')
-            config.disable_rule('dns-events.rules')
-            config.disable_rule('tls-events.rules')
-            config.disable_rule('drop.rules')
-            config.disable_rule('emerging-p2p.rules')
-            config.disable_rule('emerging-pop3.rules')
-            config.disable_rule('emerging-telnet.rules')
-            config.disable_rule('emerging-tftp.rules')
-            config.disable_rule('emerging-voip.rules')
-        except suricata_exceptions.SuricataRuleNotFoundError:
-            raise suricata_exceptions.InstallSuricataError("Could not disable one or more Suricata rules.")
-        try:
-            config.write_config()
-        except suricata_exceptions.WriteSuricataConfigError:
-            suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
+            suricata_process.stop()
+        except suricata_exceptions.CallSuricataProcessError:
+            raise suricata_exceptions.UninstallSuricataError("Could not kill Suricata process.")
+    try:
+        with open(env_file) as env_fr:
+            env_lines = ''
+            for line in env_fr.readlines():
+                if 'SURICATA_HOME' in line:
+                    continue
+                elif 'SURICATA_CONFIG' in line:
+                    continue
+                elif 'OINKMASTER_HOME' in line:
+                    continue
+                elif line.strip() == '':
+                    continue
+                env_lines += line.strip() + '\n'
+        with open(env_file, 'w') as env_fw:
+            env_fw.write(env_lines)
+        if suricata_profiler.is_installed:
+            shutil.rmtree(environment_variables.get('SURICATA_HOME'), ignore_errors=True)
+            shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
+            shutil.rmtree(environment_variables.get('OINKMASTER_HOME'), ignore_errors=True)
+    except Exception as e:
+        raise suricata_exceptions.UninstallSuricataError(
+            "General error occurred while attempting to uninstall suricata; {}".format(e))

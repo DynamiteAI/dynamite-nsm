@@ -77,7 +77,7 @@ class AgentDependencyInstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 def run_install_strategy():
-    agt_deps_install_strategy = AgentKernelModulesInstallStrategy(
+    agt_deps_install_strategy = AgentDependencyInstallStrategy(
         stdout=True,
         verbose=True
     )

@@ -6,6 +6,7 @@ import subprocess
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.suricata import config as suricata_configs
+from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
 
 class ProcessManager:
@@ -17,6 +18,12 @@ class ProcessManager:
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('SURICATA_HOME')
         self.configuration_directory = self.environment_variables.get('SURICATA_CONFIG')
+        if not self.install_directory:
+            raise suricata_exceptions.CallSuricataProcessError(
+                "Could not resolve SURICATA_HOME environment_variable. Is Suricata installed?")
+        elif not self.configuration_directory:
+            raise suricata_exceptions.CallSuricataProcessError(
+                "Could not resolve SURICATA_CONFIG environment_variable. Is Suricata installed?")
         self.config = suricata_configs.ConfigManager(self.configuration_directory)
 
         try:
@@ -32,7 +39,7 @@ class ProcessManager:
         :return: True, if started successfully
         """
         if not os.path.exists('/var/run/dynamite/suricata/'):
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/suricata/'), shell=True)
+            utilities.makedirs('/var/run/dynamite/suricata/', exist_ok=True)
         p = subprocess.Popen('bin/suricata -i {} -D --pidfile /var/run/dynamite/suricata/suricata.pid -c {}'.format(
             self.config.af_packet_interfaces[0]['interface'],
             os.path.join(self.configuration_directory, 'suricata.yaml')), shell=True, cwd=self.install_directory)
@@ -109,3 +116,19 @@ class ProcessManager:
             'RUNNING': utilities.check_pid(self.pid),
             'LOG': os.path.join(self.config.default_log_directory, 'suricata.log')
         }
+
+
+def start(stdout=True):
+    ProcessManager().start(stdout)
+
+
+def stop(stdout=True):
+    ProcessManager().stop(stdout)
+
+
+def restart(stdout=True):
+    ProcessManager().restart(stdout)
+
+
+def status():
+    return ProcessManager().status()

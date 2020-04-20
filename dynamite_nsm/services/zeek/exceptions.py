@@ -1,17 +1,39 @@
 from dynamite_nsm import exceptions
 
 
-class WriteZeekConfigError(exceptions.WriteConfigError):
+class InstallZeekError(exceptions.InstallError):
     """
-    Thrown when an Zeek.yaml config option fails to write
+    Thrown when Zeek fails to install
     """
 
     def __init__(self, message):
         """
         :param message: A more specific error message
         """
-        msg = "An error occurred when writing zeek.yaml configuration: {}".format(message)
-        super(WriteZeekConfigError, self).__init__(msg)
+        msg = "An error occurred while installing Zeek: {}".format(message)
+        super(InstallZeekError, self).__init__(msg)
+
+
+class AlreadyInstalledZeekError(InstallZeekError):
+    """
+    Thrown when zeek is already installed
+    """
+
+    def __init__(self):
+        msg = "Zeek is already installed."
+        super(AlreadyInstalledZeekError, self).__init__(msg)
+
+
+class CallZeekProcessError(exceptions.CallProcessError):
+    """
+    Thrown when zeek process encounters an error state
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while calling zeek process: {}".format(message)
+        super(CallZeekProcessError, self).__init__(msg)
 
 
 class ReadsZeekConfigError(exceptions.ReadConfigError):
@@ -79,32 +101,6 @@ class ZeekProxyNotFoundError(Exception):
         super(ZeekProxyNotFoundError, self).__init__(msg)
 
 
-class ZeekWorkerNotFoundError(Exception):
-    """
-    Thrown when attempting to disable a non-existing worker
-    """
-
-    def __init__(self, worker_name):
-        """
-        :param worker_name: The name of the zeek worker
-        """
-        msg = "Zeek interface does not exist: {}".format(worker_name)
-        super(ZeekWorkerNotFoundError, self).__init__(msg)
-        
-
-class InstallZeekError(exceptions.InstallError):
-    """
-    Thrown when Zeek fails to install
-    """
-
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred while installing Zeek: {}".format(message)
-        super(InstallZeekError, self).__init__(msg)
-
-
 class UninstallZeekError(exceptions.UninstallError):
     """
     Thrown when Zeek fails to uninstall
@@ -116,3 +112,29 @@ class UninstallZeekError(exceptions.UninstallError):
         """
         msg = "An error occurred while uninstalling Zeek: {}".format(message)
         super(UninstallZeekError, self).__init__(msg)
+
+
+class ZeekWorkerNotFoundError(Exception):
+    """
+    Thrown when attempting to disable a non-existing worker
+    """
+
+    def __init__(self, worker_name):
+        """
+        :param worker_name: The name of the zeek worker
+        """
+        msg = "Zeek interface does not exist: {}".format(worker_name)
+        super(ZeekWorkerNotFoundError, self).__init__(msg)
+
+
+class WriteZeekConfigError(exceptions.WriteConfigError):
+    """
+    Thrown when an Zeek.yaml config option fails to write
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing zeek.yaml configuration: {}".format(message)
+        super(WriteZeekConfigError, self).__init__(msg)
