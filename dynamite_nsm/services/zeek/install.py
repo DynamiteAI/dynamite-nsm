@@ -310,8 +310,8 @@ class InstallManager:
                     sys.stdout.flush()
                     time.sleep(1)
                 pf_ring_install.setup_pf_ring()
-        except pf_ring_exceptions.InstallPfringError:
-            raise zeek_exceptions.InstallZeekError("PF_RING could not be installed/configured properly.")
+        except pf_ring_exceptions.InstallPfringError as e:
+            raise zeek_exceptions.InstallZeekError("PF_RING could not be installed/configured properly; {}.".format(e))
         if self.stdout:
             sys.stdout.write('[+] Compiling Zeek from source. This can take up to 30 minutes. '
                              'Have a cup of coffee.\n')
