@@ -302,7 +302,7 @@ class InstallManager:
         pf_ring_profiler = pfring_profile.ModuleProfile()
         try:
             pf_ring_install = pfring_install.InstallManager(self.install_directory,
-                                                            download_pf_ring_archive=not pf_ring_profiler.is_downloaded,
+                                                            download_pf_ring_archive=True,
                                                             stdout=self.stdout, verbose=self.verbose)
             if not pf_ring_profiler.is_installed:
                 if self.stdout:

@@ -29,9 +29,12 @@ class InstallManager:
         if download_pf_ring_archive:
             try:
                 self.download_pf_ring(stdout=stdout)
-                self.extract_pf_ring(stdout=stdout)
-            except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise pf_ring_exceptions.InstallPfringError("Failed to download/extract PF_RING archive.")
+            except general_exceptions.DownloadError:
+                raise pf_ring_exceptions.InstallPfringError("Failed to download PF_RING archive.")
+        try:
+            self.extract_pf_ring(stdout=stdout)
+        except general_exceptions.ArchiveExtractionError:
+            raise pf_ring_exceptions.InstallPfringError("Failed to extract PF_RING archive.")
 
         try:
             self.install_dependencies(verbose=verbose)
