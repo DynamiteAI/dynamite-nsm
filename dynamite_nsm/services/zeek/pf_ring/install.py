@@ -163,25 +163,28 @@ class InstallManager:
                 if 'pf_ring' not in modules_f.read():
                     if stdout:
                         sys.stdout.write('[+] Setting PF_RING kernel module to load at boot.\n')
-                    subprocess.call('echo pf_ring min_num_slots=32768 >> /etc/modules', shell=True)
+                    subprocess.call('echo pf_ring min_num_slots=32768 enable_tx_capture=0 >> /etc/modules', shell=True)
         except IOError:
-            if os.path.exists('/etc/modules-load.d') and os.path.exists('/etc/modprobe.d'):
+            if os.path.exists('/etc/modules-load.d'):
                 pf_ring_module_found = False
-                pf_ring_mod_opts_found = False
                 for mod_conf in os.listdir('/etc/modules-load.d/'):
                     mod_conf_path = os.path.join('/etc/modules-load.d', mod_conf)
                     with open(mod_conf_path) as mod_conf_f:
                         if 'pf_ring' in mod_conf_f.read():
                             pf_ring_module_found = True
                             break
+                if not pf_ring_module_found:
+                    subprocess.call(
+                        'echo pf_ring min_num_slots=32768 enable_tx_capture=0 >> /etc/modules-load.d/pf_ring.conf',
+                        shell=True)
+            elif os.path.exists('/etc/modprobe.d'):
+                pf_ring_mod_opts_found = False
                 for mod_opt in os.listdir('/etc/modprobe.d'):
                     mod_opt_path = os.path.join('/etc/modprobe.d', mod_opt)
                     with open(mod_opt_path) as mod_opt_f:
                         if 'options pf_ring' in mod_opt_f.read():
                             pf_ring_mod_opts_found = True
                             break
-                if not pf_ring_module_found:
-                    subprocess.call('echo "pf_ring" >> /etc/modules-load.d/pf_ring.conf', shell=True)
                 if not pf_ring_mod_opts_found:
                     subprocess.call(
                         'echo "options pf_ring min_num_slots=32768 enable_tx_capture=0" >> '
