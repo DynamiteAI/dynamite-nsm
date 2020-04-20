@@ -20,21 +20,28 @@ from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 class InstallManager:
 
-    def __init__(self, install_directory, monitor_paths, download_filebeat_archive=True, stdout=True):
+    def __init__(self, install_directory, monitor_paths, agent_tag=None, download_filebeat_archive=True, stdout=True):
         """
         :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
         :param monitor_paths: The tuple of log paths to monitor
+        :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
         :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
         :param stdout: Print the output to console
         """
         self.monitor_paths = list(monitor_paths)
         self.install_directory = install_directory
         self.stdout = stdout
+        self.agent_tag = agent_tag
         if download_filebeat_archive:
             try:
                 self.download_filebeat(stdout=stdout)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 raise filebeat_exceptions.InstallFilebeatError("Failed to download Filebeat archive.")
+
+        if not agent_tag:
+            self.agent_tag = utilities.get_default_agent_tag()
+        else:
+            self.agent_tag = str(agent_tag)[0:29]
         try:
             self.extract_filebeat(stdout=stdout)
         except general_exceptions.ArchiveExtractionError:
@@ -100,6 +107,7 @@ class InstallManager:
         except filebeat_exceptions.ReadFilebeatConfigError:
             raise filebeat_exceptions.InstallFilebeatError("Failed to read filebeat configuration.")
         beats_config.set_monitor_target_paths(self.monitor_paths)
+        beats_config.set_agent_tag(self.agent_tag)
         try:
             beats_config.write_config()
         except filebeat_exceptions.WriteFilebeatConfigError:

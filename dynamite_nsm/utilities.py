@@ -210,6 +210,10 @@ def extract_java(stdout=False):
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
 
+def get_default_agent_tag():
+    return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_agt'
+
+
 def generate_random_password(length=30):
     """
     Generate a random password containing alphanumeric and symbolic characters

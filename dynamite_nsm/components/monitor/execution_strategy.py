@@ -163,8 +163,8 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
 
     def __init__(self, stdout, prompt_user):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="logstash_uninstall",
-            strategy_description="Uninstall LogStash.",
+            self, strategy_name="monitor_uninstall",
+            strategy_description="Uninstall Monitor.",
             functions=(
                 prompt_monitor_uninstall,
                 kb_install.uninstall_kibana,
@@ -221,15 +221,15 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
                 kb_process.start
             ),
             arguments=(
-                # es_process.start.start
+                # es_process.start
                 {
                     "stdout": stdout
                 },
-                # ls_process.start.start
+                # ls_process.start
                 {
                     "stdout": stdout
                 },
-                # kb_process.start.start
+                # kb_process.start
                 {
                     "stdout": stdout
                 }
@@ -239,7 +239,6 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
                 None,
                 None
             )
-
         )
         if status:
             self.add_function(get_monitor_status, {}, return_format="json")
