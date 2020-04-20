@@ -101,7 +101,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             filebeat_args = {
                 'agent_tag': tag,
                 'install_directory': '/opt/dynamite/filebeat/',
-                'download_filbeat_archive': True,
+                'download_filebeat_archive': True,
                 'stdout': bool(stdout)
             }
             monitor_paths = []
