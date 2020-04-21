@@ -150,7 +150,7 @@ def download_file(url, filename, stdout=False):
         try:
             pb = progressbar.ProgressBar(widgets, max_value=progressbar.UnknownLength)
         except TypeError:
-            pb = progressbar.ProgressBar(widgets, maxval=progressbar.UnknownLength)
+            pb = progressbar.ProgressBar(maxval=progressbar.UnknownLength)
     if stdout:
         sys.stdout.write('[+] Downloading: {}   |   Filename: {}\n'.format(url, filename))
         sys.stdout.flush()
@@ -162,13 +162,13 @@ def download_file(url, filename, stdout=False):
                 chunk = response.read(CHUNK)
                 if not chunk:
                     break
-                chunk_num += 1
                 f.write(chunk)
                 if stdout:
                     try:
                         pb.update(CHUNK * chunk_num)
                     except ValueError:
                         pass
+                chunk_num += 1
             if stdout:
                 sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
                 sys.stdout.flush()
