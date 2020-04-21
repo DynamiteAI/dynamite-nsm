@@ -131,7 +131,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(func=zeek_install.install_zeek, argument_dict={
                 'configuration_directory': '/etc/dynamite/zeek/',
                 'install_directory': '/opt/dynamite/zeek',
-                'network_interface': list(capture_network_interfaces),
+                'capture_network_interfaces': list(capture_network_interfaces),
                 'download_zeek_archive': True,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
@@ -144,7 +144,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 'configuration_directory': '/etc/dynamite/suricata/',
                 'install_directory': '/opt/dynamite/suricata',
                 'log_directory': '/var/log/dynamite/suricata/',
-                'network_interface': list(capture_network_interfaces),
+                'capture_network_interfaces': list(capture_network_interfaces),
                 'download_suricata_archive': True,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
