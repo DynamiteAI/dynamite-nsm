@@ -475,6 +475,12 @@ class InstallManager:
         except zeek_exceptions.ReadsZeekConfigError:
             raise zeek_exceptions.InstallZeekError("An error occurred while reading Zeek configurations.")
 
+        # Clear out pre-set workers.
+        for key in list(node_config.node_config):
+            if node_config.node_config[key]['type'] == 'worker':
+                del node_config.node_config[key]
+
+        # Calculate new workers.
         for worker in self.get_pf_ring_workers(self.capture_network_interfaces):
             node_config.add_worker(name=worker['name'],
                                    host=worker['host'],
