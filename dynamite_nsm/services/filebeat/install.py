@@ -171,11 +171,13 @@ class InstallManager:
                 "General error occurred while attempting to install filebeat; {}".format(e))
 
 
-def install_filebeat(install_directory, monitor_log_paths, agent_tag, download_filebeat_archive=True, stdout=True):
+def install_filebeat(install_directory, monitor_log_paths, logstash_targets, agent_tag, download_filebeat_archive=True,
+                     stdout=True):
     filebeat_profiler = filebeat_profile.ProcessProfiler()
     if filebeat_profiler.is_installed:
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
-    filebeat_installer = InstallManager(install_directory, monitor_log_paths, agent_tag,
+    filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
+                                        logstash_targets=logstash_targets, agent_tag=agent_tag,
                                         download_filebeat_archive=download_filebeat_archive, stdout=stdout)
     filebeat_installer.setup_filebeat()
 
