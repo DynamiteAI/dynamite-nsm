@@ -318,6 +318,10 @@ class InstallManager:
         config.af_packet_interfaces = []
         for interface in self.capture_network_interfaces:
             config.add_afpacket_interface(interface, threads='auto', cluster_id=99)
+        try:
+            config.write_config()
+        except suricata_exceptions.WriteSuricataConfigError:
+            suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
 
 
 def install_suricata(configuration_directory, install_directory, log_directory, capture_network_interfaces,
