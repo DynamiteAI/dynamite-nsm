@@ -20,15 +20,19 @@ from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 class InstallManager:
 
-    def __init__(self, install_directory, monitor_paths, agent_tag=None, download_filebeat_archive=True, stdout=True):
+    def __init__(self, install_directory, monitor_log_paths, logstash_targets, agent_tag=None,
+                 download_filebeat_archive=True, stdout=True):
         """
         :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
-        :param monitor_paths: The tuple of log paths to monitor
+        :param monitor_log_paths: A tuple of log paths to monitor
+        :param logstash_targets: A tuple of Logstash targets to forward events to (E.G ["192.168.0.9:5044", ...])
         :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
         :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
         :param stdout: Print the output to console
         """
-        self.monitor_paths = list(monitor_paths)
+
+        self.monitor_paths = list(monitor_log_paths)
+        self.logstash_targets = list(logstash_targets)
         self.install_directory = install_directory
         self.stdout = stdout
         self.agent_tag = agent_tag
@@ -47,6 +51,10 @@ class InstallManager:
         except general_exceptions.ArchiveExtractionError:
             raise filebeat_exceptions.InstallFilebeatError("Failed to extract Filebeat archive.")
 
+        if not self.validate_logstash_targets(logstash_targets):
+            raise filebeat_exceptions.InstallFilebeatError(
+                "Invalid Logstash Targets specified: {}.".format(logstash_targets))
+
     @staticmethod
     def download_filebeat(stdout=False):
         """
@@ -54,6 +62,7 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
+
         url = None
         try:
             with open(const.FILE_BEAT_MIRRORS, 'r') as filebeat_archive:
@@ -71,6 +80,7 @@ class InstallManager:
 
         :param stdout: Print output to console
         """
+
         if stdout:
             sys.stdout.write('[+] Extracting: {} \n'.format(const.FILE_BEAT_ARCHIVE_NAME))
         try:
@@ -87,10 +97,39 @@ class InstallManager:
             raise general_exceptions.ArchiveExtractionError(
                 "General error while attempting to extract filebeat archive; {}".format(e))
 
+    @staticmethod
+    def validate_logstash_targets(logstash_targets):
+        """
+        Ensures that Logstash targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
+
+        :param logstash_targets: A list of IP/host port pair
+        :return: True if valid
+        """
+
+        if isinstance(logstash_targets, list) or isinstance(logstash_targets, tuple):
+            for i, target in enumerate(logstash_targets):
+                target = str(target)
+                try:
+                    host, port = target.split(':')
+                    if not str(port).isdigit():
+                        sys.stderr.write(
+                            '[-] Logstash Target Invalid: {} port must be numeric at position {}\n'.format(target, i))
+                        return False
+                except ValueError:
+                    sys.stderr.write(
+                        '[-] Logstash Target Invalid: {} expected host:port at position {}\n'.format(target, i))
+                    return False
+        else:
+            sys.stderr.write(
+                '[-] Logstash Target Invalid: {}; must be a enumerable (list, tuple)'.format(logstash_targets))
+            return False
+        return True
+
     def setup_filebeat(self):
         """
         Creates necessary directory structure, and copies required files, generates a default configuration
         """
+
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         if self.stdout:
             sys.stdout.write('[+] Creating Filebeat install directory.\n')
@@ -108,6 +147,7 @@ class InstallManager:
             raise filebeat_exceptions.InstallFilebeatError("Failed to read filebeat configuration.")
         beats_config.set_monitor_target_paths(self.monitor_paths)
         beats_config.set_agent_tag(self.agent_tag)
+        beats_config.set_logstash_targets(self.logstash_targets)
         try:
             beats_config.write_config()
         except filebeat_exceptions.WriteFilebeatConfigError:

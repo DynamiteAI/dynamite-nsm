@@ -10,22 +10,31 @@ from dynamite_nsm.commandline import component_parsers
 from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
 from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
 from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
+from dynamite_nsm.components.agent.component import AgentCommandlineComponent
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
 from dynamite_nsm.components.agent_dependencies.component import AgentDependencyCommandlineComponent
 
+component_args.register_agent_component_args(
+    component_parsers.agent_component_parser, parent_parsers=[component_parsers.base_parser]
+)
 component_args.register_agent_dependency_component_args(
-    component_parsers.agent_deps_component_parser, parent_parsers=[component_parsers.base_parser])
+    component_parsers.agent_deps_component_parser, parent_parsers=[component_parsers.base_parser]
+)
 component_args.register_elasticsearch_component_args(
-    component_parsers.elasticsearch_component_parser, parent_parsers=[component_parsers.base_parser])
+    component_parsers.elasticsearch_component_parser, parent_parsers=[component_parsers.base_parser]
+)
 component_args.register_logstash_component_args(
-    component_parsers.logstash_component_parser, parent_parsers=[component_parsers.base_parser])
+    component_parsers.logstash_component_parser, parent_parsers=[component_parsers.base_parser]
+)
 component_args.register_kibana_component_args(
-    component_parsers.kibana_component_parser, parent_parsers=[component_parsers.base_parser])
+    component_parsers.kibana_component_parser, parent_parsers=[component_parsers.base_parser]
+)
 component_args.register_monitor_component_args(
-    component_parsers.monitor_component_parser, parent_parsers=[component_parsers.base_parser])
+    component_parsers.monitor_component_parser, parent_parsers=[component_parsers.base_parser]
+)
 
 if __name__ == '__main__':
 
@@ -49,7 +58,9 @@ if __name__ == '__main__':
         if not os.path.exists(const.DEFAULT_CONFIGS):
             updater.update_default_configurations()
     try:
-        if args.component_name == "agent-dependencies":
+        if args.component_name == "agent":
+            AgentCommandlineComponent(args)
+        elif args.component_name == "agent-dependencies":
             AgentDependencyCommandlineComponent(args)
         elif args.component_name == "elasticsearch":
             es_commandline_component = ElasticsearchCommandlineComponent(args)

@@ -19,12 +19,13 @@ from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_e
 
 class InstallManager:
 
-    def __init__(self, configuration_directory, install_directory, log_directory, download_suricata_archive=True,
-                 stdout=True, verbose=False):
+    def __init__(self, configuration_directory, install_directory, log_directory, capture_network_interfaces,
+                 download_suricata_archive=True, stdout=True, verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)
+        :param capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         :param download_suricata_archive: If True, download the Suricata archive from a mirror
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
@@ -33,6 +34,7 @@ class InstallManager:
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
+        self.capture_network_interfaces = capture_network_interfaces
         self.download_suricata_archive = download_suricata_archive
         self.stdout = stdout
         self.verbose = verbose
@@ -51,6 +53,9 @@ class InstallManager:
         except (general_exceptions.InvalidOsPackageManagerDetectedError,
                 general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
             raise suricata_exceptions.InstallSuricataError("One or more OS dependencies failed to install.")
+        if not self.validate_capture_network_interfaces(self.capture_network_interfaces):
+            raise suricata_exceptions.InstallSuricataError(
+                "One or more defined network interfaces is invalid: {}".format(capture_network_interfaces))
 
     def _configure_and_compile_suricata(self):
         if self.configuration_directory.endswith('/'):
@@ -211,6 +216,16 @@ class InstallManager:
             sys.stdout.flush()
         pkt_mng.install_packages(packages)
 
+    @staticmethod
+    def validate_capture_network_interfaces(network_interfaces):
+        for interface in network_interfaces:
+            if interface not in utilities.get_network_interface_names():
+                sys.stderr.write(
+                    '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'
+                    ''.format(interface, utilities.get_network_interface_names()))
+                return False
+        return True
+
     def setup_suricata_rules(self):
         """
         Installs Oinkmaster, sets up rules, and disables unneeded rule sets.
@@ -268,20 +283,11 @@ class InstallManager:
         except suricata_exceptions.WriteSuricataConfigError:
             suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
 
-    def setup_suricata(self, network_interface=None):
+    def setup_suricata(self):
         """
         Setup Suricata IDS with PF_RING support
-
-        :param network_interface: The interface to capture on (E.G mon0)
         """
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        if not network_interface:
-            network_interface = utilities.get_network_interface_names()[0]
-        if network_interface not in utilities.get_network_interface_names():
-            sys.stderr.write(
-                '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
-                    network_interface, utilities.get_network_interface_names()))
-            raise suricata_exceptions.InstallSuricataError('Invalid network interface {}'.format(network_interface))
         self._copy_suricata_files_and_directories()
         self._configure_and_compile_suricata()
         try:
@@ -310,16 +316,17 @@ class InstallManager:
         except suricata_exceptions.ReadsSuricataConfigError:
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
         config.af_packet_interfaces = []
-        config.add_afpacket_interface(network_interface, threads='auto', cluster_id=99)
+        for interface in self.capture_network_interfaces:
+            config.add_afpacket_interface(interface, threads='auto', cluster_id=99)
 
 
-def install_suricata(configuration_directory, install_directory, log_directory, network_interface,
+def install_suricata(configuration_directory, install_directory, log_directory, capture_network_interfaces,
                      download_suricata_archive=True, stdout=True, verbose=False):
     """
     :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
     :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
     :param log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)
-    :param network_interface: The interface to capture on (E.G mon0)
+    :param capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
     :param download_suricata_archive: If True, download the Suricata archive from a mirror
     :param stdout: Print the output to console
     :param verbose: Include output from system utilities
@@ -329,9 +336,10 @@ def install_suricata(configuration_directory, install_directory, log_directory, 
     if suricata_profiler.is_installed:
         raise suricata_exceptions.AlreadyInstalledSuricataError()
     suricata_installer = InstallManager(configuration_directory, install_directory, log_directory,
+                                        capture_network_interfaces=capture_network_interfaces,
                                         download_suricata_archive=download_suricata_archive, stdout=stdout,
                                         verbose=verbose)
-    suricata_installer.setup_suricata(network_interface)
+    suricata_installer.setup_suricata()
     suricata_installer.setup_suricata_rules()
 
 

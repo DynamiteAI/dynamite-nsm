@@ -20,13 +20,14 @@ from dynamite_nsm.services.zeek.pf_ring import exceptions as pf_ring_exceptions
 
 class InstallManager:
 
-    def __init__(self,
-                 configuration_directory, install_directory, download_zeek_archive=True, stdout=True, verbose=False):
+    def __init__(self, configuration_directory, install_directory, capture_network_interfaces,
+                 download_zeek_archive=True, stdout=True, verbose=False):
         """
         Install Zeek
 
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+        :param capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         :param download_zeek_archive: If True, download the Zeek archive from a mirror
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
@@ -34,6 +35,7 @@ class InstallManager:
 
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
+        self.capture_network_interfaces = capture_network_interfaces
         self.stdout = stdout
         self.verbose = verbose
         utilities.create_dynamite_environment_file()
@@ -51,6 +53,9 @@ class InstallManager:
         except (general_exceptions.InvalidOsPackageManagerDetectedError,
                 general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
             raise zeek_exceptions.InstallZeekError("One or more OS dependencies failed to install.")
+        if not self.validate_capture_network_interfaces(self.capture_network_interfaces):
+            raise zeek_exceptions.InstallZeekError(
+                "One or more defined network interfaces is invalid: {}".format(capture_network_interfaces))
 
     @staticmethod
     def download_zeek(stdout=False):
@@ -118,6 +123,16 @@ class InstallManager:
             sys.stdout.write('[+] Installing the following packages: {}.\n'.format(packages))
             sys.stdout.flush()
         pkt_mng.install_packages(packages)
+
+    @staticmethod
+    def validate_capture_network_interfaces(network_interfaces):
+        for interface in network_interfaces:
+            if interface not in utilities.get_network_interface_names():
+                sys.stderr.write(
+                    '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'
+                    ''.format(interface, utilities.get_network_interface_names()))
+                return False
+        return True
 
     def setup_zeek_community_id_script(self):
         bro_commmunity_id_script_path = \
@@ -276,21 +291,12 @@ class InstallManager:
         except zeek_exceptions.WriteZeekConfigError:
             raise zeek_exceptions.InstallZeekError("Could not write Zeek script configuration.")
 
-    def setup_zeek(self, network_interface=None):
+    def setup_zeek(self):
         """
         Setup Zeek NSM with PF_RING support
-
-        :param network_interface: The interface to capture on (E.G mon0)
         """
 
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        if not network_interface:
-            network_interface = utilities.get_network_interface_names()[0]
-        if network_interface not in utilities.get_network_interface_names():
-            sys.stderr.write(
-                '[-] The network interface that your defined: \'{}\' is invalid. Valid network interfaces: {}\n'.format(
-                    network_interface, utilities.get_network_interface_names()))
-            raise zeek_exceptions.InstallZeekError('Invalid network interface {}'.format(network_interface))
         if self.stdout:
             sys.stdout.write('[+] Creating zeek install|configuration|logging directories.\n')
         try:
@@ -408,26 +414,27 @@ class InstallManager:
         else:
             pinned_cpus = cpus
             lb_procs = 1
-        node_config.add_worker(name='dynamite-worker-1',
-                               host='localhost',
-                               interface=network_interface,
-                               lb_procs=lb_procs,
-                               pin_cpus=pinned_cpus
-                               )
+        for interface in self.capture_network_interfaces:
+            node_config.add_worker(name='dynamite-worker-' + interface,
+                                   host='localhost',
+                                   interface=interface,
+                                   lb_procs=lb_procs,
+                                   pin_cpus=pinned_cpus
+                                   )
         try:
             node_config.write_config()
         except zeek_exceptions.WriteZeekConfigError:
             raise zeek_exceptions.InstallZeekError("An error occurred while writing Zeek configurations.")
 
 
-def install_zeek(configuration_directory, install_directory, network_interface, download_zeek_archive=True, stdout=True,
-                 verbose=False):
+def install_zeek(configuration_directory, install_directory, capture_network_interfaces, download_zeek_archive=True,
+                 stdout=True, verbose=False):
     """
     Install Zeek
 
     :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
     :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
-    :param network_interface: The interface to capture on (E.G mon0)
+    :param capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
     :param download_zeek_archive: If True, download the Zeek archive from a mirror
     :param stdout: Print the output to console
     :param verbose: Include output from system utilities
@@ -437,9 +444,10 @@ def install_zeek(configuration_directory, install_directory, network_interface, 
     if zeek_profiler.is_installed:
         raise zeek_exceptions.AlreadyInstalledZeekError()
     zeek_installer = InstallManager(configuration_directory, install_directory,
+                                    capture_network_interfaces=capture_network_interfaces,
                                     download_zeek_archive=download_zeek_archive, stdout=stdout, verbose=verbose)
 
-    zeek_installer.setup_zeek(network_interface=network_interface)
+    zeek_installer.setup_zeek()
     zeek_installer.setup_dynamite_zeek_scripts()
 
 

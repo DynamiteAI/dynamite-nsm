@@ -82,7 +82,7 @@ class ConfigManager:
         """
         Define where events should be sent
 
-        :param target_hosts: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"]
+        :param target_hosts: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"])
         """
         self.logstash_targets = target_hosts
 

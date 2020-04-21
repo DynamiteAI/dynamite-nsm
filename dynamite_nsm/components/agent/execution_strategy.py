@@ -15,55 +15,13 @@ from dynamite_nsm.services.suricata import profile as suricata_profile
 from dynamite_nsm.utilities import prompt_input
 
 
-def print_message(msg):
-    print(msg)
-
-
-def remove_filebeat_tar_archive():
-    dir_path = os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_ARCHIVE_NAME)
-    if os.path.exists(dir_path):
-        os.remove(dir_path)
-
-
-def remove_zeek_tar_archive():
-    dir_path = os.path.join(const.INSTALL_CACHE, const.ZEEK_ARCHIVE_NAME)
-    if os.path.exists(dir_path):
-        os.remove(dir_path)
-
-
-def remove_suricata_tar_archive():
-    dir_path = os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME)
-    if os.path.exists(dir_path):
-        os.remove(dir_path)
-
-
-def get_installed_agent_components():
-    zeek_profiler = zeek_profile.ProcessProfiler()
-    suricata_profiler = suricata_profile.ProcessProfiler()
-    filebeat_profiler = filebeat_profile.ProcessProfiler()
-
-    agent_components = []
-    if zeek_profiler.is_installed:
-        agent_components.append('Zeek')
-    if suricata_profiler.is_installed:
-        agent_components.append('Suricata')
-    if filebeat_profiler.is_installed:
-        agent_components.append('Filebeat')
-    return agent_components
-
-
-def prompt_agent_uninstall(prompt_user=True, stdout=True):
-    if prompt_user:
-        sys.stderr.write(
-            '[-] WARNING! Removing Monitor Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
-                get_installed_agent_components()))
-        resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
-        while resp not in ['', 'no', 'yes']:
-            resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
-        if resp != 'yes':
-            if stdout:
-                sys.stdout.write('[+] Exiting\n')
-            exit(0)
+def check_agent_deps_installed():
+    try:
+        with open(os.path.join(const.CONFIG_PATH, '.agent_environment_prepared'), 'r'):
+            return
+    except IOError:
+        print("[-] Agent dependencies were not installed. Install with 'dynamite agent-dependencies install'")
+        exit(0)
 
 
 def get_agent_status():
@@ -87,41 +45,93 @@ def get_agent_status():
     return agent_status
 
 
+def get_installed_agent_analyzers():
+    zeek_profiler = zeek_profile.ProcessProfiler()
+    suricata_profiler = suricata_profile.ProcessProfiler()
+    filebeat_profiler = filebeat_profile.ProcessProfiler()
+
+    agent_analyzers = []
+    if zeek_profiler.is_installed:
+        agent_analyzers.append('Zeek')
+    if suricata_profiler.is_installed:
+        agent_analyzers.append('Suricata')
+    if filebeat_profiler.is_installed:
+        agent_analyzers.append('Filebeat')
+    return agent_analyzers
+
+
+def print_message(msg):
+    print(msg)
+
+
+def remove_filebeat_tar_archive():
+    dir_path = os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_ARCHIVE_NAME)
+    if os.path.exists(dir_path):
+        os.remove(dir_path)
+
+
+def remove_zeek_tar_archive():
+    dir_path = os.path.join(const.INSTALL_CACHE, const.ZEEK_ARCHIVE_NAME)
+    if os.path.exists(dir_path):
+        os.remove(dir_path)
+
+
+def remove_suricata_tar_archive():
+    dir_path = os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME)
+    if os.path.exists(dir_path):
+        os.remove(dir_path)
+
+
+def prompt_agent_uninstall(prompt_user=True, stdout=True):
+    if prompt_user:
+        sys.stderr.write(
+            '[-] WARNING! Removing Monitor Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
+                get_installed_agent_analyzers()))
+        resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        while resp not in ['', 'no', 'yes']:
+            resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            exit(0)
+
+
 class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
 
-    def __init__(self, capture_network_interface, agent_components=('zeek', 'suricata'),
+    def __init__(self, capture_network_interfaces, logstash_targets, agent_analyzers=('zeek', 'suricata'),
                  tag=None, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="agent_install",
             strategy_description="Install Zeek and/or Suricata along with Filebeat.",
         )
-
+        self.add_function(func=check_agent_deps_installed, argument_dict={})
         if not filebeat_profile.ProcessProfiler().is_installed:
             filebeat_args = {
-                'agent_tag': tag,
+                'logstash_targets': list(logstash_targets),
+                'agent_tag': str(tag),
                 'install_directory': '/opt/dynamite/filebeat/',
                 'download_filebeat_archive': True,
                 'stdout': bool(stdout)
             }
-            monitor_paths = []
-            if 'zeek' in agent_components:
-                monitor_paths.append("/opt/dynamite/zeek/logs/current/*.log")
-            if 'suricata' in agent_components:
-                monitor_paths.append('/var/log/dynamite/suricata/eve.json')
+            monitor_log_paths = []
+            if 'zeek' in agent_analyzers:
+                monitor_log_paths.append("/opt/dynamite/zeek/logs/current/*.log")
+            if 'suricata' in agent_analyzers:
+                monitor_log_paths.append('/var/log/dynamite/suricata/eve.json')
             filebeat_args.update({
-                'monitor_paths': monitor_paths
+                'monitor_log_paths': monitor_log_paths
             })
             self.add_function(func=filebeat_install.install_filebeat, argument_dict=filebeat_args)
         else:
             self.add_function(func=print_message,
                               argument_dict={"msg": 'Skipping Filebeat installation; already installed'},
                               return_format=None)
-        if not zeek_profile.ProcessProfiler().is_installed and 'zeek' in agent_components:
+        if not zeek_profile.ProcessProfiler().is_installed and 'zeek' in agent_analyzers:
             self.add_function(func=zeek_install.install_zeek, argument_dict={
                 'configuration_directory': '/etc/dynamite/zeek/',
                 'install_directory': '/opt/dynamite/zeek',
-                'network_interface': str(capture_network_interface),
+                'network_interface': list(capture_network_interfaces),
                 'download_zeek_archive': True,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
@@ -129,12 +139,12 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
         else:
             self.add_function(func=print_message, argument_dict={"msg": 'Skipping Zeek installation.'},
                               return_format=None)
-        if not suricata_profile.ProcessProfiler().is_installed and 'suricata' in agent_components:
+        if not suricata_profile.ProcessProfiler().is_installed and 'suricata' in agent_analyzers:
             self.add_function(func=suricata_install.install_suricata, argument_dict={
                 'configuration_directory': '/etc/dynamite/suricata/',
                 'install_directory': '/opt/dynamite/suricata',
                 'log_directory': '/var/log/dynamite/suricata/',
-                'network_interface': str(capture_network_interface),
+                'network_interface': list(capture_network_interfaces),
                 'download_suricata_archive': True,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
@@ -313,8 +323,9 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 def run_install_strategy():
     agt_install_strategy = AgentInstallStrategy(
-        capture_network_interface='eth0',
-        agent_components=('zeek', 'suricata'),
+        capture_network_interfaces=['eth0'],
+        logstash_targets=['localhost:5044'],
+        agent_analyzers=('zeek', 'suricata'),
         stdout=True,
         verbose=True
     )

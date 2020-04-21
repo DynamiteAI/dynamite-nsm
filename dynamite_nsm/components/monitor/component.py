@@ -5,7 +5,7 @@ from dynamite_nsm.components.monitor import execution_strategy
 
 class MonitorComponent(component.BaseComponent):
     """
-    LogStash Component Wrapper intended for general use
+    Monitor Component Wrapper intended for general use
     """
 
     def __init__(self, logstash_listen_address='0.0.0.0', kibana_listen_address='0.0.0.0', kibana_listen_port=5601,
@@ -52,7 +52,7 @@ class MonitorComponent(component.BaseComponent):
 
 class MonitorCommandlineComponent(component.BaseComponent):
     """
-    LogStash Commandline Component intended for commandline use.
+    Monitor Commandline Component intended for commandline use.
     """
 
     def __init__(self, args):
