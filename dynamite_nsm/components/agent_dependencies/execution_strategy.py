@@ -37,6 +37,9 @@ def check_agent_deps_installed():
 
 
 class AgentDependencyInstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to install the agent-dependencies (KERNEL dev headers used by PF_RING)
+    """
 
     def __init__(self, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(

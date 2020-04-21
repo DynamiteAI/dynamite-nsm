@@ -26,6 +26,9 @@ def check_elasticsearch_target(host, port, perform_check=True):
 
 
 class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to install logstash
+    """
 
     def __init__(self, listen_address, elasticsearch_host, elasticsearch_port, elasticsearch_password, heap_size_gigs,
                  install_jdk, check_elasticsearch_connection, stdout, verbose):
@@ -92,6 +95,9 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class LogstashUninstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to uninstall logstash
+    """
 
     def __init__(self, stdout, prompt_user):
         execution_strategy.BaseExecStrategy.__init__(
@@ -121,6 +127,9 @@ class LogstashUninstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to start logstash
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -146,6 +155,9 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to stop logstash
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -170,6 +182,9 @@ class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
 
 class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to restart logstash
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -200,6 +215,9 @@ class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to get the status of logstash
+    """
 
     def __init__(self):
         execution_strategy.BaseExecStrategy.__init__(

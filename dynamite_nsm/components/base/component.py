@@ -3,10 +3,23 @@ from dynamite_nsm.components.base import execution_strategy
 
 
 class BaseComponent:
+    """
+    Register a set of actions to a component
+    """
 
     def __init__(self, component_name, component_description, install_strategy=None, uninstall_strategy=None,
                  process_start_strategy=None, process_stop_strategy=None, process_restart_strategy=None,
                  process_status_strategy=None):
+        """
+        :param component_name: The name of the component (E.G agent)
+        :param component_description: A long description of the component
+        :param install_strategy: An instance of an install strategy
+        :param uninstall_strategy: An instance of an uninstall strategy
+        :param process_start_strategy: An instance of a "process start" strategy
+        :param process_stop_strategy: An instance of a "process stop" strategy
+        :param process_restart_strategy: An instance of a "process restart" strategy
+        :param process_status_strategy: An instance of a "process status" strategy
+        """
 
         self.component_name = component_name
         self.component_description = component_description

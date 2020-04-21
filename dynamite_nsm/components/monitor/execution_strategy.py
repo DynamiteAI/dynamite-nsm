@@ -61,6 +61,9 @@ def get_monitor_status():
 
 
 class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to install the monitor
+    """
 
     def __init__(self, logstash_listen_address, kibana_listen_address, kibana_listen_port, elasticsearch_host,
                  elasticsearch_port, elasticsearch_password, elasticsearch_heap_size_gigs, logstash_heap_size_gigs,
@@ -160,6 +163,9 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to uninstall the monitor
+    """
 
     def __init__(self, stdout, prompt_user):
         execution_strategy.BaseExecStrategy.__init__(
@@ -209,6 +215,9 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to start the monitor
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -245,6 +254,9 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to stop the monitor
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -281,6 +293,9 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
 
 class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to restart the monitor
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -335,6 +350,9 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to get the status of the monitor
+    """
 
     def __init__(self):
         execution_strategy.BaseExecStrategy.__init__(

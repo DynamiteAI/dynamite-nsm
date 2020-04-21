@@ -26,6 +26,9 @@ def check_elasticsearch_target(host, port, perform_check=True):
 
 
 class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to install kibana
+    """
 
     def __init__(self, listen_address, listen_port, elasticsearch_host, elasticsearch_port, elasticsearch_password,
                  check_elasticsearch_connection, stdout, verbose):
@@ -91,6 +94,9 @@ class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to uninstall kibana
+    """
 
     def __init__(self, stdout, prompt_user):
         execution_strategy.BaseExecStrategy.__init__(
@@ -120,7 +126,9 @@ class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
-
+    """
+    Steps to start kibana
+    """
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
@@ -145,7 +153,9 @@ class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
-
+    """
+    Steps to stop kibana
+    """
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="kibana_stop",
@@ -169,7 +179,9 @@ class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
 
 class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
-
+    """
+    Steps to restart kibana
+    """
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="kibana_restart",
@@ -199,7 +211,9 @@ class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
-
+    """
+    Steps to get status of kibana
+    """
     def __init__(self):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="kibana_status",

@@ -15,6 +15,9 @@ def remove_elasticsearch_tar_archive():
 
 
 class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to install elasticsearch
+    """
 
     def __init__(self, password, heap_size_gigs, install_jdk, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
@@ -69,6 +72,9 @@ class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class ElasticsearchUninstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to uninstall elasticsearch
+    """
 
     def __init__(self, stdout, prompt_user):
         execution_strategy.BaseExecStrategy.__init__(
@@ -98,6 +104,9 @@ class ElasticsearchUninstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to start elasticsearch
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -122,6 +131,9 @@ class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to stop elasticsearch
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -146,6 +158,9 @@ class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
 
 class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to restart elasticsearch
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -176,6 +191,9 @@ class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to get the status of elasticsearch
+    """
 
     def __init__(self):
         execution_strategy.BaseExecStrategy.__init__(

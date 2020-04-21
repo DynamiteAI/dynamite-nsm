@@ -85,7 +85,7 @@ def remove_suricata_tar_archive():
 def prompt_agent_uninstall(prompt_user=True, stdout=True):
     if prompt_user:
         sys.stderr.write(
-            '[-] WARNING! Removing Monitor Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
+            '[-] WARNING! Removing Agent Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
                 get_installed_agent_analyzers()))
         resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
@@ -97,6 +97,9 @@ def prompt_agent_uninstall(prompt_user=True, stdout=True):
 
 
 class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to install the agent
+    """
 
     def __init__(self, capture_network_interfaces, logstash_targets, agent_analyzers=('zeek', 'suricata'),
                  tag=None, stdout=True, verbose=False):
@@ -162,6 +165,9 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to uninstall the agent
+    """
 
     def __init__(self, stdout, prompt_user):
         execution_strategy.BaseExecStrategy.__init__(
@@ -203,6 +209,9 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
 
 
 class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to start the agent
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -236,6 +245,9 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to stop the agent
+    """
 
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
@@ -269,7 +281,9 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
 
 class AgentProcessRestartStrategy(execution_strategy.BaseExecStrategy):
-
+    """
+    Steps to restart the agent
+    """
     def __init__(self, stdout, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
@@ -301,6 +315,9 @@ class AgentProcessRestartStrategy(execution_strategy.BaseExecStrategy):
 
 
 class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to get the status of the agent
+    """
 
     def __init__(self):
         execution_strategy.BaseExecStrategy.__init__(
@@ -319,7 +336,6 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 # Test Functions
-
 
 def run_install_strategy():
     agt_install_strategy = AgentInstallStrategy(
