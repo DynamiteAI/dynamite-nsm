@@ -137,8 +137,8 @@ def download_file(url, filename, stdout=False):
         response_size_bytes = None
     CHUNK = 16 * 1024
     widgets = [
-        progressbar.FileTransferSpeed(),
-        '[+] ', progressbar.Bar(),
+        '[+] ', progressbar.FileTransferSpeed(),
+        ' ', progressbar.Bar(),
         ' ', '[{}]'.format(filename),
         ' ', progressbar.ETA()
     ]
