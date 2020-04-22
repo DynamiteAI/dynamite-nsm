@@ -422,7 +422,7 @@ def run_subprocess_with_status(process, expected_lines=None):
     widgets = [
         '[+] ', progressbar.Percentage(),
         ' ', progressbar.Bar(),
-        ' ', '{} |',
+        ' ', progressbar.FormatLabel(''),
         ' ', progressbar.ETA()
     ]
     over_max_value = False
@@ -440,11 +440,7 @@ def run_subprocess_with_status(process, expected_lines=None):
             i += 1
             try:
                 if not over_max_value:
-                    if len(str(output)) < 30:
-                        tmp_output = output
-                        for i in range(0, (30 - len(str(tmp_output)))):
-                            output += '.'
-                    widgets[5] = 'Current Message: {} |'.format(str(output[0:30]))
+                    widgets[5] = '{0}'.format(str(output[0:30]))
                     pb.update(i)
             except ValueError:
                 if not over_max_value:
