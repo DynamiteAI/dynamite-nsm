@@ -187,12 +187,12 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
             )
         )
-
-        self.add_function(func=filebeat_install.uninstall_filebeat, argument_dict={
-            'prompt_user': False,
-            'stdout': bool(stdout),
-            'verbose': bool(verbose)
-        })
+        if filebeat_profile.ProcessProfiler().is_installed:
+            self.add_function(func=filebeat_install.uninstall_filebeat, argument_dict={
+                'prompt_user': False,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
         if zeek_profile.ProcessProfiler().is_installed:
             self.add_function(func=zeek_install.uninstall_zeek, argument_dict={
                 'prompt_user': False,
@@ -205,10 +205,14 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-
-        self.add_function(func=print_message, argument_dict={
-            "msg": '[+] *** Agent uninstalled successfully. ***\n'
-        })
+        if get_installed_agent_analyzers():
+            self.add_function(func=print_message, argument_dict={
+                "msg": '[+] *** Agent uninstalled successfully. ***\n'
+            })
+        else:
+            self.add_function(func=print_message, argument_dict={
+                "msg": '[+] *** Agent is not installed. ***\n'
+            })
 
 
 class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
