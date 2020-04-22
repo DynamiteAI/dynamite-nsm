@@ -1,7 +1,9 @@
 import os
 import logging
-from dynamite_nsm import const
+import coloredlogs
 from datetime import datetime
+from dynamite_nsm import const
+
 
 
 class ConsoleFormatter(logging.Formatter):
@@ -71,4 +73,5 @@ def get_logger(component_name, level=logging.INFO, stdout=True):
     logger.addHandler(fh)
     if stdout:
         logger.addHandler(ch)
+    coloredlogs.install(level=level, logger=logger)
     return logger
