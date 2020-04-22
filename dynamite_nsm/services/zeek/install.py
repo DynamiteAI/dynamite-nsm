@@ -500,7 +500,7 @@ class InstallManager:
         except pf_ring_exceptions.InstallPfringError as e:
             self.logger.error('PF_RING could not be installed/configured properly.')
             raise zeek_exceptions.InstallZeekError("PF_RING could not be installed/configured properly; {}.".format(e))
-        self.logger.info('Compiling Zeek from source. This can take up to 30 minutes. Have a cup of coffee.')
+        self.logger.info('Compiling Zeek from source. This can take up to 30 minutes.')
         if self.stdout:
             utilities.print_coffee_art()
         time.sleep(1)

@@ -359,7 +359,7 @@ def print_coffee_art():
         █▓▓▓▓▓█═╮
         █▓▓▓▓▓█▏︱
         █▓▓▓▓▓█═╯
-        ◥█████◤
+        ◥█████◤      ~~~ "Have a cup of coffee while you wait." ~~~
             """
         print(coffee_icon)
         print('\n')

@@ -80,8 +80,7 @@ class InstallManager:
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-2])
         else:
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-1])
-        self.logger.info('Compiling Suricata from source. This can take up to 5 to 10 minutes. '
-                         'Have a cup of coffee.')
+        self.logger.info('Compiling Suricata from source. This can take up to 5 to 10 minutes.')
         if self.stdout:
             utilities.print_coffee_art()
         time.sleep(1)
