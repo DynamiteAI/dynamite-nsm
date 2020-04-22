@@ -50,7 +50,7 @@ class InstallManager:
             self.logger.info("Attempting to extract Oinkmaster archive ({}).".format(const.OINKMASTER_ARCHIVE_NAME))
             self.extract_oinkmaster()
             self.logger.info("Extraction completed.")
-        except general_exceptions.ArchiveExtractionError:
+        except general_exceptions.ArchiveExtractionError as e:
             self.logger.error("Failed to extract Oinkmaster archive.")
             self.logger.debug("Failed to extract Oinkmaster archive, threw: {}.".format(e))
             raise oinkmaster_exceptions.InstallOinkmasterError("Failed to extract Oinkmaster archive.")

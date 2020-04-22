@@ -283,18 +283,6 @@ class InstallManager:
             install_directory=os.path.join(self.install_directory, 'oinkmaster')
         )
         try:
-            oink_installer.download_oinkmaster(stdout=self.stdout)
-        except general_exceptions.DownloadError as e:
-            self.logger.error("Unable to download Oinkmaster dependency.")
-            self.logger.debug("Unable to download Oinkmaster dependency; {}".format(e))
-            raise suricata_exceptions.InstallSuricataError("Unable to download Oinkmaster dependency.")
-        try:
-            oink_installer.extract_oinkmaster(stdout=self.stdout)
-        except general_exceptions.ArchiveExtractionError as e:
-            self.logger.error("Unable to extract Oinkmaster dependency.")
-            self.logger.debug("Unable to extract Oinkmaster dependency; {}".format(e))
-            raise suricata_exceptions.InstallSuricataError("Unable to extract Oinkmaster dependency.")
-        try:
             oink_installer.setup_oinkmaster()
         except oinkmaster_exceptions.InstallOinkmasterError as e:
             self.logger.error("Unable to install Oinkmaster dependency.")

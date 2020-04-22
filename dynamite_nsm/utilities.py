@@ -137,8 +137,9 @@ def download_file(url, filename, stdout=False):
         response_size_bytes = None
     CHUNK = 16 * 1024
     widgets = [
-        '[+] ', progressbar.FileTransferSpeed(),
+        progressbar.FileTransferSpeed(),
         ' ', progressbar.Bar(),
+        ' ', '[{}]'.format(filename),
         ' ', progressbar.ETA()
     ]
     if response_size_bytes:
@@ -152,8 +153,6 @@ def download_file(url, filename, stdout=False):
         except TypeError:
             pb = progressbar.ProgressBar(maxval=progressbar.UnknownLength)
     if stdout:
-        sys.stdout.write('[+] Downloading: {}   |   Filename: {}\n'.format(url, filename))
-        sys.stdout.flush()
         pb.start()
     try:
         with open(os.path.join(const.INSTALL_CACHE, filename), 'wb') as f:
@@ -170,12 +169,8 @@ def download_file(url, filename, stdout=False):
                         pass
                 chunk_num += 1
             if stdout:
-                sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
-                sys.stdout.flush()
-                if stdout:
-                    pb.finish()
-    except URLError as e:
-        sys.stderr.write('[-] An error occurred while attempting to download file. [{}]\n'.format(e))
+                pb.finish()
+    except URLError:
         return False
     return True
 
