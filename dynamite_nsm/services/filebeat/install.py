@@ -184,10 +184,7 @@ class InstallManager:
         try:
             with open(env_file) as env_f:
                 if 'FILEBEAT_HOME' not in env_f.read():
-                    if self.stdout:
-                        sys.stdout.write('[+] Updating FileBeat default script path [{}]\n'.format(
-                            self.install_directory)
-                        )
+                    self.logger.info('Updating FileBeat default script path [{}]'.format(self.install_directory))
                     subprocess.call('echo FILEBEAT_HOME="{}" >> {}'.format(self.install_directory, env_file),
                                     shell=True)
         except Exception as e:

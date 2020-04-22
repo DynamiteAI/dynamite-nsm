@@ -1,6 +1,9 @@
 import os
 import sys
+import logging
+
 from dynamite_nsm import const
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.zeek import install as zeek_install
 from dynamite_nsm.services.zeek import process as zeek_process
@@ -62,6 +65,21 @@ def get_installed_agent_analyzers():
 
 def print_message(msg):
     print(msg)
+
+
+def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('AGENT_COMPONENT', level=log_level, stdout=stdout)
+    if level == logging.DEBUG:
+        logger.debug(msg)
+    elif level == logging.INFO:
+        logger.info(msg)
+    elif level == logging.WARNING:
+        logger.warning(msg)
+    elif level == logging.ERROR:
+        logger.error(msg)
 
 
 def remove_filebeat_tar_archive():
@@ -127,8 +145,11 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             })
             self.add_function(func=filebeat_install.install_filebeat, argument_dict=filebeat_args)
         else:
-            self.add_function(func=print_message,
-                              argument_dict={"msg": 'Skipping Filebeat installation; already installed'},
+            self.add_function(func=log_message,
+                              argument_dict={
+                                  "msg": 'Skipping Filebeat installation; already installed',
+                                  'verbose': bool(verbose)
+                              },
                               return_format=None)
         if not zeek_profile.ProcessProfiler().is_installed and 'zeek' in agent_analyzers:
             self.add_function(func=zeek_install.install_zeek, argument_dict={
@@ -140,7 +161,10 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             })
         else:
-            self.add_function(func=print_message, argument_dict={"msg": 'Skipping Zeek installation.'},
+            self.add_function(func=log_message, argument_dict={
+                "msg": 'Skipping Zeek installation.',
+                'verbose': bool(verbose)
+            },
                               return_format=None)
         if not suricata_profile.ProcessProfiler().is_installed and 'suricata' in agent_analyzers:
             self.add_function(func=suricata_install.install_suricata, argument_dict={
@@ -153,14 +177,19 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             })
         else:
-            self.add_function(func=print_message, argument_dict={"msg": 'Skipping Suricata installation.'},
+            self.add_function(func=log_message, argument_dict={
+                "msg": 'Skipping Suricata installation.',
+                'verbose': bool(verbose)
+            },
                               return_format=None)
-        self.add_function(func=print_message, argument_dict={
-            "msg": '[+] *** Agent installed successfully. ***\n'
+        self.add_function(func=log_message, argument_dict={
+            "msg": '*** Agent installed successfully. ***',
+            'verbose': bool(verbose)
         })
-        self.add_function(func=print_message, argument_dict={
-            "msg": '[+] Next, Start your agent: '
-                   '\'dynamite agent start\'.'
+        self.add_function(func=log_message, argument_dict={
+            "msg": 'Next, Start your agent: '
+                   '\'dynamite agent start\'.',
+            'verbose': bool(verbose)
         }, return_format=None)
 
 
@@ -206,12 +235,14 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             })
         if get_installed_agent_analyzers():
-            self.add_function(func=print_message, argument_dict={
-                "msg": '[+] *** Agent uninstalled successfully. ***\n'
+            self.add_function(func=log_message, argument_dict={
+                "msg": '*** Agent uninstalled successfully. ***',
+                'verbose': bool(verbose)
             })
         else:
-            self.add_function(func=print_message, argument_dict={
-                "msg": '[+] *** Agent is not installed. ***\n'
+            self.add_function(func=log_message, argument_dict={
+                "msg": '*** Agent is not installed. ***',
+                'verbose': bool(verbose)
             })
 
 
@@ -357,8 +388,9 @@ def run_install_strategy():
 
 def run_uninstall_strategy():
     agt_uninstall_strategy = AgentUninstallStrategy(
+        prompt_user=False,
         stdout=True,
-        prompt_user=False
+        verbose=True,
     )
     agt_uninstall_strategy.execute_strategy()
 

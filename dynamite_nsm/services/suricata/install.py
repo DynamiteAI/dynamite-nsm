@@ -110,7 +110,7 @@ class InstallManager:
             raise suricata_exceptions.InstallSuricataError(
                 "Suricata configuration process returned non-zero; exit-code: {}".format(suricata_config_p.returncode))
         time.sleep(1)
-        self.logger.info("Configuring Suricata.")
+        self.logger.info("Compiling Suricata.")
         if self.verbose:
             compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
                                                         cwd=os.path.join(const.INSTALL_CACHE,
