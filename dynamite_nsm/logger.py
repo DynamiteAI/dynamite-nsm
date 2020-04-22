@@ -13,12 +13,10 @@ def get_logger(component_name, level=logging.INFO, stdout=True):
     logger = logging.getLogger(component_name)
     logger.setLevel(level)
     fh = logging.FileHandler(os.path.join(const.LOG_PATH, 'dynamite-{}.log'.format(today_formatted_date)))
-    ch = logging.StreamHandler()
     fformatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     fh.setFormatter(fformatter)
     logger.addHandler(fh)
     if stdout:
-        logger.addHandler(ch)
-    coloredlogs.install(level=level, logger=logger)
+        coloredlogs.install(level=level, logger=logger)
     return logger
