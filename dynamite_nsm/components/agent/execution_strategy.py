@@ -87,9 +87,9 @@ def prompt_agent_uninstall(prompt_user=True, stdout=True):
         sys.stderr.write(
             '\n[-] WARNING! Removing Agent Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
                 get_installed_agent_analyzers()))
-        resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
