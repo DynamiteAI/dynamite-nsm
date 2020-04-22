@@ -138,7 +138,7 @@ def download_file(url, filename, stdout=False):
     CHUNK = 16 * 1024
     widgets = [
         progressbar.FileTransferSpeed(),
-        ' ', progressbar.Bar(),
+        '[+] ', progressbar.Bar(),
         ' ', '[{}]'.format(filename),
         ' ', progressbar.ETA()
     ]
@@ -153,6 +153,7 @@ def download_file(url, filename, stdout=False):
         except TypeError:
             pb = progressbar.ProgressBar(maxval=progressbar.UnknownLength)
     if stdout:
+        print()
         pb.start()
     try:
         with open(os.path.join(const.INSTALL_CACHE, filename), 'wb') as f:
@@ -170,6 +171,7 @@ def download_file(url, filename, stdout=False):
                 chunk_num += 1
             if stdout:
                 pb.finish()
+                print()
     except URLError:
         return False
     return True
@@ -427,6 +429,7 @@ def run_subprocess_with_status(process, expected_lines=None):
         pb = progressbar.ProgressBar(widgets=widgets, max_value=expected_lines)
     except TypeError:
         pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
+    print()
     pb.start()
     while True:
         output = process.stdout.readline().decode()
@@ -447,6 +450,7 @@ def run_subprocess_with_status(process, expected_lines=None):
         # print(i, process.poll(), output)
     if not over_max_value:
         pb.finish()
+        print()
     return process.poll()
 
 
