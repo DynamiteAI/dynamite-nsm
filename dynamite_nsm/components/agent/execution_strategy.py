@@ -85,14 +85,14 @@ def remove_suricata_tar_archive():
 def prompt_agent_uninstall(prompt_user=True, stdout=True):
     if prompt_user:
         sys.stderr.write(
-            '[-] WARNING! Removing Agent Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
+            '\n[-] WARNING! Removing Agent Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
                 get_installed_agent_analyzers()))
         resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
             resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
+                sys.stdout.write('\n[+] Exiting\n')
             exit(0)
 
 
@@ -169,7 +169,7 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
     Steps to uninstall the agent
     """
 
-    def __init__(self, stdout, prompt_user):
+    def __init__(self, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="agent_uninstall",
             strategy_description="Uninstall Agent.",
@@ -190,17 +190,20 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
 
         self.add_function(func=filebeat_install.uninstall_filebeat, argument_dict={
             'prompt_user': False,
-            'stdout': bool(stdout)
+            'stdout': bool(stdout),
+            'verbose': bool(verbose)
         })
         if zeek_profile.ProcessProfiler().is_installed:
             self.add_function(func=zeek_install.uninstall_zeek, argument_dict={
                 'prompt_user': False,
-                'stdout': bool(stdout)
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
             })
         if suricata_profile.ProcessProfiler().is_installed:
             self.add_function(func=suricata_install.uninstall_suricata, argument_dict={
                 'prompt_user': False,
-                'stdout': bool(stdout)
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
             })
 
         self.add_function(func=print_message, argument_dict={

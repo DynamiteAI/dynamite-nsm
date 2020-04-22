@@ -22,8 +22,9 @@ class AgentComponent(component.BaseComponent):
                 verbose=verbose
             ),
             uninstall_strategy=execution_strategy.AgentUninstallStrategy(
+                prompt_user=prompt_on_uninstall,
                 stdout=stdout,
-                prompt_user=prompt_on_uninstall
+                verbose=verbose
             ),
             process_start_strategy=execution_strategy.AgentProcessStartStrategy(
                 stdout=stdout,
@@ -67,8 +68,9 @@ class AgentCommandlineComponent(component.BaseComponent):
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.AgentUninstallStrategy(
+                    prompt_user=not args.skip_agent_uninstall_prompt,
                     stdout=not args.no_stdout,
-                    prompt_user=not args.skip_agent_uninstall_prompt
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.uninstall()

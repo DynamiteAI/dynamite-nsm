@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import logging
 import tarfile
 import subprocess
 
@@ -11,6 +12,7 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.filebeat import config as filebeat_configs
 from dynamite_nsm.services.filebeat import profile as filebeat_profile
@@ -21,15 +23,23 @@ from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 class InstallManager:
 
     def __init__(self, install_directory, monitor_log_paths, logstash_targets, agent_tag=None,
-                 download_filebeat_archive=True, stdout=True):
+                 download_filebeat_archive=True, stdout=True, verbose=False):
         """
+        Install Filebeat
+
         :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
         :param monitor_log_paths: A tuple of log paths to monitor
         :param logstash_targets: A tuple of Logstash targets to forward events to (E.G ["192.168.0.9:5044", ...])
         :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
         :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
         :param stdout: Print the output to console
+        :param verbose: Include detailed debug messages
         """
+
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
         self.monitor_paths = list(monitor_log_paths)
         self.logstash_targets = list(logstash_targets)
@@ -38,20 +48,29 @@ class InstallManager:
         self.agent_tag = agent_tag
         if download_filebeat_archive:
             try:
+                self.logger.info("Attempting to download Filebeat archive.")
                 self.download_filebeat(stdout=stdout)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
+                self.logger.error("Failed to download Zeek archive.")
                 raise filebeat_exceptions.InstallFilebeatError("Failed to download Filebeat archive.")
 
         if not agent_tag:
             self.agent_tag = utilities.get_default_agent_tag()
+            self.logger.info("Setting Agent Tag to {} as none was set.".format(self.agent_tag))
         else:
             self.agent_tag = str(agent_tag)[0:29]
+            self.logger.info("Setting Agent Tag to {}.".format(self.agent_tag))
         try:
-            self.extract_filebeat(stdout=stdout)
-        except general_exceptions.ArchiveExtractionError:
+            self.logger.info("Attempting to extract Filebeat archive ({}).".format(const.FILE_BEAT_ARCHIVE_NAME))
+            self.extract_filebeat()
+            self.logger.info("Extraction completed.")
+        except general_exceptions.ArchiveExtractionError as e:
+            self.logger.error("Failed to extract Filebeat archive.")
+            self.logger.debug("Failed to extract Filebeat archive, threw: {}.".format(e))
             raise filebeat_exceptions.InstallFilebeatError("Failed to extract Filebeat archive.")
 
         if not self.validate_logstash_targets(logstash_targets):
+            self.logger.error("Invalid Logstash Targets specified: {}.".format(logstash_targets))
             raise filebeat_exceptions.InstallFilebeatError(
                 "Invalid Logstash Targets specified: {}.".format(logstash_targets))
 
@@ -74,21 +93,14 @@ class InstallManager:
                 "General error while downloading elasticsearch from {}; {}".format(url, e))
 
     @staticmethod
-    def extract_filebeat(stdout=False):
+    def extract_filebeat():
         """
         Extract Filebeat to local install_cache
-
-        :param stdout: Print output to console
         """
 
-        if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(const.FILE_BEAT_ARCHIVE_NAME))
         try:
             tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_ARCHIVE_NAME))
             tf.extractall(path=const.INSTALL_CACHE)
-            if stdout:
-                sys.stdout.write('[+] Complete!\n')
-                sys.stdout.flush()
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
             raise general_exceptions.ArchiveExtractionError(
@@ -98,13 +110,19 @@ class InstallManager:
                 "General error while attempting to extract filebeat archive; {}".format(e))
 
     @staticmethod
-    def validate_logstash_targets(logstash_targets):
+    def validate_logstash_targets(logstash_targets, stdout=True, verbose=False):
         """
         Ensures that Logstash targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
 
         :param logstash_targets: A list of IP/host port pair
+        :param stdout: Print the output to console
+        :param verbose: Include detailed debug messages
         :return: True if valid
         """
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
         if isinstance(logstash_targets, list) or isinstance(logstash_targets, tuple):
             for i, target in enumerate(logstash_targets):
@@ -112,16 +130,14 @@ class InstallManager:
                 try:
                     host, port = target.split(':')
                     if not str(port).isdigit():
-                        sys.stderr.write(
-                            '[-] Logstash Target Invalid: {} port must be numeric at position {}\n'.format(target, i))
+                        logger.warning(
+                            'Logstash Target Invalid: {} port must be numeric at position {}'.format(target, i))
                         return False
                 except ValueError:
-                    sys.stderr.write(
-                        '[-] Logstash Target Invalid: {} expected host:port at position {}\n'.format(target, i))
+                    logger.warning('Logstash Target Invalid: {} expected host:port at position {}'.format(target, i))
                     return False
         else:
-            sys.stderr.write(
-                '[-] Logstash Target Invalid: {}; must be a enumerable (list, tuple)'.format(logstash_targets))
+            logger.warning('Logstash Target Invalid: {}; must be a enumerable (list, tuple)'.format(logstash_targets))
             return False
         return True
 
@@ -131,31 +147,39 @@ class InstallManager:
         """
 
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        if self.stdout:
-            sys.stdout.write('[+] Creating Filebeat install directory.\n')
+        self.logger.info('Creating Filebeat install directory.')
         utilities.makedirs(self.install_directory, exist_ok=True)
-        if self.stdout:
-            sys.stdout.write('[+] Copying Filebeat to install directory.\n')
-        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME), self.install_directory)
-        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
-                    self.install_directory)
-        if self.stdout:
-            sys.stdout.write('[+] Building configurations and setting up permissions.\n')
+        self.logger.info('Copying Filebeat to install directory.')
+        try:
+            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME),
+                               self.install_directory)
+            shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
+                        self.install_directory)
+        except Exception as e:
+            self.logger.error("General error occurred while copying Filebeat configs.")
+            self.logger.debug("General error occurred while copying Filebeat configs; {}".format(e))
+            raise filebeat_exceptions.InstallFilebeatError(
+                "General error occurred while copying Filebeat configs; {}".format(e))
+        self.logger.info("Building configurations and setting up permissions.")
         try:
             beats_config = filebeat_configs.ConfigManager(self.install_directory)
         except filebeat_exceptions.ReadFilebeatConfigError:
-            raise filebeat_exceptions.InstallFilebeatError("Failed to read filebeat configuration.")
+            self.logger.error("Failed to read Filebeat configuration.")
+            raise filebeat_exceptions.InstallFilebeatError("Failed to read Filebeat configuration.")
         beats_config.set_monitor_target_paths(self.monitor_paths)
         beats_config.set_agent_tag(self.agent_tag)
         beats_config.set_logstash_targets(self.logstash_targets)
         try:
             beats_config.write_config()
         except filebeat_exceptions.WriteFilebeatConfigError:
+            self.logger.error("Failed to write filebeat configuration.")
             raise filebeat_exceptions.InstallFilebeatError("Failed to write filebeat configuration.")
         try:
             utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
                                               unix_permissions_integer=501)
         except Exception as e:
+            self.logger.error("Failed to set permissions of filebeat.yml file.")
+            self.logger.debug("Failed to set permissions of filebeat.yml file; {}".format(e))
             filebeat_exceptions.InstallFilebeatError("Failed to set permissions of filebeat.yml file; {}".format(e))
         try:
             with open(env_file) as env_f:
@@ -167,39 +191,69 @@ class InstallManager:
                     subprocess.call('echo FILEBEAT_HOME="{}" >> {}'.format(self.install_directory, env_file),
                                     shell=True)
         except Exception as e:
+            self.logger.error("General error occurred while attempting to install filebeat.")
+            self.logger.debug("General error occurred while attempting to install filebeat; {}".format(e))
             raise filebeat_exceptions.InstallFilebeatError(
                 "General error occurred while attempting to install filebeat; {}".format(e))
 
 
 def install_filebeat(install_directory, monitor_log_paths, logstash_targets, agent_tag, download_filebeat_archive=True,
-                     stdout=True):
+                     stdout=True, verbose=False):
+    """
+    Install Filebeat
+
+    :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
+    :param monitor_log_paths: A tuple of log paths to monitor
+    :param logstash_targets: A tuple of Logstash targets to forward events to (E.G ["192.168.0.9:5044", ...])
+    :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
+    :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
+    :param stdout: Print the output to console
+    :param verbose: Include detailed debug messages
+    """
+
     filebeat_profiler = filebeat_profile.ProcessProfiler()
     if filebeat_profiler.is_installed:
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
     filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
                                         logstash_targets=logstash_targets, agent_tag=agent_tag,
-                                        download_filebeat_archive=download_filebeat_archive, stdout=stdout)
+                                        download_filebeat_archive=download_filebeat_archive, stdout=stdout,
+                                        verbose=verbose)
     filebeat_installer.setup_filebeat()
 
 
-def uninstall_filebeat(stdout=False, prompt_user=True):
+def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
+    """
+    Uninstall Filebeat
+
+    :param prompt_user: Print a warning before continuing
+    :param stdout: Print the output to console
+    :param verbose: Include detailed debug messages
+    """
+
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
+    logger.info("Uninstalling Filebeat.")
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     filebeat_profiler = filebeat_profile.ProcessProfiler()
     if prompt_user:
-        sys.stderr.write('[-] WARNING! Removing Filebeat Will Remove Critical Agent Functionality.\n')
+        sys.stderr.write('\n[-] WARNING! Removing Filebeat Will Remove Critical Agent Functionality.\n')
         resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
             resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
+                sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     if filebeat_profiler.is_running:
         try:
             filebeat_process.ProcessManager().stop()
-        except filebeat_exceptions.CallFilebeatProcessError:
-            raise filebeat_exceptions.AlreadyInstalledFilebeatError()
+        except filebeat_exceptions.CallFilebeatProcessError as e:
+            logger.error("Could not kill Filebeat process. Cannot uninstall.")
+            logger.debug("Could not kill Filebeat process. Cannot uninstall; {}".format(e))
+            raise filebeat_exceptions.UninstallFilebeatError('Could not kill Filebeat process; {}'.format(e))
     install_directory = environment_variables.get('FILEBEAT_HOME')
     try:
         with open(env_file) as env_fr:
@@ -215,5 +269,7 @@ def uninstall_filebeat(stdout=False, prompt_user=True):
         if filebeat_profiler.is_installed:
             shutil.rmtree(install_directory, ignore_errors=True)
     except Exception as e:
+        logger.error("General error occurred while attempting to uninstall Filebeat.")
+        logger.debug("General error occurred while attempting to uninstall Filebeat; {}".format(e))
         raise filebeat_exceptions.UninstallFilebeatError(
-            "General error occurred while attempting to uninstall filebeat; {}".format(e))
+            "General error occurred while attempting to uninstall Filebeat; {}".format(e))
