@@ -1,13 +1,14 @@
 import os
 import sys
 import time
+import logging
 import tarfile
 import subprocess
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
-
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek.pf_ring import exceptions as pf_ring_exceptions
 
@@ -245,25 +246,34 @@ class InstallManager:
         :param stdout: Print the output to console
         :param verbose: Include output from system utilities
         """
-
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('PF_RING', level=log_level, stdout=stdout)
         pkt_mng = package_manager.OSPackageManager(verbose=verbose)
 
         packages = None
         if stdout:
-            sys.stdout.write('[+] Installing dependencies.\n')
-            sys.stdout.flush()
+            logger.info('Installing Dependencies.')
         if pkt_mng.package_manager == 'apt-get':
             packages = ['make', 'gcc', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
             packages = ['make', 'gcc', 'kernel-devel-$(uname -r)']
         if stdout:
-            sys.stdout.write('[+] Updating Package Indexes.\n')
-            sys.stdout.flush()
-        pkt_mng.refresh_package_indexes()
-        if stdout:
-            sys.stdout.write('[+] Installing the following packages: {}.\n'.format(packages))
-            sys.stdout.flush()
-        pkt_mng.install_packages(packages)
+            logger.info('Refreshing Package Index.')
+        try:
+            pkt_mng.refresh_package_indexes()
+        except general_exceptions.OsPackageManagerRefreshError as e:
+            logger.error("Failed to refresh packages.")
+            logger.debug("Failed to refresh packages threw: {}".format(e))
+            raise general_exceptions.OsPackageManagerRefreshError('Failed to refresh packages.')
+        logger.info('Installing the following packages: {}.'.format(packages))
+        try:
+            pkt_mng.install_packages(packages)
+        except general_exceptions.OsPackageManagerInstallError as e:
+            logger.error("Failed to install packages.")
+            logger.debug("Failed to install packages threw: {}".format(e))
+            raise general_exceptions.OsPackageManagerInstallError('Failed to install packages.')
 
     def setup_pf_ring(self):
         """
