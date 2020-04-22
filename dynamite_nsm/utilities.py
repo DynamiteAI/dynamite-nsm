@@ -440,11 +440,11 @@ def run_subprocess_with_status(process, expected_lines=None):
             i += 1
             try:
                 if not over_max_value:
-                    if len(str(output)) < 40:
+                    if len(str(output)) < 30:
                         tmp_output = output
-                        for i in range(0, (40 - len(str(tmp_output)))):
+                        for i in range(0, (30 - len(str(tmp_output)))):
                             output += '.'
-                    widgets[5] = 'Current Message: {} |'.format(str(output[0:40]))
+                    widgets[5] = 'Current Message: {} |'.format(str(output[0:30]))
                     pb.update(i)
             except ValueError:
                 if not over_max_value:
