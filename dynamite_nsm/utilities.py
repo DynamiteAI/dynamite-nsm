@@ -440,7 +440,7 @@ def run_subprocess_with_status(process, expected_lines=None):
             i += 1
             try:
                 if not over_max_value:
-                    widgets[5] = progressbar.FormatLabel('|{}...|'.format(output[0:25]))
+                    widgets[5] = progressbar.FormatLabel('|' + output[0:25] + '|')
                     pb.update(i)
             except ValueError:
                 if not over_max_value:
