@@ -15,10 +15,8 @@ def get_logger(component_name, level=logging.INFO, stdout=True):
     fh = logging.FileHandler(os.path.join(const.LOG_PATH, 'dynamite-{}.log'.format(today_formatted_date)))
     ch = logging.StreamHandler()
     fformatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    cformatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     fh.setFormatter(fformatter)
-    ch.setFormatter(cformatter)
     logger.addHandler(fh)
     if stdout:
         logger.addHandler(ch)
