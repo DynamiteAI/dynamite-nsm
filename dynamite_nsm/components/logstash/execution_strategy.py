@@ -58,7 +58,6 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                 check_elasticsearch_target,
                 remove_logstash_tar_archive,
                 install.install_logstash,
-                process.stop,
                 log_message,
                 log_message
             ),
@@ -87,11 +86,6 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                     "verbose": bool(verbose)
                 },
 
-                # process.stop
-                {
-                    "stdout": False
-                },
-
                 # log_message
                 {
                     "msg": '*** LogStash installed successfully. ***\n'
@@ -103,7 +97,6 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                 }
             ),
             return_formats=(
-                None,
                 None,
                 None,
                 None,
