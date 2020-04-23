@@ -251,7 +251,7 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
     Steps to start the agent
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="agent_start",
@@ -262,7 +262,8 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # filebeat_process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
                 },
             ),
             return_formats=(
@@ -272,11 +273,13 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
         )
         if zeek_profile.ProcessProfiler().is_installed:
             self.add_function(func=zeek_process.start, argument_dict={
-                'stdout': bool(stdout)
+                "stdout": bool(stdout),
+                "verbose": bool(verbose)
             })
         if suricata_profile.ProcessProfiler().is_installed:
             self.add_function(func=suricata_process.start, argument_dict={
-                'stdout': bool(stdout)
+                "stdout": bool(stdout),
+                "verbose": bool(verbose)
             })
         if status:
             self.add_function(get_agent_status, {}, return_format="json")
@@ -287,7 +290,7 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
     Steps to stop the agent
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="agent_stop",
@@ -298,7 +301,8 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # filebeat_process.stop
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
             ),
             return_formats=(
@@ -308,11 +312,13 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
         )
         if zeek_profile.ProcessProfiler().is_installed:
             self.add_function(func=zeek_process.stop, argument_dict={
-                'stdout': bool(stdout)
+                "stdout": bool(stdout),
+                "verbose": bool(verbose)
             })
         if suricata_profile.ProcessProfiler().is_installed:
             self.add_function(func=suricata_process.stop, argument_dict={
-                'stdout': bool(stdout)
+                "stdout": bool(stdout),
+                "verbose": bool(verbose)
             })
         if status:
             self.add_function(get_agent_status, {}, return_format="json")
@@ -322,31 +328,32 @@ class AgentProcessRestartStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to restart the agent
     """
-    def __init__(self, stdout, status):
+
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="agent_restart",
             strategy_description="Restart Agent processes."
         )
         self.add_function(func=filebeat_process.stop, argument_dict={
-            'stdout': bool(stdout)
+            'stdout': bool(stdout), 'verbose': bool(verbose)
         })
         self.add_function(func=filebeat_process.start, argument_dict={
             'stdout': bool(stdout)
         })
         if zeek_profile.ProcessProfiler().is_installed:
             self.add_function(func=zeek_process.stop, argument_dict={
-                'stdout': bool(stdout)
+                'stdout': bool(stdout), 'verbose': bool(verbose)
             })
             self.add_function(func=zeek_process.start, argument_dict={
-                'stdout': bool(stdout)
+                'stdout': bool(stdout), 'verbose': bool(verbose)
             })
         if suricata_profile.ProcessProfiler().is_installed:
             self.add_function(func=suricata_process.stop, argument_dict={
-                'stdout': bool(stdout)
+                'stdout': bool(stdout), 'verbose': bool(verbose)
             })
             self.add_function(func=suricata_process.start, argument_dict={
-                'stdout': bool(stdout)
+                'stdout': bool(stdout), 'verbose': bool(verbose)
             })
         if status:
             self.add_function(get_agent_status, {}, return_format="json")
@@ -398,6 +405,7 @@ def run_uninstall_strategy():
 def run_process_start_strategy():
     agt_start_strategy = AgentProcessStartStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     agt_start_strategy.execute_strategy()
@@ -406,6 +414,7 @@ def run_process_start_strategy():
 def run_process_stop_strategy():
     agt_stop_strategy = AgentProcessStopStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     agt_stop_strategy.execute_strategy()
@@ -414,6 +423,7 @@ def run_process_stop_strategy():
 def run_process_restart_strategy():
     agt_restart_strategy = AgentProcessRestartStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     agt_restart_strategy.execute_strategy()

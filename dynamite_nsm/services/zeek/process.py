@@ -1,43 +1,49 @@
 import os
 import re
 import sys
+import logging
 import subprocess
 
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
 class ProcessManager:
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('ZEEK', level=log_level, stdout=stdout)
+
+        self.stdout = stdout,
+        self.verbose = verbose
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('ZEEK_HOME')
         if not self.install_directory:
+            self.logger.error("Could not resolve ZEEK_HOME environment_variable. Is Zeek installed?")
             raise zeek_exceptions.CallZeekProcessError(
                 "Could not resolve ZEEK_HOME environment_variable. Is Zeek installed?")
 
-    def start(self, stdout=False):
+    def start(self):
         """
         Start Zeek cluster via broctl
 
-        :param stdout: Print output to console
         :return: True, if started successfully
         """
-        if stdout:
-            sys.stdout.write('[+] Attempting to start Zeek cluster.\n')
+        self.logger.info('Attempting to start Zeek cluster.')
         p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
         return p.returncode == 0
 
-    def stop(self, stdout=False):
+    def stop(self):
         """
         Stop Zeek cluster via broctl
 
-        :param stdout: Print output to console
         :return: True, if stopped successfully
         """
-        if stdout:
-            sys.stdout.write('[+] Attempting to stop Zeek cluster.\n')
+        self.logger.info('Attempting to stop Zeek cluster.')
         p = subprocess.Popen('{} stop'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
         return p.returncode == 0
@@ -80,31 +86,29 @@ class ProcessManager:
         zeek_status['SUBPROCESSES'] = zeek_subprocesses
         return zeek_status
 
-    def restart(self, stdout=False):
+    def restart(self):
         """
         Restart the Zeek process via broctl
 
-        :param stdout: Print output to console
         :return: True if restarted successfully
         """
-        if stdout:
-            sys.stdout.write('[+] Attempting to restart Zeek cluster.\n')
+        self.logger.info('Attempting to restart Zeek cluster.')
         p = subprocess.Popen('{} restart'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
         p.communicate()
         return p.returncode == 0
 
 
-def start(stdout=True):
-    ProcessManager().start(stdout)
+def start(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).start()
 
 
-def stop(stdout=True):
-    ProcessManager().stop(stdout)
+def stop(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).stop()
 
 
-def restart(stdout=True):
-    ProcessManager().restart(stdout)
+def restart(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).restart()
 
 
-def status():
-    return ProcessManager().status()
+def status(stdout=True, verbose=False):
+    return ProcessManager(stdout, verbose).status()

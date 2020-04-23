@@ -28,14 +28,17 @@ class AgentComponent(component.BaseComponent):
             ),
             process_start_strategy=execution_strategy.AgentProcessStartStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_stop_strategy=execution_strategy.AgentProcessStopStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_restart_strategy=execution_strategy.AgentProcessRestartStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_status_strategy=execution_strategy.AgentProcessStatusStrategy()
@@ -78,7 +81,8 @@ class AgentCommandlineComponent(component.BaseComponent):
             self.register_process_start_strategy(
                 execution_strategy.AgentProcessStartStrategy(
                     stdout=not args.no_stdout,
-                    status=True
+                    status=True,
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.start()
@@ -86,7 +90,8 @@ class AgentCommandlineComponent(component.BaseComponent):
             self.register_process_stop_strategy(
                 execution_strategy.AgentProcessStopStrategy(
                     stdout=not args.no_stdout,
-                    status=True
+                    status=True,
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.stop()
@@ -94,7 +99,8 @@ class AgentCommandlineComponent(component.BaseComponent):
             self.register_process_restart_strategy(
                 execution_strategy.AgentProcessRestartStrategy(
                     stdout=not args.no_stdout,
-                    status=True
+                    status=True,
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.restart()

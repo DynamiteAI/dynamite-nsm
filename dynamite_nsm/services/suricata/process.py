@@ -2,11 +2,16 @@ import os
 import sys
 import time
 import signal
+import logging
 import subprocess
 
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.suricata import config as suricata_configs
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
+
+
+PID_DIRECTORY = '/var/run/dynamite/suricata/'
 
 
 class ProcessManager:
@@ -14,55 +19,62 @@ class ProcessManager:
     An interface for start|stop|status|restart of the Suricata process
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('SURICATA', level=log_level, stdout=stdout)
+
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('SURICATA_HOME')
         self.configuration_directory = self.environment_variables.get('SURICATA_CONFIG')
         if not self.install_directory:
+            self.logger.error("Could not resolve SURICATA_HOME environment_variable. Is Suricata installed?")
             raise suricata_exceptions.CallSuricataProcessError(
                 "Could not resolve SURICATA_HOME environment_variable. Is Suricata installed?")
         elif not self.configuration_directory:
+            self.logger.error("Could not resolve SURICATA_CONFIG environment_variable. Is Suricata installed?")
             raise suricata_exceptions.CallSuricataProcessError(
                 "Could not resolve SURICATA_CONFIG environment_variable. Is Suricata installed?")
         self.config = suricata_configs.ConfigManager(self.configuration_directory)
 
         try:
-            self.pid = int(open('/var/run/dynamite/suricata/suricata.pid').read())
+            with open(os.path.join(PID_DIRECTORY, 'suricata.pid')) as pid_f:
+                self.pid = int(pid_f.read())
         except (IOError, ValueError):
             self.pid = -1
 
-    def start(self, stdout=False):
+    def start(self):
         """
         Start Suricata IDS process in daemon mode
 
-        :param stdout: Print output to console
         :return: True, if started successfully
         """
-        if not os.path.exists('/var/run/dynamite/suricata/'):
-            utilities.makedirs('/var/run/dynamite/suricata/', exist_ok=True)
-        p = subprocess.Popen('bin/suricata -i {} -D --pidfile /var/run/dynamite/suricata/suricata.pid -c {}'.format(
+        if not os.path.exists(PID_DIRECTORY):
+            utilities.makedirs(PID_DIRECTORY, exist_ok=True)
+        p = subprocess.Popen('bin/suricata -i {} -D --pidfile {} -c {}'.format(
             self.config.af_packet_interfaces[0]['interface'],
+            os.path.join(PID_DIRECTORY, 'suricata.pid'),
             os.path.join(self.configuration_directory, 'suricata.yaml')), shell=True, cwd=self.install_directory)
         p.communicate()
         retry = 0
         while retry < 6:
-            start_message = '[+] [Attempt: {}] Starting Suricata on PID [{}]\n'.format(retry + 1, self.pid)
+            start_message = '[Attempt: {}] Starting Suricata on PID [{}]'.format(retry + 1, self.pid)
             try:
-                with open('/var/run/dynamite/suricata/suricata.pid') as f:
+                with open(os.path.join(PID_DIRECTORY, 'suricata.pid')) as f:
                     self.pid = int(f.read())
-                start_message = '[+] [Attempt: {}] Starting Suricata on PID [{}]\n'.format(retry + 1, self.pid)
-                if stdout:
-                    sys.stdout.write(start_message)
+                start_message = '[Attempt: {}] Starting Suricata on PID [{}]'.format(retry + 1, self.pid)
+                self.logger.info(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1
                     time.sleep(5)
                 else:
                     return True
             except IOError:
-                if stdout:
-                    sys.stdout.write(start_message)
+                self.logger.info(start_message)
                 retry += 1
                 time.sleep(3)
+        self.logger.error("Failed to start Suricata after {} attempts.".format(retry))
         return False
 
     def stop(self, stdout=False):
@@ -89,21 +101,23 @@ class ProcessManager:
                 time.sleep(10)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
-                sys.stderr.write('[-] An error occurred while attempting to stop Suricata: {}\n'.format(e))
+                self.logger.error('An error occurred while attempting to stop Suricata.')
+                self.logger.debug('An error occurred while attempting to stop Suricata; {}'.format(e))
                 return False
+        self.logger.info("Deleting Suricata PID [{}].".format(self.pid))
+        utilities.safely_remove_file(os.path.join(PID_DIRECTORY, 'suricata.pid'))
         return True
 
-    def restart(self, stdout=False):
+    def restart(self):
         """
         Restart the Suricata process
 
         :param stdout: Print output to console
         :return: True if restarted successfully
         """
-        if stdout:
-            sys.stdout.write('[+] Attempting to restart Suricata IDS.\n')
-        self.stop(stdout=stdout)
-        return self.start(stdout=stdout)
+        self.logger.info('Attempting to restart Suricata.')
+        self.stop()
+        return self.start()
 
     def status(self):
         """
@@ -118,17 +132,17 @@ class ProcessManager:
         }
 
 
-def start(stdout=True):
-    ProcessManager().start(stdout)
+def start(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).start()
 
 
-def stop(stdout=True):
-    ProcessManager().stop(stdout)
+def stop(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).stop(stdout)
 
 
-def restart(stdout=True):
-    ProcessManager().restart(stdout)
+def restart(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).restart()
 
 
-def status():
-    return ProcessManager().status()
+def status(stdout=True, verbose=False):
+    return ProcessManager(stdout, verbose).status()

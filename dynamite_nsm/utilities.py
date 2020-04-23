@@ -457,6 +457,11 @@ def run_subprocess_with_status(process, expected_lines=None):
     return process.poll()
 
 
+def safely_remove_file(path):
+    if os.path.exists(path):
+        os.remove(path)
+
+
 def setup_java():
     """
     Installs the latest version of OpenJDK
