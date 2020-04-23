@@ -50,7 +50,7 @@ def get_agent_status(include_subprocesses=False):
         })
     if filebeat_profiler.is_installed:
         agent_status.update({
-            'SURICATA': filebeat_process.ProcessManager().status()
+            'FILEBEAT': filebeat_process.ProcessManager().status()
         })
     return agent_status
 
