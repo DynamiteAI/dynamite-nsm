@@ -8,6 +8,11 @@ from dynamite_nsm import utilities
 
 
 def get_logger(component_name, level=logging.INFO, stdout=True):
+    coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'green'}, 'hostname': {'color': 'magenta'},
+                                        'levelname': {'bold': True, 'color': 'black'},
+                                        'name': {'color': 'cyan', 'bold': True},
+                                        'programname': {'color': 'blue'}, 'username': {'color': 'yellow'}}
+
     utilities.makedirs(const.LOG_PATH, exist_ok=True)
     today_formatted_date = datetime.strftime(datetime.today(), '%d-%m-%Y')
     logger = logging.getLogger(component_name)
@@ -19,5 +24,5 @@ def get_logger(component_name, level=logging.INFO, stdout=True):
     logger.addHandler(fh)
     if stdout:
         coloredlogs.install(level=level, logger=logger,
-                            fmt='%(asctime)s %(name)-12s %(levelname)-8s -- %(message)s')
+                            fmt='%(asctime)s %(name)-12s %(levelname)-8s | %(message)s')
     return logger
