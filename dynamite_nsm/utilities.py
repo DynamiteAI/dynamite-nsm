@@ -452,7 +452,7 @@ def run_subprocess_with_status(process, expected_lines=None):
             i += 1
             try:
                 if not over_max_value:
-                    widgets[9] = '<{0}...>'.format(str(output).replace('\n', '').replace('\t', '')[0:40])
+                    widgets[11] = '<{0}...>'.format(str(output).replace('\n', '').replace('\t', '')[0:40])
                     pb.update(i)
             except ValueError:
                 if not over_max_value:
