@@ -53,7 +53,7 @@ class ProcessManager:
         def start_shell_out():
             command = '{}/filebeat -c {}/filebeat.yml & echo $! > {}'.format(
                 self.config.install_directory, self.config.install_directory,
-                os.path.join(PID_DIRECTORY, 'suricata.pid'))
+                os.path.join(PID_DIRECTORY, 'filebeat.pid'))
             subprocess.call(command, shell=True)
 
         self.logger.info('Starting Filebeat.')
@@ -69,7 +69,7 @@ class ProcessManager:
             start_message = '[Attempt: {}] Starting FileBeat on PID [{}]'.format(retry + 1, self.pid)
             self.logger.info(start_message)
             try:
-                with open('/var/run/dynamite/filebeat/filebeat.pid') as f:
+                with open(os.path.join(PID_DIRECTORY, 'filebeat.pid')) as f:
                     self.pid = int(f.read())
                 start_message = '[Attempt: {}] Starting FileBeat on PID [{}]'.format(retry + 1, self.pid)
                 self.logger.info(start_message)
@@ -79,7 +79,6 @@ class ProcessManager:
                 else:
                     return True
             except IOError as e:
-                self.logger.info(start_message)
                 self.logger.warning("An issue occurred while attempting to start.")
                 self.logger.debug("An issue occurred while attempting to start; {}".format(e))
                 retry += 1
