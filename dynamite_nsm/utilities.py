@@ -467,9 +467,8 @@ def setup_java():
     makedirs('/usr/lib/jvm', exist_ok=True)
     try:
         shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
-    except shutil.Error as e:
-        sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
-        sys.stderr.flush()
+    except shutil.Error:
+        pass
     if 'JAVA_HOME' not in open(os.path.join(const.CONFIG_PATH, 'environment')).read():
         subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> {}'.format(const.CONFIG_PATH, 'environment'),
                         shell=True)
