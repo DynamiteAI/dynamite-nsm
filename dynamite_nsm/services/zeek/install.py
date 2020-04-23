@@ -627,9 +627,13 @@ def install_zeek(configuration_directory, install_directory, capture_network_int
     :param stdout: Print the output to console
     :param verbose: Include detailed debug messages
     """
-
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('ZEEK', level=log_level, stdout=stdout)
     zeek_profiler = zeek_profile.ProcessProfiler()
     if zeek_profiler.is_installed:
+        logger.error("Zeek is already installed.")
         raise zeek_exceptions.AlreadyInstalledZeekError()
     zeek_installer = InstallManager(configuration_directory, install_directory,
                                     capture_network_interfaces=capture_network_interfaces,

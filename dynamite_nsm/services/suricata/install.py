@@ -143,7 +143,7 @@ class InstallManager:
                 "Suricata compilation process returned non-zero; exit-code: {}".format(compile_suricata_return_code))
 
     def _copy_suricata_files_and_directories(self):
-        self.logger.info('Creating suricata install|configuration|logging directories.')
+        self.logger.info('Creating Suricata installation, configuration, and logging directories.')
         try:
             utilities.makedirs(self.install_directory, exist_ok=True)
             utilities.makedirs(self.configuration_directory, exist_ok=True)
@@ -400,9 +400,13 @@ def install_suricata(configuration_directory, install_directory, log_directory, 
     :param stdout: Print the output to console
     :param verbose: Include detailed debug messages
     """
-
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('SURICATA', level=log_level, stdout=stdout)
     suricata_profiler = suricata_profile.ProcessProfiler()
     if suricata_profiler.is_installed:
+        logger.error("Suricata is already installed.")
         raise suricata_exceptions.AlreadyInstalledSuricataError()
     suricata_installer = InstallManager(configuration_directory, install_directory, log_directory,
                                         capture_network_interfaces=capture_network_interfaces,

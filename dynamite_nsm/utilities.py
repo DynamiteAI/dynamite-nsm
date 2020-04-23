@@ -195,16 +195,12 @@ def extract_archive(archive_path, destination_path, stdout=True):
         sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
 
 
-def extract_java(stdout=False):
-    if stdout:
-        sys.stdout.write('[+] Extracting: {} \n'.format(const.JAVA_ARCHIVE_NAME))
+def extract_java():
     try:
         tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.JAVA_ARCHIVE_NAME))
         tf.extractall(path=const.INSTALL_CACHE)
-        sys.stdout.write('[+] Complete!\n')
-        sys.stdout.flush()
-    except IOError as e:
-        sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+    except IOError:
+        pass
 
 
 def get_default_agent_tag():
@@ -376,6 +372,7 @@ def prompt_input(message):
     :param message: The message appearing next to the input prompt.
     return: The inputted text
     """
+
     try:
         res = raw_input(message)
     except NameError:
@@ -383,7 +380,7 @@ def prompt_input(message):
     return res
 
 
-def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm Password: '):
+def prompt_password(prompt='[?] Enter a secure password: ', confirm_prompt='[?] Confirm Password: '):
     """
     Prompt user for password, and confirm
 
@@ -391,6 +388,7 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
     :param confirm_prompt: The confirmation prompt
     :return: The password entered
     """
+
     password = '0'
     confirm_password = '1'
     first_attempt = True
@@ -466,6 +464,7 @@ def setup_java():
     """
     Installs the latest version of OpenJDK
     """
+
     makedirs('/usr/lib/jvm', exist_ok=True)
     try:
         shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
@@ -485,6 +484,7 @@ def set_ownership_of_file(path, user='dynamite', group='dynamite'):
     :param user: The name of the user
     :param group: The group of the user
     """
+
     uid = pwd.getpwnam(user).pw_uid
     group = grp.getgrnam(group).gr_gid
     os.chown(path, uid, group)
@@ -513,6 +513,7 @@ def update_sysctl(verbose=False):
 
     :param verbose: Include output from system utilities
     """
+
     new_output = ''
     vm_found = False
     fs_found = False
@@ -545,6 +546,7 @@ def update_user_file_handle_limits():
     """
     Updates the max number of file handles the dynamite user can have open
     """
+
     new_output = ''
     limit_found = False
     for line in open('/etc/security/limits.conf').readlines():
@@ -569,6 +571,7 @@ def tail_file(path, n=1, bs=1024):
     :param bs: The block-size in bytes
     :return: A list of lines
     """
+
     f = open(path)
     f.seek(0, 2)
     l = 1 - f.read(1).count('\n')

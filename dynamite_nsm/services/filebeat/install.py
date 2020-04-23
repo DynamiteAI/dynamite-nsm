@@ -61,12 +61,12 @@ class InstallManager:
             self.agent_tag = str(agent_tag)[0:29]
             self.logger.info("Setting Agent Tag to {}.".format(self.agent_tag))
         try:
-            self.logger.info("Attempting to extract Filebeat archive ({}).".format(const.FILE_BEAT_ARCHIVE_NAME))
+            self.logger.info("Attempting to extract FileBeat archive ({}).".format(const.FILE_BEAT_ARCHIVE_NAME))
             self.extract_filebeat()
             self.logger.info("Extraction completed.")
         except general_exceptions.ArchiveExtractionError as e:
-            self.logger.error("Failed to extract Filebeat archive.")
-            self.logger.debug("Failed to extract Filebeat archive, threw: {}.".format(e))
+            self.logger.error("Failed to extract FileBeat archive.")
+            self.logger.debug("Failed to extract FileBeat archive, threw: {}.".format(e))
             raise filebeat_exceptions.InstallFilebeatError("Failed to extract Filebeat archive.")
 
         if not self.validate_logstash_targets(logstash_targets):
@@ -90,7 +90,7 @@ class InstallManager:
                         break
         except Exception as e:
             raise general_exceptions.DownloadError(
-                "General error while downloading elasticsearch from {}; {}".format(url, e))
+                "General error while downloading FileBeat from {}; {}".format(url, e))
 
     @staticmethod
     def extract_filebeat():
@@ -104,10 +104,10 @@ class InstallManager:
         except IOError as e:
             sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
             raise general_exceptions.ArchiveExtractionError(
-                "Could not extract filebeat archive to {}; {}".format(const.INSTALL_CACHE, e))
+                "Could not extract FileBeat archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
             raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract filebeat archive; {}".format(e))
+                "General error while attempting to extract FileBeat archive; {}".format(e))
 
     @staticmethod
     def validate_logstash_targets(logstash_targets, stdout=True, verbose=False):
@@ -131,13 +131,13 @@ class InstallManager:
                     host, port = target.split(':')
                     if not str(port).isdigit():
                         logger.warning(
-                            'Logstash Target Invalid: {} port must be numeric at position {}'.format(target, i))
+                            'LogStash Target Invalid: {} port must be numeric at position {}'.format(target, i))
                         return False
                 except ValueError:
-                    logger.warning('Logstash Target Invalid: {} expected host:port at position {}'.format(target, i))
+                    logger.warning('LogStash Target Invalid: {} expected host:port at position {}'.format(target, i))
                     return False
         else:
-            logger.warning('Logstash Target Invalid: {}; must be a enumerable (list, tuple)'.format(logstash_targets))
+            logger.warning('LogStash Target Invalid: {}; must be a enumerable (list, tuple)'.format(logstash_targets))
             return False
         return True
 
@@ -147,9 +147,9 @@ class InstallManager:
         """
 
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        self.logger.info('Creating Filebeat install directory.')
+        self.logger.info('Creating FileBeat install directory.')
         utilities.makedirs(self.install_directory, exist_ok=True)
-        self.logger.info('Copying Filebeat to install directory.')
+        self.logger.info('Copying FileBeat to install directory.')
         try:
             utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME),
                                self.install_directory)
@@ -188,10 +188,10 @@ class InstallManager:
                     subprocess.call('echo FILEBEAT_HOME="{}" >> {}'.format(self.install_directory, env_file),
                                     shell=True)
         except Exception as e:
-            self.logger.error("General error occurred while attempting to install filebeat.")
-            self.logger.debug("General error occurred while attempting to install filebeat; {}".format(e))
+            self.logger.error("General error occurred while attempting to install FileBeat.")
+            self.logger.debug("General error occurred while attempting to install FileBeat; {}".format(e))
             raise filebeat_exceptions.InstallFilebeatError(
-                "General error occurred while attempting to install filebeat; {}".format(e))
+                "General error occurred while attempting to install FileBeat; {}".format(e))
 
 
 def install_filebeat(install_directory, monitor_log_paths, logstash_targets, agent_tag, download_filebeat_archive=True,
@@ -207,9 +207,14 @@ def install_filebeat(install_directory, monitor_log_paths, logstash_targets, age
     :param stdout: Print the output to console
     :param verbose: Include detailed debug messages
     """
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
     filebeat_profiler = filebeat_profile.ProcessProfiler()
     if filebeat_profiler.is_installed:
+        logger.error('FileBeat is already installed.')
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
     filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
                                         logstash_targets=logstash_targets, agent_tag=agent_tag,
@@ -231,7 +236,7 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
     if verbose:
         log_level = logging.DEBUG
     logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
-    logger.info("Uninstalling Filebeat.")
+    logger.info("Uninstalling FileBeat.")
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     filebeat_profiler = filebeat_profile.ProcessProfiler()

@@ -76,7 +76,7 @@ class ElasticsearchUninstallStrategy(execution_strategy.BaseExecStrategy):
     Steps to uninstall elasticsearch
     """
 
-    def __init__(self, stdout, prompt_user):
+    def __init__(self, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="elasticsearch_uninstall",
             strategy_description="Uninstall ElasticSearch.",
@@ -87,13 +87,14 @@ class ElasticsearchUninstallStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # install.uninstall_elasticsearch
                 {
+                    "prompt_user": bool(prompt_user),
                     "stdout": bool(stdout),
-                    "prompt_user": bool(prompt_user)
+                    "verbose": bool(verbose),
                 },
 
                 # print_message
                 {
-                    "msg": '[+] *** ElasticSearch uninstalled successfully. ***\n'
+                    "msg": '*** ElasticSearch uninstalled successfully. ***'
                 },
             ),
             return_formats=(
@@ -108,7 +109,7 @@ class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
     Steps to start elasticsearch
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="elasticsearch_start",
             strategy_description="Start ElasticSearch process.",
@@ -118,7 +119,8 @@ class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
             ),
             return_formats=(
@@ -135,7 +137,7 @@ class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
     Steps to stop elasticsearch
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="elasticsearch_stop",
             strategy_description="Stop ElasticSearch process.",
@@ -145,7 +147,8 @@ class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
             ),
             return_formats=(
@@ -162,7 +165,7 @@ class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
     Steps to restart elasticsearch
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="elasticsearch_restart",
             strategy_description="Restart ElasticSearch process.",
@@ -173,13 +176,15 @@ class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
 
                 # process.stop
                 {
-                    "stdout": stdout
-                }
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
+                },
             ),
             return_formats=(
                 None,

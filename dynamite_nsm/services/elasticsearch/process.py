@@ -1,13 +1,16 @@
 import os
-import sys
 import time
 import signal
+import logging
 import subprocess
 from multiprocessing import Process
 
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.elasticsearch import config as elastic_configs
 from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
+
+PID_DIRECTORY = '/var/run/dynamite/elasticsearch/'
 
 
 class ProcessManager:
@@ -15,76 +18,86 @@ class ProcessManager:
     An interface for start|stop|status|restart of the ElasticSearch process
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
+        self.stdout = stdout
+        self.verbose = verbose
+
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
+
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('ES_PATH_CONF')
         if not self.configuration_directory:
+            self.logger.error("Could not resolve ES_PATH_CONF environment variable. Is ElasticSearch installed?")
             raise elastic_exceptions.CallElasticProcessError(
-                "Could not resolve ES_PATH_CONF environment variable. Is Elasticsearch installed?")
+                "Could not resolve ES_PATH_CONF environment variable. Is ElasticSearch installed?")
         self.config = elastic_configs.ConfigManager(self.configuration_directory)
         try:
-            self.pid = int(open('/var/run/dynamite/elasticsearch/elasticsearch.pid').read())
+            with open(os.path.join(PID_DIRECTORY, 'elasticsearch.pid')) as pid_f:
+                self.pid = int(pid_f.read())
         except (IOError, ValueError):
             self.pid = -1
 
-    def start(self, stdout=False):
+    def start(self):
         """
         Start the ElasticSearch process
-        :param stdout: Print output to console
+
         :return: True, if started successfully
         """
 
         def start_shell_out():
             subprocess.call('runuser -l dynamite -c "{} {}/bin/elasticsearch '
-                            '-p /var/run/dynamite/elasticsearch/elasticsearch.pid --quiet &>/dev/null &"'
-                            ''.format(utilities.get_environment_file_str(), self.config.es_home), shell=True)
+                            '-p {} --quiet &>/dev/null &"'
+                            ''.format(utilities.get_environment_file_str(), self.config.es_home,
+                                      os.path.join(PID_DIRECTORY, 'elasticsearch.pid')), shell=True)
 
-        if not os.path.exists('/var/run/dynamite/elasticsearch/'):
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/elasticsearch/'), shell=True)
-        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
+        if not os.path.exists(PID_DIRECTORY):
+            utilities.makedirs(PID_DIRECTORY, exist_ok=True)
+        utilities.set_ownership_of_file(PID_DIRECTORY, user='dynamite', group='dynamite')
 
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
-            sys.stderr.write('[-] ElasticSearch is already running on PID [{}]\n'.format(self.pid))
+            self.logger.info('ElasticSearch is already running on PID [{}]\n'.format(self.pid))
             return True
         retry = 0
         self.pid = -1
         time.sleep(5)
         while retry < 6:
-            start_message = '[+] [Attempt: {}] Starting ElasticSearch on PID [{}]\n'.format(retry + 1, self.pid)
             try:
-                with open('/var/run/dynamite/elasticsearch/elasticsearch.pid') as f:
+                with open(os.path.join(PID_DIRECTORY, 'elasticsearch.pid')) as f:
                     self.pid = int(f.read())
-                start_message = '[+] [Attempt: {}] Starting ElasticSearch on PID [{}]\n'.format(retry + 1, self.pid)
-                if stdout:
-                    sys.stdout.write(start_message)
+                start_message = '[Attempt: {}] Starting ElasticSearch on PID [{}]'.format(retry + 1, self.pid)
+                self.logger.info(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1
                     time.sleep(5)
                 else:
                     return True
-            except IOError:
-                if stdout:
-                    sys.stdout.write(start_message)
+            except IOError as e:
+                self.logger.warning("An issue occurred while attempting to start.")
+                self.logger.debug("An issue occurred while attempting to start; {}".format(e))
                 retry += 1
                 time.sleep(3)
+        self.logger.error("Failed to start ElasticSearch after {} attempts.".format(retry))
         return False
 
-    def stop(self, stdout=False):
+    def stop(self):
         """
         Stop the ElasticSearch process
 
-        :param stdout: Print output to console
         :return: True if stopped successfully
         """
         alive = True
         attempts = 0
         while alive:
             try:
-                if stdout:
-                    sys.stdout.write('[+] Attempting to stop ElasticSearch [{}]\n'.format(self.pid))
+                self.logger.info('Attempting to stop ElasticSearch [{}]'.format(self.pid))
                 if attempts > 3:
+                    self.logger.warning(
+                        'Attempting to force stop ElasticSearch after 3 failed attempts. [{}].'.format(self.pid))
                     sig_command = signal.SIGKILL
                 else:
                     # Kill the zombie after the third attempt of asking it to kill itself
@@ -96,19 +109,21 @@ class ProcessManager:
 
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
-                sys.stderr.write('[-] An error occurred while attempting to stop ElasticSearch: {}\n'.format(e))
+                self.logger.error('An error occurred while attempting to stop ElasticSearch.')
+                self.logger.debug('An error occurred while attempting to stop ElasticSearch; {}'.format(e))
                 return False
+        self.logger.info("Deleting ElasticSearch PID [{}].".format(self.pid))
+        utilities.safely_remove_file(os.path.join(PID_DIRECTORY, 'elasticsearch.pid'))
         return True
 
-    def restart(self, stdout=False):
+    def restart(self):
         """
         Restart the ElasticSearch process
 
-        :param stdout: Print output to console
         :return: True if started successfully
         """
-        self.stop(stdout=stdout)
-        return self.start(stdout=stdout)
+        self.stop()
+        return self.start()
 
     def status(self):
         """
@@ -126,17 +141,17 @@ class ProcessManager:
         }
 
 
-def start(stdout=True):
-    ProcessManager().start(stdout)
+def start(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).start()
 
 
-def stop(stdout=True):
-    ProcessManager().stop(stdout)
+def stop(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).stop()
 
 
-def restart(stdout=True):
-    ProcessManager().restart(stdout)
+def restart(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).restart()
 
 
-def status():
-    return ProcessManager().status()
+def status(stdout=True, verbose=False):
+    return ProcessManager(stdout, verbose).status()
