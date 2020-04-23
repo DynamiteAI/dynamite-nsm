@@ -380,7 +380,7 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             ),
             arguments=(
                 {
-                    include_subprocesses: bool(include_subprocesses)
+                    'include_subprocesses': bool(include_subprocesses)
                 },
             ),
             return_formats=(
@@ -439,7 +439,9 @@ def run_process_restart_strategy():
 
 
 def run_process_status_strategy():
-    agt_status_strategy = AgentProcessStatusStrategy()
+    agt_status_strategy = AgentProcessStatusStrategy(
+        include_subprocesses=False
+    )
     agt_status_strategy.execute_strategy()
 
 
