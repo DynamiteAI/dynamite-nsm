@@ -138,11 +138,17 @@ def download_file(url, filename, stdout=False):
         response_size_bytes = None
     CHUNK = 16 * 1024
     widgets = [
+        '\033[92m',
         '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
-        '[Download Manager] ', progressbar.FileTransferSpeed(),
+        '\033[0m',
+        '\033[0;36m'
+        'DOWNLOAD MANAGER',
+        '\033[0m',
+        progressbar.FileTransferSpeed(),
         ' ', progressbar.Bar(),
-        ' ', '[{}]'.format(filename),
-        ' ', progressbar.ETA()
+        ' ', '({})'.format(filename),
+        ' ', progressbar.ETA(),
+
     ]
     if response_size_bytes:
         try:
