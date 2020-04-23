@@ -71,8 +71,6 @@ class ProcessManager:
             try:
                 with open(os.path.join(PID_DIRECTORY, 'filebeat.pid')) as f:
                     self.pid = int(f.read())
-                start_message = '[Attempt: {}] Starting FileBeat on PID [{}]'.format(retry + 1, self.pid)
-                self.logger.info(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1
                     time.sleep(5)
