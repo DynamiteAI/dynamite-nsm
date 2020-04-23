@@ -83,7 +83,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.LogstashUninstallStrategy(
-                    prompt_user=not args.skip_elastic_uninstall_prompt,
+                    prompt_user=not args.skip_logstash_uninstall_prompt,
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 )
