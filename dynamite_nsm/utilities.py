@@ -142,7 +142,7 @@ def download_file(url, filename, stdout=False):
         '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
         '\033[0m',
         '\033[0;36m'
-        'DOWNLOAD MANAGER',
+        'DOWNLOAD_MANAGER',
         '\033[0m',
         progressbar.FileTransferSpeed(),
         ' ', progressbar.Bar(),
@@ -319,6 +319,7 @@ def print_dynamite_logo(version):
     try:
         dynamite_logo = \
             """
+            \033[0;36m,
             
                   ,,,,,                  ,▄▄▄▄╓
               .▄▓▀▀▀░▀▀▀▓▓╓            ╔▓▓▓▓▓▓▓▀▓
@@ -339,7 +340,7 @@ def print_dynamite_logo(version):
          ▀▓▀▓▓▓▓▀╠▓┘       ╚▓▓
            ▀▀██▀▀╙          ▓▓▓╓
                            ╫▓▓▓▓▓ε
-    
+            '\033[0m',
             http://dynamite.ai
             
             Version: {}
@@ -425,8 +426,12 @@ def run_subprocess_with_status(process, expected_lines=None):
 
     i = 0
     widgets = [
+        '\033[92m',
         '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
-        '[Process Tracker] ', progressbar.Percentage(),
+        '\033[0m',
+        '\033[0;36m',
+        'PROCESS_TRACKER', progressbar.Percentage(),
+        '\033[0m',
         ' ', progressbar.Bar(),
         ' ', progressbar.FormatLabel(''),
         ' ', progressbar.ETA()
@@ -445,7 +450,7 @@ def run_subprocess_with_status(process, expected_lines=None):
             i += 1
             try:
                 if not over_max_value:
-                    widgets[5] = '[{0}...]'.format(str(output).replace('\n', '').replace('\t', '')[0:40])
+                    widgets[7] = '[{0}...]'.format(str(output).replace('\n', '').replace('\t', '')[0:40])
                     pb.update(i)
             except ValueError:
                 if not over_max_value:
