@@ -319,7 +319,7 @@ def print_dynamite_logo(version):
     try:
         dynamite_logo = \
             """
-            \033[0;36m,
+            \033[0;36m
             
                   ,,,,,                  ,▄▄▄▄╓
               .▄▓▀▀▀░▀▀▀▓▓╓            ╔▓▓▓▓▓▓▓▀▓
@@ -340,7 +340,7 @@ def print_dynamite_logo(version):
          ▀▓▀▓▓▓▓▀╠▓┘       ╚▓▓
            ▀▀██▀▀╙          ▓▓▓╓
                            ╫▓▓▓▓▓ε
-            '\033[0m',
+            \033[0m
             http://dynamite.ai
             
             Version: {}
