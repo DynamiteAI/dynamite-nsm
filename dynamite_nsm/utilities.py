@@ -226,10 +226,11 @@ def get_environment_file_str():
     :return: The contents of the /etc/dynamite/environment file as a giant export string
     """
     export_str = ''
-    for line in open('/etc/dynamite/environment').readlines():
-        if '=' in line:
-            key, value = line.strip().split('=')
-            export_str += 'export {}=\'{}\' && '.format(key, value)
+    with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
+        for line in env_f.readlines():
+            if '=' in line:
+                key, value = line.strip().split('=')
+                export_str += 'export {}=\'{}\' && '.format(key, value)
     return export_str
 
 
