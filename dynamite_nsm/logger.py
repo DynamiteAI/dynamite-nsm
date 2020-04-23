@@ -19,5 +19,5 @@ def get_logger(component_name, level=logging.INFO, stdout=True):
     logger.addHandler(fh)
     if stdout:
         coloredlogs.install(level=level, logger=logger,
-                            fmt='[%(asctime)s],[%(name)10s] [%(levelname)8s] -- %(message)s')
+                            fmt='%(asctime)s %(name)-12s [%(levelname)-8s] -- %(message)s')
     return logger
