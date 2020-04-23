@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import logging
 import tarfile
 import subprocess
 
@@ -11,9 +12,9 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.logstash import config as logstash_config
-
 from dynamite_nsm.services.logstash import profile as logstash_profile
 from dynamite_nsm.services.logstash import process as logstash_process
 from dynamite_nsm.services.elasticsearch import profile as elastic_profile
@@ -45,11 +46,20 @@ class InstallManager:
         :param stdout: Print output to console
         :param verbose: Include output from system utilities
         """
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
+
         self.host = host
         if not elasticsearch_host:
             if elastic_profile.ProcessProfiler().is_installed:
                 self.elasticsearch_host = 'localhost'
+                self.logger.info(
+                    "Assuming LogStash will connect to local ElasticSearch instance, "
+                    "as ElasticSearch is installed on this host.")
             else:
+                self.logger.error("ElasticSearch must either be installed locally, or a remote host must be specified.")
                 raise logstash_exceptions.InstallLogstashError(
                     "ElasticSearch must either be installed locally, or a remote host must be specified.")
         else:
@@ -67,15 +77,16 @@ class InstallManager:
             try:
                 self.download_logstash(stdout=stdout)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                raise logstash_exceptions.InstallLogstashError("Failed to download Logstash archive.")
+                self.logger.error("Failed to download LogStash archive.")
+                raise logstash_exceptions.InstallLogstashError("Failed to download LogStash archive.")
         try:
-            self.extract_logstash(stdout=stdout)
+            self.extract_logstash()
         except general_exceptions.ArchiveExtractionError:
-            raise logstash_exceptions.InstallLogstashError("Failed to extract Logstash archive.")
+            self.logger.error("Failed to extract LogStash archive.")
+            raise logstash_exceptions.InstallLogstashError("Failed to extract LogStash archive.")
 
     def _copy_logstash_files_and_directories(self):
-        if self.stdout:
-            sys.stdout.write('[+] Copying required LogStash files and directories.\n')
+        self.logger.info('Copying required LogStash files and directories.')
         config_paths = [
             'config/logstash.yml',
             'config/jvm.options',
@@ -96,44 +107,51 @@ class InstallManager:
         path = None
         try:
             for path in config_paths:
-                if self.stdout:
-                    sys.stdout.write('[+] Copying {} -> {}\n'.format(
-                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
-                        self.configuration_directory))
+                self.logger.debug('Copying {} -> {}'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
+                    self.configuration_directory))
                 try:
                     shutil.copy(os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.LOGSTASH_DIRECTORY_NAME, path)),
                                 self.configuration_directory)
-                except shutil.Error as e:
-                    sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+                except shutil.Error:
+                    self.logger.warning('{} already exists at this path.'.format(path))
         except Exception as e:
+            self.logger.error(
+                "General error while attempting to copy {} to {}.".format(path, self.configuration_directory))
+            self.logger.debug(
+                "General error while attempting to copy {} to {}; {}".format(path, self.configuration_directory, e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error while attempting to copy {} to {}; {}".format(path, self.configuration_directory, e))
         try:
             for path in install_paths:
                 src_install_path = os.path.join(const.INSTALL_CACHE, const.LOGSTASH_DIRECTORY_NAME, path)
                 dst_install_path = os.path.join(self.install_directory, path)
-                if self.stdout:
-                    sys.stdout.write('[+] Copying {} -> {}\n'.format(src_install_path, dst_install_path))
+                self.logger.debug('Copying {} -> {}'.format(src_install_path, dst_install_path))
                 try:
                     if os.path.isdir(src_install_path):
                         shutil.copytree(src_install_path, dst_install_path)
                     else:
                         shutil.copy(src_install_path, dst_install_path)
-                except shutil.Error as e:
-                    sys.stderr.write('[-] {} already exists at this path. [{}]\n'.format(path, e))
+                except shutil.Error:
+                    self.logger.warning('{} already exists at this path.'.format(path))
         except Exception as e:
+            self.logger.error(
+                "General error while attempting to copy {} to {}.".format(path, self.install_directory))
+            self.logger.debug(
+                "General error while attempting to copy {} to {}; {}".format(path, self.install_directory, e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error while attempting to copy {} to {}; {}".format(path, self.install_directory, e))
 
     def _create_logstash_directories(self):
-        if self.stdout:
-            sys.stdout.write('[+] Creating logstash install|configuration|logging directories.\n')
+        self.logger.info('Creating LogStash installation, configuration, and logging directories.')
         try:
             utilities.makedirs(self.install_directory, exist_ok=True)
             utilities.makedirs(self.configuration_directory, exist_ok=True)
             utilities.makedirs(self.log_directory, exist_ok=True)
             utilities.makedirs(os.path.join(self.install_directory, 'data'), exist_ok=True)
         except Exception as e:
+            self.logger.error('Failed to create required directory structure.')
+            self.logger.debug('Failed to create required directory structure; {}'.format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "Failed to create required directory structure; {}".format(e))
 
@@ -143,27 +161,25 @@ class InstallManager:
             with open(env_file) as env_f:
                 env_str = env_f.read()
                 if 'LS_PATH_CONF' not in env_str:
-                    if self.stdout:
-                        sys.stdout.write('[+] Updating LogStash default configuration path [{}]\n'.format(
-                            self.configuration_directory))
+                    self.logger.info('Updating LogStash default configuration path [{}]'.format(
+                        self.configuration_directory))
                     subprocess.call('echo LS_PATH_CONF="{}" >> {}'.format(self.configuration_directory, env_file),
                                     shell=True)
                 if 'LS_HOME' not in env_str:
-                    if self.stdout:
-                        sys.stdout.write('[+] Updating LogStash default home path [{}]\n'.format(
-                            self.configuration_directory))
+                    self.logger.info('Updating LogStash default home path [{}]'.format(self.install_directory))
                     subprocess.call('echo LS_HOME="{}" >> {}'.format(self.install_directory, env_file), shell=True)
         except IOError:
+            self.logger.error("Failed to open {} for reading.".format(env_file))
             raise logstash_exceptions.InstallLogstashError(
                 "Failed to open {} for reading.".format(env_file))
         except Exception as e:
+            self.logger.error("General error while creating environment variables in {}.".format(env_file))
+            self.logger.debug("General error while creating environment variables in {}; {}".format(env_file, e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error while creating environment variables in {}; {}".format(env_file, e))
 
     def _install_logstash_plugins(self):
-        if self.stdout:
-            sys.stdout.write('[+] Installing Logstash plugins\n')
-            sys.stdout.flush()
+        self.logger.info("Installing required LogStash plugins.")
         try:
             if self.verbose:
                 subprocess.call('{}/bin/logstash-plugin install logstash-codec-sflow'.format(self.install_directory),
@@ -201,29 +217,31 @@ class InstallManager:
                                 shell=True, env=utilities.get_environment_file_dict(),
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except Exception as e:
+            self.logger.error('General error while attempting to install logstash plugins')
+            self.logger.debug("General error while attempting to install logstash plugins; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error while attempting to install logstash plugins; {}".format(e))
 
     def _setup_default_logstash_configs(self):
-        sys.stdout.write('[+] Overwriting default configuration.\n')
-        sys.stdout.flush()
+        self.logger.info('Overwriting default configuration')
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'logstash.yml'),
                     self.configuration_directory)
         ls_config = logstash_config.ConfigManager(configuration_directory=self.configuration_directory)
-        if self.stdout:
-            sys.stdout.write('[+] Setting up JVM default heap settings [{}GB]\n'.format(self.heap_size_gigs))
-            sys.stdout.flush()
+        self.logger.info('Setting up JVM default heap settings [{}GB]\n'.format(self.heap_size_gigs))
         ls_config.java_initial_memory = int(self.heap_size_gigs)
         ls_config.java_maximum_memory = int(self.heap_size_gigs)
         ls_config.write_configs()
 
     def _setup_elastiflow(self):
+        self.logger.info("Setting up ElastiFlow [Dynamite Patched Version].")
         try:
             ef_install = elastiflow_install.InstallManager(install_directory=os.path.join(
                 self.configuration_directory, 'elastiflow')
             )
             ef_install.setup_logstash_elastiflow()
         except Exception as e:
+            self.logger.error("General error occurred while installing ElastiFlow.")
+            self.logger.debug("General error occurred while installing ElastiFlow; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error occurred while installing Elastiflow; {}".format(e))
         try:
@@ -235,18 +253,23 @@ class InstallManager:
             ef_config.es_host = self.elasticsearch_host + ':' + str(self.elasticsearch_port)
             ef_config.es_passwd = self.elasticsearch_password
         except general_exceptions.ReadConfigError:
-            raise logstash_exceptions.InstallLogstashError("Error while reading Elastiflow environmental variables.")
+            self.logger.error('Error while reading ElastiFlow environmental variables.')
+            raise logstash_exceptions.InstallLogstashError("Error while reading ElastiFlow environmental variables.")
         try:
             ef_config.write_environment_variables()
         except general_exceptions.WriteConfigError:
-            raise logstash_exceptions.InstallLogstashError("Error while writing Elastiflow environmental variables.")
+            self.logger.error('Error while writing ElastiFlow environmental variables.')
+            raise logstash_exceptions.InstallLogstashError("Error while writing ElastiFlow environmental variables.")
 
     def _setup_synesis(self):
         try:
+            self.logger.info("Setting up Synesis [Dynamite Patched Version].")
             syn_install = synesis_install.InstallManager(
                 install_directory=os.path.join(self.configuration_directory, 'synesis'))
             syn_install.setup_logstash_synesis()
         except Exception as e:
+            self.logger.error("General error occurred while installing Synesis.")
+            self.logger.debug("General error occurred while installing Synesis; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error occurred while installing Synesis; {}".format(e))
         try:
@@ -255,23 +278,28 @@ class InstallManager:
             syn_config.suricata_resolve_ip2host = True
             syn_config.es_passwd = self.elasticsearch_password
         except general_exceptions.ReadConfigError:
+            self.logger.error('Error while reading Synesis environmental variables.')
             raise logstash_exceptions.InstallLogstashError("Error while reading Synesis environmental variables.")
         try:
             syn_config.write_environment_variables()
         except general_exceptions.WriteConfigError:
+            self.logger.error('Error while writing Synesis environmental variables.')
             raise logstash_exceptions.InstallLogstashError("Error while writing Synesis environmental variables.")
 
     def _update_sysctl(self):
-        if self.stdout:
-            sys.stdout.write('[+] Setting up Max File Handles [65535] VM Max Map Count [262144] \n')
+        self.logger.info('Setting up Max File Handles [65535] VM Max Map Count [262144]')
         try:
             utilities.update_user_file_handle_limits()
         except Exception as e:
+            self.logger.error('General error while setting user file-handle limits.')
+            self.logger.debug("General error while setting user file-handle limits; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error while setting user file-handle limits; {}".format(e))
         try:
             utilities.update_sysctl(verbose=self.verbose)
         except Exception as e:
+            self.logger.error('General error while setting VM Max Map Count.')
+            self.logger.debug("General error while setting VM Max Map Count; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error while setting VM Max Map Count; {}".format(e))
 
@@ -293,22 +321,15 @@ class InstallManager:
                 "General error while downloading logstash from {}; {}".format(url, e))
 
     @staticmethod
-    def extract_logstash(stdout=False):
+    def extract_logstash():
         """
         Extract Logstash to local install_cache
-
-        :param stdout: Print output to console
         """
-        if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(const.LOGSTASH_ARCHIVE_NAME))
+
         try:
             tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME))
             tf.extractall(path=const.INSTALL_CACHE)
-            if stdout:
-                sys.stdout.write('[+] Complete!\n')
-                sys.stdout.flush()
         except IOError as e:
-            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
             raise general_exceptions.ArchiveExtractionError(
                 "Could not extract logstash archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
@@ -347,6 +368,10 @@ class InstallManager:
             utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
             utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
         except Exception as e:
+            self.logger.error(
+                "General error occurred while attempting to set permissions on root directories.")
+            self.logger.debug(
+                "General error occurred while attempting to set permissions on root directories; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
 
@@ -372,15 +397,21 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     :param verbose: Include output from system utilities
     :return: True, if installation succeeded
     """
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
+
     ls_profiler = logstash_profile.ProcessProfiler()
     if ls_profiler.is_installed:
-        sys.stderr.write('[-] LogStash is already installed. If you wish to re-install, first uninstall.\n')
+        logger.error('ElasticSearch is already installed.')
         raise logstash_exceptions.AlreadyInstalledLogstashError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
-        sys.stderr.write('[-] WARNING! Dynamite Logstash should have at-least 6GB to run '
+        sys.stderr.write('\n WARNING! Dynamite Logstash should have at-least 6GB to run '
                          'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes() / (1000 ** 3)))
-        if str(utilities.prompt_input('Continue? [y|N]: ')).lower() != 'y':
-            return
+        if str(utilities.prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
+            sys.stdout.write('\n[+] Exiting\n')
+            exit(0)
     ls_installer = InstallManager(configuration_directory, install_directory, log_directory, host=host,
                                   elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port,
                                   elasticsearch_password=elasticsearch_password, heap_size_gigs=heap_size_gigs,
@@ -390,9 +421,11 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     if install_jdk:
         try:
             utilities.download_java(stdout=stdout)
-            utilities.extract_java(stdout=stdout)
+            utilities.extract_java()
             utilities.setup_java()
         except Exception as e:
+            logger.error('General error occurred while attempting to setup Java.')
+            logger.debug("General error occurred while attempting to setup Java; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error occurred while attempting to setup Java; {}".format(e))
     if create_dynamite_user:
@@ -400,28 +433,36 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     ls_installer.setup_logstash()
 
 
-def uninstall_logstash(stdout=False, prompt_user=True):
+def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
     """
     Install Logstash with ElastiFlow & Synesis
 
-    :param stdout: Print the output to console
     :param prompt_user: Print a warning before continuing
+    :param stdout: Print the output to console
+    :param verbose: Include detailed debug messages
     """
+
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
+
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     configuration_directory = environment_variables.get('LS_PATH_CONF')
     ls_profiler = logstash_profile.ProcessProfiler()
     ls_config = logstash_config.ConfigManager(configuration_directory=configuration_directory)
     if not ls_profiler.is_installed:
-        raise logstash_exceptions.UninstallLogstashError("Logstash is not installed.")
+        logger.error('LogStash is not installed.')
+        raise logstash_exceptions.UninstallLogstashError("LogStash is not installed.")
     if prompt_user:
-        sys.stderr.write('[-] WARNING! Removing Logstash Will Prevent ElasticSearch From Receiving Events.\n')
-        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        sys.stderr.write('\n[-] WARNING! Removing Logstash Will Prevent ElasticSearch From Receiving Events.\n')
+        resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
+                sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     if ls_profiler.is_running:
         logstash_process.ProcessManager().stop(stdout=stdout)
@@ -449,5 +490,7 @@ def uninstall_logstash(stdout=False, prompt_user=True):
             with open(env_file, 'w') as env_fw:
                 env_fw.write(env_lines)
     except Exception as e:
+        logger.error("General error occurred while attempting to uninstall LogStash.".format(e))
+        logger.debug("General error occurred while attempting to uninstall LogStash; {}".format(e))
         raise logstash_exceptions.UninstallLogstashError(
-            "General error occurred while attempting to uninstall logstash; {}".format(e))
+            "General error occurred while attempting to uninstall LogStash; {}".format(e))

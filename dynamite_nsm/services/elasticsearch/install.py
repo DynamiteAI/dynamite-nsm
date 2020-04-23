@@ -30,7 +30,7 @@ from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 
 class InstallManager:
     """
-    Provides a simple interface for installing a new ElasticSearch node
+    Provides a simple interface for installing an ElasticSearch node
     """
 
     def __init__(self, configuration_directory, install_directory, log_directory, host='0.0.0.0', port=9200,
@@ -48,6 +48,7 @@ class InstallManager:
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
         """
+
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -149,7 +150,7 @@ class InstallManager:
                     subprocess.call('echo ES_PATH_CONF="{}" >> {}'.format(self.configuration_directory, env_file),
                                     shell=True)
                 if 'ES_HOME' not in env_str:
-                    self.logger.info('Updating ElasticSearch default home path [{}]\n'.format(self.install_directory))
+                    self.logger.info('Updating ElasticSearch default home path [{}]'.format(self.install_directory))
                     subprocess.call('echo ES_HOME="{}" >> {}'.format(self.install_directory, env_file),
                                     shell=True)
         except IOError:
@@ -315,8 +316,12 @@ class InstallManager:
         try:
             utilities.set_ownership_of_file(keystore_config_path, user='dynamite', group='dynamite')
         except Exception as e:
+            self.logger.error(
+                'General error occurred while attempting to set permissions for {}.'.format(keystore_config_path))
+            self.logger.debug(
+                "General error occurred while attempting to set permissions for {}; {}".format(keystore_config_path, e))
             raise elastic_exceptions.InstallElasticsearchError(
-                "General error occurred while attempting to set permissions for {} ; {}".format(keystore_config_path, e)
+                "General error occurred while attempting to set permissions for {}; {}".format(keystore_config_path, e)
             )
         if not elastic_profile.ProcessProfiler().is_running:
             elastic_process.ProcessManager().start()
@@ -373,6 +378,7 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
     :param stdout: Print the output to console
     :param verbose: Include detailed debug messages
     """
+
     log_level = logging.INFO
     if verbose:
         log_level = logging.DEBUG
@@ -382,11 +388,12 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
     if es_profiler.is_installed:
         logger.error('ElasticSearch is already installed.')
         raise elastic_exceptions.AlreadyInstalledElasticsearchError()
-    if utilities.get_memory_available_bytes() <= 6 * (1000 ** 3):
-        available_mem = utilities.get_memory_available_bytes() / (1000 ** 3)
-        logger.error('ElasticSearch requires at least 6GB to run currently available [{} GB].'.format(available_mem))
-        raise elastic_exceptions.InstallElasticsearchError(
-            "ElasticSearch requires at least 6GB to run currently available [{} GB].".format(available_mem))
+    if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
+        sys.stderr.write('\n[-] WARNING! Dynamite ElasticSearch should have at-least 6GB to run '
+                         'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes() / (1000 ** 3)))
+        if str(utilities.prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
+            sys.stdout.write('\n[+] Exiting\n')
+            exit(0)
     es_installer = InstallManager(configuration_directory=configuration_directory,
                                   install_directory=install_directory, log_directory=log_directory,
                                   password=password, heap_size_gigs=heap_size_gigs,

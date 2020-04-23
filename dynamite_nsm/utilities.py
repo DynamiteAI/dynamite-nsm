@@ -457,9 +457,6 @@ def run_subprocess_with_status(process, expected_lines=None):
             except ValueError:
                 if not over_max_value:
                     pb.finish()
-                    sys.stdout.write('[+] This process is taking a bit longer than normal, '
-                                     'this can occur if resources are currently tapped.\n')
-                    sys.stdout.flush()
                     over_max_value = True
         # print(i, process.poll(), output)
     if not over_max_value:

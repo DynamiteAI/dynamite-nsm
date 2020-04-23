@@ -138,7 +138,8 @@ class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
                 # process.start
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose)
+                    "verbose": bool(verbose),
+                    "status": bool(status)
                 },
             ),
             return_formats=(
@@ -166,7 +167,8 @@ class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
                 # process.start
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose)
+                    "verbose": bool(verbose),
+                    "status": bool(status)
                 },
             ),
             return_formats=(
@@ -192,16 +194,18 @@ class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
                 process.start,
             ),
             arguments=(
-                # process.start
-                {
-                    "stdout": bool(stdout),
-                    "verbose": bool(verbose)
-                },
-
                 # process.stop
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose)
+                    "verbose": bool(verbose),
+                    "status": False
+                },
+
+                # process.start
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "status": bool(status)
                 },
             ),
             return_formats=(

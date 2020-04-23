@@ -1,8 +1,9 @@
 import os
-import sys
 import time
 import signal
+import logging
 import subprocess
+from dynamite_nsm.logger import get_logger
 from multiprocessing import Process
 
 try:
@@ -14,81 +15,97 @@ from dynamite_nsm import utilities
 from dynamite_nsm.services.logstash import config as logstash_configs
 from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
 
+PID_DIRECTORY = '/var/run/dynamite/logstash/'
+
 
 class ProcessManager:
     """
     An interface for start|stop|status|restart of the LogStash process
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
+
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
+
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('LS_PATH_CONF')
         if not self.configuration_directory:
+            self.logger.error("Could not resolve LS_PATH_CONF environment variable. Is Logstash installed?")
             raise logstash_exceptions.CallLogstashProcessError(
                 "Could not resolve LS_PATH_CONF environment variable. Is Logstash installed?")
         self.config = logstash_configs.ConfigManager(self.configuration_directory)
-        if not os.path.exists('/var/run/dynamite/logstash/'):
-            utilities.makedirs('/var/run/dynamite/logstash/', exist_ok=True)
-        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
+        utilities.makedirs(PID_DIRECTORY, exist_ok=True)
+        utilities.set_ownership_of_file(PID_DIRECTORY, user='dynamite', group='dynamite')
         try:
-            self.pid = int(open('/var/run/dynamite/logstash/logstash.pid').read()) + 1
+            with open(os.path.join(PID_DIRECTORY, 'logstash.pid')) as pid_f:
+                self.pid = int(pid_f.read()) + 1
         except (IOError, ValueError):
             self.pid = -1
 
-    def start(self, stdout=False):
+    def start(self):
         """
         Start the LogStash process
-        :param stdout: Print output to console
+
         :return: True if started successfully
         """
+
         self.pid = -1
 
         def start_shell_out():
-            command = 'runuser -l dynamite -c "{} {}/bin/logstash ' \
-                      '--path.settings={} &>/dev/null & echo \$! > /var/run/dynamite/logstash/logstash.pid"'.format(
-                utilities.get_environment_file_str(), self.config.ls_home, self.config.ls_path_conf)
+            command = 'runuser -l dynamite -c "{} {}/bin/logstash --path.settings={} &>/dev/null & echo \$! > {}"' \
+                      ''.format(
+                            utilities.get_environment_file_str(),
+                            self.config.ls_home,
+                            self.config.ls_path_conf,
+                            os.path.join(PID_DIRECTORY, 'logstash.pid')
+                        )
             subprocess.call(command, shell=True, cwd=self.config.ls_home)
+
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
-            sys.stderr.write('[-] Logstash is already running on PID [{}]\n'.format(self.pid))
+            self.logger.info('Logstash is already running on PID [{}]\n'.format(self.pid))
             return True
         retry = 0
         time.sleep(5)
         while retry < 6:
-            start_message = '[+] [Attempt: {}] Starting Logstash on PID [{}]\n'.format(retry + 1, self.pid)
             try:
-                with open('/var/run/dynamite/logstash/logstash.pid') as f:
+                with open(os.path.join(PID_DIRECTORY, 'logstash.pid')) as f:
                     self.pid = int(f.read()) + 1
-                start_message = '[+] [Attempt: {}] Starting LogStash on PID [{}]\n'.format(retry + 1, self.pid)
-                if stdout:
-                    sys.stdout.write(start_message)
+                start_message = '[Attempt: {}] Starting LogStash on PID [{}]\n'.format(retry + 1, self.pid)
+                self.logger.info(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1
                     time.sleep(3)
                 else:
                     return True
-            except IOError:
-                if stdout:
-                    sys.stdout.write(start_message)
+            except IOError as e:
+                self.logger.warning("An issue occurred while attempting to start.")
+                self.logger.debug("An issue occurred while attempting to start; {}".format(e))
                 retry += 1
                 time.sleep(3)
+        self.logger.error("Failed to start LogStash after {} attempts.".format(retry))
         return False
 
-    def stop(self, stdout=False):
+    def stop(self):
         """
         Stop the LogStash process
 
-        :param stdout: Print output to console
         :return: True if stopped successfully
         """
+
         alive = True
         attempts = 0
         while alive:
             try:
-                if stdout:
-                    sys.stdout.write('[+] Attempting to stop LogStash [{}]\n'.format(self.pid))
+                self.logger.info('Attempting to stop LogStash [{}]'.format(self.pid))
                 if attempts > 3:
+                    self.logger.warning(
+                        'Attempting to force stop LogStash after {} failed attempts. [{}].'.format(attempts,
+                                                                                                   self.pid))
                     sig_command = signal.SIGKILL
                 else:
                     sig_command = signal.SIGINT
@@ -98,19 +115,19 @@ class ProcessManager:
                 time.sleep(10)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
-                sys.stderr.write('[-] An error occurred while attempting to stop LogStash: {}\n'.format(e))
+                self.logger.error('An error occurred while attempting to stop LogStash.')
+                self.logger.debug('An error occurred while attempting to stop LogStash; {}'.format(e))
                 return False
         return True
 
-    def restart(self, stdout=False):
+    def restart(self):
         """
         Restart the LogStash process
 
-        :param stdout: Print output to console
         :return: True if started successfully
         """
-        self.stop(stdout=stdout)
-        return self.start(stdout=stdout)
+        self.stop()
+        return self.start()
 
     def status(self):
         """
@@ -128,17 +145,17 @@ class ProcessManager:
         }
 
 
-def start(stdout=True):
-    ProcessManager().start(stdout)
+def start(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).start()
 
 
-def stop(stdout=True):
-    ProcessManager().stop(stdout)
+def stop(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).stop()
 
 
-def restart(stdout=True):
-    ProcessManager().restart(stdout)
+def restart(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).restart()
 
 
-def status():
-    return ProcessManager().status()
+def status(stdout=True, verbose=False):
+    return ProcessManager(stdout, verbose).status()

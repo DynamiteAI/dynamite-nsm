@@ -1,5 +1,8 @@
 import os
+import logging
+
 from dynamite_nsm import const
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.logstash import install, process
 from dynamite_nsm.utilities import check_socket, prompt_input
@@ -25,6 +28,21 @@ def check_elasticsearch_target(host, port, perform_check=True):
     return
 
 
+def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('LOGSTASH_CMP', level=log_level, stdout=stdout)
+    if level == logging.DEBUG:
+        logger.debug(msg)
+    elif level == logging.INFO:
+        logger.info(msg)
+    elif level == logging.WARNING:
+        logger.warning(msg)
+    elif level == logging.ERROR:
+        logger.error(msg)
+        
+        
 class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to install logstash
@@ -41,8 +59,8 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                 remove_logstash_tar_archive,
                 install.install_logstash,
                 process.stop,
-                print_message,
-                print_message
+                log_message,
+                log_message
             ),
             arguments=(
                 # check_elasticsearch_target
@@ -74,13 +92,13 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
                     "stdout": False
                 },
 
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] *** LogStash installed successfully. ***\n'
+                    "msg": '*** LogStash installed successfully. ***\n'
                 },
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] Next, Start your cluster: '
+                    "msg": 'Next, Start your cluster: '
                            '\'dynamite logstash start\'.'
                 }
             ),
@@ -99,24 +117,25 @@ class LogstashUninstallStrategy(execution_strategy.BaseExecStrategy):
     Steps to uninstall logstash
     """
 
-    def __init__(self, stdout, prompt_user):
+    def __init__(self, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="logstash_uninstall",
             strategy_description="Uninstall LogStash.",
             functions=(
                 install.uninstall_logstash,
-                print_message
+                log_message
             ),
             arguments=(
                 # install.uninstall_logstash
                 {
+                    "prompt_user": bool(prompt_user),
                     "stdout": bool(stdout),
-                    "prompt_user": bool(prompt_user)
+                    "verbose": bool(verbose),
                 },
 
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] *** LogStash uninstalled successfully. ***\n'
+                    "msg": '*** LogStash uninstalled successfully. ***\n'
                 },
             ),
             return_formats=(
@@ -131,7 +150,7 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
     Steps to start logstash
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="logstash_start",
@@ -142,7 +161,9 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "status": bool(status)
                 },
             ),
             return_formats=(
@@ -159,7 +180,7 @@ class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
     Steps to stop logstash
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="logstash_stop",
             strategy_description="Stop LogStash process.",
@@ -169,7 +190,9 @@ class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "status": bool(status)
                 },
             ),
             return_formats=(
@@ -186,7 +209,7 @@ class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
     Steps to restart logstash
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="logstash_restart",
             strategy_description="Restart LogStash process.",
@@ -195,15 +218,19 @@ class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
                 process.start,
             ),
             arguments=(
-                # process.start
-                {
-                    "stdout": stdout
-                },
-
                 # process.stop
                 {
-                    "stdout": stdout
-                }
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "status": False
+                },
+
+                # process.start
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "status": bool(status)
+                },
             ),
             return_formats=(
                 None,
@@ -256,32 +283,36 @@ def run_install_strategy():
 
 def run_uninstall_strategy():
     ls_uninstall_strategy = LogstashUninstallStrategy(
+        prompt_user=False,
         stdout=True,
-        prompt_user=False
+        verbose=True
     )
     ls_uninstall_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
     ls_start_strategy = LogstashProcessStartStrategy(
+        status=True,
         stdout=True,
-        status=True
+        verbose=True
     )
     ls_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
     ls_stop_strategy = LogstashProcessStopStrategy(
+        status=True,
         stdout=True,
-        status=True
+        verbose=True
     )
     ls_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
     ls_restart_strategy = LogstashProcessRestartStrategy(
+        status=True,
         stdout=True,
-        status=True
+        verbose=True
     )
     ls_restart_strategy.execute_strategy()
 

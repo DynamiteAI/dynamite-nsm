@@ -27,20 +27,24 @@ class LogstashComponent(component.BaseComponent):
                 verbose=verbose
             ),
             uninstall_strategy=execution_strategy.LogstashUninstallStrategy(
+                prompt_user=prompt_on_uninstall,
                 stdout=stdout,
-                prompt_user=prompt_on_uninstall
+                verbose=verbose
             ),
             process_start_strategy=execution_strategy.LogstashProcessStartStrategy(
+                status=True,
                 stdout=stdout,
-                status=True
+                verbose=verbose
             ),
             process_stop_strategy=execution_strategy.LogstashProcessStopStrategy(
+                status=True,
                 stdout=stdout,
-                status=True
+                verbose=verbose
             ),
             process_restart_strategy=execution_strategy.LogstashProcessRestartStrategy(
+                status=True,
                 stdout=stdout,
-                status=True
+                verbose=verbose
             ),
             process_status_strategy=execution_strategy.LogstashProcessStatusStrategy()
         )
@@ -79,32 +83,36 @@ class LogstashCommandlineComponent(component.BaseComponent):
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.LogstashUninstallStrategy(
+                    prompt_user=not args.skip_elastic_uninstall_prompt,
                     stdout=not args.no_stdout,
-                    prompt_user=not args.skip_logstash_uninstall_prompt
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.uninstall()
         elif args.action_name == "start":
             self.register_process_start_strategy(
                 execution_strategy.LogstashProcessStartStrategy(
+                    status=True,
                     stdout=not args.no_stdout,
-                    status=True
+                    verbose=args.verbose and not args.no_stdout,
                 )
             )
             self.start()
         elif args.action_name == "stop":
             self.register_process_stop_strategy(
                 execution_strategy.LogstashProcessStopStrategy(
+                    status=True,
                     stdout=not args.no_stdout,
-                    status=True
+                    verbose=args.verbose and not args.no_stdout,
                 )
             )
             self.stop()
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
                 execution_strategy.LogstashProcessRestartStrategy(
+                    status=True,
                     stdout=not args.no_stdout,
-                    status=True
+                    verbose=args.verbose and not args.no_stdout,
                 )
             )
             self.restart()
