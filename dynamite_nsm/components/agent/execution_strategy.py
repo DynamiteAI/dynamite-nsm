@@ -130,7 +130,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
         if not filebeat_profile.ProcessProfiler().is_installed:
             filebeat_args = {
                 'logstash_targets': list(logstash_targets),
-                'agent_tag': str(tag),
+                'agent_tag': tag,
                 'install_directory': '/opt/dynamite/filebeat/',
                 'download_filebeat_archive': True,
                 'stdout': bool(stdout)
