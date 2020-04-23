@@ -1,15 +1,16 @@
-#!/usr/bin/env python
+#!/Users/jaminbecker/PycharmProjects/dynamite-nsm/bin/python
 
 import os
+import logging
 from sys import argv
+from datetime import datetime
+
 from dynamite_nsm import const
 from dynamite_nsm import updater
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.commandline import component_args
 from dynamite_nsm.commandline import component_parsers
-from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
-from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
-from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 from dynamite_nsm.components.agent.component import AgentCommandlineComponent
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
@@ -47,6 +48,13 @@ if __name__ == '__main__':
         exit(0)
 
     args = component_parsers.main_parser.parse_args()
+    today_formatted_date = datetime.strftime(datetime.today(), '%d-%m-%Y')
+    log_level = logging.INFO
+    if args.verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('DYNAMITE_CMD', level=log_level, stdout=True)
+    logger.info("LOG LEVEL: {}".format(log_level))
+    logger.info("LOG FILE: {}.log".format(os.path.join(const.LOG_PATH, 'dynamite-{}'.format(today_formatted_date))))
     if 'action_name' not in args:
         component_parsers.main_parser.print_help()
         component_parsers.main_parser.error(
@@ -70,30 +78,8 @@ if __name__ == '__main__':
             kb_commandline_component = KibanaCommandlineComponent(args)
         elif args.component_name == "monitor":
             mon_commandline_component = MonitorCommandlineComponent(args)
-    except elastic_exceptions.AlreadyInstalledElasticsearchError:
-        print("[-] ElasticSearch is already installed. Uninstall first.")
-    except elastic_exceptions.InstallElasticsearchError as e:
-        print("[-] ElasticSearch Install Error: {}".format(e.message))
-    except elastic_exceptions.UninstallElasticsearchError as e:
-        print("[-] ElasticSearch Uninstall Error: {}".format(e.message))
-    except elastic_exceptions.CallElasticProcessError as e:
-        print("[-] ElasticSearch Process Error: {}".format(e.message))
-    except logstash_exceptions.AlreadyInstalledLogstashError:
-        print("[-] LogStash is already installed. Uninstall first.")
-    except logstash_exceptions.InstallLogstashError as e:
-        print("[-] LogStash Install Error: {}".format(e.message))
-    except logstash_exceptions.UninstallLogstashError as e:
-        print("[-] LogStash Uninstall Error: {}".format(e.message))
-    except logstash_exceptions.CallLogstashProcessError as e:
-        print("[-] LogStash Process Error: {}".format(e.message))
-    except kibana_exceptions.AlreadyInstalledKibanaError:
-        print("[-] Kibana is already installed. Uninstall first.")
-    except kibana_exceptions.InstallKibanaError as e:
-        print("[-] Kibana Install Error: {}".format(e.message))
-    except kibana_exceptions.UninstallKibanaError as e:
-        print("[-] Kibana Uninstall Error: {}".format(e.message))
-    except kibana_exceptions.CallKibanaProcessError as e:
-        print("[-] Kibana Process Error: {}".format(e.message))
     except KeyboardInterrupt:
         print("\n[+] Exiting")
         exit(0)
+    except Exception:
+        logger.critical("Fatal error. Exiting.")
