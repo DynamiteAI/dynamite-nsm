@@ -97,7 +97,8 @@ class ProcessManager:
                 self.logger.info('Attempting to stop ElasticSearch [{}]'.format(self.pid))
                 if attempts > 3:
                     self.logger.warning(
-                        'Attempting to force stop ElasticSearch after 3 failed attempts. [{}].'.format(self.pid))
+                        'Attempting to force stop ElasticSearch after {} failed attempts. [{}].'.format(attempts,
+                                                                                                        self.pid))
                     sig_command = signal.SIGKILL
                 else:
                     # Kill the zombie after the third attempt of asking it to kill itself

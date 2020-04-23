@@ -4,6 +4,7 @@ import json
 import time
 import base64
 import shutil
+import logging
 from yaml import load, dump
 
 try:
@@ -25,6 +26,7 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 
@@ -255,23 +257,30 @@ class PasswordConfigManager:
     Provides a basic interface for resetting ElasticSearch passwords
     """
 
-    def __init__(self, auth_user, current_password):
+    def __init__(self, auth_user, current_password, stdout=True, verbose=False):
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
+
         self.auth_user = auth_user
         self.current_password = current_password
         self.env_vars = utilities.get_environment_file_dict()
 
-    def _set_user_password(self, user, password, stdout=False):
-        if stdout:
-            sys.stdout.write('[+] Updating password for {}\n'.format(user))
+    def _set_user_password(self, user, password):
+        self.logger.debug('Updating password for {}'.format(user))
         try:
             try:
                 es_config = ConfigManager(configuration_directory=self.env_vars.get('ES_PATH_CONF'))
             except general_exceptions.ReadConfigError as e:
+                self.logger.error("Could not read configuration.")
+                self.logger.debug("Could not read configuration; {}".format(e))
                 raise general_exceptions.ResetPasswordError("Could not read configuration; {}".format(e))
             try:
                 try:
                     base64string = base64.b64encode('%s:%s' % (self.auth_user, self.current_password))
                 except TypeError:
+                    self.logger.debug("Fallback; encoding bytes to utf-8 charset before building b64 auth package.")
                     encoded_bytes = '{}:{}'.format(self.auth_user, self.current_password).encode('utf-8')
                     base64string = base64.b64encode(encoded_bytes).decode('utf-8')
                 url_request = Request(
@@ -287,14 +296,22 @@ class PasswordConfigManager:
                 try:
                     urlopen(url_request)
                 except TypeError:
+                    self.logger.debug("Fallback; encoding bytes to utf-8 charset making request.")
                     urlopen(url_request, data=json.dumps({'password': password}).encode('utf-8'))
             except HTTPError as e:
                 if e.code != 200:
-                    sys.stderr.write('[-] Failed to update {} password - [{}]\n'.format(user, e))
+                    self.logger.error(
+                        "ElasticSearch API returned a HTTP {} code while attempting to reset user: {} password."
+                        "".format(e.code, user))
+                    self.logger.debug(
+                        "ElasticSearch API returned a HTTP {} code while attempting to reset user: {} password; {}"
+                        "".format(e.code, user, e))
                     raise general_exceptions.ResetPasswordError(
-                        "Elasticsearch API returned a {} code while attempting to reset user: {} password; {}".format(
+                        "Elasticsearch API returned a HTTP {} code while attempting to reset user: {} password; {}".format(
                             e.code, user, e))
         except Exception as e:
+            self.logger.error("General exception while resetting Elasticsearch password.".format(e))
+            self.logger.debug("General exception while resetting Elasticsearch password; {}".format(e))
             raise general_exceptions.ResetPasswordError(
                 "General exception while resetting Elasticsearch password; {}".format(e))
 
@@ -306,7 +323,7 @@ class PasswordConfigManager:
         :param stdout: Print status to stdout
         """
 
-        self._set_user_password('apm_system', new_password, stdout=stdout)
+        self._set_user_password('apm_system', new_password)
 
     def set_beats_password(self, new_password, stdout=False):
         """
@@ -316,7 +333,7 @@ class PasswordConfigManager:
         :param stdout: Print status to stdout
         """
 
-        self._set_user_password('beats_system', new_password, stdout=stdout)
+        self._set_user_password('beats_system', new_password)
 
     def set_elastic_password(self, new_password, stdout=False):
         """
@@ -326,7 +343,7 @@ class PasswordConfigManager:
         :param stdout: Print status to stdout
         """
 
-        self._set_user_password('elastic', new_password, stdout=stdout)
+        self._set_user_password('elastic', new_password)
 
     def set_kibana_password(self, new_password, stdout=False):
         """
@@ -336,7 +353,7 @@ class PasswordConfigManager:
         :param stdout: Print status to stdout
         """
 
-        self._set_user_password('kibana', new_password, stdout=stdout)
+        self._set_user_password('kibana', new_password)
 
     def set_logstash_system_password(self, new_password, stdout=False):
         """
@@ -346,7 +363,7 @@ class PasswordConfigManager:
         :param stdout: Print status to stdout
         """
 
-        self._set_user_password('logstash_system', new_password, stdout=stdout)
+        self._set_user_password('logstash_system', new_password)
 
     def set_remote_monitoring_password(self, new_password, stdout=False):
         """
@@ -356,7 +373,7 @@ class PasswordConfigManager:
         :param stdout: Print status to stdout
         """
 
-        self._set_user_password('remote_monitoring_user', new_password, stdout=stdout)
+        self._set_user_password('remote_monitoring_user', new_password)
 
     def set_all_passwords(self, new_password, stdout=False):
         """
@@ -374,31 +391,35 @@ class PasswordConfigManager:
         self.set_elastic_password(new_password, stdout=stdout)
 
 
-def change_elasticsearch_password(old_password, password='changeme', stdout=False):
+def change_elasticsearch_password(old_password, password='changeme', stdout=True, verbose=False):
     """
     Change the Elasticsearch password for all builtin users
 
     :param old_password: The old Elasticsearch password
     :param password: The new Elasticsearch password
     :param stdout: Print status to stdout
+    :param verbose: Include detailed debug messages
     """
 
     from dynamite_nsm.services.elasticsearch import process as elastic_process
     from dynamite_nsm.services.elasticsearch import profile as elastic_profile
 
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
+
     if not elastic_process.ProcessManager().start():
-        sys.stderr.write('[-] Could not start ElasticSearch Process. Password reset failed.')
+        logger.error('Could not start ElasticSearch Process. Password reset failed.')
         raise general_exceptions.ResetPasswordError(
             "Elasticsearch process was not able to start, check your elasticsearch logs.")
     while not elastic_profile.ProcessProfiler().is_listening:
         if stdout:
-            sys.stdout.write('[+] Waiting for ElasticSearch API to become accessible.\n')
+            logger.info('Waiting for ElasticSearch API to become accessible.')
         time.sleep(1)
-    if stdout:
-        sys.stdout.write('[+] ElasticSearch API is up.\n')
-        sys.stdout.write('[+] Sleeping for 10 seconds, while ElasticSearch API finishes booting.\n')
-        sys.stdout.flush()
-    time.sleep(10)
-    es_pw_config = PasswordConfigManager(
-        'elastic', current_password=old_password)
+
+    logger.info('ElasticSearch API is up.')
+    logger.debug('Sleeping for 5 seconds, while ElasticSearch API finishes booting.')
+    time.sleep(5)
+    es_pw_config = PasswordConfigManager('elastic', current_password=old_password)
     es_pw_config.set_all_passwords(password, stdout=stdout)

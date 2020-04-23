@@ -91,10 +91,9 @@ class InstallManager:
         path = None
         try:
             for path in config_paths:
-                if self.stdout:
-                    sys.stdout.write('[+] Copying {} -> {}\n'.format(
-                        os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
-                        self.configuration_directory))
+                self.logger.debug('[+] Copying {} -> {}'.format(
+                    os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
+                    self.configuration_directory))
                 try:
                     shutil.copy(
                         os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
@@ -112,8 +111,7 @@ class InstallManager:
             for path in install_paths:
                 src_install_path = os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_DIRECTORY_NAME, path)
                 dst_install_path = os.path.join(self.install_directory, path)
-                if self.stdout:
-                    sys.stdout.write('[+] Copying {} -> {}\n'.format(src_install_path, dst_install_path))
+                self.logger.debug('[+] Copying {} -> {}'.format(src_install_path, dst_install_path))
                 try:
                     utilities.makedirs(dst_install_path, exist_ok=True)
                     utilities.copytree(src_install_path, dst_install_path)
@@ -319,7 +317,6 @@ class InstallManager:
             )
         if not elastic_profile.ProcessProfiler().is_running:
             elastic_process.ProcessManager().start()
-            sys.stdout.flush()
             attempts = 0
             while not elastic_profile.ProcessProfiler().is_listening:
                 self.logger.info('Waiting for ElasticSearch API to become accessible.')

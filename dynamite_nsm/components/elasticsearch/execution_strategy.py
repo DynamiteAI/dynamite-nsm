@@ -21,7 +21,7 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
     log_level = logging.INFO
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('ELASTICSEARCH_CMP', level=log_level, stdout=stdout)
+    logger = get_logger('ELASTICSE_CMP', level=log_level, stdout=stdout)
     if level == logging.DEBUG:
         logger.debug(msg)
     elif level == logging.INFO:
