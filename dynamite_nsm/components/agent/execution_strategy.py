@@ -27,23 +27,30 @@ def check_agent_deps_installed():
         exit(0)
 
 
-def get_agent_status():
+def get_agent_status(include_subprocesses=False):
     zeek_profiler = zeek_profile.ProcessProfiler()
     suricata_profiler = suricata_profile.ProcessProfiler()
     filebeat_profiler = filebeat_profile.ProcessProfiler()
 
     agent_status = {}
     if zeek_profiler.is_installed:
+        zeek_status = zeek_process.ProcessManager().status()
+        if not include_subprocesses:
+            subprocess_count = len(zeek_status['SUBPROCESSES'])
+            del zeek_status['SUBPROCESSES']
+            zeek_status.update({
+                "SUBPROCESS_COUNT": subprocess_count
+            })
         agent_status.update({
-            'zeek': zeek_process.ProcessManager().status()
+            'ZEEK': zeek_status
         })
     if suricata_profiler.is_installed:
         agent_status.update({
-            'suricata': suricata_process.ProcessManager().status()
+            'SURICATA': suricata_process.ProcessManager().status()
         })
     if filebeat_profiler.is_installed:
         agent_status.update({
-            'filebeat': filebeat_process.ProcessManager().status()
+            'SURICATA': filebeat_process.ProcessManager().status()
         })
     return agent_status
 
@@ -364,7 +371,7 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of the agent
     """
 
-    def __init__(self):
+    def __init__(self, include_subprocesses):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="agent_status",
             strategy_description="Get the status of the Agent processes.",
@@ -372,7 +379,9 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 get_agent_status,
             ),
             arguments=(
-                {},
+                {
+                    include_subprocesses: bool(include_subprocesses)
+                },
             ),
             return_formats=(
                 'json',
