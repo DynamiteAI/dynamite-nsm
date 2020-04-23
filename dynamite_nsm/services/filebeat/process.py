@@ -38,7 +38,7 @@ class ProcessManager:
         if not os.path.exists(PID_DIRECTORY):
             utilities.makedirs(PID_DIRECTORY, exist_ok=True)
         try:
-            with open(PID_DIRECTORY, 'filebeat.pid') as pid_f:
+            with open(os.path.join(PID_DIRECTORY, 'filebeat.pid')) as pid_f:
                 self.pid = int(pid_f.read())
         except (IOError, ValueError):
             self.pid = -1
