@@ -1,5 +1,8 @@
 import os
+import logging
+
 from dynamite_nsm import const
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.elasticsearch import install, process
 
@@ -12,6 +15,21 @@ def remove_elasticsearch_tar_archive():
     dir_path = os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME)
     if os.path.exists(dir_path):
         os.remove(dir_path)
+
+
+def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('ELASTICSEARCH_CMP', level=log_level, stdout=stdout)
+    if level == logging.DEBUG:
+        logger.debug(msg)
+    elif level == logging.INFO:
+        logger.info(msg)
+    elif level == logging.WARNING:
+        logger.warning(msg)
+    elif level == logging.ERROR:
+        logger.error(msg)
 
 
 class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
@@ -28,8 +46,8 @@ class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
                 remove_elasticsearch_tar_archive,
                 install.install_elasticsearch,
                 process.stop,
-                print_message,
-                print_message
+                log_message,
+                log_message
             ),
             arguments=(
                 # remove_elasticsearch_tar_archive
@@ -52,13 +70,13 @@ class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
                     "stdout": False
                 },
 
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] *** ElasticSearch installed successfully. ***\n'
+                    "msg": '*** ElasticSearch installed successfully. ***'
                 },
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] Next, Start your cluster: '
+                    "msg": 'Next, Start your cluster: '
                            '\'dynamite elasticsearch start\'.'
                 }
             ),
@@ -82,7 +100,7 @@ class ElasticsearchUninstallStrategy(execution_strategy.BaseExecStrategy):
             strategy_description="Uninstall ElasticSearch.",
             functions=(
                 install.uninstall_elasticsearch,
-                print_message
+                log_message
             ),
             arguments=(
                 # install.uninstall_elasticsearch
@@ -92,7 +110,7 @@ class ElasticsearchUninstallStrategy(execution_strategy.BaseExecStrategy):
                     "verbose": bool(verbose),
                 },
 
-                # print_message
+                # log_message
                 {
                     "msg": '*** ElasticSearch uninstalled successfully. ***'
                 },
@@ -233,32 +251,36 @@ def run_install_strategy():
 
 def run_uninstall_strategy():
     es_uninstall_strategy = ElasticsearchUninstallStrategy(
+        prompt_user=False,
         stdout=True,
-        prompt_user=False
+        verbose=True
     )
     es_uninstall_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
     es_start_strategy = ElasticsearchProcessStartStrategy(
+        status=True,
         stdout=True,
-        status=True
+        verbose=True
     )
     es_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
     es_stop_strategy = ElasticsearchProcessStopStrategy(
+        status=True,
         stdout=True,
-        status=True
+        verbose=True
     )
     es_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
     es_restart_strategy = ElasticsearchProcessRestartStrategy(
+        status=True,
         stdout=True,
-        status=True
+        verbose=True
     )
     es_restart_strategy.execute_strategy()
 
