@@ -227,7 +227,7 @@ class InstallManager:
         shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'logstash', 'logstash.yml'),
                     self.configuration_directory)
         ls_config = logstash_config.ConfigManager(configuration_directory=self.configuration_directory)
-        self.logger.info('Setting up JVM default heap settings [{}GB]\n'.format(self.heap_size_gigs))
+        self.logger.info('Setting up JVM default heap settings [{}GB]'.format(self.heap_size_gigs))
         ls_config.java_initial_memory = int(self.heap_size_gigs)
         ls_config.java_maximum_memory = int(self.heap_size_gigs)
         ls_config.write_configs()

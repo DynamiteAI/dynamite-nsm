@@ -432,7 +432,7 @@ def run_subprocess_with_status(process, expected_lines=None):
         '\033[0;36m',
         'PROCESS_TRACKER ',
         '\033[0m',
-        ' ',
+        '            ',
         progressbar.Percentage(),
         ' ', progressbar.Bar(),
         ' ', progressbar.FormatLabel(''),
