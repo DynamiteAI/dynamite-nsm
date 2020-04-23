@@ -431,7 +431,7 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
     es_config = elastic_configs.ConfigManager(configuration_directory=configuration_directory)
     if prompt_user:
         sys.stderr.write('\n[-] WARNING! Removing ElasticSearch Will Delete All Data.\n')
-        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
             resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
