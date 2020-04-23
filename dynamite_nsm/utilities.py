@@ -15,6 +15,7 @@ import tarfile
 import subprocess
 import multiprocessing
 from contextlib import closing
+from datetime import datetime
 
 try:
     from urllib2 import urlopen
@@ -137,7 +138,8 @@ def download_file(url, filename, stdout=False):
         response_size_bytes = None
     CHUNK = 16 * 1024
     widgets = [
-        '[+] ', progressbar.FileTransferSpeed(),
+        '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
+        '[Download Manager] ', progressbar.FileTransferSpeed(),
         ' ', progressbar.Bar(),
         ' ', '[{}]'.format(filename),
         ' ', progressbar.ETA()
@@ -153,7 +155,6 @@ def download_file(url, filename, stdout=False):
         except TypeError:
             pb = progressbar.ProgressBar(maxval=progressbar.UnknownLength)
     if stdout:
-        sys.stdout.write("\n")
         pb.start()
     try:
         with open(os.path.join(const.INSTALL_CACHE, filename), 'wb') as f:
@@ -171,7 +172,6 @@ def download_file(url, filename, stdout=False):
                 chunk_num += 1
             if stdout:
                 pb.finish()
-                sys.stdout.write("\n")
     except URLError:
         return False
     return True
@@ -419,7 +419,8 @@ def run_subprocess_with_status(process, expected_lines=None):
 
     i = 0
     widgets = [
-        '[+] ', progressbar.Percentage(),
+        '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
+        '[Process Tracker] ', progressbar.Percentage(),
         ' ', progressbar.Bar(),
         ' ', progressbar.FormatLabel(''),
         ' ', progressbar.ETA()
@@ -429,7 +430,6 @@ def run_subprocess_with_status(process, expected_lines=None):
         pb = progressbar.ProgressBar(widgets=widgets, max_value=expected_lines)
     except TypeError:
         pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
-    sys.stdout.write("\n")
     pb.start()
     while True:
         output = process.stdout.readline().decode()
@@ -451,7 +451,6 @@ def run_subprocess_with_status(process, expected_lines=None):
         # print(i, process.poll(), output)
     if not over_max_value:
         pb.finish()
-        sys.stdout.write("\n")
     return process.poll()
 
 

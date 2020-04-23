@@ -91,7 +91,7 @@ class InstallManager:
         path = None
         try:
             for path in config_paths:
-                self.logger.debug('[+] Copying {} -> {}'.format(
+                self.logger.debug('Copying {} -> {}'.format(
                     os.path.join(const.INSTALL_CACHE, '{}/{}'.format(const.ELASTICSEARCH_DIRECTORY_NAME, path)),
                     self.configuration_directory))
                 try:
@@ -111,7 +111,7 @@ class InstallManager:
             for path in install_paths:
                 src_install_path = os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_DIRECTORY_NAME, path)
                 dst_install_path = os.path.join(self.install_directory, path)
-                self.logger.debug('[+] Copying {} -> {}'.format(src_install_path, dst_install_path))
+                self.logger.debug('Copying {} -> {}'.format(src_install_path, dst_install_path))
                 try:
                     utilities.makedirs(dst_install_path, exist_ok=True)
                     utilities.copytree(src_install_path, dst_install_path)
@@ -276,7 +276,10 @@ class InstallManager:
                     bootstrap_users_and_passwords[user] = password
             es_pass_config = elastic_configs.PasswordConfigManager(
                 auth_user='elastic',
-                current_password=bootstrap_users_and_passwords['elastic'])
+                current_password=bootstrap_users_and_passwords['elastic'],
+                stdout=self.stdout,
+                verbose=self.verbose
+            )
             es_pass_config.set_all_passwords(new_password=self.password, stdout=True)
 
         if not elastic_profile.ProcessProfiler().is_installed:
