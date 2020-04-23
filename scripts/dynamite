@@ -81,5 +81,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print("\n[+] Exiting")
         exit(0)
-    except Exception:
+    except Exception as e:
         logger.critical("Fatal error. Exiting.")
+        logger.debug("Fatal error. Exiting; {}".format(e))

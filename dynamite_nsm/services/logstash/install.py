@@ -404,7 +404,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
 
     ls_profiler = logstash_profile.ProcessProfiler()
     if ls_profiler.is_installed:
-        logger.error('ElasticSearch is already installed.')
+        logger.error('LogStash is already installed.')
         raise logstash_exceptions.AlreadyInstalledLogstashError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('\n WARNING! Dynamite Logstash should have at-least 6GB to run '
