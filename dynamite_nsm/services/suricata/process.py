@@ -77,19 +77,17 @@ class ProcessManager:
         self.logger.error("Failed to start Suricata after {} attempts.".format(retry))
         return False
 
-    def stop(self, stdout=False):
+    def stop(self):
         """
         Stop the Suricata process
 
-        :param stdout: Print output to console
         :return: True if stopped successfully
         """
         alive = True
         attempts = 0
         while alive:
             try:
-                if stdout:
-                    sys.stdout.write('[+] Attempting to stop Suricata [{}]\n'.format(self.pid))
+                self.logger.info('Attempting to stop Suricata [{}]'.format(self.pid))
                 if attempts > 3:
                     sig_command = signal.SIGKILL
                 else:
@@ -112,7 +110,6 @@ class ProcessManager:
         """
         Restart the Suricata process
 
-        :param stdout: Print output to console
         :return: True if restarted successfully
         """
         self.logger.info('Attempting to restart Suricata.')
@@ -137,7 +134,7 @@ def start(stdout=True, verbose=False):
 
 
 def stop(stdout=True, verbose=False):
-    ProcessManager(stdout, verbose).stop(stdout)
+    ProcessManager(stdout, verbose).stop()
 
 
 def restart(stdout=True, verbose=False):
