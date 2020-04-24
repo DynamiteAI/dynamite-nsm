@@ -139,8 +139,8 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             filebeat_args = {
                 'targets': list(targets),
                 'kafka_topic': kafka_topic,
-                'kafka_username': str(kafka_username),
-                'kafka_password': str(kafka_password),
+                'kafka_username': kafka_username,
+                'kafka_password': kafka_password,
                 'agent_tag': tag,
                 'install_directory': '/opt/dynamite/filebeat/',
                 'download_filebeat_archive': True,
