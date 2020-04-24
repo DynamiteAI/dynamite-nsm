@@ -7,15 +7,18 @@ class AgentComponent(component.BaseComponent):
     Agent Component Wrapper intended for general use
     """
 
-    def __init__(self, capture_network_interfaces, logstash_targets, agent_analyzers=('zeek', 'suricata'), tag=None,
-                 prompt_on_uninstall=True, stdout=True, verbose=False):
+    def __init__(self, capture_network_interfaces, targets, kafka_topic=None, kafka_username=None, kafka_password=None,
+                 agent_analyzers=('zeek', 'suricata'), tag=None, prompt_on_uninstall=True, stdout=True, verbose=False):
         component.BaseComponent.__init__(
             self,
             component_name="Agent",
             component_description="Get context around activity on your network, discover threats and gain visibility.",
             install_strategy=execution_strategy.AgentInstallStrategy(
                 capture_network_interfaces=capture_network_interfaces,
-                logstash_targets=logstash_targets,
+                targets=targets,
+                kafka_topic=kafka_topic,
+                kafka_username=kafka_username,
+                kafka_password=kafka_password,
                 agent_analyzers=agent_analyzers,
                 tag=tag,
                 stdout=stdout,
@@ -63,7 +66,10 @@ class AgentCommandlineComponent(component.BaseComponent):
             self.register_install_strategy(
                 execution_strategy.AgentInstallStrategy(
                     capture_network_interfaces=args.agent_capture_interfaces,
-                    logstash_targets=args.logstash_targets,
+                    targets=args.targets,
+                    kafka_topic=args.kafka_topic,
+                    kafka_username=args.kafka_username,
+                    kafka_password=args.kafka_password,
                     agent_analyzers=args.agent_analyzers,
                     tag=args.agent_tag,
                     stdout=not args.no_stdout,
@@ -119,7 +125,7 @@ class AgentCommandlineComponent(component.BaseComponent):
 if __name__ == '__main__':
     agt_component = AgentComponent(
         capture_network_interfaces=['eth0'],
-        logstash_targets=['localhost:5044']
+        targets=['localhost:5044']
     )
     agt_component.install()
     agt_component.start()

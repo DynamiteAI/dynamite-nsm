@@ -18,12 +18,28 @@ from dynamite_nsm.services.suricata import profile as suricata_profile
 from dynamite_nsm.utilities import prompt_input
 
 
-def check_agent_deps_installed():
+def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('AGENT_CMP', level=log_level, stdout=stdout)
+    if level == logging.DEBUG:
+        logger.debug(msg)
+    elif level == logging.INFO:
+        logger.info(msg)
+    elif level == logging.WARNING:
+        logger.warning(msg)
+    elif level == logging.ERROR:
+        logger.error(msg)
+
+
+def check_agent_deps_installed(stdout=True):
     try:
         with open(os.path.join(const.CONFIG_PATH, '.agent_environment_prepared'), 'r'):
             return
     except IOError:
-        print("[-] Agent dependencies were not installed. Install with 'dynamite agent-dependencies install'")
+        log_message("Agent dependencies were not installed. Install with 'dynamite agent-dependencies install'",
+                    stdout=stdout)
         exit(0)
 
 
@@ -74,21 +90,6 @@ def print_message(msg):
     print(msg)
 
 
-def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
-    log_level = logging.INFO
-    if verbose:
-        log_level = logging.DEBUG
-    logger = get_logger('AGENT_CMP', level=log_level, stdout=stdout)
-    if level == logging.DEBUG:
-        logger.debug(msg)
-    elif level == logging.INFO:
-        logger.info(msg)
-    elif level == logging.WARNING:
-        logger.warning(msg)
-    elif level == logging.ERROR:
-        logger.error(msg)
-
-
 def remove_filebeat_tar_archive():
     dir_path = os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_ARCHIVE_NAME)
     if os.path.exists(dir_path):
@@ -126,17 +127,20 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
     Steps to install the agent
     """
 
-    def __init__(self, capture_network_interfaces, logstash_targets, agent_analyzers=('zeek', 'suricata'),
-                 tag=None, stdout=True, verbose=False):
+    def __init__(self, capture_network_interfaces, targets, kafka_topic=None, kafka_username=None, kafka_password=None,
+                 agent_analyzers=('zeek', 'suricata'), tag=None, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="agent_install",
-            strategy_description="Install Zeek and/or Suricata along with Filebeat.",
+            strategy_description="Install Zeek and/or Suricata along with FileBeat.",
         )
-        self.add_function(func=check_agent_deps_installed, argument_dict={})
+        self.add_function(func=check_agent_deps_installed, argument_dict={'stdout': bool(stdout)})
         if not filebeat_profile.ProcessProfiler().is_installed:
             filebeat_args = {
-                'logstash_targets': list(logstash_targets),
+                'targets': list(targets),
+                'kafka_topic': str(kafka_topic),
+                'kafka_username': str(kafka_username),
+                'kafka_password': str(kafka_password),
                 'agent_tag': tag,
                 'install_directory': '/opt/dynamite/filebeat/',
                 'download_filebeat_archive': True,
@@ -394,7 +398,7 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 def run_install_strategy():
     agt_install_strategy = AgentInstallStrategy(
         capture_network_interfaces=['eth0'],
-        logstash_targets=['localhost:5044'],
+        targets=['localhost:5044'],
         agent_analyzers=('zeek', 'suricata'),
         stdout=True,
         verbose=True

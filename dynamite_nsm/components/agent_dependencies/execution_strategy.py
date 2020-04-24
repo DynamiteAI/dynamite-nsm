@@ -1,21 +1,38 @@
 import os
 import sys
+import logging
 from datetime import datetime
 from dynamite_nsm import const
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import prompt_input
 from dynamite_nsm.services.zeek.pf_ring import install
 from dynamite_nsm.components.base import execution_strategy
 
 
+def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('AGENT_CMP', level=log_level, stdout=stdout)
+    if level == logging.DEBUG:
+        logger.debug(msg)
+    elif level == logging.INFO:
+        logger.info(msg)
+    elif level == logging.WARNING:
+        logger.warning(msg)
+    elif level == logging.ERROR:
+        logger.error(msg)
+
+
 def reboot_system(stdout):
     sys.stderr.write(
-        '[-] You must REBOOT for changes to take affect.\n')
-    resp = prompt_input('Reboot now? ([no]|yes): ')
+        '\n[+] You must REBOOT for changes to take affect.\n')
+    resp = prompt_input('[?] Reboot now? ([no]|yes): ')
     while resp not in ['', 'no', 'yes']:
-        resp = prompt_input('Reboot now? ([no]|yes): ')
+        resp = prompt_input('[?] Reboot now? ([no]|yes): ')
     if resp != 'yes':
         if stdout:
-            sys.stdout.write('[+] Exiting\n')
+            sys.stdout.write('\n[+] Exiting\n')
         exit(0)
     os.system('reboot')
 
@@ -25,12 +42,12 @@ def mark_agent_dependencies_install():
         f.write(str(datetime.utcnow()))
 
 
-def check_agent_deps_installed():
+def check_agent_deps_installed(stdout=True):
     try:
         with open(os.path.join(const.CONFIG_PATH, '.agent_environment_prepared'), 'r') as f:
             install_time = f.read()
-            print("[+] Agent dependencies were installed on {}. You may proceed with agent installation.".format(
-                install_time))
+            log_message("Agent dependencies were installed on {}. You may proceed with agent installation.".format(
+                install_time), stdout=stdout)
             exit(0)
     except IOError:
         return
@@ -54,7 +71,9 @@ class AgentDependencyInstallStrategy(execution_strategy.BaseExecStrategy):
             ),
             arguments=(
                 # check_agent_deps_installed,
-                {},
+                {
+                    'stdout': bool(stdout)
+                },
                 # install.InstallManager.install_dependencies
                 {
                     "stdout": bool(stdout),

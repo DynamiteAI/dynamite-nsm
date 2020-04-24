@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import shutil
 import logging
 import tarfile
@@ -22,14 +23,17 @@ from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 class InstallManager:
 
-    def __init__(self, install_directory, monitor_log_paths, logstash_targets, agent_tag=None,
-                 download_filebeat_archive=True, stdout=True, verbose=False):
+    def __init__(self, install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
+                 kafka_password=None, agent_tag=None, download_filebeat_archive=True, stdout=True, verbose=False):
         """
         Install Filebeat
 
         :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
         :param monitor_log_paths: A tuple of log paths to monitor
-        :param logstash_targets: A tuple of Logstash targets to forward events to (E.G ["192.168.0.9:5044", ...])
+        :param targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9:5044", ...])
+        :param kafka_topic: A string representing the name of the Kafka topic to write messages too
+        :param kafka_username: The username for connecting to Kafka
+        :param kafka_password: The password for connecting to Kafka
         :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
         :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
         :param stdout: Print the output to console
@@ -42,7 +46,10 @@ class InstallManager:
         self.logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
         self.monitor_paths = list(monitor_log_paths)
-        self.logstash_targets = list(logstash_targets)
+        self.targets = list(targets)
+        self.kafka_topic = kafka_topic
+        self.kafka_username = kafka_username
+        self.kafka_password = kafka_password
         self.install_directory = install_directory
         self.stdout = stdout
         self.agent_tag = agent_tag
@@ -69,10 +76,10 @@ class InstallManager:
             self.logger.debug("Failed to extract FileBeat archive, threw: {}.".format(e))
             raise filebeat_exceptions.InstallFilebeatError("Failed to extract Filebeat archive.")
 
-        if not self.validate_logstash_targets(logstash_targets):
-            self.logger.error("Invalid Logstash Targets specified: {}.".format(logstash_targets))
+        if not self.validate_targets(targets):
+            self.logger.error("Invalid Targets specified: {}.".format(targets))
             raise filebeat_exceptions.InstallFilebeatError(
-                "Invalid Logstash Targets specified: {}.".format(logstash_targets))
+                "Invalid Targets specified: {}.".format(targets))
 
     @staticmethod
     def download_filebeat(stdout=False):
@@ -110,7 +117,7 @@ class InstallManager:
                 "General error while attempting to extract FileBeat archive; {}".format(e))
 
     @staticmethod
-    def validate_logstash_targets(logstash_targets, stdout=True, verbose=False):
+    def validate_targets(logstash_targets, stdout=True, verbose=False):
         """
         Ensures that Logstash targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
 
@@ -168,7 +175,19 @@ class InstallManager:
             raise filebeat_exceptions.InstallFilebeatError("Failed to read Filebeat configuration.")
         beats_config.set_monitor_target_paths(self.monitor_paths)
         beats_config.set_agent_tag(self.agent_tag)
-        beats_config.set_logstash_targets(self.logstash_targets)
+        if (self.kafka_password or self.kafka_username) and not self.kafka_topic:
+            self.logger.error("You have specified Kafka config options without specifying a Kafka topic.")
+            raise filebeat_exceptions.InstallFilebeatError(
+                "You have specified Kafka config options without specifying a Kafka topic.")
+        if self.kafka_topic:
+            self.logger.warning(
+                "You have enabled the Agent's Kafka output which does integrate natively with Dynamite "
+                "Monitor/LogStash component. You will have to bring your own broker. Happy Hacking!")
+            time.sleep(2)
+            beats_config.set_kafka_targets(target_hosts=self.targets, topic=self.kafka_topic,
+                                           username=self.kafka_username, password=self.kafka_password)
+        else:
+            beats_config.set_logstash_targets(self.targets)
         try:
             beats_config.write_config()
         except filebeat_exceptions.WriteFilebeatConfigError:
@@ -194,14 +213,18 @@ class InstallManager:
                 "General error occurred while attempting to install FileBeat; {}".format(e))
 
 
-def install_filebeat(install_directory, monitor_log_paths, logstash_targets, agent_tag, download_filebeat_archive=True,
+def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
+                     kafka_password=None, agent_tag=None, download_filebeat_archive=True,
                      stdout=True, verbose=False):
     """
     Install Filebeat
 
     :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
     :param monitor_log_paths: A tuple of log paths to monitor
-    :param logstash_targets: A tuple of Logstash targets to forward events to (E.G ["192.168.0.9:5044", ...])
+    :param targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9:5044", ...])
+    :param kafka_topic: A string representing the name of the Kafka topic to write messages too
+    :param kafka_username: The username for connecting to Kafka
+    :param kafka_password: The password for connecting to Kafka
     :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
     :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
     :param stdout: Print the output to console
@@ -217,7 +240,8 @@ def install_filebeat(install_directory, monitor_log_paths, logstash_targets, age
         logger.error('FileBeat is already installed.')
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
     filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
-                                        logstash_targets=logstash_targets, agent_tag=agent_tag,
+                                        targets=targets, kafka_topic=kafka_topic, kafka_username=kafka_username,
+                                        kafka_password=kafka_password, agent_tag=agent_tag,
                                         download_filebeat_archive=download_filebeat_archive, stdout=stdout,
                                         verbose=verbose)
     filebeat_installer.setup_filebeat()
