@@ -2,6 +2,7 @@
 
 import os
 import logging
+import traceback
 from sys import argv
 from datetime import datetime
 
@@ -84,3 +85,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.critical("Fatal error. Exiting.")
         logger.debug("Fatal error. Exiting; {}".format(e))
+        traceback.print_exc()
