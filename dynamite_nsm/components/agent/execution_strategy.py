@@ -4,6 +4,7 @@ import logging
 
 from dynamite_nsm import const
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.tuis import agent_config_selector
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.zeek import install as zeek_install
 from dynamite_nsm.services.zeek import process as zeek_process
@@ -120,6 +121,22 @@ def prompt_agent_uninstall(prompt_user=True, stdout=True):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
+
+
+class AgentConfigStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to configure the agent
+    """
+
+    def __init__(self):
+        execution_strategy.BaseExecStrategy.__init__(
+            self,
+            strategy_name="agent_config",
+            strategy_description="Configure the agent.",
+            functions=agent_config_selector.run_gui,
+            arguments={},
+            return_formats=(None,)
+        )
 
 
 class AgentInstallStrategy(execution_strategy.BaseExecStrategy):

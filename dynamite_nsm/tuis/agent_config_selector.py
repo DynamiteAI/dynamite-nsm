@@ -77,5 +77,5 @@ class AgentConfigApp(npyscreen.NPSAppManaged):
     def onStart(self):
         self.addForm('MAIN', AgentConfigForm, name='Agent Configurations')
 
-
-AgentConfigApp().run()
+def run_gui():
+    AgentConfigApp().run()

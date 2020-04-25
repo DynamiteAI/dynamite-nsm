@@ -13,6 +13,7 @@ def register_agent_dependency_component_args(agt_deps_component_parser, parent_p
 
 def register_agent_component_args(agt_component_parser, parent_parsers):
     agent_component_args_subparsers = agt_component_parser.add_subparsers()
+    agent_component_args_subparsers.add_parser("config", help="Configure Agent.", parents=parent_parsers)
 
     # === Setup Agent Component Install Arguments === #
     agt_install_parser = agent_component_args_subparsers.add_parser(

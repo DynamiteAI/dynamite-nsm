@@ -13,6 +13,7 @@ class AgentComponent(component.BaseComponent):
             self,
             component_name="Agent",
             component_description="Get context around activity on your network, discover threats and gain visibility.",
+            config_strategy=execution_strategy.AgentConfigStrategy(),
             install_strategy=execution_strategy.AgentInstallStrategy(
                 capture_network_interfaces=capture_network_interfaces,
                 targets=targets,
@@ -61,7 +62,9 @@ class AgentCommandlineComponent(component.BaseComponent):
             component_name="Agent",
             component_description="Get context around activity on your network, discover threats and gain visibility.",
         )
-
+        if args.action_name == "config":
+            self.register_config_strategy(execution_strategy.AgentConfigStrategy())
+            self.config()
         if args.action_name == "install":
             self.register_install_strategy(
                 execution_strategy.AgentInstallStrategy(
