@@ -13,7 +13,8 @@ def register_agent_dependency_component_args(agt_deps_component_parser, parent_p
 
 def register_agent_component_args(agt_component_parser, parent_parsers):
     agent_component_args_subparsers = agt_component_parser.add_subparsers()
-    agent_component_args_subparsers.add_parser("config", help="Configure Agent.", parents=parent_parsers)
+    agt_config_parser = agent_component_args_subparsers.add_parser("config", help="Configure Agent.", parents=parent_parsers)
+    agt_config_parser.set_defaults(action_name="config")
 
     # === Setup Agent Component Install Arguments === #
     agt_install_parser = agent_component_args_subparsers.add_parser(
@@ -73,10 +74,10 @@ def register_agent_component_args(agt_component_parser, parent_parsers):
     agt_restart_parser.set_defaults(action_name="restart")
 
     # === Setup Agent Component Status Arguments === #
-    ls_status_parser = agent_component_args_subparsers.add_parser(
+    agt_status_parser = agent_component_args_subparsers.add_parser(
         "status", help="Status Agent.",
         parents=parent_parsers)
-    ls_status_parser.set_defaults(action_name="status")
+    agt_status_parser.set_defaults(action_name="status")
 
 
 def register_monitor_component_args(mon_component_parser, parent_parsers):
