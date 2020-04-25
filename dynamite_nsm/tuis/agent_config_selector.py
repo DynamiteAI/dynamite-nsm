@@ -11,23 +11,23 @@ from dynamite_nsm.tuis import suricata_interface_config
 from dynamite_nsm.tuis import filebeat_interface_config
 
 zeek_and_suricata_mapping = {
-    'Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
-    'Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
-    'Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
-    'Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp,
-    'Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp,
+    '[1] Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
+    '[2] Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
+    '[3] Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
+    '[4] Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp,
+    '[5] Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp,
 }
 
 zeek_only_mapping = {
-    'Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
-    'Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
-    'Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp
+    '[1] Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
+    '[2] Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
+    '[3] Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp
 }
 
 suricata_only_mapping = {
-    'Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
-    'Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
-    'Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp
+    '[1] Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
+    '[2] Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
+    '[3] Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp
 }
 
 
@@ -38,7 +38,7 @@ class AgentConfigMultiSelect(npyscreen.MultiLineAction):
 
     def actionHighlighted(self, act_on_this, keypress):
         npyscreen.notify_wait(
-            'Entering {} configuration.'.format(act_on_this), form_color='GOODHL'
+            act_on_this, form_color='GOODHL'
         )
         zeek_and_suricata_mapping[act_on_this]().run()
         exit(0)
@@ -63,7 +63,7 @@ class AgentConfigForm(npyscreen.ActionForm):
             elif suricata_installed:
                 app_mapping = suricata_only_mapping
 
-        self.add(AgentConfigMultiSelect, values=app_mapping.keys(), max_height=5)
+        self.add(AgentConfigMultiSelect, values=app_mapping.keys().sort(), max_height=5)
 
 
 class AgentConfigApp(npyscreen.NPSAppManaged):
