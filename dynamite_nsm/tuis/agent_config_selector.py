@@ -63,7 +63,7 @@ class AgentConfigForm(npyscreen.ActionForm):
             elif suricata_installed:
                 app_mapping = suricata_only_mapping
 
-        self.add(AgentConfigMultiSelect, values=app_mapping.keys().sort(), max_height=5)
+        self.add(AgentConfigMultiSelect, values=sorted(app_mapping.keys()), max_height=5)
 
 
 class AgentConfigApp(npyscreen.NPSAppManaged):
