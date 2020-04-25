@@ -83,7 +83,7 @@ class BaseComponent:
         self.process_status_strategy = process_status_strategy
 
     def config(self):
-        if not self.install_strategy.functions:
+        if not self.config_strategy.functions:
             exceptions.StrategyNotImplemented(self.component_name, "config")
         self.config_strategy.execute_strategy()
 
