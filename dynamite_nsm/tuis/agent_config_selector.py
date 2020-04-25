@@ -41,6 +41,7 @@ class AgentConfigMultiSelect(npyscreen.MultiLineAction):
             'Entering {} configuration.'.format(act_on_this), form_color='GOODHL'
         )
         zeek_and_suricata_mapping[act_on_this]().run()
+        exit(0)
 
 
 class AgentConfigForm(npyscreen.ActionForm):

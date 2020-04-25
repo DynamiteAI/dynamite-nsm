@@ -101,8 +101,10 @@ class FilebeatInstanceSettingsForm(npyscreen.ActionForm):
     def create(self):
         is_kafka_enabled = self.parentApp.filebeat_config.is_kafka_output_enabled()
         self.agent_tag = self.add(npyscreen.TitleText, name="Agent Tag")
+        self.nextrely += 2
         self.add(npyscreen.TitleText, name="Toggle between LogStash and Kafka output modes.", editable=False)
         self.add_widget(OpenToggleTypeFormButton, name='[Toggle Between Output Modes]', relx=0)
+        self.nextrely += 2
         ls_target_names = self.parentApp.filebeat_config.get_logstash_target_hosts()
         ls_target_names = list(set(ls_target_names))
         ls_target_names.append('<create new target>')
