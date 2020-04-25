@@ -133,9 +133,15 @@ class AgentConfigStrategy(execution_strategy.BaseExecStrategy):
             self,
             strategy_name="agent_config",
             strategy_description="Configure the agent.",
-            functions=agent_config_selector.run_gui,
-            arguments={},
-            return_formats=(None,)
+            functions=(
+                agent_config_selector.run_gui,
+            ),
+            arguments=(
+                {},
+            ),
+            return_formats=(
+                None,
+            )
         )
 
 
