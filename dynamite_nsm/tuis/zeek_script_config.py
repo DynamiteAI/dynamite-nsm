@@ -66,6 +66,7 @@ class ZeekScriptConfiguratorApp(npyscreen.NPSAppManaged):
         super(ZeekScriptConfiguratorApp, self).__init__()
 
     def onStart(self):
+        npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         env_vars = get_environment_file_dict()
         self.zeek_script_config = config.ScriptConfigManager(env_vars['ZEEK_SCRIPTS'])
         self.addForm('MAIN', ZeekScriptSettingsForm, name='Zeek Script Configuration')

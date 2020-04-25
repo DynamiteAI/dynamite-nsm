@@ -85,7 +85,7 @@ class EditInterfaceForm(npyscreen.ActionForm):
         self.cluster_id = self.add(npyscreen.TitleText, name='Cluster Id')
         self.bpf_filter = self.add(npyscreen.TitleText, name='BPF Filter')
         self.delete_button = self.add_widget(RemoveNetworkInterfaceButton,
-                                             name='Delete Network Interface', rely=13, color='DANGER')
+                                             name='[Delete Network Interface]', rely=13, color='DANGER')
 
     def beforeEditing(self):
         if self.value == '<create new interface>':
@@ -159,6 +159,7 @@ class SuricataInstanceConfiguratorApp(npyscreen.NPSAppManaged):
         super(SuricataInstanceConfiguratorApp, self).__init__()
 
     def onStart(self):
+        npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         env_vars = get_environment_file_dict()
         self.suricata_config = config.ConfigManager(env_vars['SURICATA_CONFIG'])
         self.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')

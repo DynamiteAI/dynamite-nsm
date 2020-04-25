@@ -1,6 +1,16 @@
 from dynamite_nsm import exceptions
 
 
+class InvalidAgentTag(Exception):
+    """
+    Thrown when Filebeat agent tag is invalid
+    """
+
+    def __init__(self):
+        msg = "Agent tag must be between 5 and 30 characters, and contain alphanumeric and '_' characters only."
+        super(InvalidAgentTag, self).__init__(msg)
+
+
 class InstallFilebeatError(exceptions.InstallError):
     """
     Thrown when Filebeat fails to install

@@ -61,7 +61,7 @@ class SuricataRuleConfiguratorApp(npyscreen.NPSAppManaged):
     """
     def __init__(self):
         self.suricata_rule_config = None
-
+        npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         super(SuricataRuleConfiguratorApp, self).__init__()
 
     def onStart(self):

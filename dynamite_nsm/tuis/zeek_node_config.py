@@ -371,6 +371,7 @@ class ZeekNodeConfiguratorApp(npyscreen.NPSAppManaged):
         super(ZeekNodeConfiguratorApp, self).__init__()
 
     def onStart(self):
+        npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         env_vars = get_environment_file_dict()
         self.zeek_config = config.NodeConfigManager(env_vars['ZEEK_HOME'])
         self.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Cluster Configuration')

@@ -79,7 +79,6 @@ class ConfigManager:
         self.logstash_targets['enabled'] = True
         self.kafka_targets['enabled'] = False
 
-
     def get_agent_tag(self):
         """
         Get the tag associated to the agent
@@ -156,7 +155,8 @@ class ConfigManager:
 
         :param agent_tag: A tag associated with the agent
         """
-
+        if not self.validate_agent_tag(agent_tag):
+            raise filebeat_exceptions.InvalidAgentTag()
         if not self.processors:
             self.processors = [{'add_fields': {'fields': {'originating_agent_tag': agent_tag}}}]
         else:
@@ -166,6 +166,15 @@ class ConfigManager:
                     break
 
     def set_kafka_targets(self, target_hosts, topic, username=None, password=None):
+        """
+        Define Kafka endpoints where events should be sent
+
+        :param target_hosts: A list of Kafka brokers, and their service port (E.G ["192.168.0.9:5044"])
+        :param topic: A Kafka topic
+        :param username: The username used to authenticate to Kafka broker
+        :param password: The password used to authenticate to Kafka broker
+        """
+
         self.kafka_targets = {
             'hosts': target_hosts,
             'topic': topic,
@@ -177,7 +186,7 @@ class ConfigManager:
 
     def set_logstash_targets(self, target_hosts):
         """
-        Define where events should be sent
+        Define LogStash endpoints where events should be sent
 
         :param target_hosts: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"])
         """
@@ -202,6 +211,14 @@ class ConfigManager:
                 if _input['type'] == 'log':
                     _input = {'type': 'log', 'enabled': True, 'paths': monitor_log_paths}
                     self.inputs[i] = _input
+
+    @staticmethod
+    def validate_agent_tag(agent_tag):
+        import re
+        agent_tag = str(agent_tag)
+        tag_length_ok = 30 > len(agent_tag) > 5
+        tag_match_pattern = bool(re.findall("^[a-zA-Z0-9_]*$", agent_tag))
+        return tag_length_ok and tag_match_pattern
 
     def write_config(self):
 
