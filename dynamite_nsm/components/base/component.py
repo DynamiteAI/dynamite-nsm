@@ -45,7 +45,7 @@ class BaseComponent:
 
                 def execute_strategy_function():
                     strategy = getattr(self, inst)
-                    self.execute_strategy(strategy)
+                    self.execute_strategy(self.component_name, strategy)
 
                 def register_strategy_function(strategy):
                     self.validate_strategy(strategy)
