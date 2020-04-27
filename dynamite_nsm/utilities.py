@@ -134,7 +134,7 @@ def download_file(url, filename, stdout=False):
     response = urlopen(url)
     try:
         response_size_bytes = int(response.headers['Content-Length'])
-    except (KeyError, TypeError):
+    except (KeyError, TypeError, ValueError):
         response_size_bytes = None
     CHUNK = 16 * 1024
     widgets = [
