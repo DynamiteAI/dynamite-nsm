@@ -40,7 +40,7 @@ def check_agent_deps_installed(stdout=True):
             return
     except IOError:
         log_message("Agent dependencies were not installed. Install with 'dynamite agent-dependencies install'",
-                    stdout=stdout)
+                    level=logging.WARNING, stdout=stdout)
         exit(0)
 
 
@@ -243,7 +243,7 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
                 # prompt_user
                 {
                     "prompt_user": bool(prompt_user),
-                    "stdout": bool(stdout)
+                    "stdout": bool(stdout),
                 },
             ),
             return_formats=(

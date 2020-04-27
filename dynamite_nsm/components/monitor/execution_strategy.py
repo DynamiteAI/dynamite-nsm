@@ -1,6 +1,9 @@
 import os
 import sys
+import logging
+
 from dynamite_nsm import const
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.kibana import install as kb_install
 from dynamite_nsm.services.kibana import process as kb_process
@@ -13,6 +16,21 @@ from dynamite_nsm.services.elasticsearch import process as es_process
 from dynamite_nsm.services.elasticsearch import profile as es_profile
 
 from dynamite_nsm.utilities import prompt_input
+
+
+def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('MONITOR_CMP', level=log_level, stdout=stdout)
+    if level == logging.DEBUG:
+        logger.debug(msg)
+    elif level == logging.INFO:
+        logger.info(msg)
+    elif level == logging.WARNING:
+        logger.warning(msg)
+    elif level == logging.ERROR:
+        logger.error(msg)
 
 
 def print_message(msg):
@@ -40,13 +58,13 @@ def remove_kibana_tar_archive():
 def prompt_monitor_uninstall(prompt_user=True, stdout=True):
     if prompt_user:
         sys.stderr.write(
-            '[-] WARNING! Removing Monitor Will Delete All Saved Network Events and Corresponding Visualisations.\n')
-        resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            '\n[-] WARNING! Removing Monitor Will Delete All Saved Network Events and Corresponding Visualisations.\n')
+        resp = prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
         while resp not in ['', 'no', 'yes']:
             resp = prompt_input('Are you sure you wish to continue? ([no]|yes): ')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
+                sys.stdout.write('\n[+] Exiting\n')
             exit(0)
 
 
@@ -93,7 +111,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
                 "verbose": bool(verbose)
             }, return_format=None)
         else:
-            self.add_function(func=print_message, argument_dict={
+            self.add_function(func=log_message, argument_dict={
                 "msg": 'Skipping ElasticSearch installation; already installed.'
             }, return_format=None)
 
@@ -117,7 +135,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
                 "verbose": bool(verbose)
             }, return_format=None)
         else:
-            self.add_function(func=print_message, argument_dict={
+            self.add_function(func=log_message, argument_dict={
                 "msg": 'Skipping LogStash installation; already installed.'
             }, return_format=None)
 
@@ -140,7 +158,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
                 "verbose": bool(verbose)
             }, return_format=None)
         else:
-            self.add_function(func=print_message, argument_dict={
+            self.add_function(func=log_message, argument_dict={
                 "msg": 'Skipping Kibana installation; already installed.'
             }, return_format=None)
 
@@ -152,12 +170,12 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             "stdout": False
         }, return_format=None)
         
-        self.add_function(func=print_message, argument_dict={
-            "msg": '[+] *** Monitor installed successfully. ***\n'
+        self.add_function(func=log_message, argument_dict={
+            "msg": '*** Monitor installed successfully. ***'
         }, return_format=None)
         
-        self.add_function(func=print_message, argument_dict={
-            "msg": '[+] Next, Start your monitor: '
+        self.add_function(func=log_message, argument_dict={
+            "msg": 'Next, Start your monitor: '
                    '\'dynamite monitor start\'.'
         }, return_format=None)
 
@@ -167,7 +185,7 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
     Steps to uninstall the monitor
     """
 
-    def __init__(self, stdout, prompt_user):
+    def __init__(self, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="monitor_uninstall",
             strategy_description="Uninstall Monitor.",
@@ -176,7 +194,7 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                 kb_install.uninstall_kibana,
                 ls_install.uninstall_logstash,
                 es_install.uninstall_elasticsearch,
-                print_message
+                log_message
             ),
             arguments=(
                 # prompt_user
@@ -186,22 +204,25 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                 },
                 # kb_install.uninstall_kibana
                 {
-                    "stdout": bool(stdout),
-                    "prompt_user": False
+                    'prompt_user': False,
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
                 # ls_install.uninstall_logstash
                 {
-                    "stdout": bool(stdout),
-                    "prompt_user": False
+                    'prompt_user': False,
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
                 # es_install.uninstall_elasticsearch
                 {
-                    "stdout": bool(stdout),
-                    "prompt_user": False
+                    'prompt_user': False,
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] *** Monitor uninstalled successfully. ***\n'
+                    "msg": '*** Monitor uninstalled successfully. ***'
                 },
             ),
             return_formats=(
@@ -219,7 +240,7 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
     Steps to start the monitor
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="monitor_start",
@@ -232,15 +253,18 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # es_process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # ls_process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # kb_process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 }
             ),
             return_formats=(
@@ -258,7 +282,7 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
     Steps to stop the monitor
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="monitor_stop",
@@ -271,15 +295,18 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # ls_process.start.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # kb_process.start.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # es_process.start.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 }
             ),
             return_formats=(
@@ -297,7 +324,7 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
     Steps to restart the monitor
     """
 
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="monitor_restart",
             strategy_description="Restart Monitor processes.",
@@ -312,27 +339,33 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # ls_process.stop
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # kb_process.stop
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # es_process.stop
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # es_process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # kb_process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 },
                 # ls_process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
                 }
 
             ),
@@ -393,6 +426,7 @@ def run_install_strategy():
 def run_uninstall_strategy():
     mon_uninstall_strategy = MonitorUninstallStrategy(
         stdout=True,
+        verbose=True,
         prompt_user=False
     )
     mon_uninstall_strategy.execute_strategy()
@@ -401,6 +435,7 @@ def run_uninstall_strategy():
 def run_process_start_strategy():
     mon_start_strategy = MonitorProcessStartStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     mon_start_strategy.execute_strategy()
@@ -409,6 +444,7 @@ def run_process_start_strategy():
 def run_process_stop_strategy():
     mon_stop_strategy = MonitorProcessStopStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     mon_stop_strategy.execute_strategy()
@@ -417,6 +453,7 @@ def run_process_stop_strategy():
 def run_process_restart_strategy():
     mon_restart_strategy = MonitorProcessRestartStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     mon_restart_strategy.execute_strategy()

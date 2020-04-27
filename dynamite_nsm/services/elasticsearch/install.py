@@ -389,7 +389,7 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
         logger.error('ElasticSearch is already installed.')
         raise elastic_exceptions.AlreadyInstalledElasticsearchError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
-        sys.stderr.write('\n[-] WARNING! Dynamite ElasticSearch should have at-least 6GB to run '
+        sys.stderr.write('\n[-] WARNING! ElasticSearch should have at-least 6GB to run '
                          'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes() / (1000 ** 3)))
         if str(utilities.prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
             sys.stdout.write('\n[+] Exiting\n')

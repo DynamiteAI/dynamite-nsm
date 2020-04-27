@@ -1,11 +1,12 @@
 import os
-import sys
 import time
 import signal
+import logging
 import subprocess
 from multiprocessing import Process
 
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.kibana import config as kibana_configs
 from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
 
@@ -14,7 +15,13 @@ class ProcessManager:
     """
     An interface for start|stop|status|restart of the Kibana process
     """
-    def __init__(self):
+
+    def __init__(self, stdout=True, verbose=False):
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('KIBANA', level=log_level, stdout=stdout)
+
         self.environment_variables = utilities.get_environment_file_dict()
         self.configuration_directory = self.environment_variables.get('KIBANA_PATH_CONF')
         if not self.configuration_directory:
@@ -26,69 +33,68 @@ class ProcessManager:
         except (IOError, ValueError):
             self.pid = -1
 
-    def start(self, stdout=False):
+    def start(self):
         """
         Start the Kibana process
 
-        :param stdout: Print output to console
         :return: True, if started successfully
         """
+
         def start_shell_out():
 
             # We use su instead of runuser here because of nodes' weird dependency on PAM
             # when calling from within a sub-shell
             subprocess.call('su -l dynamite -c "{}/bin/kibana -c {} -l {} & > /dev/null &"'.format(
-                                    self.config.kibana_home,
-                                    os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
-                                    os.path.join(self.config.kibana_logs, 'kibana.log')
-                                ), shell=True, env=utilities.get_environment_file_dict())
+                self.config.kibana_home,
+                os.path.join(self.config.kibana_path_conf, 'kibana.yml'),
+                os.path.join(self.config.kibana_logs, 'kibana.log')
+            ), shell=True, env=utilities.get_environment_file_dict())
 
-        if not os.path.exists('/var/run/dynamite/kibana/'):
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
+        utilities.makedirs('/var/run/dynamite/kibana/', exist_ok=True)
         utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
 
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
-            sys.stderr.write('[-] Kibana is already running on PID [{}]\n'.format(self.pid))
+            self.logger.info('Kibana is already running on PID [{}]\n'.format(self.pid))
             return True
         retry = 0
         self.pid = -1
         time.sleep(5)
         while retry < 6:
-            start_message = '[+] [Attempt: {}] Starting Kibana on PID [{}]\n'.format(retry + 1, self.pid)
             try:
                 with open('/var/run/dynamite/kibana/kibana.pid') as f:
                     self.pid = int(f.read())
-                start_message = '[+] [Attempt: {}] Starting Kibana on PID [{}]\n'.format(retry + 1, self.pid)
-                if stdout:
-                    sys.stdout.write(start_message)
+                start_message = '[Attempt: {}] Starting Kibana on PID [{}]'.format(retry + 1, self.pid)
+                self.logger.info(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1
                     time.sleep(5)
                 else:
                     return True
-            except IOError:
-                if stdout:
-                    sys.stdout.write(start_message)
+            except IOError as e:
+                self.logger.warning("An issue occurred while attempting to start.")
+                self.logger.debug("An issue occurred while attempting to start; {}".format(e))
                 retry += 1
                 time.sleep(3)
         return False
 
-    def stop(self, stdout=False):
+    def stop(self):
         """
         Stop the Kibana process
 
-        :param stdout: Print output to console
         :return: True if stopped successfully
         """
+
         alive = True
         attempts = 0
         while alive:
             try:
-                if stdout:
-                    sys.stdout.write('[+] Attempting to stop Kibana [{}]\n'.format(self.pid))
+                self.logger.info('Attempting to stop Kibana [{}]'.format(self.pid))
                 if attempts > 3:
+                    self.logger.warning(
+                        'Attempting to force stop Kibana after {} failed attempts. [{}].'.format(attempts,
+                                                                                                 self.pid))
                     sig_command = signal.SIGKILL
                 else:
                     # Kill the zombie after the third attempt of asking it to kill itself
@@ -99,19 +105,19 @@ class ProcessManager:
                 time.sleep(10)
                 alive = utilities.check_pid(self.pid)
             except Exception as e:
-                sys.stderr.write('[-] An error occurred while attempting to stop Kibana: {}\n'.format(e))
+                self.logger.error('An error occurred while attempting to stop Kibana.')
+                self.logger.debug('An error occurred while attempting to stop Kibana; {}'.format(e))
                 return False
         return True
 
-    def restart(self, stdout=False):
+    def restart(self):
         """
         Restart the Kibana process
 
-        :param stdout: Print output to console
         :return: True if started successfully
         """
-        self.stop(stdout=stdout)
-        return self.start(stdout=stdout)
+        self.stop()
+        return self.start()
 
     def status(self):
         """
@@ -128,13 +134,15 @@ class ProcessManager:
             'LOGS': log_path
         }
 
-    def optimize(self, stdout=False):
-        if not os.path.exists('/var/run/dynamite/kibana/'):
-            subprocess.call('mkdir -p {}'.format('/var/run/dynamite/kibana/'), shell=True)
-        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
-        if stdout:
-            sys.stdout.write('[+] Optimizing Kibana Libraries.\n')
+    def optimize(self):
+        """
+        Runs Kibana webpack optimizer among other things.
+        """
 
+        if not os.path.exists('/var/run/dynamite/kibana/'):
+            utilities.makedirs('/var/run/dynamite/kibana/')
+        utilities.set_ownership_of_file('/var/run/dynamite', user='dynamite', group='dynamite')
+        self.logger.info('Optimizing Kibana Libraries.')
         # Kibana initially has to be called as root due to a process forking issue when using runuser
         # builtin
         subprocess.call('{}/bin/kibana --optimize --allow-root'.format(
@@ -144,17 +152,21 @@ class ProcessManager:
         utilities.set_ownership_of_file(self.config.kibana_logs, user='dynamite', group='dynamite')
 
 
-def start(stdout=True):
-    ProcessManager().start(stdout)
+def start(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).start()
 
 
-def stop(stdout=True):
-    ProcessManager().stop(stdout)
+def stop(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).stop()
 
 
-def restart(stdout=True):
-    ProcessManager().restart(stdout)
+def optimize(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).optimize()
 
 
-def status():
-    return ProcessManager().status()
+def restart(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).restart()
+
+
+def status(stdout=True, verbose=False):
+    return ProcessManager(stdout, verbose).status()

@@ -22,8 +22,8 @@ def check_elasticsearch_target(host, port, perform_check=True):
     if not perform_check:
         return
     if not check_socket(host, port):
-        print("ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
-        if str(prompt_input('Continue? [y|N]: ')).lower() != 'y':
+        print("[-] ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
+        if str(prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
             exit(0)
     return
 

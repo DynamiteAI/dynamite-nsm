@@ -26,19 +26,23 @@ class KibanaComponent(component.BaseComponent):
                 verbose=verbose
             ),
             uninstall_strategy=execution_strategy.KibanaUninstallStrategy(
+                prompt_user=prompt_on_uninstall,
                 stdout=stdout,
-                prompt_user=prompt_on_uninstall
+                verbose=verbose
             ),
             process_start_strategy=execution_strategy.KibanaProcessStartStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_stop_strategy=execution_strategy.KibanaProcessStopStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_restart_strategy=execution_strategy.KibanaProcessRestartStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_status_strategy=execution_strategy.KibanaProcessStatusStrategy()
@@ -77,8 +81,9 @@ class KibanaCommandlineComponent(component.BaseComponent):
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.KibanaUninstallStrategy(
+                    prompt_user=not args.skip_kibana_uninstall_prompt,
                     stdout=not args.no_stdout,
-                    prompt_user=not args.skip_kibana_uninstall_prompt
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.uninstall()
@@ -86,7 +91,8 @@ class KibanaCommandlineComponent(component.BaseComponent):
             self.register_process_start_strategy(
                 execution_strategy.KibanaProcessStartStrategy(
                     stdout=not args.no_stdout,
-                    status=True
+                    status=True,
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.start()
@@ -94,7 +100,8 @@ class KibanaCommandlineComponent(component.BaseComponent):
             self.register_process_stop_strategy(
                 execution_strategy.KibanaProcessStopStrategy(
                     stdout=not args.no_stdout,
-                    status=True
+                    status=True,
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.stop()
@@ -102,7 +109,8 @@ class KibanaCommandlineComponent(component.BaseComponent):
             self.register_process_restart_strategy(
                 execution_strategy.KibanaProcessRestartStrategy(
                     stdout=not args.no_stdout,
-                    status=True
+                    status=True,
+                    verbose=args.verbose and not args.no_stdout
                 )
             )
             self.restart()

@@ -1,10 +1,28 @@
 import os
+import logging
+
 from dynamite_nsm import const
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.kibana import install, process
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.utilities import check_socket, prompt_input
 
 
+def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('KIBANA_CMP', level=log_level, stdout=stdout)
+    if level == logging.DEBUG:
+        logger.debug(msg)
+    elif level == logging.INFO:
+        logger.info(msg)
+    elif level == logging.WARNING:
+        logger.warning(msg)
+    elif level == logging.ERROR:
+        logger.error(msg)
+        
+        
 def print_message(msg):
     print(msg)
 
@@ -19,8 +37,8 @@ def check_elasticsearch_target(host, port, perform_check=True):
     if not perform_check:
         return
     if not check_socket(host, port):
-        print("ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
-        if str(prompt_input('Continue? [y|N]: ')).lower() != 'y':
+        print("[-] ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
+        if str(prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
             exit(0)
     return
 
@@ -41,8 +59,8 @@ class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
                 remove_kibana_tar_archive,
                 install.install_kibana,
                 process.stop,
-                print_message,
-                print_message
+                log_message,
+                log_message
             ),
             arguments=(
                 # check_elasticsearch_target
@@ -73,13 +91,13 @@ class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
                     "stdout": False
                 },
 
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] *** Kibana installed successfully. ***\n'
+                    "msg": '*** Kibana installed successfully. ***'
                 },
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] Next, Start your cluster: '
+                    "msg": 'Next, Start your cluster: '
                            '\'dynamite kibana start\'.'
                 }
             ),
@@ -98,24 +116,25 @@ class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
     Steps to uninstall kibana
     """
 
-    def __init__(self, stdout, prompt_user):
+    def __init__(self, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="kibana_uninstall",
             strategy_description="Uninstall Kibana.",
             functions=(
                 install.uninstall_kibana,
-                print_message
+                log_message
             ),
             arguments=(
                 # install.uninstall_kibana
                 {
-                    "stdout": bool(stdout),
-                    "prompt_user": bool(prompt_user)
+                    'prompt_user': bool(prompt_user),
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
 
-                # print_message
+                # log_message
                 {
-                    "msg": '[+] *** Kibana uninstalled successfully. ***\n'
+                    "msg": '*** Kibana uninstalled successfully. ***'
                 },
             ),
             return_formats=(
@@ -129,7 +148,7 @@ class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to start kibana
     """
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="kibana_start",
@@ -140,7 +159,8 @@ class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
                 },
             ),
             return_formats=(
@@ -156,7 +176,7 @@ class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to stop kibana
     """
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="kibana_stop",
             strategy_description="Stop Kibana process.",
@@ -166,7 +186,8 @@ class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
                 },
             ),
             return_formats=(
@@ -182,7 +203,7 @@ class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to restart kibana
     """
-    def __init__(self, stdout, status):
+    def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="kibana_restart",
             strategy_description="Restart Kibana process.",
@@ -193,12 +214,14 @@ class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # process.start
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
                 },
 
                 # process.stop
                 {
-                    "stdout": stdout
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
                 }
             ),
             return_formats=(
@@ -250,8 +273,9 @@ def run_install_strategy():
 
 def run_uninstall_strategy():
     kb_uninstall_strategy = KibanaUninstallStrategy(
+        prompt_user=False,
         stdout=True,
-        prompt_user=False
+        verbose=True
     )
     kb_uninstall_strategy.execute_strategy()
 
@@ -259,6 +283,7 @@ def run_uninstall_strategy():
 def run_process_start_strategy():
     kb_start_strategy = KibanaProcessStartStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     kb_start_strategy.execute_strategy()
@@ -267,6 +292,7 @@ def run_process_start_strategy():
 def run_process_stop_strategy():
     kb_stop_strategy = KibanaProcessStopStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     kb_stop_strategy.execute_strategy()
@@ -275,6 +301,7 @@ def run_process_stop_strategy():
 def run_process_restart_strategy():
     kb_restart_strategy = KibanaProcessRestartStrategy(
         stdout=True,
+        verbose=True,
         status=True
     )
     kb_restart_strategy.execute_strategy()
