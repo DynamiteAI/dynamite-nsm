@@ -79,7 +79,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))
-            self.install()
+            self.execute_install_strategy()
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.LogstashUninstallStrategy(
@@ -88,7 +88,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout
                 )
             )
-            self.uninstall()
+            self.execute_uninstall_strategy()
         elif args.action_name == "start":
             self.register_process_start_strategy(
                 execution_strategy.LogstashProcessStartStrategy(
@@ -97,7 +97,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout,
                 )
             )
-            self.start()
+            self.execute_process_start_strategy()
         elif args.action_name == "stop":
             self.register_process_stop_strategy(
                 execution_strategy.LogstashProcessStopStrategy(
@@ -106,7 +106,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout,
                 )
             )
-            self.stop()
+            self.execute_process_stop_strategy()
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
                 execution_strategy.LogstashProcessRestartStrategy(
@@ -121,13 +121,13 @@ class LogstashCommandlineComponent(component.BaseComponent):
             self.register_process_status_strategy(
                 execution_strategy.LogstashProcessStatusStrategy()
             )
-            self.status()
+            self.execute_process_status_strategy()
 
 
 if __name__ == '__main__':
     ls_component = LogstashComponent()
-    ls_component.install()
-    ls_component.start()
-    ls_component.stop()
-    ls_component.status()
-    ls_component.uninstall()
+    ls_component.execute_install_strategy()
+    ls_component.execute_process_start_strategy()
+    ls_component.execute_process_stop_strategy()
+    ls_component.execute_process_status_strategy()
+    ls_component.execute_uninstall_strategy()

@@ -77,7 +77,7 @@ class KibanaCommandlineComponent(component.BaseComponent):
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))
-            self.install()
+            self.execute_install_strategy()
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.KibanaUninstallStrategy(
@@ -86,7 +86,7 @@ class KibanaCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout
                 )
             )
-            self.uninstall()
+            self.execute_uninstall_strategy()
         elif args.action_name == "start":
             self.register_process_start_strategy(
                 execution_strategy.KibanaProcessStartStrategy(
@@ -95,7 +95,7 @@ class KibanaCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout
                 )
             )
-            self.start()
+            self.execute_process_start_strategy()
         elif args.action_name == "stop":
             self.register_process_stop_strategy(
                 execution_strategy.KibanaProcessStopStrategy(
@@ -104,7 +104,7 @@ class KibanaCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout
                 )
             )
-            self.stop()
+            self.execute_process_stop_strategy()
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
                 execution_strategy.KibanaProcessRestartStrategy(
@@ -119,13 +119,13 @@ class KibanaCommandlineComponent(component.BaseComponent):
             self.register_process_status_strategy(
                 execution_strategy.KibanaProcessStatusStrategy()
             )
-            self.status()
+            self.execute_process_status_strategy()
 
 
 if __name__ == '__main__':
     kb_component = KibanaComponent()
-    kb_component.install()
-    kb_component.start()
-    kb_component.stop()
-    kb_component.status()
-    kb_component.uninstall()
+    kb_component.execute_install_strategy()
+    kb_component.execute_process_start_strategy()
+    kb_component.execute_process_stop_strategy()
+    kb_component.execute_process_status_strategy()
+    kb_component.execute_uninstall_strategy()

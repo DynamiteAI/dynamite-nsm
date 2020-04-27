@@ -38,9 +38,9 @@ class AgentDependencyCommandlineComponent(component.BaseComponent):
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))
-            self.install()
+            self.execute_install_strategy()
 
 
 if __name__ == '__main__':
     agt_dep_component = AgentDependencyComponent()
-    agt_dep_component.install()
+    agt_dep_component.execute_install_strategy()

@@ -86,7 +86,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))
-            self.install()
+            self.execute_install_strategy()
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.MonitorUninstallStrategy(
@@ -95,7 +95,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
                     prompt_user=not args.skip_monitor_uninstall_prompt
                 )
             )
-            self.uninstall()
+            self.execute_uninstall_strategy()
         elif args.action_name == "start":
             self.register_process_start_strategy(
                 execution_strategy.MonitorProcessStartStrategy(
@@ -104,7 +104,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
                     status=True
                 )
             )
-            self.start()
+            self.execute_process_start_strategy()
         elif args.action_name == "stop":
             self.register_process_stop_strategy(
                 execution_strategy.MonitorProcessStopStrategy(
@@ -113,7 +113,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
                     status=True
                 )
             )
-            self.stop()
+            self.execute_process_stop_strategy()
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
                 execution_strategy.MonitorProcessRestartStrategy(
@@ -122,19 +122,19 @@ class MonitorCommandlineComponent(component.BaseComponent):
                     status=True
                 )
             )
-            self.restart()
+            self.execute_process_restart_strategy()
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
                 execution_strategy.MonitorProcessStatusStrategy()
             )
-            self.status()
+            self.execute_process_status_strategy()
 
 
 if __name__ == '__main__':
     mon_component = MonitorComponent()
-    mon_component.install()
-    mon_component.start()
-    mon_component.stop()
-    mon_component.status()
-    mon_component.uninstall()
+    mon_component.execute_install_strategy()
+    mon_component.execute_process_start_strategy()
+    mon_component.execute_process_stop_strategy()
+    mon_component.execute_process_status_strategy()
+    mon_component.execute_uninstall_strategy()

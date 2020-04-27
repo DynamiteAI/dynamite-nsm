@@ -34,12 +34,15 @@ class BaseComponent:
         self.process_restart_strategy = process_restart_strategy
         self.process_status_strategy = process_status_strategy
 
+        # For every instance variable ending in _strategy, dynamically create two functions:
+        #     register_$(strategy_var)
+        #     execute_$(strategy_var)
+
         for inst in dir(self):
             if str(inst).endswith('strategy') and not str(inst) in [
                 'execute_strategy',
                 'validate_strategy'
             ]:
-                print(inst)
                 reg_func_name = 'register_' + inst
                 exe_func_name = 'execute_' + inst
 
@@ -65,5 +68,3 @@ class BaseComponent:
     def validate_strategy(strategy):
         if not strategy or not issubclass(strategy.__class__, execution_strategy.BaseExecStrategy):
             raise TypeError("Invalid strategy, must be {}.".format(type(execution_strategy.BaseExecStrategy)))
-
-print(dir(BaseComponent('test', 'test')))
