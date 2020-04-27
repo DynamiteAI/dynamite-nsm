@@ -157,6 +157,18 @@ def download_file(url, filename, stdout=False):
         except TypeError:
             pb = progressbar.ProgressBar(widgets=widgets, maxval=int(response_size_bytes))
     else:
+        widgets = [
+            '\033[92m',
+            '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
+            '\033[0m',
+            '\033[0;36m'
+            'DOWNLOAD_MANAGER ',
+            '\033[0m',
+            '          | ',
+            ' ', progressbar.BouncingBar(),
+            ' ', '({})'.format(filename),
+
+        ]
         try:
             pb = progressbar.ProgressBar(widgets, max_value=progressbar.UnknownLength)
         except TypeError:
