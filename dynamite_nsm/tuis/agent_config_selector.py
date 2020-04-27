@@ -11,23 +11,23 @@ from dynamite_nsm.tuis import suricata_interface_config
 from dynamite_nsm.tuis import filebeat_interface_config
 
 zeek_and_suricata_mapping = {
-    '[1] Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
-    '[2] Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
-    '[3] Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
-    '[4] Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp,
-    '[5] Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp,
+    'Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
+    'Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
+    'Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
+    'Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp,
+    'Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp,
 }
 
 zeek_only_mapping = {
-    '[1] Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
-    '[2] Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
-    '[3] Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp
+    'Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
+    'Configure Zeek Network Settings.': zeek_node_config.ZeekNodeConfiguratorApp,
+    'Enable/Disable Zeek Scripts.': zeek_script_config.ZeekScriptConfiguratorApp
 }
 
 suricata_only_mapping = {
-    '[1] Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
-    '[2] Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
-    '[3] Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp
+    'Configure Upstream Processors.': filebeat_interface_config.FilebeatConfiguratorApp,
+    'Configure Suricata Network Settings.': suricata_interface_config.SuricataInstanceConfiguratorApp,
+    'Enable/Disable Suricata Rules.': suricata_rule_config.SuricataRuleConfiguratorApp
 }
 
 
