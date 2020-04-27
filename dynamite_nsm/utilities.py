@@ -176,8 +176,8 @@ def download_file(url, filename, stdout=False):
         try:
             pb.start()
         except ValueError:
-            stdout = False # Something broke, disable stdout going forward
-            print("[+] Download Started...")
+            # Something broke, disable stdout going forward
+            stdout = False
     try:
         with open(os.path.join(const.INSTALL_CACHE, filename), 'wb') as f:
             chunk_num = 0

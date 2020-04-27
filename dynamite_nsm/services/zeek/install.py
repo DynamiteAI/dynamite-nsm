@@ -5,8 +5,14 @@ import math
 import shutil
 import logging
 import tarfile
-import itertools
 import subprocess
+
+try:
+    # Python 3
+    from itertools import zip_longest
+except ImportError:
+    # Python 2
+    from itertools import izip_longest as zip_longest
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -101,7 +107,7 @@ class InstallManager:
 
         def grouper(n, iterable):
             args = [iter(iterable)] * n
-            return itertools.izip_longest(*args)
+            return zip_longest(*args)
 
         def create_workers(net_interfaces, avail_cpus):
             idx = 0
