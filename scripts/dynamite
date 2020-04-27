@@ -46,11 +46,11 @@ if __name__ == '__main__':
     if len(argv) < 2:
         component_parsers.main_parser.print_help()
         exit(1)
-
     if argv[1] in ["-v", "--version"]:
         utilities.print_dynamite_logo(const.VERSION)
         exit(0)
 
+    utilities.create_dynamite_environment_file()
     args = component_parsers.main_parser.parse_args()
     today_formatted_date = datetime.strftime(datetime.today(), '%d-%m-%Y')
     log_level = logging.INFO
