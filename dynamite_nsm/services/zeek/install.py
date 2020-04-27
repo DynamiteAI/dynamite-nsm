@@ -79,6 +79,7 @@ class InstallManager:
     def get_pf_ring_workers(network_capture_interfaces, strategy="aggressive", stdout=True, verbose=False):
         """
         Algorithm for determining the assignment of CPUs for Zeek workers
+
         :param network_capture_interfaces: A list of network interface names
         :param strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources
                          'conservative', results in less CPUs pinned per interface, but never overshoots resources

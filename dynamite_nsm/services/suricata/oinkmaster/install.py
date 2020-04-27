@@ -106,7 +106,7 @@ class InstallManager:
         except Exception as e:
             self.logger.error(
                 'Failed to copy {} -> {}.'.format(os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME),
-                                                     self.install_directory))
+                                                  self.install_directory))
             self.logger.debug(sys.stderr.write('Failed to copy {} -> {}: {}'.format(
                 os.path.join(const.INSTALL_CACHE, const.OINKMASTER_DIRECTORY_NAME), self.install_directory, e)))
             raise oinkmaster_exceptions.InstallOinkmasterError(
@@ -126,17 +126,23 @@ class InstallManager:
                 "Failed to update oinkmaster configuration file; {}".format(e))
 
 
-def update_suricata_rules():
+def update_suricata_rules(stdout=True, verbose=False):
     """
     Update Suricata rules specified in the oinkmaster.conf file
 
-    :return: True if succeeded
+    :param stdout: Print the output to console
+    :param verbose: Include detailed debug messages
     """
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('OINKMASTER', level=log_level, stdout=stdout)
     environment_variables = utilities.get_environment_file_dict()
     suricata_config_directory = environment_variables.get('SURICATA_CONFIG')
     oinkmaster_install_directory = environment_variables.get('OINKMASTER_HOME')
     exit_code = subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(
         os.path.join(suricata_config_directory, 'rules')), cwd=oinkmaster_install_directory, shell=True)
     if exit_code != 0:
+        logger.error("Oinkmaster returned a non-zero exit-code: {}. Is Oinkmaster/Suricata installed".format(exit_code))
         raise oinkmaster_exceptions.UpdateSuricataRulesError(
             "Oinkmaster returned a non-zero exit-code: {}".format(exit_code))

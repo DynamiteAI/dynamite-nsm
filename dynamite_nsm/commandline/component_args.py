@@ -79,6 +79,13 @@ def register_agent_component_args(agt_component_parser, parent_parsers):
         parents=parent_parsers)
     agt_status_parser.set_defaults(action_name="status")
 
+    # === Setup Agent Component Update Arguments === #
+
+    agt_update_parser = agent_component_args_subparsers.add_parser(
+        "update", help="Update Agent's EmergingThreat Signatures (If Suricata analyzer is installed).",
+        parents=parent_parsers)
+    agt_update_parser.set_defaults(action_name="update")
+
 
 def register_monitor_component_args(mon_component_parser, parent_parsers):
     monitor_component_args_subparsers = mon_component_parser.add_subparsers()

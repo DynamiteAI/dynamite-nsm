@@ -9,6 +9,9 @@ class AgentComponent(component.BaseComponent):
 
     def __init__(self, capture_network_interfaces, targets, kafka_topic=None, kafka_username=None, kafka_password=None,
                  agent_analyzers=('zeek', 'suricata'), tag=None, prompt_on_uninstall=True, stdout=True, verbose=False):
+
+        self.agent_update_strategy = execution_strategy.AgentSuricataUpdateStrategy()
+
         component.BaseComponent.__init__(
             self,
             component_name="Agent",
@@ -57,6 +60,8 @@ class AgentCommandlineComponent(component.BaseComponent):
     """
 
     def __init__(self, args):
+        self.agent_update_strategy = execution_strategy.AgentSuricataUpdateStrategy()
+
         component.BaseComponent.__init__(
             self,
             component_name="Agent",
@@ -123,6 +128,8 @@ class AgentCommandlineComponent(component.BaseComponent):
                 )
             )
             self.execute_process_status_strategy()
+        elif args.action_name == "update":
+            self.execute_agent_update_strategy()
 
 
 if __name__ == '__main__':

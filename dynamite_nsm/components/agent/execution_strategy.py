@@ -16,6 +16,7 @@ from dynamite_nsm.services.filebeat import profile as filebeat_profile
 from dynamite_nsm.services.suricata import install as suricata_install
 from dynamite_nsm.services.suricata import process as suricata_process
 from dynamite_nsm.services.suricata import profile as suricata_profile
+from dynamite_nsm.services.suricata.oinkmaster import install as oinkmaster_install
 
 from dynamite_nsm.utilities import prompt_input
 
@@ -442,6 +443,32 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             return_formats=(
                 None,
                 'json',
+            )
+        )
+
+
+class AgentSuricataUpdateStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to update agent Suricata rules
+    """
+
+    def __init__(self):
+        execution_strategy.BaseExecStrategy.__init__(
+            self, strategy_name="agent_update",
+            strategy_description="Get the latest EmergingThreat signatures for Suricata.",
+            functions=(
+                utilities.create_dynamite_environment_file,
+                oinkmaster_install.update_suricata_rules,
+            ),
+            arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
+                # oinkmaster_install.update_suricata_rules
+                {}
+            ),
+            return_formats=(
+                None,
+                None
             )
         )
 
