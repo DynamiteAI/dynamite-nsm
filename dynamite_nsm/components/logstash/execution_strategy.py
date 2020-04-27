@@ -155,8 +155,7 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
                 # process.start
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose),
-                    "status": bool(status)
+                    "verbose": bool(verbose)
                 },
             ),
             return_formats=(
@@ -184,8 +183,7 @@ class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
                 # process.start
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose),
-                    "status": bool(status)
+                    "verbose": bool(verbose)
                 },
             ),
             return_formats=(
@@ -214,15 +212,13 @@ class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
                 # process.stop
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose),
-                    "status": False
+                    "verbose": bool(verbose)
                 },
 
                 # process.start
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose),
-                    "status": bool(status)
+                    "verbose": bool(verbose)
                 },
             ),
             return_formats=(
