@@ -39,7 +39,10 @@ component_args.register_monitor_component_args(
 )
 
 if __name__ == '__main__':
-
+    if not utilities.is_root():
+        from sys import stderr
+        stderr.write('\033[91m[-] This script must be run as \033[4mroot\033[0m.\033[0m\n')
+        exit(1)
     if len(argv) < 2:
         component_parsers.main_parser.print_help()
         exit(1)

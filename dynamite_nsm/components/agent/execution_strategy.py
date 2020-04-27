@@ -3,6 +3,7 @@ import sys
 import logging
 
 from dynamite_nsm import const
+from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.tuis import agent_config_selector
 from dynamite_nsm.components.base import execution_strategy
@@ -134,12 +135,15 @@ class AgentConfigStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="agent_config",
             strategy_description="Configure the agent.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 agent_config_selector.run_gui,
             ),
             arguments=(
                 {},
+                {},
             ),
             return_formats=(
+                None,
                 None,
             )
         )
@@ -156,6 +160,15 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             self,
             strategy_name="agent_install",
             strategy_description="Install Zeek and/or Suricata along with FileBeat.",
+            functions=(
+                utilities.create_dynamite_environment_file,
+            ),
+            arguments=(
+                {},
+            ),
+            return_formats=(
+                None,
+            )
         )
         self.add_function(func=check_agent_deps_installed, argument_dict={'stdout': bool(stdout)})
         if not filebeat_profile.ProcessProfiler().is_installed:
@@ -237,9 +250,12 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
             self, strategy_name="agent_uninstall",
             strategy_description="Uninstall Agent.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 prompt_agent_uninstall,
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
                 # prompt_user
                 {
                     "prompt_user": bool(prompt_user),
@@ -247,6 +263,7 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
                 },
             ),
             return_formats=(
+                None,
                 None,
             )
         )
@@ -291,9 +308,12 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="agent_start",
             strategy_description="Start Agent processes.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 filebeat_process.start,
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
                 # filebeat_process.start
                 {
                     "stdout": bool(stdout),
@@ -302,6 +322,7 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
             ),
             return_formats=(
                 None,
+                None
             )
 
         )
@@ -330,9 +351,12 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="agent_stop",
             strategy_description="Stop Agent processes.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 filebeat_process.stop,
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
                 # filebeat_process.stop
                 {
                     "stdout": bool(stdout),
@@ -341,6 +365,7 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
             ),
             return_formats=(
                 None,
+                None
             )
 
         )
@@ -403,14 +428,19 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             self, strategy_name="agent_status",
             strategy_description="Get the status of the Agent processes.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 get_agent_status,
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
+                # get_agent_status
                 {
                     'include_subprocesses': bool(include_subprocesses)
                 },
             ),
             return_formats=(
+                None,
                 'json',
             )
         )

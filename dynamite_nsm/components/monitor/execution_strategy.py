@@ -3,6 +3,7 @@ import sys
 import logging
 
 from dynamite_nsm import const
+from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.services.kibana import install as kb_install
@@ -90,6 +91,15 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             self,
             strategy_name="monitor_install",
             strategy_description="Install ElasticSearch, LogStash, and Kibana on the same instance.",
+            functions=(
+                utilities.create_dynamite_environment_file,
+            ),
+            arguments=(
+                {},
+            ),
+            return_formats=(
+                None,
+            )
         )
         
         self.add_function(func=remove_elasticsearch_tar_archive, argument_dict={}, return_format=None)
@@ -186,6 +196,7 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
             self, strategy_name="monitor_uninstall",
             strategy_description="Uninstall Monitor.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 prompt_monitor_uninstall,
                 kb_install.uninstall_kibana,
                 ls_install.uninstall_logstash,
@@ -193,6 +204,8 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                 log_message
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
                 # prompt_user
                 {
                     "prompt_user": bool(prompt_user),
@@ -226,6 +239,7 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
                 None,
                 None,
+                None,
                 None
             )
         )
@@ -242,11 +256,14 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="monitor_start",
             strategy_description="Start Monitor processes.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 es_process.start,
                 ls_process.start,
                 kb_process.start
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
                 # es_process.start
                 {
                     "stdout": bool(stdout),
@@ -264,6 +281,7 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
                 }
             ),
             return_formats=(
+                None,
                 None,
                 None,
                 None
@@ -284,11 +302,14 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="monitor_stop",
             strategy_description="Stop Monitor processes.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 ls_process.stop,
                 kb_process.stop,
                 es_process.stop,
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
                 # ls_process.start.start
                 {
                     "stdout": bool(stdout),
@@ -308,6 +329,7 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
             return_formats=(
                 None,
                 None,
+                None,
                 None
             )
         )
@@ -325,6 +347,7 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             self, strategy_name="monitor_restart",
             strategy_description="Restart Monitor processes.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 ls_process.stop,
                 kb_process.stop,
                 es_process.stop,
@@ -333,6 +356,8 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
                 ls_process.start,
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
                 # ls_process.stop
                 {
                     "stdout": bool(stdout),
@@ -371,6 +396,7 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
                 None,
                 None,
                 None,
+                None,
                 None
             )
         )
@@ -388,12 +414,17 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             self, strategy_name="monitor_status",
             strategy_description="Get the status of the Monitor processes.",
             functions=(
+                utilities.create_dynamite_environment_file,
                 get_monitor_status,
             ),
             arguments=(
+                # utilities.create_dynamite_environment_file
+                {},
+                # get_monitor_status
                 {},
             ),
             return_formats=(
+                None,
                 'json',
             )
         )
