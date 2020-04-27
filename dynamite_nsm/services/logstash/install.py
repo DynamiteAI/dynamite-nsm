@@ -465,7 +465,7 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     if ls_profiler.is_running:
-        logstash_process.ProcessManager().stop(stdout=stdout)
+        logstash_process.ProcessManager().stop()
     try:
         shutil.rmtree(ls_config.ls_path_conf)
         shutil.rmtree(ls_config.ls_home)

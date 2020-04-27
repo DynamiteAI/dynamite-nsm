@@ -139,10 +139,6 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
                 "msg": 'Skipping LogStash installation; already installed.'
             }, return_format=None)
 
-        self.add_function(func=ls_process.stop, argument_dict={
-            "stdout": False
-        }, return_format=None)
-
         if not kb_profile.ProcessProfiler().is_installed:
             self.add_function(func=kb_install.install_kibana, argument_dict={
                 "configuration_directory": "/etc/dynamite/kibana/",
