@@ -61,7 +61,7 @@ def prompt_monitor_uninstall(prompt_user=True, stdout=True):
         sys.stderr.write(
             '\n\033[93m[-] WARNING! Removing Monitor Will Delete All Saved Network Events and Corresponding '
             'Visualisations.\033[0m\n')
-        resp = prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+        resp = prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         while resp not in ['', 'no', 'yes']:
             resp = prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         if resp != 'yes':

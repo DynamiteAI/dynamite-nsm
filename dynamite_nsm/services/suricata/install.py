@@ -437,10 +437,11 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
         logger.error("Suricata is not installed. Cannot uninstall.")
         raise suricata_exceptions.UninstallSuricataError("Suricata is not installed.")
     if prompt_user:
-        sys.stderr.write('\n[-] WARNING! Removing Suricata Will Remove Critical Agent Functionality.\n')
-        resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+        sys.stderr.write(
+            '\n\033[93m[-] WARNING! Removing Suricata Will Remove Critical Agent Functionality.\033[0m\n')
+        resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')

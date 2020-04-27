@@ -389,9 +389,10 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
         logger.error('ElasticSearch is already installed.')
         raise elastic_exceptions.AlreadyInstalledElasticsearchError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
-        sys.stderr.write('\n[-] WARNING! ElasticSearch should have at-least 6GB to run '
-                         'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes() / (1000 ** 3)))
-        if str(utilities.prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
+        sys.stderr.write('\n\033[93m[-] WARNING! ElasticSearch should have at-least 6GB to run '
+                         'currently available [{} GB]\033[0m\n'.format(
+            utilities.get_memory_available_bytes() / (1000 ** 3)))
+        if str(utilities.prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
             sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     es_installer = InstallManager(configuration_directory=configuration_directory,
@@ -437,10 +438,12 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
     configuration_directory = environment_variables.get('ES_PATH_CONF')
     es_config = elastic_configs.ConfigManager(configuration_directory=configuration_directory)
     if prompt_user:
-        sys.stderr.write('\n[-] WARNING! Removing ElasticSearch Will Delete All Data.\n')
-        resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+        sys.stderr.write(
+            '\n\033[93m[-] WARNING! Removing ElasticSearch Will Delete All Data.'
+            '\033[0m\n')
+        resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')

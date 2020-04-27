@@ -52,7 +52,9 @@ class OSPackageManager:
             p = subprocess.Popen('{} {} install {}'.format(self.package_manager, flags, ' '.join(packages)),
                                  shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
-        if p.returncode != 0:
+        if p.returncode not in [0, 100]:
+            # Interestingly enough apt-get can return 100s if https isn't forced
+            # https://stackoverflow.com/questions/38002543/apt-get-update-returned-a-non-zero-code-100
             raise general_exceptions.OsPackageManagerInstallError(
                 "OS package manager exited with {}; One or more packages was not installed".format(p.returncode))
 

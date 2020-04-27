@@ -338,9 +338,10 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
         logger.error('Kibana is already installed. If you wish to re-install, first uninstall.')
         raise kibana_exceptions.AlreadyInstalledKibanaError()
     if utilities.get_memory_available_bytes() < 2 * (1000 ** 3):
-        sys.stderr.write('\n[-] WARNING! Kibana should have at-least 2GB to run '
-                         'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes() / (1000 ** 3)))
-        if str(utilities.prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
+        sys.stderr.write('\n\033[93m[-] WARNING! Kibana should have at-least 2GB to run '
+                         'currently available [{} GB]\033[0m\n'.format(
+            utilities.get_memory_available_bytes() / (1000 ** 3)))
+        if str(utilities.prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
             sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     kb_installer = InstallManager(install_directory, configuration_directory, log_directory,
@@ -379,10 +380,11 @@ def uninstall_kibana(prompt_user=True, stdout=True, verbose=False):
     kb_config = kibana_configs.ConfigManager(configuration_directory)
     if prompt_user:
         sys.stderr.write(
-            '\n[-] WARNING! Removing Kibana will uninstall all visualizations and saved searches previously created.\n')
-        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            '\n\033[93m[-] WARNING! Removing Kibana will uninstall all visualizations and saved searches previously '
+            'created.\033[0m\n')
+        resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')

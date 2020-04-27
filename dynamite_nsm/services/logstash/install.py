@@ -407,9 +407,10 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
         logger.error('LogStash is already installed.')
         raise logstash_exceptions.AlreadyInstalledLogstashError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
-        sys.stderr.write('\n WARNING! Dynamite Logstash should have at-least 6GB to run '
-                         'currently available [{} GB]\n'.format(utilities.get_memory_available_bytes() / (1000 ** 3)))
-        if str(utilities.prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
+        sys.stderr.write('\n\033[93m[-] WARNING! LogStash should have at-least 6GB to run '
+                         'currently available [{} GB]\033[0m\n'.format(
+            utilities.get_memory_available_bytes() / (1000 ** 3)))
+        if str(utilities.prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
             sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     ls_installer = InstallManager(configuration_directory, install_directory, log_directory, host=host,
@@ -456,10 +457,11 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
         logger.error('LogStash is not installed.')
         raise logstash_exceptions.UninstallLogstashError("LogStash is not installed.")
     if prompt_user:
-        sys.stderr.write('\n[-] WARNING! Removing Logstash Will Prevent ElasticSearch From Receiving Events.\n')
-        resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+        sys.stderr.write(
+            '\n\033[93m[-] WARNING! Removing Logstash Will Prevent ElasticSearch From Receiving Events.\033[0m\n')
+        resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
