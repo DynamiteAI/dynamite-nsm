@@ -113,11 +113,11 @@ def remove_suricata_tar_archive():
 def prompt_agent_uninstall(prompt_user=True, stdout=True):
     if prompt_user:
         sys.stderr.write(
-            '\n[-] WARNING! Removing Agent Will Remove the Agent and all of it\'s installed components: {}.\n'.format(
-                get_installed_agent_analyzers()))
-        resp = prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+            '\n\033[93m[-] WARNING! Removing Agent Will Remove the Agent and all of it\'s installed components: {}.'
+            '\033[0m\n'.format(get_installed_agent_analyzers()))
+        resp = prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
-            resp = prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+            resp = prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')

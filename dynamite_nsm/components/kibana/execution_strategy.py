@@ -37,8 +37,8 @@ def check_elasticsearch_target(host, port, perform_check=True):
     if not perform_check:
         return
     if not check_socket(host, port):
-        print("[-] ElasticSearch does not appear to be started on: {}:{}.".format(host, port))
-        if str(prompt_input('[?] Continue? [y|N]: ')).lower() != 'y':
+        print("\n\033[93m[-] ElasticSearch does not appear to be started on: {}:{}.\033[0m".format(host, port))
+        if str(prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
             exit(0)
     return
 
