@@ -151,7 +151,7 @@ def download_file(url, filename, stdout=False):
         ' ', progressbar.ETA(),
 
     ]
-    if response_size_bytes:
+    if response_size_bytes and response_size_bytes != 'NaN':
         try:
             pb = progressbar.ProgressBar(widgets=widgets, max_value=int(response_size_bytes))
         except TypeError:
@@ -167,7 +167,6 @@ def download_file(url, filename, stdout=False):
             '          | ',
             ' ', progressbar.BouncingBar(),
             ' ', '({})'.format(filename),
-
         ]
         try:
             pb = progressbar.ProgressBar(widgets, max_value=progressbar.UnknownLength)
