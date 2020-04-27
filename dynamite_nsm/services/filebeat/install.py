@@ -117,11 +117,11 @@ class InstallManager:
                 "General error while attempting to extract FileBeat archive; {}".format(e))
 
     @staticmethod
-    def validate_targets(logstash_targets, stdout=True, verbose=False):
+    def validate_targets(targets, stdout=True, verbose=False):
         """
         Ensures that Logstash targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
 
-        :param logstash_targets: A list of IP/host port pair
+        :param targets: A list of IP/host port pair
         :param stdout: Print the output to console
         :param verbose: Include detailed debug messages
         :return: True if valid
@@ -131,20 +131,20 @@ class InstallManager:
             log_level = logging.DEBUG
         logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
-        if isinstance(logstash_targets, list) or isinstance(logstash_targets, tuple):
-            for i, target in enumerate(logstash_targets):
+        if isinstance(targets, list) or isinstance(targets, tuple):
+            for i, target in enumerate(targets):
                 target = str(target)
                 try:
                     host, port = target.split(':')
                     if not str(port).isdigit():
                         logger.warning(
-                            'LogStash Target Invalid: {} port must be numeric at position {}'.format(target, i))
+                            'Target Invalid: {} port must be numeric at position {}'.format(target, i))
                         return False
                 except ValueError:
-                    logger.warning('LogStash Target Invalid: {} expected host:port at position {}'.format(target, i))
+                    logger.warning('Target Invalid: {} expected host:port at position {}'.format(target, i))
                     return False
         else:
-            logger.warning('LogStash Target Invalid: {}; must be a enumerable (list, tuple)'.format(logstash_targets))
+            logger.warning('Target Invalid: {}; must be a enumerable (list, tuple)'.format(targets))
             return False
         return True
 
@@ -186,7 +186,13 @@ class InstallManager:
             time.sleep(2)
             beats_config.set_kafka_targets(target_hosts=self.targets, topic=self.kafka_topic,
                                            username=self.kafka_username, password=self.kafka_password)
+            # setup example upstream LogStash example, just in case you want to configure later
+            beats_config.set_logstash_targets(target_hosts='localhost:5601')
+            beats_config.enable_kafka_output()
         else:
+            # setup example upstream Kafka example, just in case you want to configure later
+            beats_config.set_kafka_targets(target_hosts='localhost:9092', topic='dynamite-nsm-events')
+            beats_config.enable_logstash_output()
             beats_config.set_logstash_targets(self.targets)
         try:
             beats_config.write_config()

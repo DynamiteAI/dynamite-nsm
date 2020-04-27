@@ -441,7 +441,7 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
         sys.stderr.write(
             '\n\033[93m[-] WARNING! Removing ElasticSearch Will Delete All Data.'
             '\033[0m\n')
-        resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
+        resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
             resp = utilities.prompt_input('\n\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         if resp != 'yes':
