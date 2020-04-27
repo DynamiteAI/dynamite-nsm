@@ -54,7 +54,6 @@ class BaseExecStrategy:
 
 
 if __name__ == '__main__':
-
     def test_func_1(msg):
         print(msg)
 

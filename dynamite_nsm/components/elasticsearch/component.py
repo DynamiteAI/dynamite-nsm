@@ -71,7 +71,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 ))
-            self.install()
+            self.execute_install_strategy()
         elif args.action_name == "uninstall":
             self.register_uninstall_strategy(
                 execution_strategy.ElasticsearchUninstallStrategy(
@@ -80,7 +80,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout
                 )
             )
-            self.uninstall()
+            self.execute_uninstall_strategy()
         elif args.action_name == "start":
             self.register_process_start_strategy(
                 execution_strategy.ElasticsearchProcessStartStrategy(
@@ -89,7 +89,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout,
                 )
             )
-            self.start()
+            self.execute_process_start_strategy()
         elif args.action_name == "stop":
             self.register_process_stop_strategy(
                 execution_strategy.ElasticsearchProcessStopStrategy(
@@ -98,7 +98,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout,
                 )
             )
-            self.stop()
+            self.execute_process_stop_strategy()
         elif args.action_name == "restart":
             self.register_process_restart_strategy(
                 execution_strategy.ElasticsearchProcessRestartStrategy(
@@ -107,19 +107,19 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout,
                 )
             )
-            self.restart()
+            self.execute_process_restart_strategy()
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
                 execution_strategy.ElasticsearchProcessStatusStrategy()
             )
-            self.status()
+            self.execute_process_status_strategy()
 
 
 if __name__ == '__main__':
     es_component = ElasticsearchComponent()
-    es_component.install()
-    es_component.start()
-    es_component.stop()
-    es_component.status()
-    es_component.uninstall()
+    es_component.execute_install_strategy()
+    es_component.execute_process_start_strategy()
+    es_component.execute_process_stop_strategy()
+    es_component.execute_process_status_strategy()
+    es_component.execute_uninstall_strategy()
