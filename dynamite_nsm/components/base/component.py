@@ -43,11 +43,11 @@ class BaseComponent:
                 reg_func_name = 'register_' + inst
                 exe_func_name = 'execute_' + inst
 
-                def execute_strategy_function(self):
+                def execute_strategy_function():
                     strategy = getattr(self, inst)
                     self.execute_strategy(strategy)
 
-                def register_strategy_function(self, strategy):
+                def register_strategy_function(strategy):
                     self.validate_strategy(strategy)
                     setattr(self, inst, strategy)
 
