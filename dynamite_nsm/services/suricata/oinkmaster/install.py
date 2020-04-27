@@ -139,10 +139,14 @@ def update_suricata_rules(stdout=True, verbose=False):
     logger = get_logger('OINKMASTER', level=log_level, stdout=stdout)
     environment_variables = utilities.get_environment_file_dict()
     suricata_config_directory = environment_variables.get('SURICATA_CONFIG')
+    if not suricata_config_directory:
+        logger.error("Could not resolve SURICATA_CONFIG environment_variable. Is Suricata installed?")
+        raise oinkmaster_exceptions.UpdateSuricataRulesError(
+            "Could not resolve SURICATA_CONFIG environment_variable. Is Suricata installed?")
     oinkmaster_install_directory = environment_variables.get('OINKMASTER_HOME')
     exit_code = subprocess.call('./oinkmaster.pl -C oinkmaster.conf -o {}'.format(
         os.path.join(suricata_config_directory, 'rules')), cwd=oinkmaster_install_directory, shell=True)
     if exit_code != 0:
-        logger.error("Oinkmaster returned a non-zero exit-code: {}. Is Oinkmaster/Suricata installed".format(exit_code))
+        logger.error("Oinkmaster returned a non-zero exit-code: {}.".format(exit_code))
         raise oinkmaster_exceptions.UpdateSuricataRulesError(
             "Oinkmaster returned a non-zero exit-code: {}".format(exit_code))
