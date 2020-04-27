@@ -60,7 +60,7 @@ class AgentCommandlineComponent(component.BaseComponent):
     """
 
     def __init__(self, args):
-        self.agent_update_strategy = execution_strategy.AgentSuricataUpdateStrategy()
+        self.agent_update_strategy = None
 
         component.BaseComponent.__init__(
             self,
@@ -129,6 +129,9 @@ class AgentCommandlineComponent(component.BaseComponent):
             )
             self.execute_process_status_strategy()
         elif args.action_name == "update":
+            self.register_agent_update_strategy(
+                execution_strategy.AgentSuricataUpdateStrategy()
+            )
             self.execute_agent_update_strategy()
 
 
