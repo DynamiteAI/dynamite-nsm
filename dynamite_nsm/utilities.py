@@ -173,7 +173,11 @@ def download_file(url, filename, stdout=False):
         except TypeError:
             pb = progressbar.ProgressBar(maxval=progressbar.UnknownLength)
     if stdout:
-        pb.start()
+        try:
+            pb.start()
+        except ValueError:
+            stdout = False # Something broke, disable stdout going forward
+            print("[+] Download Started...")
     try:
         with open(os.path.join(const.INSTALL_CACHE, filename), 'wb') as f:
             chunk_num = 0
