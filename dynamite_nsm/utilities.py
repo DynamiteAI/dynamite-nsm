@@ -481,8 +481,9 @@ def setup_java():
     except shutil.Error:
         pass
     if 'JAVA_HOME' not in open(os.path.join(const.CONFIG_PATH, 'environment')).read():
-        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> {}'.format(const.CONFIG_PATH, 'environment'),
-                        shell=True)
+        subprocess.call(
+            'echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> {}'.format(os.path.join(const.CONFIG_PATH, 'environment')),
+            shell=True)
 
 
 def set_ownership_of_file(path, user='dynamite', group='dynamite'):
