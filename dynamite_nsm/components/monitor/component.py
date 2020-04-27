@@ -32,18 +32,22 @@ class MonitorComponent(component.BaseComponent):
             ),
             uninstall_strategy=execution_strategy.MonitorUninstallStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 prompt_user=prompt_on_uninstall
             ),
             process_start_strategy=execution_strategy.MonitorProcessStartStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_stop_strategy=execution_strategy.MonitorProcessStopStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_restart_strategy=execution_strategy.MonitorProcessRestartStrategy(
                 stdout=stdout,
+                verbose=verbose,
                 status=True
             ),
             process_status_strategy=execution_strategy.MonitorProcessStatusStrategy()
@@ -87,6 +91,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
             self.register_uninstall_strategy(
                 execution_strategy.MonitorUninstallStrategy(
                     stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout,
                     prompt_user=not args.skip_monitor_uninstall_prompt
                 )
             )
@@ -95,6 +100,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
             self.register_process_start_strategy(
                 execution_strategy.MonitorProcessStartStrategy(
                     stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout,
                     status=True
                 )
             )
@@ -103,6 +109,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
             self.register_process_stop_strategy(
                 execution_strategy.MonitorProcessStopStrategy(
                     stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout,
                     status=True
                 )
             )
@@ -111,6 +118,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
             self.register_process_restart_strategy(
                 execution_strategy.MonitorProcessRestartStrategy(
                     stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout,
                     status=True
                 )
             )
