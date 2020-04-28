@@ -102,7 +102,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
             )
         )
-        
+
         self.add_function(func=remove_elasticsearch_tar_archive, argument_dict={}, return_format=None)
 
         self.add_function(func=remove_logstash_tar_archive, argument_dict={}, return_format=None)
@@ -172,18 +172,19 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
         self.add_function(func=kb_process.stop, argument_dict={
             "stdout": False
         }, return_format=None)
-        
+
         self.add_function(func=es_process.stop, argument_dict={
             "stdout": False
         }, return_format=None)
-        
+
         self.add_function(func=log_message, argument_dict={
             "msg": '*** Monitor installed successfully. ***'
         }, return_format=None)
-        
+
         self.add_function(func=log_message, argument_dict={
             "msg": 'Next, Start your monitor: '
-                   '\'dynamite monitor start\'.'
+                   '\'dynamite monitor start\'. It will be available at: \033[4m{}:{}\033[0m once started.'.format(
+                    kibana_listen_address, kibana_listen_port)
         }, return_format=None)
 
 

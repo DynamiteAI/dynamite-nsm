@@ -3,7 +3,7 @@ import logging
 
 from dynamite_nsm import const
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.kibana import install, process
+from dynamite_nsm.services.lab import install, process
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.utilities import check_socket, prompt_input
 
@@ -12,7 +12,7 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
     log_level = logging.INFO
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('KIBANA_CMP', level=log_level, stdout=stdout)
+    logger = get_logger('LAB_CMP', level=log_level, stdout=stdout)
     if level == logging.DEBUG:
         logger.debug(msg)
     elif level == logging.INFO:
@@ -27,12 +27,6 @@ def print_message(msg):
     print(msg)
 
 
-def remove_kibana_tar_archive():
-    dir_path = os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME)
-    if os.path.exists(dir_path):
-        os.remove(dir_path)
-
-
 def check_elasticsearch_target(host, port, perform_check=True):
     if not perform_check:
         return
@@ -43,21 +37,20 @@ def check_elasticsearch_target(host, port, perform_check=True):
     return
 
 
-class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
+class LabInstallStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to install kibana
+    Steps to install DynamiteLab
     """
 
-    def __init__(self, listen_address, listen_port, elasticsearch_host, elasticsearch_port, elasticsearch_password,
-                 check_elasticsearch_connection, stdout, verbose):
+    def __init__(self, jupyterhub_host, jupyterhub_password, elasticsearch_host, elasticsearch_port,
+                 elasticsearch_password, check_elasticsearch_connection, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self,
-            strategy_name="kibana_install",
-            strategy_description="Install Kibana with Dynamite Analytic views and connect to ElasticSearch.",
+            strategy_name="lab_install",
+            strategy_description="Install DynamiteLab (DynamiteSDK and JupyterHub).",
             functions=(
                 check_elasticsearch_target,
-                remove_kibana_tar_archive,
-                install.install_kibana,
+                install.install_dynamite_lab,
                 process.stop,
                 log_message,
                 log_message
@@ -69,19 +62,15 @@ class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
                     "host": str(elasticsearch_host),
                     "port": int(elasticsearch_port)
                 },
-                # remove_kibana_tar_archive
-                {},
-                # install.install_kibana
+                # install.install_dynamite_lab
                 {
-                    "configuration_directory": "/etc/dynamite/kibana/",
-                    "install_directory": "/opt/dynamite/kibana/",
-                    "log_directory": "/var/log/dynamite/kibana/",
-                    "host": str(listen_address),
-                    "port": int(listen_port),
+                    "configuration_directory": "/etc/dynamite/dynamite_sdk/",
+                    "notebook_home": "/etc/dynamite/notebooks",
+                    "jupyterhub_host": jupyterhub_host,
+                    "jupyterhub_password": str(jupyterhub_password),
                     "elasticsearch_host": str(elasticsearch_host),
                     "elasticsearch_port": int(elasticsearch_port),
                     "elasticsearch_password": str(elasticsearch_password),
-                    "create_dynamite_user": True,
                     "stdout": bool(stdout),
                     "verbose": bool(verbose)
                 },
@@ -93,17 +82,16 @@ class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** Kibana installed successfully. ***'
+                    "msg": '*** Lab installed successfully. ***'
                 },
                 # log_message
                 {
-                    "msg": 'Next, Start your cluster: '
-                           '\'dynamite kibana start\'. It will be available at: \033[4m{}:{}\033[0m once started.'
-                           ''.format(listen_address, listen_port)
+                    "msg": 'Next, Start DynamiteLab: '
+                           '\'dynamite lab start\'. It will be available at: \033[4m{}:{}\033[0m once started.'.format(
+                            jupyterhub_host, 8000)
                 }
             ),
             return_formats=(
-                None,
                 None,
                 None,
                 None,
@@ -112,21 +100,21 @@ class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
             ))
 
 
-class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
+class LabUninstallStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to uninstall kibana
+    Steps to uninstall DynamiteLab
     """
 
     def __init__(self, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="kibana_uninstall",
-            strategy_description="Uninstall Kibana.",
+            self, strategy_name="lab_uninstall",
+            strategy_description="Uninstall Lab.",
             functions=(
-                install.uninstall_kibana,
+                install.uninstall_dynamite_lab,
                 log_message
             ),
             arguments=(
-                # install.uninstall_kibana
+                # install.uninstall_dynamite_lab
                 {
                     'prompt_user': bool(prompt_user),
                     'stdout': bool(stdout),
@@ -135,7 +123,7 @@ class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** Kibana uninstalled successfully. ***'
+                    "msg": '*** Lab uninstalled successfully. ***'
                 },
             ),
             return_formats=(
@@ -145,16 +133,16 @@ class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
         )
 
 
-class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
+class LabProcessStartStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to start kibana
+    Steps to start DynamiteLab
     """
 
     def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
             self,
-            strategy_name="kibana_start",
-            strategy_description="Start Kibana process.",
+            strategy_name="lab_start",
+            strategy_description="Start Lab process.",
             functions=(
                 process.start,
             ),
@@ -174,15 +162,15 @@ class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {}, return_format="json")
 
 
-class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
+class LabProcessStopStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to stop kibana
+    Steps to stop DynamiteLab
     """
 
     def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="kibana_stop",
-            strategy_description="Stop Kibana process.",
+            self, strategy_name="lab_stop",
+            strategy_description="Stop Lab process.",
             functions=(
                 process.stop,
             ),
@@ -202,15 +190,15 @@ class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {}, return_format="json")
 
 
-class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
+class LabProcessRestartStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to restart kibana
     """
 
     def __init__(self, stdout, verbose, status):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="kibana_restart",
-            strategy_description="Restart Kibana process.",
+            self, strategy_name="lab_restart",
+            strategy_description="Restart Lab process.",
             functions=(
                 process.stop,
                 process.start,
@@ -237,15 +225,15 @@ class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {}, return_format="json")
 
 
-class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
+class LabProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to get status of kibana
     """
 
     def __init__(self):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="kibana_status",
-            strategy_description="Get the status of the Kibana process.",
+            self, strategy_name="lab_status",
+            strategy_description="Get the status of the Lab process.",
             functions=(
                 process.status,
             ),
@@ -263,9 +251,9 @@ class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 def run_install_strategy():
-    kb_install_strategy = KibanaInstallStrategy(
-        listen_address="0.0.0.0",
-        listen_port=5601,
+    kb_install_strategy = LabInstallStrategy(
+        jupyterhub_host='localhost',
+        jupyterhub_password='changeme',
         elasticsearch_host="localhost",
         elasticsearch_port=9200,
         elasticsearch_password="changeme",
@@ -277,7 +265,7 @@ def run_install_strategy():
 
 
 def run_uninstall_strategy():
-    kb_uninstall_strategy = KibanaUninstallStrategy(
+    kb_uninstall_strategy = LabUninstallStrategy(
         prompt_user=False,
         stdout=True,
         verbose=True
@@ -286,7 +274,7 @@ def run_uninstall_strategy():
 
 
 def run_process_start_strategy():
-    kb_start_strategy = KibanaProcessStartStrategy(
+    kb_start_strategy = LabProcessStartStrategy(
         stdout=True,
         verbose=True,
         status=True
@@ -295,7 +283,7 @@ def run_process_start_strategy():
 
 
 def run_process_stop_strategy():
-    kb_stop_strategy = KibanaProcessStopStrategy(
+    kb_stop_strategy = LabProcessStopStrategy(
         stdout=True,
         verbose=True,
         status=True
@@ -304,7 +292,7 @@ def run_process_stop_strategy():
 
 
 def run_process_restart_strategy():
-    kb_restart_strategy = KibanaProcessRestartStrategy(
+    kb_restart_strategy = LabProcessRestartStrategy(
         stdout=True,
         verbose=True,
         status=True
@@ -313,7 +301,7 @@ def run_process_restart_strategy():
 
 
 def run_process_status_strategy():
-    kb_status_strategy = KibanaProcessStatusStrategy()
+    kb_status_strategy = LabProcessStatusStrategy()
     kb_status_strategy.execute_strategy()
 
 

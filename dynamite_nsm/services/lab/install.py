@@ -41,7 +41,7 @@ class InstallManager:
 
     def __init__(self, configuration_directory, notebook_home, elasticsearch_host=None, elasticsearch_port=None,
                  elasticsearch_password='changeme', jupyterhub_host=None, jupyterhub_password='changeme',
-                 download_dynamite_sdk_archive=True, stdout=False, verbose=False):
+                 download_dynamite_sdk_archive=True, stdout=True, verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/dynamite_sdk/)
         :param notebook_home: The path where Jupyter notebooks are stored
@@ -578,7 +578,7 @@ def uninstall_dynamite_lab(prompt_user=True, stdout=True, verbose=False):
                 sys.stdout.write('\n[+] Exiting\n')
             return
     if dynamite_lab_profiler.is_running:
-        lab_process.ProcessManager().stop(stdout=stdout)
+        lab_process.ProcessManager().stop()
     shutil.rmtree(configuration_directory)
     shutil.rmtree(notebook_home)
     shutil.rmtree(const.INSTALL_CACHE, ignore_errors=True)

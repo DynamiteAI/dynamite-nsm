@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import signal
 import logging
@@ -8,7 +7,6 @@ from multiprocessing import Process
 
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.lab import config as lab_configs
 
 PID_DIRECTORY = '/var/run/dynamite/jupyterhub/'
 
@@ -104,6 +102,8 @@ class ProcessManager:
                 self.logger.error('An error occurred while attempting to stop JupyterHub.')
                 self.logger.debug('An error occurred while attempting to stop JupyterHub; {}'.format(e))
                 return False
+        self.logger.info("Deleting JupyterHub PID [{}].".format(self.pid))
+        utilities.safely_remove_file(os.path.join(PID_DIRECTORY, 'jupyterhub.pid'))
         return True
 
     def restart(self):
@@ -128,3 +128,19 @@ class ProcessManager:
             'RUNNING': utilities.check_pid(self.pid),
             'USER': 'root'
         }
+
+
+def start(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).start()
+
+
+def stop(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).stop()
+
+
+def restart(stdout=True, verbose=False):
+    ProcessManager(stdout, verbose).restart()
+
+
+def status(stdout=True, verbose=False):
+    return ProcessManager(stdout, verbose).status()
