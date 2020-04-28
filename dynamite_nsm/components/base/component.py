@@ -29,7 +29,7 @@ class BaseComponent:
         """
         :param component_name: The name of the component (E.G agent)
         :param component_description: A long description of the component
-        :param Execution strategy names and their corresponding values
+        :param strategies: Execution strategy names and their corresponding values
                (E.G install_strategy=execution_strategy.InstallStrategy())
         """
 
