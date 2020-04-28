@@ -200,10 +200,6 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
             functions=(
                 utilities.create_dynamite_environment_file,
                 prompt_monitor_uninstall,
-                kb_install.uninstall_kibana,
-                ls_install.uninstall_logstash,
-                es_install.uninstall_elasticsearch,
-                log_message
             ),
             arguments=(
                 # utilities.create_dynamite_environment_file
@@ -219,7 +215,6 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
                 None
             )
-
         )
         if kb_profile.ProcessProfiler().is_installed:
             self.add_function(func=kb_install.uninstall_kibana, argument_dict={
