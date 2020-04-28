@@ -18,6 +18,7 @@ class BaseComponent:
         self.component_name = component_name
         self.component_description = component_description
 
+        # For each of our strategies (**keyword_args); set up instance variables
         for name, value in strategies.items():
             setattr(self, name, value)
 

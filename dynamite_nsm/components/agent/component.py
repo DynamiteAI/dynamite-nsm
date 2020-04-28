@@ -72,7 +72,8 @@ class AgentCommandlineComponent(component.BaseComponent):
             process_start_strategy=None,
             process_stop_strategy=None,
             process_restart_strategy=None,
-            process_status_strategy=None
+            process_status_strategy=None,
+            agent_update_strategy=None
         )
         if args.action_name == "config":
             self.register_config_strategy(execution_strategy.AgentConfigStrategy())
