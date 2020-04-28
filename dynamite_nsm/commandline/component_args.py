@@ -13,7 +13,8 @@ def register_agent_dependency_component_args(agt_deps_component_parser, parent_p
 
 def register_agent_component_args(agt_component_parser, parent_parsers):
     agent_component_args_subparsers = agt_component_parser.add_subparsers()
-    agt_config_parser = agent_component_args_subparsers.add_parser("config", help="Configure Agent.", parents=parent_parsers)
+    agt_config_parser = agent_component_args_subparsers.add_parser("config", help="Configure Agent.",
+                                                                   parents=parent_parsers)
     agt_config_parser.set_defaults(action_name="config")
 
     # === Setup Agent Component Install Arguments === #
@@ -37,7 +38,8 @@ def register_agent_component_args(agt_component_parser, parent_parsers):
     agt_install_parser.add_argument("--kafka-password", dest="kafka_password", type=str,
                                     help="The optional Kafka password."
                                     )
-    agt_install_parser.add_argument("--analyzers", dest="agent_analyzers", type=str, default=['zeek', 'suricata'],
+    agt_install_parser.add_argument("--analyzers", dest="agent_analyzers", type=str, nargs='+',
+                                    default=['zeek', 'suricata'],
                                     help="A list of analyzers to enable on this agent instance (E.G zeek suricata)"
                                     )
     agt_install_parser.add_argument("--tag", dest="agent_tag", type=str, default=None,
