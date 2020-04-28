@@ -82,13 +82,13 @@ def change_sdk_elasticsearch_password(password='changeme', prompt_user=True, std
     configuration_directory = environment_variables.get('DYNAMITE_LAB_CONFIG')
     if prompt_user:
         resp = utilities.prompt_input(
-            'Changing the SDK password can cause your notebooks to lose communication with ElasticSearch. '
-            'Are you sure you wish to continue? [no]|yes): ')
+            '\033[93m[-] Changing the SDK password can cause your notebooks to lose communication with ElasticSearch.\n'
+            '[?] Are you sure you wish to continue? [no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
+                sys.stdout.write('\n[+] Exiting\n')
             return
     dynamite_lab_config = ConfigManager(configuration_directory=configuration_directory)
     try:
@@ -105,9 +105,9 @@ def prompt_password_change_options():
     """
 
     resp = utilities.prompt_input(
-        '1. Change the password the SDK uses to connect to Elasticsearch.\n'
-        '2. Change the password for logging into Jupyterhub (jupyter user).\n\n'
-        'Select an option [1, 2]: ')
+        '[+] 1. Change the password the SDK uses to connect to Elasticsearch.\n'
+        '[+] 2. Change the password for logging into Jupyterhub (jupyter user).\n\n'
+        '[?] Select an option [1, 2]: ')
     while str(resp) not in ['', '1', '2']:
         resp = utilities.prompt_input('Select an option [1, 2]: ')
     if str(resp) == '1':

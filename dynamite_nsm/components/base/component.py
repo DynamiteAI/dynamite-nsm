@@ -7,32 +7,19 @@ class BaseComponent:
     Register a set of actions to a component
     """
 
-    def __init__(self, component_name, component_description, config_strategy=None, install_strategy=None,
-                 uninstall_strategy=None,
-                 process_start_strategy=None, process_stop_strategy=None, process_restart_strategy=None,
-                 process_status_strategy=None):
+    def __init__(self, component_name, component_description, **strategies):
         """
         :param component_name: The name of the component (E.G agent)
         :param component_description: A long description of the component
-        :param config_strategy: An instance of an config strategy
-        :param install_strategy: An instance of an install strategy
-        :param uninstall_strategy: An instance of an uninstall strategy
-        :param process_start_strategy: An instance of a "process start" strategy
-        :param process_stop_strategy: An instance of a "process stop" strategy
-        :param process_restart_strategy: An instance of a "process restart" strategy
-        :param process_status_strategy: An instance of a "process status" strategy
+        :param Execution strategy names and their corresponding values
+               (E.G install_strategy=execution_strategy.InstallStrategy())
         """
 
         self.component_name = component_name
         self.component_description = component_description
 
-        self.config_strategy = config_strategy
-        self.install_strategy = install_strategy
-        self.uninstall_strategy = uninstall_strategy
-        self.process_start_strategy = process_start_strategy
-        self.process_stop_strategy = process_stop_strategy
-        self.process_restart_strategy = process_restart_strategy
-        self.process_status_strategy = process_status_strategy
+        for name, value in strategies.items():
+            setattr(self, name, value)
 
         # For every instance variable ending in _strategy, dynamically create two functions:
         #     register_$(strategy_var)

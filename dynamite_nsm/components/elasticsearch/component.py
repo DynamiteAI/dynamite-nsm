@@ -56,6 +56,12 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
             self,
             component_name="ElasticSearch",
             component_description="Store and search network events.",
+            install_strategy=None,
+            uninstall_strategy=None,
+            process_start_strategy=None,
+            process_stop_strategy=None,
+            process_restart_strategy=None,
+            process_status_strategy=None
         )
 
         if args.action_name == "install":

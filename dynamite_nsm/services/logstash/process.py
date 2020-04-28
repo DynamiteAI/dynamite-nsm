@@ -67,7 +67,7 @@ class ProcessManager:
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
-            self.logger.info('Logstash is already running on PID [{}]\n'.format(self.pid))
+            self.logger.info('Logstash is already running on PID [{}]'.format(self.pid))
             return True
         retry = 0
         time.sleep(5)
@@ -75,7 +75,7 @@ class ProcessManager:
             try:
                 with open(os.path.join(PID_DIRECTORY, 'logstash.pid')) as f:
                     self.pid = int(f.read()) + 1
-                start_message = '[Attempt: {}] Starting LogStash on PID [{}]\n'.format(retry + 1, self.pid)
+                start_message = '[Attempt: {}] Starting LogStash on PID [{}]'.format(retry + 1, self.pid)
                 self.logger.info(start_message)
                 if not utilities.check_pid(self.pid):
                     retry += 1

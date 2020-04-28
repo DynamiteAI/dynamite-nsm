@@ -3,6 +3,7 @@ import sys
 import json
 import base64
 import shutil
+import logging
 import tarfile
 import subprocess
 
@@ -21,6 +22,7 @@ except Exception:
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.lab.data import embedded_images
 from dynamite_nsm.services.lab import config as lab_configs
@@ -51,8 +53,13 @@ class InstallManager:
         :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
         :param download_dynamite_sdk_archive: If True, download the DynamiteSDK archive from a mirror
         :param stdout: Print output to console
-        :param verbose: Include output from system utilities
+        :param verbose: Include detailed debug messages
         """
+
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.logger = get_logger('LAB', level=log_level, stdout=stdout)
 
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
@@ -65,20 +72,21 @@ class InstallManager:
             try:
                 self.download_dynamite_sdk(stdout=stdout)
             except general_exceptions.DownloadError:
+                self.logger.error('Failed to download DynamiteSDK archive.')
                 raise lab_exceptions.InstallLabError("Failed to download DynamiteSDK archive.")
         try:
-            self.extract_dynamite_sdk(stdout=stdout)
+            self.extract_dynamite_sdk()
         except general_exceptions.ArchiveExtractionError:
+            self.logger.error('Failed to extract DynamiteSDK archive.')
             raise lab_exceptions.InstallLabError("Failed to extract DynamiteSDK archive.")
         try:
             self.install_dependencies(stdout=stdout, verbose=verbose)
             self.install_jupyterhub(stdout=stdout)
         except (general_exceptions.InvalidOsPackageManagerDetectedError,
                 general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
+            self.logger.error('One or more OS dependencies failed to install.')
             raise lab_exceptions.InstallLabError("One or more OS dependencies failed to install.")
-        if stdout:
-            sys.stdout.write('[+] Creating jupyter user in dynamite group.\n')
-            sys.stdout.flush()
+        self.logger.info('Creating jupyter user in dynamite group.')
         utilities.create_jupyter_user(password=self.jupyterhub_password)
         self.stdout = stdout
         self.verbose = verbose
@@ -133,22 +141,15 @@ class InstallManager:
                 "General error while downloading DynamiteSDK from {}; {}".format(url, e))
 
     @staticmethod
-    def extract_dynamite_sdk(stdout=False):
+    def extract_dynamite_sdk():
         """
         Extract DynamiteSDK to local install_cache
-
-        :param stdout: Print output to console
         """
-        if stdout:
-            sys.stdout.write('[+] Extracting: {} \n'.format(const.DYNAMITE_SDK_ARCHIVE_NAME))
+
         try:
             tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_ARCHIVE_NAME))
             tf.extractall(path=const.INSTALL_CACHE)
-            if stdout:
-                sys.stdout.write('[+] Complete!\n')
-                sys.stdout.flush()
         except IOError as e:
-            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
             raise general_exceptions.ArchiveExtractionError(
                 "Could not extract DynamiteSDK archive to {}; {}".format(const.INSTALL_CACHE, e))
         except Exception as e:
@@ -156,25 +157,26 @@ class InstallManager:
                 "General error while attempting to extract DynamiteSDK archive; {}".format(e))
 
     @staticmethod
-    def install_dependencies(stdout=False, verbose=False):
+    def install_dependencies(stdout=True, verbose=False):
         """
         Install the required dependencies required by Jupyterhub
 
         :param stdout: Print output to console
-        :param verbose: Include output from system utilities
+        :param verbose: Include detailed debug messages
         """
+
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('LAB', level=log_level, stdout=stdout)
 
         pkt_mng = package_manager.OSPackageManager(verbose=verbose)
         if not pkt_mng.refresh_package_indexes():
             return False
         packages = None
-        if stdout:
-            sys.stdout.write('[+] Updating Package Indexes.\n')
-            sys.stdout.flush()
+        logger.info('Updating Package Indexes.')
         pkt_mng.refresh_package_indexes()
-        if stdout:
-            sys.stdout.write('[+] Installing dependencies.\n')
-            sys.stdout.flush()
+        logger.info('Installing dependencies.')
         if pkt_mng.package_manager == 'apt-get':
             packages = ['python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm']
         elif pkt_mng.package_manager == 'yum':
@@ -183,41 +185,43 @@ class InstallManager:
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
             p.communicate()
             if p.returncode != 0:
-                sys.stderr.write('[-] Could not install nodejs source rpm.\n')
+                logger.error('Could not install nodejs source rpm.')
                 raise general_exceptions.OsPackageManagerInstallError(
                     "Could not install nodejs from third-party RPM; https://rpm.nodesource.com/setup_10.x")
             packages = ['nodejs', 'python36', 'python36-devel']
+        logger.info('Installing the following packages: {}.'.format(packages))
         pkt_mng.install_packages(packages)
-        if stdout:
-            sys.stdout.write('[+] Installing configurable-http-proxy. This may take some time.\n')
-            sys.stdout.flush()
+        logger.info('Installing configurable-http-proxy. This may take some time.')
         p = subprocess.Popen('npm install -g configurable-http-proxy', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              shell=True)
         p.communicate()
         if p.returncode != 0:
             err_msg = p.stderr.read()
-            sys.stderr.write('[-] Failed to install configurable-http-proxy, ensure npm is installed and in $PATH: {}\n'
-                             ''.format(err_msg))
+            logger.error('Failed to install configurable-http-proxy, ensure npm is installed and in $PATH: {}'
+                         ''.format(err_msg))
             raise general_exceptions.OsPackageManagerInstallError(
                 "Could not install configurable-http-proxy via npm; {}".format(err_msg))
 
     @staticmethod
-    def install_jupyterhub(stdout=False):
+    def install_jupyterhub(stdout=True, verbose=False):
         """
         Installs Jupyterhub and ipython[notebook]
 
         :param stdout: Print the output to console
+        :param verbose: Include detailed debug messages
         """
-        if stdout:
-            sys.stdout.write('[+] Installing JupyterHub and ipython[notebook] via pip3.\n')
-            sys.stdout.flush()
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('LAB', level=log_level, stdout=stdout)
+        logger.info('Installing JupyterHub and ipython[notebook] via pip3.')
         p = subprocess.Popen('python3 -m pip install jupyterhub notebook', stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True)
         p.communicate()
         if p.returncode != 0:
             err_msg = p.stderr.read()
-            sys.stderr.write('[-] Failed to install Jupyterhub. '
-                             'Ensure python3 and pip3 are installed and in $PATH: {}\n'.format(err_msg))
+            logger.error(
+                'Failed to install Jupyterhub. Ensure python3 and pip3 are installed and in $PATH: {}'.format(err_msg))
             general_exceptions.OsPackageManagerInstallError(
                 "Failed to install Jupyterhub via pip3. Python3 is required for this component; {}".format(err_msg))
 
@@ -226,15 +230,13 @@ class InstallManager:
         Install a colored (and linkable) version of the JupyterHub icon across Kibana dashboards
         """
 
+        self.logger.info("Patching JupyterHub Kibana icon.")
         try:
             base64string = base64.b64encode('%s:%s' % ('elastic', self.elasticsearch_password))
         except TypeError:
             encoded_bytes = '{}:{}'.format('elastic', self.elasticsearch_password).encode('utf-8')
             base64string = base64.b64encode(encoded_bytes).decode('utf-8')
         # Search for the greyed out Jupyter Notebook Icon in the .kibana index
-        if self.stdout:
-            sys.stdout.write('[+] Installing DynamiteLab Kibana icon.\n')
-            sys.stdout.flush()
         url_request = Request(
             url='http://{}:{}/'.format(self.elasticsearch_host, self.elasticsearch_port) +
                 '.kibana/_search?q=visualization.title:"Jupyter:%20Link"',
@@ -244,17 +246,17 @@ class InstallManager:
         try:
             res = json.loads(urlopen(url_request).read())
         except TypeError as e:
-            sys.stderr.write('[-] Could not decode existing DynamiteLab Kibana icon - {}\n'.format(e))
+            self.logger.error('Could not decode existing DynamiteLab Kibana icon - {}'.format(e))
             raise lab_exceptions.InstallLabError(
                 "Failed to install Kibana icon; Could not decode DynamiteLab Kibana icon image.")
         except HTTPError as e:
             err_msg = e.read()
-            sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(err_msg))
+            self.logger.error('An error occurred while querying ElasticSearch (.kibana index) - {}'.format(err_msg))
             raise lab_exceptions.InstallLabError(
                 "Failed to install Kibana icon; An error occurred while querying ElasticSearch (.kibana index) - {}"
                 "".format(err_msg))
         except URLError as e:
-            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            self.logger.error('Unable to connect to ElasticSearch cluster (.kibana index) - {}'.format(e))
             raise lab_exceptions.InstallLabError(
                 "Failed to install Kibana icon; Unable to connect to ElasticSearch cluster (.kibana index) - {}"
                 "".format(e))
@@ -268,7 +270,7 @@ class InstallManager:
             _id = res['hits']['hits'][0]['_id']
             new_markdown = '[![DynamiteLab](data:image/png;base64,{})]({})'.format(
                 embedded_images.JUPYTER_HUB_IMG_ACTIVATED, jupyterhub_link)
-
+            self.logger.info("Kibana Icon Links to {}.".format(jupyterhub_link))
             # Visualization Hacking (Document manipulation)
             vis_stats_loaded = json.loads(res['hits']['hits'][0]['_source']['visualization']['visState'])
             doc_params_loaded = vis_stats_loaded['params']
@@ -294,19 +296,18 @@ class InstallManager:
                 url_post_request.add_header("Authorization", "Basic %s" % base64string)
                 urlopen(url_post_request)
         except (IndexError, TypeError) as e:
-            sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
+            self.logger.error('An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
             raise lab_exceptions.InstallLabError(
                 "Failed to install Kibana icon; Unable to connect to ElasticSearch cluster (.kibana index) - {}"
                 "".format(e))
         except HTTPError as e:
             err_msg = e.read()
-            sys.stderr.write(
-                '[-] An error occurred while querying ElasticSearch (.kibana index) - {}\n'.format(err_msg))
+            self.logger.error('An error occurred while querying ElasticSearch (.kibana index) - {}'.format(err_msg))
             raise lab_exceptions.InstallLabError(
                 "Failed to install Kibana icon; An error occurred while querying ElasticSearch (.kibana index) - {}"
                 "".format(err_msg))
         except URLError as e:
-            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            self.logger.error('Unable to connect to ElasticSearch cluster (.kibana index) - {}'.format(e))
             raise lab_exceptions.InstallLabError(
                 "Failed to install Kibana icon; Unable to connect to ElasticSearch cluster (.kibana index) - {}".format(
                     e))
@@ -317,34 +318,34 @@ class InstallManager:
         """
 
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        if self.stdout:
-            sys.stdout.write('[+] Copying DynamiteSDK into lab environment.\n')
-            sys.stdout.flush()
+        self.logger.info('Copying DynamiteSDK into lab environment.')
         try:
             utilities.makedirs(self.notebook_home, exist_ok=True)
             utilities.makedirs(self.configuration_directory, exist_ok=True)
         except Exception as e:
+            self.logger.error('General error occurred while attempting to create root directories.')
+            self.logger.debug("General error occurred while attempting to create root directories; {}".format(e))
             raise lab_exceptions.InstallLabError(
                 "General error occurred while attempting to create root directories; {}".format(e))
         try:
             with open(env_file) as env_f:
                 env_str = env_f.read()
                 if 'NOTEBOOK_HOME' not in env_str:
-                    if self.stdout:
-                        sys.stdout.write('[+] Updating Notebook home path [{}]\n'.format(
-                            self.notebook_home))
-                        subprocess.call('echo NOTEBOOK_HOME="{}" >> {}'.format(
-                            self.notebook_home, env_file), shell=True)
+                    self.logger.info('Updating Notebook home path [{}]'.format(self.notebook_home))
+                    subprocess.call('echo NOTEBOOK_HOME="{}" >> {}'.format(
+                        self.notebook_home, env_file), shell=True)
                 if 'DYNAMITE_LAB_CONFIG' not in env_str:
-                    if self.stdout:
-                        sys.stdout.write('[+] Updating Dynamite Lab Config path [{}]\n'.format(
+                    self.logger.info('Updating Dynamite Lab Config path [{}]'.format(
                             self.configuration_directory))
                     subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> {}'.format(
                         self.configuration_directory, env_file), shell=True)
         except IOError:
+            self.logger.error("Failed to open {} for reading.".format(env_file))
             raise lab_exceptions.InstallLabError(
                 "Failed to open {} for reading.".format(env_file))
         except Exception as e:
+            self.logger.error("General error while creating environment variables in {}.")
+            self.logger.debug("General error while creating environment variables in {}; {}".format(env_file, e))
             raise lab_exceptions.InstallLabError(
                 "General error while creating environment variables in {}; {}".format(env_file, e))
         sdk_install_cache = os.path.join(const.INSTALL_CACHE, const.DYNAMITE_SDK_DIRECTORY_NAME)
@@ -356,10 +357,10 @@ class InstallManager:
         except Exception as e:
             raise lab_exceptions.InstallLabError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
-        if self.stdout:
-            sys.stdout.write('[+] Installing dynamite-sdk-lite (https://github.com/DynamiteAI/dynamite-sdk-lite)\n')
-            sys.stdout.write('[+] Depending on your distribution it may take some time to install all requirements.\n')
-            sys.stdout.flush()
+        self.logger.info(
+            'Installing dynamite-sdk-lite (https://github.com/DynamiteAI/dynamite-sdk-lite), '
+            'Depending on your distribution it may take some time to install all requirements.')
+
         if self.verbose:
             p = subprocess.Popen(['python3', 'setup.py', 'install'], cwd=sdk_install_cache)
         else:
@@ -368,13 +369,17 @@ class InstallManager:
         try:
             p.communicate()
         except Exception as e:
+            self.logger.error("General error occurred while installing DynamiteSDK.")
+            self.logger.debug("General error occurred while installing DynamiteSDK; {}".format(e))
             raise lab_exceptions.InstallLabError("General error occurred while installing DynamiteSDK; {}".format(e))
         if p.returncode != 0:
+            self.logger.error("DynamiteSDK install process returned non-zero exit-code: {}".format(p.returncode))
             raise lab_exceptions.InstallLabError(
                 "DynamiteSDK install process returned non-zero exit-code: {}".format(p.returncode))
         try:
             dynamite_sdk_config = lab_configs.ConfigManager(configuration_directory=self.configuration_directory)
         except lab_exceptions.ReadLabConfigError:
+            self.logger.error("Failed to read DynamiteSDK config.cfg.")
             raise lab_exceptions.InstallLabError("Failed to read DynamiteSDK config.cfg.")
         dynamite_sdk_config.elasticsearch_url = 'http://{}:{}'.format(self.elasticsearch_host, self.elasticsearch_port)
         dynamite_sdk_config.elasticsearch_user = 'elastic'
@@ -382,6 +387,7 @@ class InstallManager:
         try:
             dynamite_sdk_config.write_config()
         except lab_exceptions.WriteLabConfigError:
+            self.logger.error("Failed to write DynamiteSDK config.cfg.")
             raise lab_exceptions.InstallLabError("Failed to write DynamiteSDK config.cfg.")
 
     def setup_jupyterhub(self):
@@ -390,26 +396,28 @@ class InstallManager:
         """
 
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        if self.stdout:
-            sys.stdout.write('[+] Creating lab directories and files.\n')
-            sys.stdout.flush()
+        self.logger.info("Creating lab directories and files.")
         source_config = os.path.join(const.DEFAULT_CONFIGS, 'dynamite_lab', 'jupyterhub_config.py')
         try:
             utilities.makedirs(self.configuration_directory, exist_ok=True)
         except Exception as e:
+            self.logger.error("General error occurred while attempting to create root directories.")
+            self.logger.debug("General error occurred while attempting to create root directories; {}".format(e))
             raise lab_exceptions.InstallLabError(
                 "General error occurred while attempting to create root directories; {}".format(e))
         try:
             with open(env_file) as env_f:
                 if 'DYNAMITE_LAB_CONFIG' not in env_f.read():
-                    if self.stdout:
-                        sys.stdout.write('[+] Updating Dynamite Lab Config path [{}]\n'.format(
+                    self.logger.info('Updating Dynamite Lab Config path [{}]'.format(
                             self.configuration_directory))
                     subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> {}'.format(
                         self.configuration_directory, env_file), shell=True)
         except IOError:
+            self.logger.error("Failed to open {} for reading.".format(env_file))
             raise lab_exceptions.InstallLabError("Failed to open {} for reading.".format(env_file))
         except Exception as e:
+            self.logger.error("General error while creating environment variables in {}.".format(env_file))
+            self.logger.debug("General error while creating environment variables in {}; {}".format(env_file, e))
             raise lab_exceptions.InstallLabError(
                 "General error while creating environment variables in {}; {}".format(env_file, e))
         shutil.copy(source_config, self.configuration_directory)
@@ -421,15 +429,13 @@ class InstallManager:
 
         :return: True, if restored successfully
         """
+        self.logger.info("Uninstalling DynamiteLab Kibana icon.")
         try:
             base64string = base64.b64encode('%s:%s' % ('elastic', self.elasticsearch_password))
         except TypeError:
             encoded_bytes = '{}:{}'.format('elastic', self.elasticsearch_password).encode('utf-8')
             base64string = base64.b64encode(encoded_bytes).decode('utf-8')
         # Search for the colored Jupyter Notebook Icon in the .kibana index
-        if self.stdout:
-            sys.stdout.write('[+] Installing DynamiteLab Kibana icon.\n')
-            sys.stdout.flush()
         url_request = Request(
             url='http://{}:{}/'.format(self.elasticsearch_host, self.elasticsearch_port) +
                 '.kibana/_search?q=visualization.title:"Jupyter:%20Link"',
@@ -439,17 +445,21 @@ class InstallManager:
         try:
             res = json.loads(urlopen(url_request).read())
         except TypeError as e:
-            sys.stderr.write('[-] Could not decode existing DynamiteLab Kibana icon - {}\n'.format(e))
+            self.logger.error("Failed to uninstall Kibana icon; Could not decode DynamiteLab Kibana icon image.")
+            self.logger.debug("Could not decode existing DynamiteLab Kibana icon - {}".format(e))
             raise lab_exceptions.UninstallLabError(
                 "Failed to uninstall Kibana icon; Could not decode DynamiteLab Kibana icon image.")
         except HTTPError as e:
             err_msg = e.read()
-            sys.stderr.write('[-] An error occurred while querying ElasticSearch (.kibana index) - {}'.format(err_msg))
+            self.logger.error('An error occurred while querying ElasticSearch (.kibana index).')
+            self.logger.debug('An error occurred while querying ElasticSearch (.kibana index) - {}'.format(err_msg))
             raise lab_exceptions.UninstallLabError(
                 "Failed to uninstall Kibana icon; An error occurred while querying ElasticSearch (.kibana index) - {}"
                 "".format(err_msg))
         except URLError as e:
-            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            self.logger.error(
+                'Failed to uninstall Kibana icon; Unable to connect to ElasticSearch cluster (.kibana index)')
+            self.logger.debug('Unable to connect to ElasticSearch cluster (.kibana index) - {}'.format(e))
             raise lab_exceptions.UninstallLabError(
                 "Failed to uninstall Kibana icon; Unable to connect to ElasticSearch cluster (.kibana index) - {}"
                 "".format(e))
@@ -484,19 +494,24 @@ class InstallManager:
                 url_post_request.add_header("Authorization", "Basic %s" % base64string)
                 urlopen(url_post_request)
         except TypeError as e:
-            sys.stderr.write('[-] An error occurred while patching DynamiteLab Kibana icon {}\n'.format(e))
+            self.logger.error(
+                'Failed to uninstall Kibana icon; An error occurred while patching DynamiteLab Kibana icon.')
+            self.logger.debug('General error occurred while patching DynamiteLab Kibana icon {}.'.format(e))
             raise lab_exceptions.UninstallLabError(
                 "Failed to uninstall Kibana icon; An error occurred while patching DynamiteLab Kibana icon {}"
                 "".format(e))
         except HTTPError as e:
             err_msg = e.read()
-            sys.stderr.write(
-                '[-] An error occurred while querying ElasticSearch (.kibana index) - {}\n'.format(err_msg))
+            self.logger.error(
+                'Failed to uninstall Kibana icon; An error occurred while querying ElasticSearch (.kibana index)')
+            self.logger.debug('An error occurred while querying ElasticSearch (.kibana index) - {}'.format(err_msg))
             raise lab_exceptions.UninstallLabError(
                 "Failed to uninstall Kibana icon; An error occurred while querying ElasticSearch (.kibana index) - {}"
                 "".format(err_msg))
         except URLError as e:
-            sys.stderr.write('[-] Unable to connect to ElasticSearch cluster (.kibana index) - {}\n'.format(e))
+            self.logger.error(
+                'Failed to uninstall Kibana icon; Unable to connect to ElasticSearch cluster (.kibana index)')
+            self.logger.debug('Unable to connect to ElasticSearch cluster (.kibana index) - {}'.format(e))
             raise lab_exceptions.InstallLabError(
                 "Failed to uninstall Kibana icon; Unable to connect to ElasticSearch cluster (.kibana index) - {}"
                 "".format(e))
@@ -516,7 +531,7 @@ def install_dynamite_lab(configuration_directory, notebook_home, elasticsearch_h
                             (Used for creating kibana -> Jupyter hyperlinks)
     :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
     :param stdout: Print output to console
-    :param verbose: Include output from system utilities
+    :param verbose: Include detailed debug messages
     :return: True, if installation was successful
     """
 
@@ -531,13 +546,19 @@ def install_dynamite_lab(configuration_directory, notebook_home, elasticsearch_h
     dynamite_lab_installer.install_kibana_lab_icon()
 
 
-def uninstall_dynamite_lab(stdout=False, prompt_user=True):
+def uninstall_dynamite_lab(prompt_user=True, stdout=True, verbose=False):
     """
     Uninstall DynamiteLab
 
-    :param stdout: Print the output to console
     :param prompt_user: Print a warning before continuing
+    :param stdout: Print the output to console
+    :param verbose: Include detailed debug messages
     """
+
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('LAB', level=log_level, stdout=stdout)
 
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
@@ -545,17 +566,16 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
     notebook_home = environment_variables.get('NOTEBOOK_HOME')
     dynamite_lab_profiler = lab_profile.ProcessProfiler()
     if not (dynamite_lab_profiler.is_installed and dynamite_lab_profiler.is_configured):
-        sys.stderr.write('[-] DynanmiteLab is not installed.\n')
         raise lab_exceptions.UninstallLabError("DynamiteLab is not installed.")
     dynamite_lab_config = lab_configs.ConfigManager(configuration_directory)
     if prompt_user:
-        sys.stderr.write('[-] WARNING! Removing Dynamite Lab Will Remove All Jupyter Notebooks\n')
-        resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+        sys.stderr.write('\n\033[93m[-] WARNING! Removing Dynamite Lab Will Remove All Jupyter Notebooks\033[0m\n')
+        resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
+                sys.stdout.write('\n[+] Exiting\n')
             return
     if dynamite_lab_profiler.is_running:
         lab_process.ProcessManager().stop(stdout=stdout)
@@ -576,9 +596,9 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
 
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if stdout:
-            sys.stdout.write('[+] Uninstalling DynamiteLab Kibana Icon.\n')
     except Exception as e:
+        logger.error('General error occurred while attempting to uninstall lab.')
+        logger.debug("General error occurred while attempting to uninstall lab; {}".format(e))
         raise lab_exceptions.UninstallLabError(
             "General error occurred while attempting to uninstall lab; {}".format(e))
     InstallManager(
@@ -588,5 +608,3 @@ def uninstall_dynamite_lab(stdout=False, prompt_user=True):
         elasticsearch_password=dynamite_lab_config.elasticsearch_password,
         elasticsearch_port=dynamite_lab_config.elasticsearch_url.split('//')[1].split(':')[1].replace('/', ''),
         download_dynamite_sdk_archive=False).uninstall_kibana_lab_icon()
-    if stdout:
-        sys.stdout.write('[+] DynamiteLab uninstalled successfully.\n')

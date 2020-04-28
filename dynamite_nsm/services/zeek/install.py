@@ -672,10 +672,10 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
         logger.error("Zeek is not installed. Cannot uninstall.")
         raise zeek_exceptions.UninstallZeekError("Zeek is not installed.")
     if prompt_user:
-        sys.stderr.write('\n[-] WARNING! Removing Zeek Will Remove Critical Agent Functionality.\n')
-        resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+        sys.stderr.write('\n\033[93m[-] WARNING! Removing Zeek Will Remove Critical Agent Functionality.\033[0m\n')
+        resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('[?] Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes): \033[0m')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
