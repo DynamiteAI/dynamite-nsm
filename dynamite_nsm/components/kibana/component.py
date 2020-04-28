@@ -59,6 +59,12 @@ class KibanaCommandlineComponent(component.BaseComponent):
             self,
             component_name="Kibana",
             component_description="Visualise and make sense of your network data.",
+            install_strategy=None,
+            uninstall_strategy=None,
+            process_start_strategy=None,
+            process_stop_strategy=None,
+            process_restart_strategy=None,
+            process_status_strategy=None
         )
 
         if args.action_name == "install":

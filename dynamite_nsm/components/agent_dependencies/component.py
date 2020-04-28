@@ -29,6 +29,7 @@ class AgentDependencyCommandlineComponent(component.BaseComponent):
             self,
             component_name="Agent_Dependencies",
             component_description="Linux kernel development headers required for PF_RING modules to be installed.",
+            install_strategy=None
         )
 
         if args.action_name == "install":

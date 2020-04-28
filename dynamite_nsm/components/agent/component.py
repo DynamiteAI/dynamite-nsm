@@ -66,6 +66,13 @@ class AgentCommandlineComponent(component.BaseComponent):
             self,
             component_name="Agent",
             component_description="Get context around activity on your network, discover threats and gain visibility.",
+            config_strategy=None,
+            install_strategy=None,
+            uninstall_strategy=None,
+            process_start_strategy=None,
+            process_stop_strategy=None,
+            process_restart_strategy=None,
+            process_status_strategy=None
         )
         if args.action_name == "config":
             self.register_config_strategy(execution_strategy.AgentConfigStrategy())

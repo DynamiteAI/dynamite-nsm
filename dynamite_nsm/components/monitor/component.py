@@ -65,6 +65,12 @@ class MonitorCommandlineComponent(component.BaseComponent):
             component_name="Monitor",
             component_description="Process, store, and visualise network data with a standalone Monitor (ElasticStack)."
                                   "",
+            install_strategy=None,
+            uninstall_strategy=None,
+            process_start_strategy=None,
+            process_stop_strategy=None,
+            process_restart_strategy=None,
+            process_status_strategy=None
         )
 
         if args.action_name == "install":
