@@ -25,4 +25,5 @@ def get_logger(component_name, level=logging.INFO, stdout=True):
     if stdout:
         coloredlogs.install(level=level, logger=logger,
                             fmt='%(asctime)s %(name)-15s %(levelname)-10s | %(message)s')
+    logger.propagate = False
     return logger

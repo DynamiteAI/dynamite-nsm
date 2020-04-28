@@ -94,6 +94,7 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def create_dynamite_environment_file():
+    makedirs(const.CONFIG_PATH, exist_ok=True)
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     env_file_f = open(env_file, 'a')
     env_file_f.write('')
