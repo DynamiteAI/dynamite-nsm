@@ -208,43 +208,41 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 # utilities.create_dynamite_environment_file
                 {},
+
                 # prompt_user
                 {
                     "prompt_user": bool(prompt_user),
                     "stdout": bool(stdout)
                 },
-                # kb_install.uninstall_kibana
-                {
-                    'prompt_user': False,
-                    'stdout': bool(stdout),
-                    'verbose': bool(verbose)
-                },
-                # ls_install.uninstall_logstash
-                {
-                    'prompt_user': False,
-                    'stdout': bool(stdout),
-                    'verbose': bool(verbose)
-                },
-                # es_install.uninstall_elasticsearch
-                {
-                    'prompt_user': False,
-                    'stdout': bool(stdout),
-                    'verbose': bool(verbose)
-                },
-                # log_message
-                {
-                    "msg": '*** Monitor uninstalled successfully. ***'
-                },
             ),
             return_formats=(
                 None,
-                None,
-                None,
-                None,
-                None,
                 None
             )
+
         )
+        if kb_profile.ProcessProfiler().is_installed:
+            self.add_function(func=kb_install.uninstall_kibana, argument_dict={
+                'prompt_user': False,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+        if ls_profile.ProcessProfiler().is_installed:
+            self.add_function(func=ls_install.uninstall_logstash, argument_dict={
+                'prompt_user': False,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+        if es_profile.ProcessProfiler().is_installed:
+            self.add_function(func=es_install.uninstall_elasticsearch, argument_dict={
+                'prompt_user': False,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+
+        self.add_function(func=log_message, argument_dict={
+            "msg": '*** Monitor uninstalled successfully. ***'
+        })
 
 
 class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
@@ -433,7 +431,6 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 # Test Functions
-
 
 def run_install_strategy():
     mon_install_strategy = MonitorInstallStrategy(
