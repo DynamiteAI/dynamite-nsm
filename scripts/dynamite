@@ -89,4 +89,4 @@ if __name__ == '__main__':
         logger.critical("Fatal error. Exiting.")
         logger.debug("Fatal error. Exiting; {}".format(e))
         if log_level == logging.DEBUG:
-            traceback.print_exc()
+            traceback.print_exc(limit=15)

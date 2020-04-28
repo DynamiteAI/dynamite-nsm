@@ -176,7 +176,7 @@ def download_file(url, filename, stdout=False):
     if stdout:
         try:
             pb.start()
-        except ValueError:
+        except Exception:
             # Something broke, disable stdout going forward
             stdout = False
     try:
