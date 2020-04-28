@@ -5,6 +5,24 @@ from dynamite_nsm.components.base import execution_strategy
 class BaseComponent:
     """
     Register a set of actions to a component
+
+    The Base Component works by dynamically generating a set of methods at runtime via reflection.
+
+    The user can provide of **strategies either pre-registered
+    (by setting the argument equal to an execution_strategy.BaseExecStrategy derived class) OR can set these arguments
+    to None. Either way, for each strategy a corresponding set of functions will be created:
+
+    For example:
+        **strategies: install_strategy=None, uninstall_strategy=None
+
+        Will result in 4 instance methods being created:
+
+            register_install_strategy & register_uninstall_strategy
+                (That provide the ability to activate these strategies)
+
+            execute_install_strategy & execute_uninstall_strategy
+                (That provide the ability to run these strategies once activated)
+
     """
 
     def __init__(self, component_name, component_description, **strategies):
