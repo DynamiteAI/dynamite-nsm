@@ -54,7 +54,7 @@ def register_agent_component_args(agt_component_parser, parent_parsers):
         parents=parent_parsers)
     agt_uninstall_parser.add_argument(
         '--skip-uninstall-prompt', dest="skip_agent_uninstall_prompt", default=False,
-        action="store_true", help="Skip prompting uninstall prompt.")
+        action="store_true", help="Skip uninstall warning prompt.")
     agt_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup Agent Component Start Arguments === #
@@ -133,7 +133,7 @@ def register_monitor_component_args(mon_component_parser, parent_parsers):
         parents=parent_parsers)
     mon_uninstall_parser.add_argument(
         '--skip-uninstall-prompt', dest="skip_monitor_uninstall_prompt", default=False,
-        action="store_true", help="Skip prompting uninstall prompt.")
+        action="store_true", help="Skip uninstall warning prompt.")
     mon_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup Monitor Component Start Arguments === #
@@ -172,6 +172,9 @@ def register_elasticsearch_component_args(es_component_parser, parent_parsers):
                                     help="The old password used for logging into ElasticSearch.")
     es_chpasswd_parser.add_argument("--new-es-password", dest="new_elastic_password", type=str,
                                     help="The new password used for logging into ElasticSearch.")
+    es_chpasswd_parser.add_argument("--skip-chpasswd-prompt", dest="skip_elastic_chpasswd_prompt", default=False,
+                                    action="store_true", help="Skip chpasswd warning prompt."
+                                    )
     es_chpasswd_parser.set_defaults(action_name="chpasswd")
 
     # === Setup ElasticSearch Component Install Arguments === #
@@ -195,7 +198,7 @@ def register_elasticsearch_component_args(es_component_parser, parent_parsers):
         help="Uninstall ElasticSearch.",
         parents=parent_parsers)
     es_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_elastic_uninstall_prompt", default=False,
-                                     action="store_true", help="Skip prompting uninstall prompt.")
+                                     action="store_true", help="Skip uninstall warning prompt.")
     es_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup ElasticSearch Component Start Arguments === #
@@ -254,7 +257,7 @@ def register_logstash_component_args(ls_component_parser, parent_parsers):
         help="Uninstall LogStash.",
         parents=parent_parsers)
     ls_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_logstash_uninstall_prompt", default=False,
-                                     action="store_true", help="Skip prompting uninstall prompt.")
+                                     action="store_true", help="Skip uninstall warning prompt.")
     ls_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup LogStash Component Start Arguments === #
@@ -313,7 +316,7 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
         help="Uninstall Kibana.",
         parents=parent_parsers)
     kb_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_kibana_uninstall_prompt", default=False,
-                                     action="store_true", help="Skip prompting uninstall prompt.")
+                                     action="store_true", help="Skip uninstall warning prompt.")
     kb_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup Kibana Component Start Arguments === #
@@ -374,7 +377,7 @@ def register_lab_component_args(lab_component_parser, parent_parsers):
         help="Uninstall Lab.",
         parents=parent_parsers)
     lab_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_lab_uninstall_prompt", default=False,
-                                      action="store_true", help="Skip prompting uninstall prompt.")
+                                      action="store_true", help="Skip uninstall warning prompt.")
     lab_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup Lab Component Start Arguments === #
