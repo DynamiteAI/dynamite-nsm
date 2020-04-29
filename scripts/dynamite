@@ -38,6 +38,9 @@ component_args.register_kibana_component_args(
 component_args.register_monitor_component_args(
     component_parsers.monitor_component_parser, parent_parsers=[component_parsers.base_parser]
 )
+component_args.register_lab_component_args(
+    component_parsers.lab_component_parser, parent_parsers=[component_parsers.base_parser]
+)
 
 if __name__ == '__main__':
     if not utilities.is_root():
