@@ -172,6 +172,11 @@ def register_elasticsearch_component_args(es_component_parser, parent_parsers):
                                     help="The old password used for logging into ElasticSearch.")
     es_chpasswd_parser.add_argument("--new-es-password", dest="new_elastic_password", type=str,
                                     help="The new password used for logging into ElasticSearch.")
+    es_chpasswd_parser.add_argument("--es-host", dest="es_host", type=str, default='localhost',
+                                    help="The host where ElasticSearch lives."
+                                    )
+    es_chpasswd_parser.add_argument("--es-port", dest="es_port", type=int, default=9200,
+                                    help="The port that ElasticSearch is listening on.")
     es_chpasswd_parser.add_argument("--skip-chpasswd-prompt", dest="skip_elastic_chpasswd_prompt", default=False,
                                     action="store_true", help="Skip chpasswd warning prompt."
                                     )

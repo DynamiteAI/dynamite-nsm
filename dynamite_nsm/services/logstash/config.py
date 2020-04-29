@@ -262,6 +262,7 @@ def change_logstash_elasticsearch_password(password='changeme', prompt_user=True
     :param password: The new Elasticsearch password
     :param prompt_user: If True, warning prompt is displayed before proceeding
     :param stdout: Print status to stdout
+    :param verbose: Include detailed debug messages
     :return: True, if successful
     """
 
@@ -275,7 +276,8 @@ def change_logstash_elasticsearch_password(password='changeme', prompt_user=True
 
     environment_variables = utilities.get_environment_file_dict()
     if not logstash_profile.ProcessProfiler().is_installed:
-        general_exceptions.ResetPasswordError("Password reset failed. LogStash is not installed.")
+        logger.error("Password reset failed. LogStash is not installed on this host.")
+        general_exceptions.ResetPasswordError("Password reset failed. LogStash is not installed on this host.")
     if prompt_user:
         resp = utilities.prompt_input(
             '\n\033[93m[-] WARNING! Changing the LogStash password can cause LogStash to lose communication with '
@@ -284,7 +286,7 @@ def change_logstash_elasticsearch_password(password='changeme', prompt_user=True
             resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
+                sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     ConfigManager(environment_variables.get('LS_PATH_CONF')).set_elasticsearch_password(password=password)
     logstash_process.ProcessManager().restart()

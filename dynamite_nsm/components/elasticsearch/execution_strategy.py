@@ -4,7 +4,18 @@ import logging
 from dynamite_nsm import const
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
+from dynamite_nsm.utilities import check_socket, prompt_input
 from dynamite_nsm.services.elasticsearch import config, install, process
+
+
+def check_elasticsearch_target(host, port, perform_check=True):
+    if not perform_check:
+        return
+    if not check_socket(host, port):
+        print("\n\033[93m[-] ElasticSearch does not appear to be started on: {}:{}.\033[0m".format(host, port))
+        if str(prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
+            exit(0)
+    return
 
 
 def print_message(msg):
@@ -36,32 +47,25 @@ class ElasticsearchChangePasswordStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to reset elasticsearch password
     """
-    def __init__(self, old_password, new_password, stdout, verbose):
+
+    def __init__(self, old_password, new_password, remote_host, remote_port, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name='elasticsearch_change_password',
             strategy_description="Change the password for all ElasticSearch builtin users.",
-            functions=(
-                config.change_elasticsearch_password,
-                log_message
-            ),
-            arguments=(
-                # config.change_elasticsearch_password
-                {
-                    'old_password': str(old_password),
-                    'password': str(new_password),
-                    'stdout': bool(stdout),
-                    'verbose': bool(verbose)
-                },
-                # log_message
-                {'msg': 'ElasticSearch password changed successfully!'}
-            ),
-            return_formats=(
-                None,
-                None
-            )
-
         )
+        if remote_host:
+            self.add_function(func=check_elasticsearch_target, argument_dict={})
+        self.add_function(func=config.change_elasticsearch_password, argument_dict={
+            'old_password': str(old_password),
+            'password': str(new_password),
+            'remote_host': remote_host,
+            'remote_port': remote_port,
+            'prompt_user': bool(prompt_user),
+            'stdout': bool(stdout),
+            'verbose': bool(verbose),
+        })
+        self.add_function(func=log_message, argument_dict={'msg': 'ElasticSearch password changed successfully!'})
 
 
 class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):

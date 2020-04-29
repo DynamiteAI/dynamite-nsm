@@ -257,7 +257,8 @@ class PasswordConfigManager:
     Provides a basic interface for resetting ElasticSearch passwords
     """
 
-    def __init__(self, auth_user, current_password, stdout=True, verbose=False):
+    def __init__(self, auth_user, current_password, remote_host=None, remote_http_port=None, stdout=True,
+                 verbose=False):
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -265,6 +266,8 @@ class PasswordConfigManager:
 
         self.auth_user = auth_user
         self.current_password = current_password
+        self.remote_host = remote_host
+        self.remote_http_port = remote_http_port
         self.env_vars = utilities.get_environment_file_dict()
 
     def _set_user_password(self, user, password):
@@ -283,10 +286,20 @@ class PasswordConfigManager:
                     self.logger.debug("Fallback; encoding bytes to utf-8 charset before building b64 auth package.")
                     encoded_bytes = '{}:{}'.format(self.auth_user, self.current_password).encode('utf-8')
                     base64string = base64.b64encode(encoded_bytes).decode('utf-8')
+                if self.remote_host and self.remote_http_port:
+                    http_port = self.remote_http_port
+                    host = self.remote_host
+                elif self.remote_host and not self.remote_http_port:
+                    http_port = 9200
+                    host = self.remote_host
+                else:
+                    http_port = es_config.http_port
+                    host = es_config.network_host
+
                 url_request = Request(
                     url='http://{}:{}/_xpack/security/user/{}/_password'.format(
-                        es_config.network_host,
-                        es_config.http_port,
+                        host,
+                        http_port,
                         user
                     ),
                     data=json.dumps({'password': password}),
@@ -384,7 +397,8 @@ class PasswordConfigManager:
         self.set_elastic_password(new_password)
 
 
-def change_elasticsearch_password(old_password, password='changeme', prompt_user=True, stdout=True, verbose=False):
+def change_elasticsearch_password(old_password, password='changeme', remote_host=None, remote_port=None,
+                                  prompt_user=True, stdout=True, verbose=False):
     """
     Change the Elasticsearch password for all builtin users
 
@@ -414,25 +428,31 @@ def change_elasticsearch_password(old_password, password='changeme', prompt_user
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
             exit(0)
-
-    if elastic_profile.ProcessProfiler().is_installed:
-        logger.info("Performing reset against local ElasticSearch instance.")
-        # If ElasticSearch is installed Locally.
-        # Start the process, in order to perform a reset.
-        if not elastic_process.ProcessManager().start():
-            logger.error('Could not start ElasticSearch Process. Password reset failed.')
-            raise general_exceptions.ResetPasswordError(
-                "ElasticSearch process was not able to start, check your ElasticSearch logs.")
+    if remote_host:
+        logger.info("Resetting ElasticSearch password on remote host: {}:{}".format(remote_host, remote_port))
     else:
-        logger.info("Performing reset against remote ElasticSearch instance.")
-    while not elastic_profile.ProcessProfiler().is_listening:
-        if stdout:
-            logger.info('Waiting for ElasticSearch API to become accessible.')
-        time.sleep(1)
+        logger.info("Resetting ElasticSearch password on localhost.")
+        if elastic_profile.ProcessProfiler().is_installed:
+            # If ElasticSearch is installed Locally.
+            # Start the process, in order to perform a reset.
+            if not elastic_process.ProcessManager().start():
+                logger.error('Could not start ElasticSearch Process. Password reset failed.')
+                raise general_exceptions.ResetPasswordError(
+                    "ElasticSearch process was not able to start, check your ElasticSearch logs.")
+            while not elastic_profile.ProcessProfiler().is_listening:
+                if stdout:
+                    logger.info('Waiting for ElasticSearch API to become accessible.')
+                time.sleep(1)
 
-    logger.info('ElasticSearch API is up.')
-    logger.debug('Sleeping for 5 seconds, while ElasticSearch API finishes booting.')
-    time.sleep(5)
-    es_pw_config = PasswordConfigManager('elastic', current_password=old_password)
+            logger.info('ElasticSearch API is up.')
+            logger.debug('Sleeping for 5 seconds, while ElasticSearch API finishes booting.')
+            time.sleep(5)
+        else:
+            logger.error("ElasticSearch is not installed, and no remote ElasticSearch host was specified.")
+            raise general_exceptions.ResetPasswordError(
+                "ElasticSearch is not installed, and no remote ElasticSearch host was specified.")
+
+    es_pw_config = PasswordConfigManager('elastic', current_password=old_password, remote_host=remote_host,
+                                         remote_http_port=remote_port)
     logger.info("Attempting password reset.")
     es_pw_config.set_all_passwords(password)

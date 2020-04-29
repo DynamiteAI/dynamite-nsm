@@ -78,6 +78,9 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
                 execution_strategy.ElasticsearchChangePasswordStrategy(
                     old_password=old_es_password,
                     new_password=new_es_password,
+                    remote_host=args.es_host,
+                    remote_port=args.es_port,
+                    prompt_user=not args.skip_elastic_chpasswd_prompt,
                     stdout=not args.no_stdout,
                     verbose=args.verbose and not args.no_stdout
                 )
