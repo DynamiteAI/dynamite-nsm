@@ -315,88 +315,82 @@ class PasswordConfigManager:
             raise general_exceptions.ResetPasswordError(
                 "General exception while resetting Elasticsearch password; {}".format(e))
 
-    def set_apm_system_password(self, new_password, stdout=False):
+    def set_apm_system_password(self, new_password):
         """
         Reset the builtin apm_system user
 
         :param new_password: The new password
-        :param stdout: Print status to stdout
         """
 
         self._set_user_password('apm_system', new_password)
 
-    def set_beats_password(self, new_password, stdout=False):
+    def set_beats_password(self, new_password):
         """
         Reset the builtin beats user
 
         :param new_password: The new password
-        :param stdout: Print status to stdout
         """
 
         self._set_user_password('beats_system', new_password)
 
-    def set_elastic_password(self, new_password, stdout=False):
+    def set_elastic_password(self, new_password):
         """
         Reset the builtin elastic user
 
         :param new_password: The new password
-        :param stdout: Print status to stdout
         """
 
         self._set_user_password('elastic', new_password)
 
-    def set_kibana_password(self, new_password, stdout=False):
+    def set_kibana_password(self, new_password):
         """
         Reset the builtin kibana user
 
         :param new_password: The new password
-        :param stdout: Print status to stdout
         """
 
         self._set_user_password('kibana', new_password)
 
-    def set_logstash_system_password(self, new_password, stdout=False):
+    def set_logstash_system_password(self, new_password):
         """
         Reset the builtin logstash user
 
         :param new_password: The new password
-        :param stdout: Print status to stdout
         """
 
         self._set_user_password('logstash_system', new_password)
 
-    def set_remote_monitoring_password(self, new_password, stdout=False):
+    def set_remote_monitoring_password(self, new_password):
         """
         Reset the builtin remote_monitoring_user user
 
         :param new_password: The new password
-        :param stdout: Print status to stdout
         """
 
         self._set_user_password('remote_monitoring_user', new_password)
 
-    def set_all_passwords(self, new_password, stdout=False):
+    def set_all_passwords(self, new_password):
         """
         Reset all builtin user passwords
 
         :param new_password: The new password
-        :param stdout: Print status to stdout
         """
 
-        self.set_apm_system_password(new_password, stdout=stdout)
-        self.set_remote_monitoring_password(new_password, stdout=stdout)
-        self.set_logstash_system_password(new_password, stdout=stdout)
-        self.set_kibana_password(new_password, stdout=stdout)
-        self.set_beats_password(new_password, stdout=stdout)
-        self.set_elastic_password(new_password, stdout=stdout)
+        self.set_apm_system_password(new_password)
+        self.set_remote_monitoring_password(new_password)
+        self.set_logstash_system_password(new_password)
+        self.set_kibana_password(new_password)
+        self.set_beats_password(new_password)
+        self.set_elastic_password(new_password)
 
 
-def change_elasticsearch_password(old_password, password='changeme', stdout=True, verbose=False):
+def change_elasticsearch_password(old_password, password='changeme', prompt_user=True, stdout=True, verbose=False):
     """
     Change the Elasticsearch password for all builtin users
 
     :param old_password: The old Elasticsearch password
     :param password: The new Elasticsearch password
+    :param prompt_user: If True, warning prompt is displayed before proceeding
     :param stdout: Print status to stdout
     :param verbose: Include detailed debug messages
     """
@@ -409,10 +403,28 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=True
         log_level = logging.DEBUG
     logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
 
-    if not elastic_process.ProcessManager().start():
-        logger.error('Could not start ElasticSearch Process. Password reset failed.')
-        raise general_exceptions.ResetPasswordError(
-            "Elasticsearch process was not able to start, check your elasticsearch logs.")
+    if prompt_user:
+        resp = utilities.prompt_input(
+            '\n\033[93m[-] WARNING! Changing the ElasticSearch password may result in connected components losing '
+            'communication. Be sure to update Kibana/LogStash passwords.\n'
+            '[?] Are you sure you wish to continue? [no]|yes):\033[0m ')
+        while resp not in ['', 'no', 'yes']:
+            resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
+        if resp != 'yes':
+            if stdout:
+                sys.stdout.write('[+] Exiting\n')
+            exit(0)
+
+    if elastic_profile.ProcessProfiler().is_installed:
+        logger.info("Performing reset against local ElasticSearch instance.")
+        # If ElasticSearch is installed Locally.
+        # Start the process, in order to perform a reset.
+        if not elastic_process.ProcessManager().start():
+            logger.error('Could not start ElasticSearch Process. Password reset failed.')
+            raise general_exceptions.ResetPasswordError(
+                "ElasticSearch process was not able to start, check your ElasticSearch logs.")
+    else:
+        logger.info("Performing reset against remote ElasticSearch instance.")
     while not elastic_profile.ProcessProfiler().is_listening:
         if stdout:
             logger.info('Waiting for ElasticSearch API to become accessible.')
@@ -422,4 +434,5 @@ def change_elasticsearch_password(old_password, password='changeme', stdout=True
     logger.debug('Sleeping for 5 seconds, while ElasticSearch API finishes booting.')
     time.sleep(5)
     es_pw_config = PasswordConfigManager('elastic', current_password=old_password)
-    es_pw_config.set_all_passwords(password, stdout=stdout)
+    logger.info("Attempting password reset.")
+    es_pw_config.set_all_passwords(password)

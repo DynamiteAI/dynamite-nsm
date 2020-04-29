@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import shutil
+import logging
 from yaml import load, dump
 
 try:
@@ -11,6 +12,7 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.logstash.synesis import config as synesis_config
 from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
@@ -253,12 +255,10 @@ class ConfigManager:
         self.write_jvm_config()
 
 
-def change_logstash_elasticsearch_password(configuration_directory, password='changeme', prompt_user=True,
-                                           stdout=False):
+def change_logstash_elasticsearch_password(password='changeme', prompt_user=True, stdout=True, verbose=False):
     """
     Change the password used by Logstash to authenticate to Elasticsearch
 
-    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
     :param password: The new Elasticsearch password
     :param prompt_user: If True, warning prompt is displayed before proceeding
     :param stdout: Print status to stdout
@@ -266,16 +266,25 @@ def change_logstash_elasticsearch_password(configuration_directory, password='ch
     """
 
     from dynamite_nsm.services.logstash import process as logstash_process
+    from dynamite_nsm.services.logstash import profile as logstash_profile
 
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
+
+    environment_variables = utilities.get_environment_file_dict()
+    if not logstash_profile.ProcessProfiler().is_installed:
+        general_exceptions.ResetPasswordError("Password reset failed. LogStash is not installed.")
     if prompt_user:
         resp = utilities.prompt_input(
-            'Changing the LogStash password can cause LogStash to lose communication with ElasticSearch. '
-            'Are you sure you wish to continue? [no]|yes): ')
+            '\n\033[93m[-] WARNING! Changing the LogStash password can cause LogStash to lose communication with '
+            'ElasticSearch. \n[?] Are you sure you wish to continue? [no]|yes):\033[0m ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         if resp != 'yes':
             if stdout:
                 sys.stdout.write('[+] Exiting\n')
-            return False
-    ConfigManager(configuration_directory).set_elasticsearch_password(password=password)
-    logstash_process.ProcessManager().restart(stdout=True)
+            exit(0)
+    ConfigManager(environment_variables.get('LS_PATH_CONF')).set_elasticsearch_password(password=password)
+    logstash_process.ProcessManager().restart()
