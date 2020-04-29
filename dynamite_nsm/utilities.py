@@ -333,11 +333,13 @@ def print_dynamite_lab_art():
     try:
         lab_art = \
             """
+            \033[0;92m
                _
               | | DynamiteLab         |
               / \  is an experimental |
              /   \  feature.          |
             (_____)  Happy Hacking!   |    ~The Dynamite Team~
+            \033[0m
             """
         print(lab_art)
     except (SyntaxError, UnicodeEncodeError):
