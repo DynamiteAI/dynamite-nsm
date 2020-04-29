@@ -12,6 +12,7 @@ from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.commandline import component_args
 from dynamite_nsm.commandline import component_parsers
+from dynamite_nsm.components.lab.component import LabCommandlineComponent
 from dynamite_nsm.components.agent.component import AgentCommandlineComponent
 from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
@@ -75,13 +76,15 @@ if __name__ == '__main__':
         elif args.component_name == "agent-dependencies":
             AgentDependencyCommandlineComponent(args)
         elif args.component_name == "elasticsearch":
-            es_commandline_component = ElasticsearchCommandlineComponent(args)
+            ElasticsearchCommandlineComponent(args)
         elif args.component_name == "logstash":
-            ls_commandline_component = LogstashCommandlineComponent(args)
+            LogstashCommandlineComponent(args)
         elif args.component_name == "kibana":
-            kb_commandline_component = KibanaCommandlineComponent(args)
+            KibanaCommandlineComponent(args)
         elif args.component_name == "monitor":
-            mon_commandline_component = MonitorCommandlineComponent(args)
+            MonitorCommandlineComponent(args)
+        elif args.component_name == "lab":
+            LabCommandlineComponent(args)
     except KeyboardInterrupt:
         print("\n[+] Exiting")
         exit(0)

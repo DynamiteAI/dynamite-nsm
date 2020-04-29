@@ -329,6 +329,21 @@ def makedirs(path, exist_ok=True):
         os.makedirs(path)
 
 
+def print_dynamite_lab_art():
+    try:
+        lab_art = \
+            """
+               _
+              | | DynamiteLab         |
+              / \  is an experimental |
+             /   \  feature.          |
+            (_____)  Happy Hacking!   |    ~The Dynamite Team~
+            """
+        print(lab_art)
+    except (SyntaxError, UnicodeEncodeError):
+        print()
+
+
 def print_dynamite_logo(version):
     """
     Print the dynamite logo!

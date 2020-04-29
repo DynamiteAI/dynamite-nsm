@@ -329,3 +329,57 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
         "status", help="Status Kibana.",
         parents=parent_parsers)
     kb_status_parser.set_defaults(action_name="status")
+
+
+def register_lab_component_args(lab_component_parser, parent_parsers):
+    lab_component_args_subparsers = lab_component_parser.add_subparsers()
+    # === Setup Lab Component Install Arguments === #
+    lab_install_parser = lab_component_args_subparsers.add_parser(
+        "install", help="Install Dynamite Lab.",
+        parents=parent_parsers)
+
+    lab_install_parser.set_defaults(action_name="install")
+    lab_install_parser.add_argument("--es-host", dest="es_host", type=str, default='localhost',
+                                    help="The host where ElasticSearch lives."
+                                    )
+    lab_install_parser.add_argument("--es-port", dest="es_port", type=int, default=9200,
+                                    help="The port that ElasticSearch is listening on."
+                                    )
+    lab_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
+                                    help="The password used for logging into ElasticSearch."
+                                    )
+    lab_install_parser.add_argument("--jp-listen-addr", dest="jupyter_addr", type=str,
+                                    help="The password used for logging into JupyterHub."
+                                    )
+    lab_install_parser.add_argument("--jp-password", dest="jupyter_password", type=str,
+                                    help="The password used for logging into JupyterHub."
+                                    )
+
+    # === Setup Lab Component Uninstall Arguments === #
+    lab_uninstall_parser = lab_component_args_subparsers.add_parser(
+        "uninstall",
+        help="Uninstall Lab.",
+        parents=parent_parsers)
+    lab_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_lab_uninstall_prompt", default=False,
+                                     action="store_true", help="Skip prompting uninstall prompt.")
+    lab_uninstall_parser.set_defaults(action_name="uninstall")
+
+    # === Setup Lab Component Start Arguments === #
+    lab_start_parser = lab_component_args_subparsers.add_parser(
+        "start", help="Start Lab.", parents=parent_parsers)
+    lab_start_parser.set_defaults(action_name="start")
+
+    # === Setup Lab Component Stop Arguments === #
+    lab_stop_parser = lab_component_args_subparsers.add_parser(
+        "stop", help="Stop Lab.", parents=parent_parsers)
+    lab_stop_parser.set_defaults(action_name="stop")
+
+    # === Setup Lab Component Restart Arguments === #
+    lab_restart_parser = lab_component_args_subparsers.add_parser(
+        "restart", help="Restart Lab.", parents=parent_parsers)
+    lab_restart_parser.set_defaults(action_name="restart")
+
+    # === Setup Lab Component Status Arguments === #
+    lab_status_parser = lab_component_args_subparsers.add_parser(
+        "status", help="Status Lab.", parents=parent_parsers)
+    lab_status_parser.set_defaults(action_name="status")

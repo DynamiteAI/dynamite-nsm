@@ -44,3 +44,8 @@ agent_component_parser = component_subparsers.add_parser(
     "agent",
     help="Install, configure, manage the Dynamite Agent.")
 agent_component_parser.set_defaults(component_name="agent")
+
+lab_component_parser = component_subparsers.add_parser(
+    "lab",
+    help="Install, configure, manage the Dynamite Lab.")
+lab_component_parser.set_defaults(component_name="lab")

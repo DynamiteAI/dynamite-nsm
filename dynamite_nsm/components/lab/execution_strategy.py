@@ -1,7 +1,7 @@
-import os
+import sys
 import logging
 
-from dynamite_nsm import const
+from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.lab import install, process
 from dynamite_nsm.components.base import execution_strategy
@@ -49,6 +49,7 @@ class LabInstallStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="lab_install",
             strategy_description="Install DynamiteLab (DynamiteSDK and JupyterHub).",
             functions=(
+                utilities.print_dynamite_lab_art,
                 check_elasticsearch_target,
                 install.install_dynamite_lab,
                 process.stop,
@@ -56,6 +57,8 @@ class LabInstallStrategy(execution_strategy.BaseExecStrategy):
                 log_message
             ),
             arguments=(
+                # utilities.print_dynamite_lab_art
+                {},
                 # check_elasticsearch_target
                 {
                     "perform_check": bool(check_elasticsearch_connection),
@@ -92,6 +95,7 @@ class LabInstallStrategy(execution_strategy.BaseExecStrategy):
                 }
             ),
             return_formats=(
+                None,
                 None,
                 None,
                 None,
@@ -251,7 +255,7 @@ class LabProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 
 
 def run_install_strategy():
-    kb_install_strategy = LabInstallStrategy(
+    lab_install_strategy = LabInstallStrategy(
         jupyterhub_host='localhost',
         jupyterhub_password='changeme',
         elasticsearch_host="localhost",
@@ -261,48 +265,48 @@ def run_install_strategy():
         stdout=True,
         verbose=True
     )
-    kb_install_strategy.execute_strategy()
+    lab_install_strategy.execute_strategy()
 
 
 def run_uninstall_strategy():
-    kb_uninstall_strategy = LabUninstallStrategy(
+    lab_uninstall_strategy = LabUninstallStrategy(
         prompt_user=False,
         stdout=True,
         verbose=True
     )
-    kb_uninstall_strategy.execute_strategy()
+    lab_uninstall_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
-    kb_start_strategy = LabProcessStartStrategy(
+    lab_start_strategy = LabProcessStartStrategy(
         stdout=True,
         verbose=True,
         status=True
     )
-    kb_start_strategy.execute_strategy()
+    lab_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
-    kb_stop_strategy = LabProcessStopStrategy(
+    lab_stop_strategy = LabProcessStopStrategy(
         stdout=True,
         verbose=True,
         status=True
     )
-    kb_stop_strategy.execute_strategy()
+    lab_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
-    kb_restart_strategy = LabProcessRestartStrategy(
+    lab_restart_strategy = LabProcessRestartStrategy(
         stdout=True,
         verbose=True,
         status=True
     )
-    kb_restart_strategy.execute_strategy()
+    lab_restart_strategy.execute_strategy()
 
 
 def run_process_status_strategy():
-    kb_status_strategy = LabProcessStatusStrategy()
-    kb_status_strategy.execute_strategy()
+    lab_status_strategy = LabProcessStatusStrategy()
+    lab_status_strategy.execute_strategy()
 
 
 if __name__ == '__main__':
