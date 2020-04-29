@@ -333,7 +333,7 @@ def print_dynamite_lab_art():
     try:
         lab_art = \
             """
-            \033[0;92m
+            \033[92m
                _
               | | DynamiteLab         |
               / \  is an experimental |
