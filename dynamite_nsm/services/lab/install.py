@@ -41,7 +41,7 @@ class InstallManager:
 
     def __init__(self, configuration_directory, notebook_home, elasticsearch_host=None, elasticsearch_port=None,
                  elasticsearch_password='changeme', jupyterhub_host=None, jupyterhub_password='changeme',
-                 download_dynamite_sdk_archive=True, stdout=True, verbose=False):
+                 download_dynamite_sdk_archive=True, extract_dynamite_sdk_archive=True, stdout=True, verbose=False):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/dynamite_sdk/)
         :param notebook_home: The path where Jupyter notebooks are stored
@@ -52,6 +52,7 @@ class InstallManager:
                                 (Used for creating kibana -> Jupyter hyperlinks)
         :param jupyterhub_password: The password used for authenticating to jupyterhub (via jupyter user)
         :param download_dynamite_sdk_archive: If True, download the DynamiteSDK archive from a mirror
+        :param extract_dynamite_sdk_archive: If True, extracts the DynamiteSDK archive
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
         """
@@ -74,11 +75,12 @@ class InstallManager:
             except general_exceptions.DownloadError:
                 self.logger.error('Failed to download DynamiteSDK archive.')
                 raise lab_exceptions.InstallLabError("Failed to download DynamiteSDK archive.")
-        try:
-            self.extract_dynamite_sdk()
-        except general_exceptions.ArchiveExtractionError:
-            self.logger.error('Failed to extract DynamiteSDK archive.')
-            raise lab_exceptions.InstallLabError("Failed to extract DynamiteSDK archive.")
+        if extract_dynamite_sdk_archive:
+            try:
+                self.extract_dynamite_sdk()
+            except general_exceptions.ArchiveExtractionError:
+                self.logger.error('Failed to extract DynamiteSDK archive.')
+                raise lab_exceptions.InstallLabError("Failed to extract DynamiteSDK archive.")
         try:
             self.install_dependencies(stdout=stdout, verbose=verbose)
             self.install_jupyterhub(stdout=stdout)
@@ -608,4 +610,4 @@ def uninstall_dynamite_lab(prompt_user=True, stdout=True, verbose=False):
         elasticsearch_host=dynamite_lab_config.elasticsearch_url.split('//')[1].split(':')[0],
         elasticsearch_password=dynamite_lab_config.elasticsearch_password,
         elasticsearch_port=dynamite_lab_config.elasticsearch_url.split('//')[1].split(':')[1].replace('/', ''),
-        download_dynamite_sdk_archive=False).uninstall_kibana_lab_icon()
+        download_dynamite_sdk_archive=False, extract_dynamite_sdk_archive=False).uninstall_kibana_lab_icon()
