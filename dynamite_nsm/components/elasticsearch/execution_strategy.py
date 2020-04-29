@@ -47,7 +47,7 @@ class ElasticsearchChangePasswordStrategy(execution_strategy.BaseExecStrategy):
             arguments=(
                 {
                     'old_password': str(old_password),
-                    'new_password': str(new_password),
+                    'password': str(new_password),
                     'stdout': bool(stdout),
                     'verbose': bool(verbose)
                 },
