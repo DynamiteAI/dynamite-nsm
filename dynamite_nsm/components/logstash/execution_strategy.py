@@ -4,8 +4,8 @@ import logging
 from dynamite_nsm import const
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
-from dynamite_nsm.services.logstash import config, install, process
 from dynamite_nsm.utilities import check_socket, prompt_input
+from dynamite_nsm.services.logstash import config, install, process
 
 
 def print_message(msg):

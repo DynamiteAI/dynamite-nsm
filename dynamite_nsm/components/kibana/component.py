@@ -59,6 +59,7 @@ class KibanaCommandlineComponent(component.BaseComponent):
             self,
             component_name="Kibana",
             component_description="Visualise and make sense of your network data.",
+            change_password_strategy=None,
             install_strategy=None,
             uninstall_strategy=None,
             process_start_strategy=None,
@@ -66,6 +67,22 @@ class KibanaCommandlineComponent(component.BaseComponent):
             process_restart_strategy=None,
             process_status_strategy=None
         )
+
+        if args.action_name == "chpasswd":
+            new_kibana_password = args.new_kibana_password
+            if not new_kibana_password:
+                new_kibana_password = prompt_password(
+                    '[?] Enter the new password that Kibana uses to connect to ElasticSearch: ',
+                    confirm_prompt="[?] Confirm Password: ")
+            self.register_change_password_strategy(
+                execution_strategy.KibanaChangePasswordStrategy(
+                    new_password=new_kibana_password,
+                    prompt_user=not args.skip_kibana_chpasswd_prompt,
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
+                )
+            )
+            self.execute_change_password_strategy()
 
         if args.action_name == "install":
             es_password = args.elastic_password

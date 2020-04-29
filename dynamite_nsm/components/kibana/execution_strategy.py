@@ -3,8 +3,8 @@ import logging
 
 from dynamite_nsm import const
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.kibana import install, process
 from dynamite_nsm.components.base import execution_strategy
+from dynamite_nsm.services.kibana import config, install, process
 from dynamite_nsm.utilities import check_socket, prompt_input
 
 
@@ -41,6 +41,26 @@ def check_elasticsearch_target(host, port, perform_check=True):
         if str(prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
             exit(0)
     return
+
+
+class KibanaChangePasswordStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to reset kibana password
+    """
+
+    def __init__(self, new_password, prompt_user, stdout, verbose):
+        execution_strategy.BaseExecStrategy.__init__(
+            self,
+            strategy_name='kibana_change_password',
+            strategy_description="Change the password for authenticating Kibana to ElasticSearch.",
+        )
+        self.add_function(func=config.change_kibana_elasticsearch_password, argument_dict={
+            'password': str(new_password),
+            'prompt_user': bool(prompt_user),
+            'stdout': bool(stdout),
+            'verbose': bool(verbose),
+        })
+        self.add_function(func=log_message, argument_dict={'msg': 'Kibana password changed successfully!'})
 
 
 class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):

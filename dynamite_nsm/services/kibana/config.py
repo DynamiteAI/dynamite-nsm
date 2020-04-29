@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import shutil
+import logging
 import subprocess
 
 from yaml import load, dump
@@ -13,6 +14,7 @@ except ImportError:
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
 
@@ -197,32 +199,42 @@ class ConfigManager:
                     self.configuration_directory, e))
 
 
-def change_kibana_elasticsearch_password(configuration_directory, password='changeme', prompt_user=True, stdout=False):
+def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, stdout=True, verbose=False):
     """
-    Change the password used by Kibana to authenticate to Elasticsearch
+    Change the password used by Kibana to authenticate to ElasticSearch
 
-    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
     :param password: The new Elasticsearch password
     :param prompt_user: If True, warning prompt is displayed before proceeding
     :param stdout: Print status to stdout
+    :param verbose: Include detailed debug messages
     """
 
     from dynamite_nsm.services.kibana import process as kibana_process
+    from dynamite_nsm.services.kibana import profile as kibana_profile
 
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    logger = get_logger('KIBANA', level=log_level, stdout=stdout)
+
+    environment_variables = utilities.get_environment_file_dict()
+    if not kibana_profile.ProcessProfiler().is_installed:
+        logger.error("Password reset failed. Kibana is not installed on this host.")
     if prompt_user:
         resp = utilities.prompt_input(
-            'Changing the Kibana password can cause Kibana to lose communication with ElasticSearch. '
-            'Are you sure you wish to continue? [no]|yes): ')
+            '\033[93m[-] WARNING! Changing the Kibana password can cause Kibana to lose communication with '
+            'ElasticSearch.\n[?] Are you sure you wish to continue? [no]|yes):\033[0m  ')
         while resp not in ['', 'no', 'yes']:
-            resp = utilities.prompt_input('Are you sure you wish to continue? ([no]|yes): ')
+            resp = utilities.prompt_input('\033[93m[?] Are you sure you wish to continue? ([no]|yes):\033[0m ')
         if resp != 'yes':
             if stdout:
-                sys.stdout.write('[+] Exiting\n')
-            return
+                sys.stdout.write('\n[+] Exiting\n')
+            exit(0)
     try:
-        kb_config = ConfigManager(configuration_directory)
+        kb_config = ConfigManager(environment_variables.get('KIBANA_PATH_CONF'))
         kb_config.elasticsearch_password = password
         kb_config.write_config()
     except (kibana_exceptions.ReadKibanaConfigError, kibana_exceptions.WriteKibanaConfigError):
-        raise general_exceptions.ResetPasswordError("Could not read/write kibana configuration.")
-    kibana_process.ProcessManager().restart(stdout=True)
+        logger.error("Could not read/write Kibana configuration.")
+        raise general_exceptions.ResetPasswordError("Could not read/write Kibana configuration.")
+    kibana_process.ProcessManager().restart()

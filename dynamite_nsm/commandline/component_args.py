@@ -231,7 +231,7 @@ def register_logstash_component_args(ls_component_parser, parent_parsers):
     logstash_component_args_subparsers = ls_component_parser.add_subparsers()
 
     ls_chpasswd_parser = logstash_component_args_subparsers.add_parser(
-        "chpasswd", help="Change ElasticSearch Password.", parents=parent_parsers)
+        "chpasswd", help="Change password LogStash uses for connecting to ElasticSearch.", parents=parent_parsers)
 
     ls_chpasswd_parser.add_argument("--new-ls-password", dest="new_logstash_password", type=str,
                                     help="The new password used for logging into ElasticSearch.")
@@ -299,6 +299,17 @@ def register_logstash_component_args(ls_component_parser, parent_parsers):
 
 def register_kibana_component_args(kb_component_parser, parent_parsers):
     kibana_component_args_subparsers = kb_component_parser.add_subparsers()
+
+    kb_chpasswd_parser = kibana_component_args_subparsers.add_parser(
+        "chpasswd", help="Change password Kibana uses for connecting to ElasticSearch.", parents=parent_parsers)
+
+    kb_chpasswd_parser.add_argument("--new-kb-password", dest="new_kibana_password", type=str,
+                                    help="The new password used for logging into ElasticSearch.")
+    kb_chpasswd_parser.add_argument("--skip-chpasswd-prompt", dest="skip_kibana_chpasswd_prompt", default=False,
+                                    action="store_true", help="Skip chpasswd warning prompt."
+                                    )
+    kb_chpasswd_parser.set_defaults(action_name="chpasswd")
+    
     # === Setup Kibana Component Install Arguments === #
     kb_install_parser = kibana_component_args_subparsers.add_parser(
         "install", help="Install Kibana.", parents=parent_parsers)
