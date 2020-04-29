@@ -43,17 +43,22 @@ class ElasticsearchChangePasswordStrategy(execution_strategy.BaseExecStrategy):
             strategy_description="Change the password for all ElasticSearch builtin users.",
             functions=(
                 config.change_elasticsearch_password,
+                log_message
             ),
             arguments=(
+                # config.change_elasticsearch_password
                 {
                     'old_password': str(old_password),
                     'password': str(new_password),
                     'stdout': bool(stdout),
                     'verbose': bool(verbose)
                 },
+                # log_message
+                {'msg': 'ElasticSearch password changed successfully!'}
             ),
             return_formats=(
                 None,
+                None
             )
 
         )
