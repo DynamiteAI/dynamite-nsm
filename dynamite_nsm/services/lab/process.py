@@ -28,7 +28,7 @@ class ProcessManager:
         utilities.set_ownership_of_file(PID_DIRECTORY, user='dynamite', group='dynamite')
         try:
             with open(os.path.join(PID_DIRECTORY, 'jupyterhub.pid')) as pid_f:
-                self.pid = int(pid_f.read()) + 1
+                self.pid = int(pid_f.read())
         except (IOError, ValueError):
             self.pid = -1
 

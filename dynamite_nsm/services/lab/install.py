@@ -176,7 +176,7 @@ class InstallManager:
         pkt_mng.refresh_package_indexes()
         logger.info('Installing dependencies.')
         if pkt_mng.package_manager == 'apt-get':
-            packages = ['python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm']
+            packages = ['build-essential', 'python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm']
         elif pkt_mng.package_manager == 'yum':
             p = subprocess.Popen('curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -',
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
@@ -185,7 +185,7 @@ class InstallManager:
                 logger.error('Could not install nodejs source rpm.')
                 raise general_exceptions.OsPackageManagerInstallError(
                     "Could not install nodejs from third-party RPM; https://rpm.nodesource.com/setup_10.x")
-            packages = ['nodejs', 'python36', 'python36-devel']
+            packages = ['gcc72-c++', 'gcc', 'gcc-c++', 'nodejs', 'python36', 'python36-devel']
         logger.info('Installing the following packages: {}.'.format(packages))
         pkt_mng.install_packages(packages)
         logger.info('Installing configurable-http-proxy. This may take some time.')
