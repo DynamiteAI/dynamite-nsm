@@ -180,7 +180,7 @@ class InstallManager:
         if pkt_mng.package_manager == 'apt-get':
             packages = ['python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm']
         elif pkt_mng.package_manager == 'yum':
-            pkt_mng.install_packages(['curl', 'gcc-c++', 'make'])
+            pkt_mng.install_packages(['python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm'])
             p = subprocess.Popen('curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -',
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
             p.communicate()
@@ -218,7 +218,7 @@ class InstallManager:
             log_level = logging.DEBUG
         logger = get_logger('LAB', level=log_level, stdout=stdout)
         logger.info('Installing JupyterHub and ipython[notebook] via pip3.')
-        p = subprocess.Popen('python3 -m pip install jupyterhub notebook', stdout=subprocess.PIPE,
+        p = subprocess.Popen('python3 -m pip install cython numpy jupyterhub notebook', stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True)
         p.communicate()
         if p.returncode != 0:
