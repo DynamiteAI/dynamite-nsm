@@ -196,7 +196,10 @@ class InstallManager:
                              shell=True)
         p.communicate()
         if p.returncode != 0:
-            err_msg = p.stderr.read()
+            try:
+                err_msg = p.stderr.read()
+            except ValueError:
+                err_msg = p.returncode
             logger.error('Failed to install configurable-http-proxy, ensure npm is installed and in $PATH: {}'
                          ''.format(err_msg))
             raise general_exceptions.OsPackageManagerInstallError(
@@ -219,11 +222,12 @@ class InstallManager:
                              stderr=subprocess.PIPE, shell=True)
         p.communicate()
         if p.returncode != 0:
-            err_msg = p.stderr.read()
             logger.error(
-                'Failed to install Jupyterhub. Ensure python3 and pip3 are installed and in $PATH: {}'.format(err_msg))
+                'Failed to install Jupyterhub. Ensure python3 and pip3 are installed and in $PATH: {}'.format(
+                    p.returncode))
             general_exceptions.OsPackageManagerInstallError(
-                "Failed to install Jupyterhub via pip3. Python3 is required for this component; {}".format(err_msg))
+                "Failed to install Jupyterhub via pip3. Python3 is required for this component; {}".format(
+                    p.returncode))
 
     def install_kibana_lab_icon(self):
         """
@@ -336,7 +340,7 @@ class InstallManager:
                         self.notebook_home, env_file), shell=True)
                 if 'DYNAMITE_LAB_CONFIG' not in env_str:
                     self.logger.info('Updating Dynamite Lab Config path [{}]'.format(
-                            self.configuration_directory))
+                        self.configuration_directory))
                     subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> {}'.format(
                         self.configuration_directory, env_file), shell=True)
         except IOError:
@@ -409,7 +413,7 @@ class InstallManager:
             with open(env_file) as env_f:
                 if 'DYNAMITE_LAB_CONFIG' not in env_f.read():
                     self.logger.info('Updating Dynamite Lab Config path [{}]'.format(
-                            self.configuration_directory))
+                        self.configuration_directory))
                     subprocess.call('echo DYNAMITE_LAB_CONFIG="{}" >> {}'.format(
                         self.configuration_directory, env_file), shell=True)
         except IOError:
