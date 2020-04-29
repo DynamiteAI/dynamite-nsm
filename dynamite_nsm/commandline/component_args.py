@@ -348,6 +348,9 @@ def register_lab_component_args(lab_component_parser, parent_parsers):
     lab_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
                                     help="The password used for logging into ElasticSearch."
                                     )
+    lab_install_parser.add_argument("--skip-es-check", dest="skip_check_elasticsearch_connection", default=False,
+                                    action="store_true", help="Skip check to see if ElasticSearch is up and running."
+                                    )
     lab_install_parser.add_argument("--jp-listen-addr", dest="jupyter_addr", type=str,
                                     help="The password used for logging into JupyterHub."
                                     )
@@ -361,7 +364,7 @@ def register_lab_component_args(lab_component_parser, parent_parsers):
         help="Uninstall Lab.",
         parents=parent_parsers)
     lab_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_lab_uninstall_prompt", default=False,
-                                     action="store_true", help="Skip prompting uninstall prompt.")
+                                      action="store_true", help="Skip prompting uninstall prompt.")
     lab_uninstall_parser.set_defaults(action_name="uninstall")
 
     # === Setup Lab Component Start Arguments === #
