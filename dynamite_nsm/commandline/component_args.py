@@ -391,8 +391,8 @@ def register_lab_component_args(lab_component_parser, parent_parsers):
     lab_install_parser.add_argument("--skip-es-check", dest="skip_check_elasticsearch_connection", default=False,
                                     action="store_true", help="Skip check to see if ElasticSearch is up and running."
                                     )
-    lab_install_parser.add_argument("--jp-listen-addr", dest="jupyter_addr", type=str,
-                                    help="The password used for logging into JupyterHub."
+    lab_install_parser.add_argument("--jp-listen-addr", dest="jupyter_addr", type=str, default='0.0.0.0',
+                                    help="The address JupyterHub's HTTP interface listens on."
                                     )
     lab_install_parser.add_argument("--jp-password", dest="jupyter_password", type=str,
                                     help="The password used for logging into JupyterHub."
