@@ -119,7 +119,7 @@ class KibanaCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout
                 )
             )
-            self.restart()
+            self.execute_process_restart_strategy()
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
