@@ -1,3 +1,5 @@
+import getpass
+
 from dynamite_nsm.utilities import prompt_password
 from dynamite_nsm.components.base import component
 from dynamite_nsm.components.elasticsearch import execution_strategy
@@ -56,6 +58,7 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
             self,
             component_name="ElasticSearch",
             component_description="Store and search network events.",
+            change_password_strategy=None,
             install_strategy=None,
             uninstall_strategy=None,
             process_start_strategy=None,
@@ -63,8 +66,25 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
             process_restart_strategy=None,
             process_status_strategy=None
         )
+        if args.action_name == "chpasswd":
+            old_es_password = args.old_elastic_password
+            new_es_password = args.new_elastic_password
+            if not old_es_password:
+                old_es_password = getpass.getpass('[?] Enter the old ElasticSearch password: ')
+            if not new_es_password:
+                new_es_password = prompt_password('[?] Enter the new ElasticSearch password: ',
+                                                  confirm_prompt="[?] Confirm Password: ")
+            self.register_change_password_strategy(
+                execution_strategy.ElasticsearchChangePasswordStrategy(
+                    old_password=old_es_password,
+                    new_password=new_es_password,
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
+                )
+            )
+            self.execute_change_password_strategy()
 
-        if args.action_name == "install":
+        elif args.action_name == "install":
             es_password = args.elastic_password
             if not es_password:
                 es_password = prompt_password("[?] Enter the password for logging into ElasticSearch: ",

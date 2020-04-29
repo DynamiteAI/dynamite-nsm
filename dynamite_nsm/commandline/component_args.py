@@ -163,12 +163,21 @@ def register_monitor_component_args(mon_component_parser, parent_parsers):
 
 def register_elasticsearch_component_args(es_component_parser, parent_parsers):
     elasticsearch_component_args_subparsers = es_component_parser.add_subparsers()
+
+    # === Setup ElasticSearch Component ChangePassword Arguments === #
+    es_chpasswd_parser = elasticsearch_component_args_subparsers.add_parser(
+        "chpasswd", help="Change ElasticSearch Password.", parents=parent_parsers)
+
+    es_chpasswd_parser.add_argument("--old-es-password", dest="old_elastic_password", type=str,
+                                    help="The old password used for logging into ElasticSearch.")
+    es_chpasswd_parser.add_argument("--new-es-password", dest="new_elastic_password", type=str,
+                                    help="The new password used for logging into ElasticSearch.")
+    es_chpasswd_parser.set_defaults(action_name="chpasswd")
+
     # === Setup ElasticSearch Component Install Arguments === #
     es_install_parser = elasticsearch_component_args_subparsers.add_parser(
-        "install", help="Install ElasticSearch.",
-        parents=parent_parsers)
+        "install", help="Install ElasticSearch.", parents=parent_parsers)
 
-    es_install_parser.set_defaults(action_name="install")
     es_install_parser.add_argument("--es-heap-size", dest="elastic_heap_size", type=int, default=4,
                                    help="The amount of memory to designate to ElasticSearch's Java Heap [Gi]"
                                    )
@@ -178,6 +187,7 @@ def register_elasticsearch_component_args(es_component_parser, parent_parsers):
     es_install_parser.add_argument("--skip-install-jdk", dest="skip_elastic_install_jdk", default=False,
                                    action="store_true", help="Skip the installation of Java 11 Development Environment."
                                    )
+    es_install_parser.set_defaults(action_name="install")
 
     # === Setup ElasticSearch Component Uninstall Arguments === #
     es_uninstall_parser = elasticsearch_component_args_subparsers.add_parser(

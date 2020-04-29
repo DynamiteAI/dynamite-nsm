@@ -4,7 +4,7 @@ import logging
 from dynamite_nsm import const
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
-from dynamite_nsm.services.elasticsearch import install, process
+from dynamite_nsm.services.elasticsearch import config, install, process
 
 
 def print_message(msg):
@@ -30,6 +30,33 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
         logger.warning(msg)
     elif level == logging.ERROR:
         logger.error(msg)
+
+
+class ElasticsearchChangePasswordStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to reset elasticsearch password
+    """
+    def __init__(self, old_password, new_password, stdout, verbose):
+        execution_strategy.BaseExecStrategy.__init__(
+            self,
+            strategy_name='elasticsearch_change_password',
+            strategy_description="Change the password for all ElasticSearch builtin users.",
+            functions=(
+                config.change_elasticsearch_password,
+            ),
+            arguments=(
+                {
+                    'old_password': str(old_password),
+                    'new_password': str(new_password),
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
+                },
+            ),
+            return_formats=(
+                None,
+            )
+
+        )
 
 
 class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
