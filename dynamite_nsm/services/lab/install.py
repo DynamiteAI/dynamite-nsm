@@ -180,7 +180,6 @@ class InstallManager:
         if pkt_mng.package_manager == 'apt-get':
             packages = ['python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm']
         elif pkt_mng.package_manager == 'yum':
-            pkt_mng.install_packages(['python3', 'python3-pip', 'python3-dev', 'nodejs', 'npm'])
             p = subprocess.Popen('curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -',
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, close_fds=True)
             p.communicate()
