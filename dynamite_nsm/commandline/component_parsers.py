@@ -18,6 +18,17 @@ agent_deps_component_parser = component_subparsers.add_parser(
     help="Install Linux kernel development headers required for agent installation.")
 agent_deps_component_parser.set_defaults(component_name="agent-dependencies")
 
+agent_component_parser = component_subparsers.add_parser(
+    "agent",
+    help="Install, configure, manage the Dynamite Agent.")
+agent_component_parser.set_defaults(component_name="agent")
+
+monitor_component_parser = component_subparsers.add_parser(
+    "monitor",
+    help="Install, configure, manage standalone ELK "
+         "[ElasticSearch + Logstash + Kibana] instance.")
+monitor_component_parser.set_defaults(component_name="monitor")
+
 elasticsearch_component_parser = component_subparsers.add_parser(
     "elasticsearch",
     help="Install, configure, manage ElasticSearch.")
@@ -33,17 +44,6 @@ kibana_component_parser = component_subparsers.add_parser(
     help="Install, configure, manage Kibana with pre-built "
          "Dynamite Analytic Views.")
 kibana_component_parser.set_defaults(component_name="kibana")
-
-monitor_component_parser = component_subparsers.add_parser(
-    "monitor",
-    help="Install, configure, manage standalone ELK "
-         "[ElasticSearch + Logstash + Kibana] instance.")
-monitor_component_parser.set_defaults(component_name="monitor")
-
-agent_component_parser = component_subparsers.add_parser(
-    "agent",
-    help="Install, configure, manage the Dynamite Agent.")
-agent_component_parser.set_defaults(component_name="agent")
 
 lab_component_parser = component_subparsers.add_parser(
     "lab",
