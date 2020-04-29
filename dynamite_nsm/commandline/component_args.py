@@ -229,6 +229,17 @@ def register_elasticsearch_component_args(es_component_parser, parent_parsers):
 
 def register_logstash_component_args(ls_component_parser, parent_parsers):
     logstash_component_args_subparsers = ls_component_parser.add_subparsers()
+
+    ls_chpasswd_parser = logstash_component_args_subparsers.add_parser(
+        "chpasswd", help="Change ElasticSearch Password.", parents=parent_parsers)
+
+    ls_chpasswd_parser.add_argument("--new-ls-password", dest="new_logstash_password", type=str,
+                                    help="The new password used for logging into ElasticSearch.")
+    ls_chpasswd_parser.add_argument("--skip-chpasswd-prompt", dest="skip_logstash_chpasswd_prompt", default=False,
+                                    action="store_true", help="Skip chpasswd warning prompt."
+                                    )
+    ls_chpasswd_parser.set_defaults(action_name="chpasswd")
+    
     # === Setup LogStash Component Install Arguments === #
     ls_install_parser = logstash_component_args_subparsers.add_parser(
         "install", help="Install LogStash.", parents=parent_parsers)

@@ -60,6 +60,7 @@ class LogstashCommandlineComponent(component.BaseComponent):
             self,
             component_name="LogStash",
             component_description="Process, normalize, and send network events to a data-store.",
+            change_password_strategy=None,
             install_strategy=None,
             uninstall_strategy=None,
             process_start_strategy=None,
@@ -67,7 +68,21 @@ class LogstashCommandlineComponent(component.BaseComponent):
             process_restart_strategy=None,
             process_status_strategy=None
         )
-
+        if args.action_name == "chpasswd":
+            new_logstash_password = args.new_logstash_password
+            if not new_logstash_password:
+                new_logstash_password = prompt_password(
+                    '[?] Enter the new password that LogStash uses to connect to ElasticSearch: ',
+                    confirm_prompt="[?] Confirm Password: ")
+            self.register_change_password_strategy(
+                execution_strategy.LogStashChangePasswordStrategy(
+                    new_password=new_logstash_password,
+                    prompt_user=not args.skip_logstash_chpasswd_prompt,
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
+                )
+            )
+            self.execute_change_password_strategy()
         if args.action_name == "install":
             es_password = args.elastic_password
             if not es_password:

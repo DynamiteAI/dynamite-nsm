@@ -4,7 +4,7 @@ import logging
 from dynamite_nsm import const
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
-from dynamite_nsm.services.logstash import install, process
+from dynamite_nsm.services.logstash import config, install, process
 from dynamite_nsm.utilities import check_socket, prompt_input
 
 
@@ -42,7 +42,27 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
     elif level == logging.ERROR:
         logger.error(msg)
         
-        
+
+class LogStashChangePasswordStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to reset logstash password
+    """
+
+    def __init__(self, new_password, prompt_user, stdout, verbose):
+        execution_strategy.BaseExecStrategy.__init__(
+            self,
+            strategy_name='logstash_change_password',
+            strategy_description="Change the password for all LogStash ElasticSearch output configurations.",
+        )
+        self.add_function(func=config.change_logstash_elasticsearch_password, argument_dict={
+            'password': str(new_password),
+            'prompt_user': bool(prompt_user),
+            'stdout': bool(stdout),
+            'verbose': bool(verbose),
+        })
+        self.add_function(func=log_message, argument_dict={'msg': 'LogStash password changed successfully!'})
+
+
 class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to install logstash
