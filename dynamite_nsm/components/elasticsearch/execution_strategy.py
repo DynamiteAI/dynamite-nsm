@@ -55,7 +55,11 @@ class ElasticsearchChangePasswordStrategy(execution_strategy.BaseExecStrategy):
             strategy_description="Change the password for all ElasticSearch builtin users.",
         )
         if remote_host:
-            self.add_function(func=check_elasticsearch_target, argument_dict={})
+            self.add_function(func=check_elasticsearch_target, argument_dict={
+                "perform_check": True,
+                "host": str(remote_host),
+                "port": int(remote_port)
+            })
         self.add_function(func=config.change_elasticsearch_password, argument_dict={
             'old_password': str(old_password),
             'password': str(new_password),
