@@ -60,7 +60,9 @@ class KibanaChangePasswordStrategy(execution_strategy.BaseExecStrategy):
             'stdout': bool(stdout),
             'verbose': bool(verbose),
         })
-        self.add_function(func=log_message, argument_dict={'msg': 'Kibana password changed successfully!'})
+        self.add_function(func=log_message,
+                          argument_dict={'msg': 'Kibana password changed successfully!', 'stdout': bool(stdout),
+                                         'verbose': bool(verbose)})
 
 
 class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
@@ -113,13 +115,17 @@ class KibanaInstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** Kibana installed successfully. ***'
+                    "msg": '*** Kibana installed successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
                 # log_message
                 {
                     "msg": 'Next, Start your cluster: '
                            '\'dynamite kibana start\'. It will be available at: \033[4m{}:{}\033[0m once started.'
-                           ''.format(listen_address, listen_port)
+                           ''.format(listen_address, listen_port),
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 }
             ),
             return_formats=(
@@ -155,7 +161,9 @@ class KibanaUninstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** Kibana uninstalled successfully. ***'
+                    "msg": '*** Kibana uninstalled successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
             ),
             return_formats=(

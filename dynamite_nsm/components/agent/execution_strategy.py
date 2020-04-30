@@ -196,6 +196,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(func=log_message,
                               argument_dict={
                                   "msg": 'Skipping Filebeat installation; already installed',
+                                  'stdout': bool(stdout),
                                   'verbose': bool(verbose)
                               },
                               return_format=None)
@@ -211,6 +212,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
         else:
             self.add_function(func=log_message, argument_dict={
                 "msg": 'Skipping Zeek installation.',
+                'stdout': bool(stdout),
                 'verbose': bool(verbose)
             },
                               return_format=None)
@@ -227,6 +229,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
         else:
             self.add_function(func=log_message, argument_dict={
                 "msg": 'Skipping Suricata installation.',
+                'stdout': bool(stdout),
                 'verbose': bool(verbose)
             },
                               return_format=None)
@@ -237,6 +240,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
         self.add_function(func=log_message, argument_dict={
             "msg": 'Next, Start your agent: '
                    '\'dynamite agent start\'.',
+            'stdout': bool(stdout),
             'verbose': bool(verbose)
         }, return_format=None)
 
@@ -289,11 +293,13 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
         if get_installed_agent_analyzers():
             self.add_function(func=log_message, argument_dict={
                 "msg": '*** Agent uninstalled successfully. ***',
+                'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
         else:
             self.add_function(func=log_message, argument_dict={
                 "msg": '*** Agent is not installed. ***',
+                'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
 

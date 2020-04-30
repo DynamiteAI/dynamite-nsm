@@ -2,9 +2,9 @@ from dynamite_nsm.utilities import get_default_agent_tag
 
 
 def register_agent_dependency_component_args(agt_deps_component_parser, parent_parsers):
-    agt_deps_component_parser = agt_deps_component_parser.add_subparsers()
+    agt_deps_component_args_subparsers = agt_deps_component_parser.add_subparsers()
     # === Setup Agent Dependency Component Install Arguments === #
-    agt_deps_install_parser = agt_deps_component_parser.add_parser(
+    agt_deps_install_parser = agt_deps_component_args_subparsers.add_parser(
         "install",
         help="Install Agent Dependencies (Requires Reboot).", parents=parent_parsers)
 
@@ -437,3 +437,13 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
         "status", help="Status Kibana.",
         parents=parent_parsers)
     kb_status_parser.set_defaults(action_name="status")
+
+
+def register_updates_component_args(upd_component_parser, parent_parsers):
+    upd_component_subparsers = upd_component_parser.add_subparsers()
+    # === Setup Agent Dependency Component Install Arguments === #
+    upd_install_parser = upd_component_subparsers.add_parser(
+        "install",
+        help="Install the latest default configurations and mirrors.", parents=parent_parsers)
+
+    upd_install_parser.set_defaults(action_name="install")

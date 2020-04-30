@@ -49,3 +49,9 @@ lab_component_parser = component_subparsers.add_parser(
     "lab",
     help="Install, configure, manage the Dynamite Lab.")
 lab_component_parser.set_defaults(component_name="lab")
+
+update_component_parser = component_subparsers.add_parser(
+    "updates",
+    help="Update to the latest default configurations and mirrors."
+)
+lab_component_parser.set_defaults(component_name="updates")

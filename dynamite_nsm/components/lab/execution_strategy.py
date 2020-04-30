@@ -91,7 +91,9 @@ class LabInstallStrategy(execution_strategy.BaseExecStrategy):
                 {
                     "msg": 'Next, Start DynamiteLab: '
                            '\'dynamite lab start\'. It will be available at: \033[4m{}:{}\033[0m once started.'.format(
-                            jupyterhub_host, 8000)
+                            jupyterhub_host, 8000),
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 }
             ),
             return_formats=(
@@ -127,7 +129,9 @@ class LabUninstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** Lab uninstalled successfully. ***'
+                    "msg": '*** Lab uninstalled successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
             ),
             return_formats=(

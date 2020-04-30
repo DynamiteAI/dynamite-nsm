@@ -117,7 +117,9 @@ class MonitorChangePasswordStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             })
 
-        self.add_function(func=log_message, argument_dict={'msg': 'Monitor passwords changed successfully!'})
+        self.add_function(func=log_message,
+                          argument_dict={'msg': 'Monitor passwords changed successfully!', 'stdout': bool(stdout),
+                                         'verbose': bool(verbose)})
 
 
 class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
@@ -163,7 +165,9 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             }, return_format=None)
         else:
             self.add_function(func=log_message, argument_dict={
-                "msg": 'Skipping ElasticSearch installation; already installed.'
+                "msg": 'Skipping ElasticSearch installation; already installed.',
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
             }, return_format=None)
 
         self.add_function(func=es_process.start, argument_dict={
@@ -187,7 +191,9 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             }, return_format=None)
         else:
             self.add_function(func=log_message, argument_dict={
-                "msg": 'Skipping LogStash installation; already installed.'
+                "msg": 'Skipping LogStash installation; already installed.',
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
             }, return_format=None)
 
         if not kb_profile.ProcessProfiler().is_installed:
@@ -206,7 +212,9 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             }, return_format=None)
         else:
             self.add_function(func=log_message, argument_dict={
-                "msg": 'Skipping Kibana installation; already installed.'
+                "msg": 'Skipping Kibana installation; already installed.',
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
             }, return_format=None)
 
         self.add_function(func=kb_process.stop, argument_dict={
@@ -218,13 +226,17 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
         }, return_format=None)
 
         self.add_function(func=log_message, argument_dict={
-            "msg": '*** Monitor installed successfully. ***'
+            "msg": '*** Monitor installed successfully. ***',
+            'stdout': bool(stdout),
+            'verbose': bool(verbose)
         }, return_format=None)
 
         self.add_function(func=log_message, argument_dict={
             "msg": 'Next, Start your monitor: '
-                   '\'dynamite monitor start\'. It will be available at: \033[4m{}:{}\033[0m once started.'.format(
-                kibana_listen_address, kibana_listen_port)
+                   '\'dynamite monitor start\'. It will be available at: \033[4m{}:{}\033[0m once started.'
+                   ''.format(kibana_listen_address, kibana_listen_port),
+            'stdout': bool(stdout),
+            'verbose': bool(verbose)
         }, return_format=None)
 
 
@@ -276,7 +288,9 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
             })
 
         self.add_function(func=log_message, argument_dict={
-            "msg": '*** Monitor uninstalled successfully. ***'
+            "msg": '*** Monitor uninstalled successfully. ***',
+            'stdout': bool(stdout),
+            'verbose': bool(verbose)
         })
 
 

@@ -108,12 +108,16 @@ class LogstashInstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** LogStash installed successfully. ***\n'
+                    "msg": '*** LogStash installed successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
                 # log_message
                 {
                     "msg": 'Next, Start your cluster: '
-                           '\'dynamite logstash start\'.'
+                           '\'dynamite logstash start\'.',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 }
             ),
             return_formats=(
@@ -148,7 +152,9 @@ class LogstashUninstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** LogStash uninstalled successfully. ***\n'
+                    "msg": '*** LogStash uninstalled successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
             ),
             return_formats=(

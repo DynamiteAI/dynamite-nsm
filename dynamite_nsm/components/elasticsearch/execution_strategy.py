@@ -69,7 +69,9 @@ class ElasticsearchChangePasswordStrategy(execution_strategy.BaseExecStrategy):
             'stdout': bool(stdout),
             'verbose': bool(verbose),
         })
-        self.add_function(func=log_message, argument_dict={'msg': 'ElasticSearch password changed successfully!'})
+        self.add_function(func=log_message,
+                          argument_dict={'msg': 'ElasticSearch password changed successfully!', 'stdout': bool(stdout),
+                                         'verbose': bool(verbose)})
 
 
 class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
@@ -112,12 +114,16 @@ class ElasticsearchInstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** ElasticSearch installed successfully. ***'
+                    "msg": '*** ElasticSearch installed successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
                 # log_message
                 {
                     "msg": 'Next, Start your cluster: '
-                           '\'dynamite elasticsearch start\'.'
+                           '\'dynamite elasticsearch start\'.',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 }
             ),
             return_formats=(
@@ -152,7 +158,9 @@ class ElasticsearchUninstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** ElasticSearch uninstalled successfully. ***'
+                    "msg": '*** ElasticSearch uninstalled successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
                 },
             ),
             return_formats=(
