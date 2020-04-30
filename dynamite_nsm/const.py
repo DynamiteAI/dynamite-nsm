@@ -21,7 +21,7 @@ def bootstrap_constants_from_const_environment_file():
     constants = {}
     config_parser = ConfigParser()
     try:
-        with open(os.path.join(CONFIG_PATH, '.constants')) as f:
+        with open(os.path.join(DEFAULT_CONFIGS, '.constants')) as f:
             config_parser.readfp(f)
             for sect in config_parser.sections():
                 for k, v in config_parser.items(sect):
