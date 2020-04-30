@@ -62,8 +62,11 @@ if __name__ == '__main__':
     args = component_parsers.main_parser.parse_args()
     today_formatted_date = datetime.strftime(datetime.today(), '%d-%m-%Y')
     log_level = logging.INFO
-    if args.verbose:
-        log_level = logging.DEBUG
+    try:
+        if args.verbose:
+            log_level = logging.DEBUG
+    except AttributeError:
+        log_level = logging.INFO
     logger = get_logger('DYNAMITE_CMD', level=log_level, stdout=True)
     logger.info("LOG LEVEL: {}".format(log_level))
     logger.info("LOG FILE: {}.log".format(os.path.join(const.LOG_PATH, 'dynamite-{}'.format(today_formatted_date))))

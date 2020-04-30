@@ -1,158 +1,201 @@
-## Usage
+# Usage
 
 <p style="color:red" Script MUST be run as root!</p>
 
 ```
-usage: dynamite.py [-h] [--interface NETWORK_INTERFACE]
-                   [--agent-label AGENT_LABEL] [--ls-host LS_HOST]
-                   [--ls-port LS_PORT] [--es-host ES_HOST] [--es-port ES_PORT]
-                   [--zeek-cluster] [--zeek-scripts] [--suricata-interfaces]
-                   [--suricata-rules] [--zeek-shell] [--debug]
-                   command component
+usage: dynamite [-h]
+                {agent-dependencies,agent,monitor,elasticsearch,logstash,kibana,lab,updates}
+                ...
 
-Install/Configure the Dynamite Network Monitor.
+Discover your network.
 
 positional arguments:
-  command               An action to perform [prepare|install|uninstall|start|
-                        stop|restart|status|profile|update|configure|point|chp
-                        asswd]
-  component             The component to perform an action against [agent|monitor|
-                        lab|elasticsearch|logstash|kibana|suricata-rules|
-                        mirrors|default-configs]
+  {agent-dependencies,agent,monitor,elasticsearch,logstash,kibana,lab,updates}
+    agent-dependencies  Install Linux kernel development headers required for
+                        agent installation.
+    agent               Install, configure, manage the Dynamite Agent.
+    monitor             Install, configure, manage standalone ELK
+                        [ElasticSearch + Logstash + Kibana] instance.
+    elasticsearch       Install, configure, manage ElasticSearch.
+    logstash            Install, configure, manage LogStash.
+    kibana              Install, configure, manage Kibana with pre-built
+                        Dynamite Analytic Views.
+    lab                 Install, configure, manage the Dynamite Lab.
+    updates             Update to the latest default configurations and
+                        mirrors.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --interface NETWORK_INTERFACE
-                        A network interface to analyze traffic on.
-  --agent-label AGENT_LABEL
-                        A descriptive label associated with the agent. This
-                        could be a location on your network (VLAN01),or the
-                        types of servers on a segment (E.G Workstations-US-1).
-  --ls-host LS_HOST     Target Logstash instance; A valid Ipv4/Ipv6 address or
-                        hostname
-  --ls-port LS_PORT     Target Logstash instance; A valid port [1-65535]
-  --es-host ES_HOST     Target ElasticSearch cluster; A valid Ipv4/Ipv6
-                        address or hostname
-  --es-port ES_PORT     Target ElasticSearch cluster; A valid port [1-65535]
-  --zeek-cluster        Enter into Zeek Cluster Configuration Mode.
-  --zeek-scripts        Enter into Zeek Script Configuration Mode.
-  --suricata-interfaces
-                        Enter into Suricata Interface Configuration Mode.
-  --suricata-rules      Enter into Suricata Rule Configuration Mode.
-  --zeek-shell          Enter into ZeekCtl interactive shell
-  --debug               Include detailed error messages in console.
 ```
 
 ## Components
 
 ### agent 
-Zeek + Suricata + FileBeat; responsible for analyzing network traffic on a given interface and forwarding on to LogStash for enrichment.
+Responsible for analyzing network traffic on a given interface and forwarding on to LogStash (or Kafka) for enrichment.
 
-| Command   | Description                                                                                               | Example                                                                                   |
-|-----------|-----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| prepare   | Install required dependencies for agent installation. Requires a`reboot` for changes to go into effect. |`dynamite prepare agent`                                                                    |
-| install   | Install agent components (Zeek, Suricata, PF_RING, Oinkmaster).                                          |`dynamite install agent --interface mon0 --agent-label honeypot1 --ls-host 160.1.134.145`  |
-| uninstall | Uninstall agent components (Zeek, Suricata, PF_RING, Oinkmaster).                                         |`dynamite uninstall agent`                                                                |
-| start     | Start the agent processes.                                                                                |`dynamite start agent`                                                                    |
-| stop      | Stop the agent processes.                                                                                 |`dynamite stop agent`                                                                     |
-| restart   | Restart the agent processes.                                                                              |`dynamite restart agent`                                                                  |
-| status    | Return the status of agent running processes.                                                             |`dynamite status agent`                                                                   |
-| profile   | Run a series of checks to determine if agent is installed properly.                                       |`dynamite profile agent`                                                                  |
-| configure | Configure agent components, currently supported  `--zeek-cluster, --zeek-scripts, --zeek-shell`           |`dynamite configure agent --zeek-scripts`                                                 |
-| update    | Update configurations/mirrors/signatures                                                                  |`dynamite update suricata-rules`                                                          |
-| point     | Point the agent to a new LogStash host.                                                                   |`dynamite point agent --ls-host 160.1.134.130 --ls-port 5044`                             |
+```
+usage: dynamite agent [-h]
+                      {config,install,uninstall,start,stop,restart,status,update}
+                      ...
 
+positional arguments:
+  {config,install,uninstall,start,stop,restart,status,update}
+    config              Configure Agent.
+    install             Install Agent.
+    uninstall           Uninstall Agent.
+    start               Start Agent.
+    stop                Stop Agent.
+    restart             Restart Agent.
+    status              Status Agent.
+    update              Update Agent's EmergingThreat Signatures (If Suricata analyzer is installed).
 
-### lab
-JupyterHub + [DynamiteSDK](https://github.com/DynamiteAI/dynamite-sdk-lite); a whole new way to play with your network data!
+optional arguments:
+  -h, --help            show this help message and exit
+```
 
-| Command   | Description                                                                                          | Example                      |
-|-----------|------------------------------------------------------------------------------------------------------|------------------------------|
-| install   | Install lab components (JupyterHub and DynamiteSDK). |`dynamite install lab`   |
-| uninstall | Uninstall lab components.                                                                            |`dynamite uninstall lab` |
-| start     | Start the lab processes.                                                                         |`dynamite start lab`    |
-| stop      | Stop the lab processes.                                                                          |`dynamite stop lab`     |
-| restart   | Restart the lab processes.                                                                       |`dynamite restart lab`  |
-| status    | Return the status of lab running processes.                                                      |`dynamite status lab`   |
-| profile   | Run a series of checks to determine if lab is installed properly.                                |`dynamite profile lab`  |
+#### Examples
+
+| Command                                                                                                                                         | Description                                                                                |
+|-------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `dynamite agent install --capture-interfaces eth0 --analyzers zeek suricata --targets remote-host.me:5044`                                      | Install an agent with Zeek and Suricata enabled and point it to a remote monitor instance. |
+| `dynamite agent install --capture-interfaces eth0 --analyzers suricata --targets remote-host.me:9092 192.168.4.30:9092 --kafka-topic raw-logs`  | Install an agent with Suricata only and point it to, two remote two Kafka brokers.         |
+| `dynamite agent config`                                                                                                                         | Access agent config TUIs.
 
 
 ### monitor
-ElasticSearch + Logstash + Kibana; combines ElastiFlow and Synesis for normalization and enrichment of NetFlows/Zeek and Suricata logs.
+All the monitoring components (ElasticStack & Dynamite Normalization Templates and Visualisations) on a single instance!
 
-| Command   | Description                                                                                          | Example                      |
-|-----------|------------------------------------------------------------------------------------------------------|------------------------------|
-| install   | Install monitor components (ElasticSearch, Kibana (And dashboards), LogStash (And configurations)). |`dynamite install monitor`   |
-| uninstall | Uninstall monitor components ElasticSearch, Kibana (And dashboards), LogStash (And configurations).  |`dynamite uninstall monitor` |
-| start     | Start the monitor processes.                                                                         |`dynamite start monitor`    |
-| stop      | Stop the monitor processes.                                                                          |`dynamite stop monitor`     |
-| restart   | Restart the monitor processes.                                                                       |`dynamite restart monitor`  |
-| status    | Return the status of monitor running processes.                                                      |`dynamite status monitor`   |
-| profile   | Run a series of checks to determine if monitor is installed properly.                                |`dynamite profile monitor`  |
+```
+usage: dynamite monitor [-h]
+                        {chpasswd,install,uninstall,start,stop,restart,status}
+                        ...
+
+positional arguments:
+  {chpasswd,install,uninstall,start,stop,restart,status}
+    chpasswd            Change Monitor Passwords.
+    install             Install Monitor.
+    uninstall           Uninstall Monitor.
+    start               Start Monitor.
+    stop                Stop Monitor.
+    restart             Restart Monitor.
+    status              Status Monitor.
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
+
+#### Examples
+| Command                                                       | Description                                                                        |
+|---------------------------------------------------------------|------------------------------------------------------------------------------------|
+| `dynamite monitor install --ls-heap-size=6 --es-heap-size=12` | Install monitor with LogStash heap-size of 6GB and ElasticSearch heap-size of 12GB |
+| `dynamite monitor install --kb-listen-port 9001`              | Install monitor with Kibana on an alternative port.                                |
+
+### lab <sub>`experimental`</sub>
+
+Interact with your network data inside JupyterHub. 
+
+Powered by [DynamiteSDK](https://github.com/DynamiteAI/dynamite-sdk-lite).
+
+```
+usage: dynamite lab [-h] {install,uninstall,start,stop,restart,status} ...
+
+positional arguments:
+  {install,uninstall,start,stop,restart,status}
+    install             Install Dynamite Lab.
+    uninstall           Uninstall Lab.
+    start               Start Lab.
+    stop                Stop Lab.
+    restart             Restart Lab.
+    status              Status Lab.
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
 
 
 ### elasticsearch
+
 A standalone ElasticSearch instance; for large-scale deployments where a single monitor instance isn't feasible.
 
-| Command   | Description                                                                 | Example                             |
-|-----------|-----------------------------------------------------------------------------|-------------------------------------|
-| install   | Install ElasticSearch.                                                     |`dynamite install elasticsearch`    |
-| uninstall | Uninstall ElasticSearch.                                                    |`dynamite uninstall elasticsearch` |
-| start     | Start ElasticSearch process.                                                |`dynamite start elasticsearch`     |
-| stop      | Stop ElasticSearch process.                                                 |`dynamite stop elasticsearch`      |
-| restart   | Restart ElasticSearch process.                                              |`dynamite restart elasticsearch`   |
-| status    | Return the status of the ElasticSearch process.                             |`dynamite status elasticsearch`    |
-| profile   | Run a series of checks to determine if ElasticSearch is installed properly. |`dynamite profile elasticsearch`   |
+```
+usage: dynamite elasticsearch [-h]
+                              {chpasswd,install,uninstall,start,stop,restart,status}
+                              ...
+
+positional arguments:
+  {chpasswd,install,uninstall,start,stop,restart,status}
+    chpasswd            Change ElasticSearch Password.
+    install             Install ElasticSearch.
+    uninstall           Uninstall ElasticSearch.
+    start               Start ElasticSearch.
+    stop                Stop ElasticSearch.
+    restart             Restart ElasticSearch.
+    status              Status ElasticSearch.
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
 
 ### logstash
-A standalone Logstash instance; for large-scale deployments where single monitor instance isn't feasible.
+A standalone LogStash instance; for large-scale deployments where single monitor instance isn't feasible.
 
-| Command   | Description                                                            | Example                                                           |
-|-----------|------------------------------------------------------------------------|-------------------------------------------------------------------|
-| install   | Installs LogStash.                                                     |`dynamite install logstash --es-host 143.129.22.6 --es-port 9200` |
-| uninstall | Uninstall LogStash.                                                    |`dynamite uninstall logstash`                                    |
-| start     | Start LogStash process.                                                |`dynamite start logstash`                                        |
-| stop      | Stop LogStash process.                                                 |`dynamite stop logstash`                                         |
-| restart   | Restart LogStash process.                                              |`dynamite restart logstash`                                      |
-| status    | Return the status of the LogStash process.                             |`dynamite status logstash`                                       |
-| profile   | Run a series of checks to determine if LogStash is installed properly. |`dynamite profile logstash`                                      |
+```
+usage: dynamite logstash [-h]
+                         {chpasswd,install,uninstall,start,stop,restart,status}
+                         ...
+
+positional arguments:
+  {chpasswd,install,uninstall,start,stop,restart,status}
+    chpasswd            Change password LogStash uses for connecting to
+                        ElasticSearch.
+    install             Install LogStash.
+    uninstall           Uninstall LogStash.
+    start               Start LogStash.
+    stop                Stop LogStash.
+    restart             Restart LogStash.
+    status              Status LogStash.
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
 
 ### kibana
 A standalone Kibana instance.
 
-| Command   | Description                                                          | Example                                                         |
-|-----------|----------------------------------------------------------------------|-----------------------------------------------------------------|
-| install   | Installs Kibana.                                                     |`dynamite install kibana --es-host 143.129.22.6 --es-port 9200` |
-| uninstall | Uninstall Kibana.                                                    |`dynamite uninstall kibana`                                    |
-| start     | Start Kibana process.                                                |`dynamite start kibana`                                        |
-| stop      | Stop Kibana process.                                                 |`dynamite stop kibana`                                         |
-| restart   | Restart Kibana process.                                              |`dynamite restart kibana`                                      |
-| status    | Return the status of the Kibana process.                             |`dynamite status kibana`                                       |
-| profile   | Run a series of checks to determine if Kibana is installed properly. |`dynamite profile kibana`                                      |
+```
+usage: dynamite kibana [-h]
+                       {chpasswd,install,uninstall,start,stop,restart,status}
+                       ...
 
-### suricata-rules
+positional arguments:
+  {chpasswd,install,uninstall,start,stop,restart,status}
+    chpasswd            Change password Kibana uses for connecting to
+                        ElasticSearch.
+    install             Install Kibana.
+    uninstall           Uninstall Kibana.
+    start               Start Kibana.
+    stop                Stop Kibana.
+    restart             Restart Kibana.
+    status              Status Kibana.
 
-| Command | Description                                                    | Example                           |
-|---------|----------------------------------------------------------------|-----------------------------------|
-| update  | Update Suricata rule sets (If Suricata is currently installed) |`dynamite update suricata-rules` |
-
-
-### mirrors
-
-| Command | Description                                                    | Example                   |
-|---------|----------------------------------------------------------------|---------------------------|
-| update  | Update mirrors used for retrieving various software components |`dynamite update mirrors` |
-
-### default-configs
-
-```bash
-WARNING OVERWRITES ANY CUSTOM CONFIGURATIONS!
+optional arguments:
+  -h, --help            show this help message and exit
 ```
 
-| Command | Description                                                                    | Example                           |
-|---------|--------------------------------------------------------------------------------|-----------------------------------|
-| update  | Update default configurations for various installed components (monitor/agent) | `dynamite update default-configs` |
+### updates
 
+Download the latest default configurations and mirrors used when installing the above components.
+
+```
+usage: dynamite updates [-h] {install} ...
+
+positional arguments:
+  {install}
+    install   Install the latest default configurations and mirrors.
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
 
 ## Advanced Configuration Options
 
@@ -195,8 +238,8 @@ Suricata is responsible for generating alert based detections, and relies on ope
 
 | Log          | Location                                           |
 |--------------|----------------------------------------------------|
-| Suricata Log | `/var/dynamite/suricata/log/suricata/suricata.log` |
-| Event JSON   | `/var/dynamite/suricata/log/suricata/eve.json`     |
+| Suricata Log | `/var/dynamite/suricata/suricata.log`              |
+| Event JSON   | `/var/dynamite/suricata/eve.json`                  |
 
 ### Monitor Configuration Files
 
