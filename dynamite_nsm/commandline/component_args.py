@@ -441,7 +441,7 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
 
 def register_updates_component_args(upd_component_parser, parent_parsers):
     upd_component_subparsers = upd_component_parser.add_subparsers()
-    # === Setup Agent Dependency Component Install Arguments === #
+    # === Setup Updates Component Install Arguments === #
     upd_install_parser = upd_component_subparsers.add_parser(
         "install",
         help="Install the latest default configurations and mirrors.", parents=parent_parsers)

@@ -206,16 +206,12 @@ def download_java(stdout=False):
             break
 
 
-def extract_archive(archive_path, destination_path, stdout=True):
-    if stdout:
-        sys.stdout.write('[+] Extracting: {} \n'.format(archive_path))
+def extract_archive(archive_path, destination_path):
     try:
         tf = tarfile.open(archive_path)
         tf.extractall(path=destination_path)
-        sys.stdout.write('[+] Complete!\n')
-        sys.stdout.flush()
-    except IOError as e:
-        sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+    except IOError:
+        pass
 
 
 def extract_java():
