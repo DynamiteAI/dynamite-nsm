@@ -6,12 +6,15 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.components.base import execution_strategy
+from dynamite_nsm.services.kibana import config as kb_config
 from dynamite_nsm.services.kibana import install as kb_install
 from dynamite_nsm.services.kibana import process as kb_process
 from dynamite_nsm.services.kibana import profile as kb_profile
+from dynamite_nsm.services.logstash import config as ls_config
 from dynamite_nsm.services.logstash import install as ls_install
 from dynamite_nsm.services.logstash import process as ls_process
 from dynamite_nsm.services.logstash import profile as ls_profile
+from dynamite_nsm.services.elasticsearch import config as es_config
 from dynamite_nsm.services.elasticsearch import install as es_install
 from dynamite_nsm.services.elasticsearch import process as es_process
 from dynamite_nsm.services.elasticsearch import profile as es_profile
@@ -78,6 +81,43 @@ def get_monitor_status():
             kibana=kb_process.status()
         )
     )
+
+
+class MonitorChangePasswordStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to change all passwords on the monitor
+    """
+
+    def __init__(self, old_password, new_password, stdout, verbose):
+        execution_strategy.BaseExecStrategy.__init__(
+            self,
+            strategy_name="monitor_change_password",
+            strategy_description="Change the password for all monitor components.",
+        )
+        if es_profile.ProcessProfiler().is_installed:
+            self.add_function(func=es_config.change_elasticsearch_password, argument_dict={
+                'old_password': str(old_password),
+                'password': str(new_password),
+                'prompt_user': False,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+        if ls_profile.ProcessProfiler().is_installed:
+            self.add_function(func=ls_config.change_logstash_elasticsearch_password, argument_dict={
+                'password': str(new_password),
+                'prompt_user': False,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+        if kb_profile.ProcessProfiler().is_installed:
+            self.add_function(func=kb_config.change_kibana_elasticsearch_password, argument_dict={
+                'password': str(new_password),
+                'prompt_user': False,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+
+        self.add_function(func=log_message, argument_dict={'msg': 'Monitor passwords changed successfully!'})
 
 
 class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
@@ -184,7 +224,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
         self.add_function(func=log_message, argument_dict={
             "msg": 'Next, Start your monitor: '
                    '\'dynamite monitor start\'. It will be available at: \033[4m{}:{}\033[0m once started.'.format(
-                    kibana_listen_address, kibana_listen_port)
+                kibana_listen_address, kibana_listen_port)
         }, return_format=None)
 
 

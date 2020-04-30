@@ -91,6 +91,17 @@ def register_agent_component_args(agt_component_parser, parent_parsers):
 
 def register_monitor_component_args(mon_component_parser, parent_parsers):
     monitor_component_args_subparsers = mon_component_parser.add_subparsers()
+
+    # === Setup Monitor Component ChangePassword Arguments === #
+    mon_chpasswd_parser = monitor_component_args_subparsers.add_parser(
+        "chpasswd", help="Change Monitor Passwords.", parents=parent_parsers)
+
+    mon_chpasswd_parser.add_argument("--old-password", dest="old_monitor_password", type=str,
+                                     help="The old password used for logging into Monitor.")
+    mon_chpasswd_parser.add_argument("--new-password", dest="new_monitor_password", type=str,
+                                     help="The new password used for logging into Monitor.")
+    mon_chpasswd_parser.set_defaults(action_name="chpasswd")
+
     # === Setup Monitor Component Install Arguments === #
     mon_install_parser = monitor_component_args_subparsers.add_parser(
         "install", help="Install Monitor.",
@@ -161,6 +172,63 @@ def register_monitor_component_args(mon_component_parser, parent_parsers):
     ls_status_parser.set_defaults(action_name="status")
 
 
+def register_lab_component_args(lab_component_parser, parent_parsers):
+    lab_component_args_subparsers = lab_component_parser.add_subparsers()
+    # === Setup Lab Component Install Arguments === #
+    lab_install_parser = lab_component_args_subparsers.add_parser(
+        "install", help="Install Dynamite Lab.",
+        parents=parent_parsers)
+
+    lab_install_parser.set_defaults(action_name="install")
+    lab_install_parser.add_argument("--es-host", dest="es_host", type=str, default='localhost',
+                                    help="The host where ElasticSearch lives."
+                                    )
+    lab_install_parser.add_argument("--es-port", dest="es_port", type=int, default=9200,
+                                    help="The port that ElasticSearch is listening on."
+                                    )
+    lab_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
+                                    help="The password used for logging into ElasticSearch."
+                                    )
+    lab_install_parser.add_argument("--skip-es-check", dest="skip_check_elasticsearch_connection", default=False,
+                                    action="store_true", help="Skip check to see if ElasticSearch is up and running."
+                                    )
+    lab_install_parser.add_argument("--jp-listen-addr", dest="jupyter_addr", type=str, default='0.0.0.0',
+                                    help="The address JupyterHub's HTTP interface listens on."
+                                    )
+    lab_install_parser.add_argument("--jp-password", dest="jupyter_password", type=str,
+                                    help="The password used for logging into JupyterHub."
+                                    )
+
+    # === Setup Lab Component Uninstall Arguments === #
+    lab_uninstall_parser = lab_component_args_subparsers.add_parser(
+        "uninstall",
+        help="Uninstall Lab.",
+        parents=parent_parsers)
+    lab_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_lab_uninstall_prompt", default=False,
+                                      action="store_true", help="Skip uninstall warning prompt.")
+    lab_uninstall_parser.set_defaults(action_name="uninstall")
+
+    # === Setup Lab Component Start Arguments === #
+    lab_start_parser = lab_component_args_subparsers.add_parser(
+        "start", help="Start Lab.", parents=parent_parsers)
+    lab_start_parser.set_defaults(action_name="start")
+
+    # === Setup Lab Component Stop Arguments === #
+    lab_stop_parser = lab_component_args_subparsers.add_parser(
+        "stop", help="Stop Lab.", parents=parent_parsers)
+    lab_stop_parser.set_defaults(action_name="stop")
+
+    # === Setup Lab Component Restart Arguments === #
+    lab_restart_parser = lab_component_args_subparsers.add_parser(
+        "restart", help="Restart Lab.", parents=parent_parsers)
+    lab_restart_parser.set_defaults(action_name="restart")
+
+    # === Setup Lab Component Status Arguments === #
+    lab_status_parser = lab_component_args_subparsers.add_parser(
+        "status", help="Status Lab.", parents=parent_parsers)
+    lab_status_parser.set_defaults(action_name="status")
+
+
 def register_elasticsearch_component_args(es_component_parser, parent_parsers):
     elasticsearch_component_args_subparsers = es_component_parser.add_subparsers()
 
@@ -168,9 +236,9 @@ def register_elasticsearch_component_args(es_component_parser, parent_parsers):
     es_chpasswd_parser = elasticsearch_component_args_subparsers.add_parser(
         "chpasswd", help="Change ElasticSearch Password.", parents=parent_parsers)
 
-    es_chpasswd_parser.add_argument("--old-es-password", dest="old_elastic_password", type=str,
+    es_chpasswd_parser.add_argument("--old-password", dest="old_elastic_password", type=str,
                                     help="The old password used for logging into ElasticSearch.")
-    es_chpasswd_parser.add_argument("--new-es-password", dest="new_elastic_password", type=str,
+    es_chpasswd_parser.add_argument("--new-password", dest="new_elastic_password", type=str,
                                     help="The new password used for logging into ElasticSearch.")
     es_chpasswd_parser.add_argument("--es-host", dest="es_host", type=str, default=None,
                                     help="The host where ElasticSearch lives."
@@ -233,13 +301,13 @@ def register_logstash_component_args(ls_component_parser, parent_parsers):
     ls_chpasswd_parser = logstash_component_args_subparsers.add_parser(
         "chpasswd", help="Change password LogStash uses for connecting to ElasticSearch.", parents=parent_parsers)
 
-    ls_chpasswd_parser.add_argument("--new-ls-password", dest="new_logstash_password", type=str,
+    ls_chpasswd_parser.add_argument("--new-password", dest="new_logstash_password", type=str,
                                     help="The new password used for logging into ElasticSearch.")
     ls_chpasswd_parser.add_argument("--skip-chpasswd-prompt", dest="skip_logstash_chpasswd_prompt", default=False,
                                     action="store_true", help="Skip chpasswd warning prompt."
                                     )
     ls_chpasswd_parser.set_defaults(action_name="chpasswd")
-    
+
     # === Setup LogStash Component Install Arguments === #
     ls_install_parser = logstash_component_args_subparsers.add_parser(
         "install", help="Install LogStash.", parents=parent_parsers)
@@ -303,13 +371,13 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
     kb_chpasswd_parser = kibana_component_args_subparsers.add_parser(
         "chpasswd", help="Change password Kibana uses for connecting to ElasticSearch.", parents=parent_parsers)
 
-    kb_chpasswd_parser.add_argument("--new-kb-password", dest="new_kibana_password", type=str,
+    kb_chpasswd_parser.add_argument("--new-password", dest="new_kibana_password", type=str,
                                     help="The new password used for logging into ElasticSearch.")
     kb_chpasswd_parser.add_argument("--skip-chpasswd-prompt", dest="skip_kibana_chpasswd_prompt", default=False,
                                     action="store_true", help="Skip chpasswd warning prompt."
                                     )
     kb_chpasswd_parser.set_defaults(action_name="chpasswd")
-    
+
     # === Setup Kibana Component Install Arguments === #
     kb_install_parser = kibana_component_args_subparsers.add_parser(
         "install", help="Install Kibana.", parents=parent_parsers)
@@ -369,60 +437,3 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
         "status", help="Status Kibana.",
         parents=parent_parsers)
     kb_status_parser.set_defaults(action_name="status")
-
-
-def register_lab_component_args(lab_component_parser, parent_parsers):
-    lab_component_args_subparsers = lab_component_parser.add_subparsers()
-    # === Setup Lab Component Install Arguments === #
-    lab_install_parser = lab_component_args_subparsers.add_parser(
-        "install", help="Install Dynamite Lab.",
-        parents=parent_parsers)
-
-    lab_install_parser.set_defaults(action_name="install")
-    lab_install_parser.add_argument("--es-host", dest="es_host", type=str, default='localhost',
-                                    help="The host where ElasticSearch lives."
-                                    )
-    lab_install_parser.add_argument("--es-port", dest="es_port", type=int, default=9200,
-                                    help="The port that ElasticSearch is listening on."
-                                    )
-    lab_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
-                                    help="The password used for logging into ElasticSearch."
-                                    )
-    lab_install_parser.add_argument("--skip-es-check", dest="skip_check_elasticsearch_connection", default=False,
-                                    action="store_true", help="Skip check to see if ElasticSearch is up and running."
-                                    )
-    lab_install_parser.add_argument("--jp-listen-addr", dest="jupyter_addr", type=str, default='0.0.0.0',
-                                    help="The address JupyterHub's HTTP interface listens on."
-                                    )
-    lab_install_parser.add_argument("--jp-password", dest="jupyter_password", type=str,
-                                    help="The password used for logging into JupyterHub."
-                                    )
-
-    # === Setup Lab Component Uninstall Arguments === #
-    lab_uninstall_parser = lab_component_args_subparsers.add_parser(
-        "uninstall",
-        help="Uninstall Lab.",
-        parents=parent_parsers)
-    lab_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_lab_uninstall_prompt", default=False,
-                                      action="store_true", help="Skip uninstall warning prompt.")
-    lab_uninstall_parser.set_defaults(action_name="uninstall")
-
-    # === Setup Lab Component Start Arguments === #
-    lab_start_parser = lab_component_args_subparsers.add_parser(
-        "start", help="Start Lab.", parents=parent_parsers)
-    lab_start_parser.set_defaults(action_name="start")
-
-    # === Setup Lab Component Stop Arguments === #
-    lab_stop_parser = lab_component_args_subparsers.add_parser(
-        "stop", help="Stop Lab.", parents=parent_parsers)
-    lab_stop_parser.set_defaults(action_name="stop")
-
-    # === Setup Lab Component Restart Arguments === #
-    lab_restart_parser = lab_component_args_subparsers.add_parser(
-        "restart", help="Restart Lab.", parents=parent_parsers)
-    lab_restart_parser.set_defaults(action_name="restart")
-
-    # === Setup Lab Component Status Arguments === #
-    lab_status_parser = lab_component_args_subparsers.add_parser(
-        "status", help="Status Lab.", parents=parent_parsers)
-    lab_status_parser.set_defaults(action_name="status")

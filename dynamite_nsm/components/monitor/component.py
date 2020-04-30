@@ -1,3 +1,5 @@
+import getpass
+
 from dynamite_nsm.utilities import prompt_password
 from dynamite_nsm.components.base import component
 from dynamite_nsm.components.monitor import execution_strategy
@@ -65,6 +67,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
             component_name="Monitor",
             component_description="Process, store, and visualise network data with a standalone Monitor (ElasticStack)."
                                   "",
+            change_password_strategy=None,
             install_strategy=None,
             uninstall_strategy=None,
             process_start_strategy=None,
@@ -72,7 +75,22 @@ class MonitorCommandlineComponent(component.BaseComponent):
             process_restart_strategy=None,
             process_status_strategy=None
         )
-
+        if args.action_name == "chpasswd":
+            old_monitor_password = args.old_monitor_password
+            new_monitor_password = args.new_monitor_password
+            if not old_monitor_password:
+                old_monitor_password = getpass.getpass('[?] Enter the old Monitor password: ')
+            if not new_monitor_password:
+                new_monitor_password = prompt_password('[?] Enter the new Monitor password: ',
+                                                       confirm_prompt="[?] Confirm Password: ")
+            self.register_change_password_strategy(
+                execution_strategy.MonitorChangePasswordStrategy(
+                    old_password=old_monitor_password,
+                    new_password=new_monitor_password,
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
+                )
+            )
         if args.action_name == "install":
             es_password = args.elastic_password
             if not es_password:
