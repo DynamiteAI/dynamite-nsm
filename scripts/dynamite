@@ -67,7 +67,6 @@ if __name__ == '__main__':
         component_parsers.main_parser.print_help()
         component_parsers.main_parser.error(
             "Missing {} 'action' (E.G install, uninstall, start, stop, restart, status)".format(args.component_name))
-
     if args.component_name:
         if not os.path.exists(const.MIRRORS):
             updater.update_mirrors()

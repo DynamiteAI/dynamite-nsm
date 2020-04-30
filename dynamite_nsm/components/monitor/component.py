@@ -91,6 +91,7 @@ class MonitorCommandlineComponent(component.BaseComponent):
                     verbose=args.verbose and not args.no_stdout
                 )
             )
+            self.execute_change_password_strategy()
         if args.action_name == "install":
             es_password = args.elastic_password
             if not es_password:
