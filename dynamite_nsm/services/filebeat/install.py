@@ -65,6 +65,9 @@ class InstallManager:
             self.agent_tag = utilities.get_default_agent_tag()
             self.logger.info("Setting Agent Tag to {} as none was set.".format(self.agent_tag))
         else:
+            if len(agent_tag) < 5:
+                self.logger.warning("Agent tag too short. Must be more than 5 characters. Using default agent tag.")
+                agent_tag = utilities.get_default_agent_tag()
             self.agent_tag = str(agent_tag)[0:29]
             self.logger.info("Setting Agent Tag to {}.".format(self.agent_tag))
         try:
