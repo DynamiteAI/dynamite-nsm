@@ -194,11 +194,11 @@ class InstallManager:
             beats_config.set_kafka_targets(target_hosts=self.targets, topic=self.kafka_topic,
                                            username=self.kafka_username, password=self.kafka_password)
             # setup example upstream LogStash example, just in case you want to configure later
-            beats_config.set_logstash_targets(target_hosts='localhost:5601')
+            beats_config.set_logstash_targets(target_hosts=['localhost:5601'])
             beats_config.enable_kafka_output()
         else:
             # setup example upstream Kafka example, just in case you want to configure later
-            beats_config.set_kafka_targets(target_hosts='localhost:9092', topic='dynamite-nsm-events')
+            beats_config.set_kafka_targets(target_hosts=['localhost:9092'], topic='dynamite-nsm-events')
             beats_config.enable_logstash_output()
             beats_config.set_logstash_targets(self.targets)
         try:
