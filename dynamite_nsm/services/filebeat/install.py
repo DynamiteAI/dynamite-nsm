@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import shutil
@@ -67,6 +68,9 @@ class InstallManager:
         else:
             if len(agent_tag) < 5:
                 self.logger.warning("Agent tag too short. Must be more than 5 characters. Using default agent tag.")
+            elif not bool(re.findall("^[a-zA-Z0-9_]*$", agent_tag)):
+                self.logger.warning(
+                    "Agent tag cannot contain alphanumeric and '_' characters. Using default agent tag.")
                 agent_tag = utilities.get_default_agent_tag()
             self.agent_tag = str(agent_tag)[0:29]
             self.logger.info("Setting Agent Tag to {}.".format(self.agent_tag))
