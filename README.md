@@ -16,7 +16,7 @@
 - Installed and managed through a commandline utility implemented in pure Python.
 
 <p align="center">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/Dynamite%20Components.jpeg"  width="70%" height="auto">
+    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/Dynamite%20Components.jpeg"  width="60%" height="auto">
 </p>
 
 ## Install With
@@ -30,6 +30,9 @@ pip install dynamite-nsm
 - [About](https://dynamite-nsm.readthedocs.io/en/latest/)
 - [Introduction](https://dynamite-nsm.readthedocs.io/en/latest/introduction/)
 - [Getting Started](https://dynamite-nsm.readthedocs.io/en/latest/getting_started/)
+  - [Prerequisites](https://dynamite-nsm.readthedocs.io/en/latest/getting_started/prerequisites/)
+  - [Agent Setup](https://dynamite-nsm.readthedocs.io/en/latest/getting_started/agent_setup/)
+  - [Monitor Setup](https://dynamite-nsm.readthedocs.io/en/latest/getting_started/monitor_setup/)
 - [Kibana Dashboards](https://dynamite-nsm.readthedocs.io/en/latest/kibana_dashboards/)
 - [DynamiteLab <sub>Experimental</sub>](https://dynamite-nsm.readthedocs.io/en/latest/dynamite_lab/)
 
