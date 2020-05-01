@@ -15,7 +15,7 @@
 
 - Installed and managed through a commandline utility implemented in pure Python.
 
-<p float="center">
+<p align="center">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/Dynamite%20Components.jpeg"  width="70%" height="auto">
 </p>
 
@@ -24,8 +24,6 @@
 ```bash
 pip install dynamite-nsm
 ```
-
-
 
 ## Documentation
 
