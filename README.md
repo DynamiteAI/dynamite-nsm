@@ -16,7 +16,9 @@
 - Installed and managed through a commandline utility implemented in pure Python.
 
 <p align="center">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/0.7.0_refactor/img/architechture-demo.gif"  width="90%" height="auto">
+    <kbd>
+        <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/0.7.0_refactor/img/architechture-demo.gif"  width="90%" height="auto">
+    </kbd>
 </p>
 <br>
 <center>
