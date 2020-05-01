@@ -17,7 +17,7 @@
 
 <p align="center", float="center">
     <kbd>
-        <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/0.7.0_refactor/img/architechture-demo.gif"  width="90%" height="auto">
+        <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/architechture-demo.gif"  width="90%" height="auto">
     </kbd>
     <br>
     <i style="color:grey">Installation examples are accelerated for the sake of demo.</i>
