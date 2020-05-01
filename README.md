@@ -17,6 +17,7 @@
 
 <p align="center">
     <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/0.7.0_refactor/img/architechture-demo.gif"  width="90%" height="auto">
+    <b font-size=3><i style="color:grey">Installation examples are accelerated for the sake of demo.</i></b>
 </p>
 
 ## Install With
