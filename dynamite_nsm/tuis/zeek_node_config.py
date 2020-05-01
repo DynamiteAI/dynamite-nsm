@@ -7,6 +7,7 @@ class RemoveWorkerButton(npyscreen.ButtonPress):
     """
     Button Component for removing Zeek Workers
     """
+
     def __init__(self, *args, **keywords):
         super(RemoveWorkerButton, self).__init__(*args, **keywords)
         self.delete_value = keywords.get('delete_value')
@@ -30,6 +31,7 @@ class RemoveLoggerButton(npyscreen.ButtonPress):
     """
     Button Component for removing Zeek Loggers
     """
+
     def __init__(self, *args, **keywords):
         super(RemoveLoggerButton, self).__init__(*args, **keywords)
         self.delete_value = keywords.get('delete_value')
@@ -54,6 +56,7 @@ class RemoveProxyButton(npyscreen.ButtonPress):
     """
     Button Component for removing Zeek Proxies
     """
+
     def __init__(self, *args, **keywords):
         super(RemoveProxyButton, self).__init__(*args, **keywords)
         self.delete_value = keywords.get('delete_value')
@@ -121,6 +124,7 @@ class ZeekNodeSettingsForm(npyscreen.ActionForm):
     """
     Main Zeek Node Settings Form
     """
+
     def __init__(self, *args, **keywords):
         super(ZeekNodeSettingsForm, self).__init__(*args, **keywords)
 
@@ -155,6 +159,7 @@ class EditWorkerForm(npyscreen.ActionForm):
     """
     Zeek Worker Edit Form
     """
+
     def __init__(self, *args, **keywords):
         self.value = None
         self.worker_config = None
@@ -260,6 +265,7 @@ class EditLoggerManagerProxy(npyscreen.ActionForm):
     """
     Zeek Logger/Manager/Proxy Edit Form
     """
+
     def __init__(self, *args, **keywords):
         self.value = None
         self.component_config = None
@@ -287,7 +293,7 @@ class EditLoggerManagerProxy(npyscreen.ActionForm):
 
         if self.component_type == 'logger':
             self.message.value = 'If a logger is defined in your cluster configuration, ' \
-                                'then it will receive logs instead of the manager process.'
+                                 'then it will receive logs instead of the manager process.'
             if not self.logger_delete_created:
                 self.delete_button = self.add_widget(
                     RemoveLoggerButton, name='Delete Logger', rely=10, color='DANGER')
@@ -295,16 +301,16 @@ class EditLoggerManagerProxy(npyscreen.ActionForm):
                 self.logger_delete_created = True
         elif self.component_type == 'manager':
             self.message.value = 'The manager is a Zeek process that has two primary jobs. ' \
-                                'It receives log messages and notices from the rest of the nodes in the cluster, ' \
-                                'facilitates analysis which requires a centralized, global view of events or data.'
+                                 'It receives log messages and notices from the rest of the nodes in the cluster, ' \
+                                 'facilitates analysis which requires a centralized, global view of events or data.'
         elif self.component_type == 'proxy':
             if not self.proxy_delete_created:
                 self.delete_button = self.add_widget(
                     RemoveProxyButton, name='Delete Proxy', rely=10, color='DANGER')
                 self.delete_button.delete_value = self.value
                 self.proxy_delete_created = True
-            self.message.value = 'A proxy is a Zeek process that may be used to offload data storage or any arbitrary ' \
-                                'workload. '
+            self.message.value = 'A proxy is a Zeek process that may be used to offload data storage or any arbitrary '\
+                                 'workload. '
 
         if self.value:
             self.component_config = self.parentApp.zeek_config.node_config[self.value]
@@ -365,6 +371,7 @@ class ZeekNodeConfiguratorApp(npyscreen.NPSAppManaged):
     """
     App Entry Point
     """
+
     def __init__(self):
         self.zeek_config = None
 

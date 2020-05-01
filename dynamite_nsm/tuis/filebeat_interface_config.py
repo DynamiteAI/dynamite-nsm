@@ -10,6 +10,7 @@ class RemoveTargeteButton(npyscreen.ButtonPress):
     """
     Button Component for removing upstream Filebeat target
     """
+
     def __init__(self, *args, **keywords):
         super(RemoveTargeteButton, self).__init__(*args, **keywords)
         self.delete_value = keywords.get('delete_value')
@@ -191,7 +192,7 @@ class EditTargetsForm(npyscreen.ActionForm):
 
     def on_ok(self):
         kafka_enabled = self.parentApp.filebeat_config.is_kafka_output_enabled()
-        if not InstallManager.validate_targets(logstash_targets=[self.target_text.value]):
+        if not InstallManager.validate_targets(targets=[self.target_text.value]):
             npyscreen.notify_ok_cancel(
                 'Target must be given in the format: host:port (E.G 192.168.0.100:5044)',
                 form_color='DANGER'
@@ -221,7 +222,7 @@ class EditTargetsForm(npyscreen.ActionForm):
             if self.password_text.value.strip() == '':
                 password = None
             self.parentApp.filebeat_config.set_kafka_targets(original_targets, topic=self.topic_text.value,
-                                                                 username=username, password=password)
+                                                             username=username, password=password)
         else:
             self.parentApp.filebeat_config.set_logstash_targets(original_targets)
         # Switch back to the main interface
