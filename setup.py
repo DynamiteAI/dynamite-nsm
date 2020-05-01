@@ -6,7 +6,7 @@ with open("PROJECT_DESCRIPTION.md", "r") as fh:
 
 setup(
     name='dynamite-nsm',
-    version='0.6.6',
+    version='0.7.0',
     packages=find_packages(),
     scripts=['scripts/dynamite'],
     url='http://dynamite.ai',
@@ -19,6 +19,7 @@ setup(
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
     install_requires=[
+        'coloredlogs',
         'progressbar',
         'pyyaml',
         'npyscreen'

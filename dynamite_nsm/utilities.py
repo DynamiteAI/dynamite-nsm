@@ -15,6 +15,7 @@ import tarfile
 import subprocess
 import multiprocessing
 from contextlib import closing
+from datetime import datetime
 
 try:
     from urllib2 import urlopen
@@ -31,20 +32,6 @@ except Exception:
 import progressbar
 
 from dynamite_nsm import const
-
-
-def copytree(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            try:
-                shutil.copytree(s, d, symlinks, ignore)
-            except Exception:
-                # File exists or handle locked
-                pass
-        else:
-            shutil.copy2(s, d)
 
 
 def check_pid(pid):
@@ -92,17 +79,27 @@ def check_user_exists(username):
         return False
 
 
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            try:
+                shutil.copytree(s, d, symlinks, ignore)
+            except Exception:
+                # File exists or handle locked
+                pass
+        else:
+            shutil.copy2(s, d)
+
+
 def create_dynamite_environment_file():
-    env_file = open('/etc/dynamite/environment', 'a')
-    env_file.write('')
-    env_file.close()
-    set_permissions_of_file('/etc/dynamite/environment', 700)
-
-
-def create_dynamite_root_directory():
-    subprocess.call('mkdir -p {}'.format(const.BIN_PATH), shell=True)
-    subprocess.call('mkdir -p {}'.format(const.CONFIG_PATH), shell=True)
-    subprocess.call('mkdir -p {}'.format(const.INSTALL_CACHE), shell=True)
+    makedirs(const.CONFIG_PATH, exist_ok=True)
+    env_file = os.path.join(const.CONFIG_PATH, 'environment')
+    env_file_f = open(env_file, 'a')
+    env_file_f.write('')
+    env_file_f.close()
+    set_permissions_of_file(env_file, 700)
 
 
 def create_dynamite_user(password):
@@ -134,30 +131,71 @@ def download_file(url, filename, stdout=False):
     :param filename: The name of the file to store
     :return: None
     """
+    makedirs(const.INSTALL_CACHE, exist_ok=True)
     response = urlopen(url)
+    try:
+        response_size_bytes = int(response.headers['Content-Length'])
+    except (KeyError, TypeError, ValueError):
+        response_size_bytes = None
     CHUNK = 16 * 1024
+    widgets = [
+        '\033[92m',
+        '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
+        '\033[0m',
+        '\033[0;36m'
+        'DOWNLOAD_MANAGER ',
+        '\033[0m',
+        '          | ',
+        progressbar.FileTransferSpeed(),
+        ' ', progressbar.Bar(),
+        ' ', '({})'.format(filename),
+        ' ', progressbar.ETA(),
+
+    ]
+    if response_size_bytes and response_size_bytes != 'NaN':
+        try:
+            pb = progressbar.ProgressBar(widgets=widgets, max_value=int(response_size_bytes))
+        except TypeError:
+            pb = progressbar.ProgressBar(widgets=widgets, maxval=int(response_size_bytes))
+    else:
+        widgets = [
+            '\033[92m',
+            '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
+            '\033[0m',
+            '\033[0;36m'
+            'DOWNLOAD_MANAGER ',
+            '\033[0m',
+            '          | ',
+            ' ', progressbar.BouncingBar(),
+            ' ', '({})'.format(filename),
+        ]
+        try:
+            pb = progressbar.ProgressBar(widgets, max_value=progressbar.UnknownLength)
+        except TypeError:
+            pb = progressbar.ProgressBar(maxval=progressbar.UnknownLength)
     if stdout:
-        sys.stdout.write('[+] Downloading: {} \t|\t Filename: {}\n'.format(url, filename))
-        sys.stdout.write('[+] Progress: ')
-        sys.stdout.flush()
+        try:
+            pb.start()
+        except Exception:
+            # Something broke, disable stdout going forward
+            stdout = False
     try:
         with open(os.path.join(const.INSTALL_CACHE, filename), 'wb') as f:
             chunk_num = 0
             while True:
                 chunk = response.read(CHUNK)
-                if stdout:
-                    if chunk_num % 100 == 0:
-                        sys.stdout.write('+')
-                        sys.stdout.flush()
                 if not chunk:
                     break
-                chunk_num += 1
                 f.write(chunk)
+                if stdout:
+                    try:
+                        pb.update(CHUNK * chunk_num)
+                    except ValueError:
+                        pass
+                chunk_num += 1
             if stdout:
-                sys.stdout.write('\n[+] Complete! [{} bytes written]\n'.format((chunk_num + 1) * CHUNK))
-                sys.stdout.flush()
-    except URLError as e:
-        sys.stderr.write('[-] An error occurred while attempting to download file. [{}]\n'.format(e))
+                pb.finish()
+    except URLError:
         return False
     return True
 
@@ -168,28 +206,24 @@ def download_java(stdout=False):
             break
 
 
-def extract_archive(archive_path, destination_path, stdout=True):
-    if stdout:
-        sys.stdout.write('[+] Extracting: {} \n'.format(archive_path))
+def extract_archive(archive_path, destination_path):
     try:
         tf = tarfile.open(archive_path)
         tf.extractall(path=destination_path)
-        sys.stdout.write('[+] Complete!\n')
-        sys.stdout.flush()
-    except IOError as e:
-        sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+    except IOError:
+        pass
 
 
-def extract_java(stdout=False):
-    if stdout:
-        sys.stdout.write('[+] Extracting: {} \n'.format(const.JAVA_ARCHIVE_NAME))
+def extract_java():
     try:
         tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.JAVA_ARCHIVE_NAME))
         tf.extractall(path=const.INSTALL_CACHE)
-        sys.stdout.write('[+] Complete!\n')
-        sys.stdout.flush()
-    except IOError as e:
-        sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
+    except IOError:
+        pass
+
+
+def get_default_agent_tag():
+    return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_agt'
 
 
 def generate_random_password(length=30):
@@ -207,10 +241,11 @@ def get_environment_file_str():
     :return: The contents of the /etc/dynamite/environment file as a giant export string
     """
     export_str = ''
-    for line in open('/etc/dynamite/environment').readlines():
-        if '=' in line:
-            key, value = line.strip().split('=')
-            export_str += 'export {}=\'{}\' && '.format(key, value)
+    with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
+        for line in env_f.readlines():
+            if '=' in line:
+                key, value = line.strip().split('=')
+                export_str += 'export {}=\'{}\' && '.format(key, value)
     return export_str
 
 
@@ -219,7 +254,7 @@ def get_environment_file_dict():
     :return: The contents of the /etc/dynamite/environment file as a dictionary
     """
     export_dict = {}
-    for line in open('/etc/dynamite/environment').readlines():
+    for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
         if '=' in line:
             key, value = line.strip().split('=')
             export_dict[key] = value
@@ -282,13 +317,39 @@ def is_root():
     return os.getuid() == 0
 
 
-def print_dynamite_logo():
+def makedirs(path, exist_ok=True):
+    if exist_ok:
+        if not os.path.exists(path):
+            os.makedirs(path)
+    else:
+        os.makedirs(path)
+
+
+def print_dynamite_lab_art():
+    try:
+        lab_art = \
+            """
+            \033[0;36m
+               _
+              | | DynamiteLab         |
+              / \  is an experimental |
+             /   \  feature.          |
+            (_____)  Happy Hacking!   |    ~The Dynamite Team~
+            \033[0m
+            """
+        print(lab_art)
+    except (SyntaxError, UnicodeEncodeError):
+        print()
+
+
+def print_dynamite_logo(version):
     """
     Print the dynamite logo!
     """
     try:
-        dynamite_logo =\
+        dynamite_logo = \
             """
+            \033[0;36m
             
                   ,,,,,                  ,▄▄▄▄╓
               .▄▓▀▀▀░▀▀▀▓▓╓            ╔▓▓▓▓▓▓▓▀▓
@@ -309,14 +370,16 @@ def print_dynamite_logo():
          ▀▓▀▓▓▓▓▀╠▓┘       ╚▓▓
            ▀▀██▀▀╙          ▓▓▓╓
                            ╫▓▓▓▓▓ε
-    
+            \033[0m
             http://dynamite.ai
-            """
+            
+            Version: {}
+            
+            """.format(version)
         print(dynamite_logo)
         print('\n')
     except (SyntaxError, UnicodeEncodeError):
-        # Your operating system is super lame :(
-        pass
+        print('http://dynamite.ai\n\nVersion: {}\n'.format(version))
 
 
 def print_coffee_art():
@@ -330,7 +393,7 @@ def print_coffee_art():
         █▓▓▓▓▓█═╮
         █▓▓▓▓▓█▏︱
         █▓▓▓▓▓█═╯
-        ◥█████◤
+        ◥█████◤      ~~~ "Have a cup of coffee while you wait." ~~~
             """
         print(coffee_icon)
         print('\n')
@@ -346,14 +409,15 @@ def prompt_input(message):
     :param message: The message appearing next to the input prompt.
     return: The inputted text
     """
+
     try:
         res = raw_input(message)
     except NameError:
-        res =input(message)
+        res = input(message)
     return res
 
 
-def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm Password: '):
+def prompt_password(prompt='[?] Enter a secure password: ', confirm_prompt='[?] Confirm Password: '):
     """
     Prompt user for password, and confirm
 
@@ -361,6 +425,7 @@ def prompt_password(prompt='Enter a secure password: ', confirm_prompt='Confirm 
     :param confirm_prompt: The confirmation prompt
     :return: The password entered
     """
+
     password = '0'
     confirm_password = '1'
     first_attempt = True
@@ -391,8 +456,16 @@ def run_subprocess_with_status(process, expected_lines=None):
 
     i = 0
     widgets = [
-        '[+] ', progressbar.Percentage(),
+        '\033[92m',
+        '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
+        '\033[0m',
+        '\033[0;36m',
+        'PROCESS_TRACKER ',
+        '\033[0m',
+        '           | ',
+        progressbar.Percentage(),
         ' ', progressbar.Bar(),
+        ' ', progressbar.FormatLabel(''),
         ' ', progressbar.ETA()
     ]
     over_max_value = False
@@ -409,13 +482,11 @@ def run_subprocess_with_status(process, expected_lines=None):
             i += 1
             try:
                 if not over_max_value:
+                    widgets[11] = '<{0}...>'.format(str(output).replace('\n', '').replace('\t', '')[0:40])
                     pb.update(i)
             except ValueError:
                 if not over_max_value:
                     pb.finish()
-                    sys.stdout.write('[+] This process is taking a bit longer than normal, '
-                                     'this can occur if resources are currently tapped.\n')
-                    sys.stdout.flush()
                     over_max_value = True
         # print(i, process.poll(), output)
     if not over_max_value:
@@ -423,18 +494,25 @@ def run_subprocess_with_status(process, expected_lines=None):
     return process.poll()
 
 
+def safely_remove_file(path):
+    if os.path.exists(path):
+        os.remove(path)
+
+
 def setup_java():
     """
     Installs the latest version of OpenJDK
     """
-    subprocess.call('mkdir -p /usr/lib/jvm', shell=True)
+
+    makedirs('/usr/lib/jvm', exist_ok=True)
     try:
         shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
-    except shutil.Error as e:
-        sys.stderr.write('[-] JVM already exists at path specified. [{}]\n'.format(e))
-        sys.stderr.flush()
-    if 'JAVA_HOME' not in open('/etc/dynamite/environment').read():
-        subprocess.call('echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> /etc/dynamite/environment', shell=True)
+    except shutil.Error:
+        pass
+    if 'JAVA_HOME' not in open(os.path.join(const.CONFIG_PATH, 'environment')).read():
+        subprocess.call(
+            'echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> {}'.format(os.path.join(const.CONFIG_PATH, 'environment')),
+            shell=True)
 
 
 def set_ownership_of_file(path, user='dynamite', group='dynamite'):
@@ -445,8 +523,10 @@ def set_ownership_of_file(path, user='dynamite', group='dynamite'):
     :param user: The name of the user
     :param group: The group of the user
     """
+
     uid = pwd.getpwnam(user).pw_uid
     group = grp.getgrnam(group).gr_gid
+    os.chown(path, uid, group)
     for root, dirs, files in os.walk(path):
         for momo in dirs:
             os.chown(os.path.join(root, momo), uid, group)
@@ -472,6 +552,7 @@ def update_sysctl(verbose=False):
 
     :param verbose: Include output from system utilities
     """
+
     new_output = ''
     vm_found = False
     fs_found = False
@@ -504,6 +585,7 @@ def update_user_file_handle_limits():
     """
     Updates the max number of file handles the dynamite user can have open
     """
+
     new_output = ''
     limit_found = False
     for line in open('/etc/security/limits.conf').readlines():
@@ -528,15 +610,16 @@ def tail_file(path, n=1, bs=1024):
     :param bs: The block-size in bytes
     :return: A list of lines
     """
+
     f = open(path)
     f.seek(0, 2)
-    l = 1-f.read(1).count('\n')
+    l = 1 - f.read(1).count('\n')
     B = f.tell()
     while n >= l and B > 0:
-            block = min(bs, B)
-            B -= block
-            f.seek(B, 0)
-            l += f.read(block).count('\n')
+        block = min(bs, B)
+        B -= block
+        f.seek(B, 0)
+        l += f.read(block).count('\n')
     f.seek(B, 0)
     l = min(l, n)
     lines = f.readlines()[-l:]
