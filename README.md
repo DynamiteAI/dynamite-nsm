@@ -15,16 +15,13 @@
 
 - Installed and managed through a commandline utility implemented in pure Python.
 
-<p align="center">
+<p align="center", float="center">
     <kbd>
         <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/0.7.0_refactor/img/architechture-demo.gif"  width="90%" height="auto">
-        <center>
-            <b><i style="color:grey">Installation examples are accelerated for the sake of demo.</i></b>
-        </center>
     </kbd>
+    <br>
+    <i style="color:grey">Installation examples are accelerated for the sake of demo.</i>
 </p>
-<br>
-<hr>
 
 ## Install With
 
