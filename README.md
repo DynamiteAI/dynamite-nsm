@@ -18,12 +18,12 @@
 <p align="center">
     <kbd>
         <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/0.7.0_refactor/img/architechture-demo.gif"  width="90%" height="auto">
+        <center>
+            <b><i style="color:grey">Installation examples are accelerated for the sake of demo.</i></b>
+        </center>
     </kbd>
 </p>
 <br>
-<center>
-    <b><i style="color:grey">Installation examples are accelerated for the sake of demo.</i></b>
-</center>
 <hr>
 
 ## Install With
