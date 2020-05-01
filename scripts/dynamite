@@ -100,7 +100,10 @@ if __name__ == '__main__':
         print("\n[+] Exiting")
         exit(0)
     except Exception as e:
-        logger.critical("Fatal error. Exiting.")
+        if log_level != logging.DEBUG:
+            logger.critical("Fatal error. Add --verbose flag for details. Exiting.")
+        else:
+            logger.critical("Fatal error. Exiting.")
         logger.debug("Fatal error. Exiting; {}".format(e))
         if log_level == logging.DEBUG:
             traceback.print_exc(limit=15)
