@@ -29,6 +29,12 @@
 pip install dynamite-nsm
 ```
 
+## Report a Bug or Request a Feature
+
+<a href="https://form.asana.com?hash=8ba73263c69e9e1669984cd54c2a53f5cc3912fc3f97ebdf8a1236fe5895563f&id=1174202259248192"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/bug.png" width="20" height="auto"> Report a Bug</a>
+
+<a href="https://form.asana.com?hash=ab1ed5270731e938e5e19386e526c1dd7aba912ffc1a2dbd2ca18855cebbd08f&id=1174344134673446"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/story.png" width="20" height="auto"> Request a Feature</a>
+
 ## Documentation
 
 - [About](https://dynamite-nsm.readthedocs.io/en/latest/)
