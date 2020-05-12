@@ -1,0 +1,6 @@
+[Unit]
+Description=Dynamite Monitor Service 
+Requires=network-online.target
+After=network-online.target
+Wants=elastic.service logstash.service kibana.service
+

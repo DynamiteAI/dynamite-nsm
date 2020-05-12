@@ -1,0 +1,6 @@
+[Unit]
+Description=Dynamite Scanner Service 
+Requires=network-online.target
+After=network-online.target
+Wants=rumble.service filebeat.service
+
