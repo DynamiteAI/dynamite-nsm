@@ -84,7 +84,6 @@ class ProcessManager:
         :return: True if started successfully
         """
         self.logger.info('Attempting to restart Filebeat [{}].'.format(self.pid))
-        self.sysctl.stop('filebeat')
         return self.sysctl.restart('filebeat')
 
 
