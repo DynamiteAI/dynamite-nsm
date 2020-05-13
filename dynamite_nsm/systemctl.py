@@ -215,7 +215,7 @@ class SystemCtl:
 
     def start(self, svc):
         """
-        Start the specified service and show the result.
+        Start the specified service.
         """
         svc = self._format_svc_string(svc)
         _, running, _ = self._exec_update("start", svc)
@@ -230,8 +230,14 @@ class SystemCtl:
 
     def stop(self, svc):
         """
-        Stop the specified service and show the result.
+        Stop the specified service.
         """
         svc = self._format_svc_string(svc)
         _, running, _ = self._exec_update("stop", svc)
         return not running
+
+    def restart(self, svc):
+        """
+        Restart the specified service.
+        """
+        return self.stop(svc) and self.start(svc)
