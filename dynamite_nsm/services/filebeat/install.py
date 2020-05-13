@@ -232,6 +232,7 @@ class InstallManager:
         self.logger.info("Installing Filebeat systemd service.")
         if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'filebeat.service')):
             raise filebeat_exceptions.InstallFilebeatError("Failed to install Filebeat systemd service.")
+        sysctl.install(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'dynamite-agent.target'))
 
 
 def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
@@ -325,3 +326,4 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
     except general_exceptions.CallProcessError:
         raise filebeat_exceptions.UninstallFilebeatError("Could not find systemctl.")
     sysctl.uninstall_and_disable('filebeat')
+    sysctl.uninstall('dynamite-agent')

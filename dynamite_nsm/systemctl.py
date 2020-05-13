@@ -57,7 +57,7 @@ class SystemCtl:
 
     @staticmethod
     def _format_svc_string(svc):
-        if str(svc).startswith('dynamite'):
+        if str(svc).startswith('dynamite') and not str(svc).endswith('.target'):
             svc = svc + '.target'
         elif not str(svc).endswith('.service'):
             svc = svc + '.service'
@@ -185,6 +185,10 @@ class SystemCtl:
     def disable(self, svc, daemon_reload=True):
         """
         Disable the given service. This will prevent it from running at boot.
+
+        :param svc: The name of the service or target
+        :param daemon_reload: If True, reload the daemon configurations
+        :return: True if successful. False otherwise.
         """
         svc = self._format_svc_string(svc)
         _, _, enabled = self._exec_update("disable", svc)
@@ -195,28 +199,45 @@ class SystemCtl:
     def enable(self, svc, daemon_reload=True):
         """
         Enable the given service. This will cause it to run at boot after network services have started.
+
+        :param svc: The name of the service or target
+        :param daemon_reload: If True, reload the daemon configurations
         :return: True if successful. False otherwise.
         """
+
         svc = self._format_svc_string(svc)
         _, _, enabled = self._exec_update("enable", svc)
         if daemon_reload and enabled:
             self.daemon_reload()
         return enabled
 
+    def install(self, path_to_svc):
+        """
+        Install a systemd service
+
+        :param path_to_svc: The path to the service/target file
+        """
+
+        copy2(path_to_svc, self.UNIT_FILE_DIR)
+
     def install_and_enable(self, path_to_svc):
+        """
+        Enable and Install a systemd service
+
+        :param path_to_svc: The path to the service/target file
+        """
+
         copy2(path_to_svc, self.UNIT_FILE_DIR)
         return self.enable(os.path.basename(path_to_svc))
-
-    def uninstall_and_disable(self, svc):
-        svc = self._format_svc_string(svc)
-        res = self.disable(svc)
-        os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
-        return res
 
     def start(self, svc):
         """
         Start the specified service.
+
+        :param svc: The name of the service or target
+        :return: True if started
         """
+
         svc = self._format_svc_string(svc)
         _, running, _ = self._exec_update("start", svc)
         return running
@@ -224,14 +245,22 @@ class SystemCtl:
     def status(self, svc):
         """
         Displays the full systemctl status output for the given service.
+
+        :param svc: The name of the service or target
+        :return: A the current status of the service
         """
+
         svc = self._format_svc_string(svc)
         return self._get_svc_status(svc)
 
     def stop(self, svc):
         """
         Stop the specified service.
+
+        :param svc: The name of the service or target
+        :return: True if stopped
         """
+
         svc = self._format_svc_string(svc)
         _, running, _ = self._exec_update("stop", svc)
         return not running
@@ -239,5 +268,31 @@ class SystemCtl:
     def restart(self, svc):
         """
         Restart the specified service.
+
+        :param svc: The name of the service or target
+        :return: True if restarted
         """
+
         return self.stop(svc) and self.start(svc)
+
+    def uninstall(self, svc):
+        """
+        Uninstall a systemd service
+
+        :param svc: The name of the service or target
+        """
+
+        svc = self._format_svc_string(svc)
+        os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+
+    def uninstall_and_disable(self, svc):
+        """
+        Disable and Uninstall a systemd service
+
+        :param svc: The name of the service or target
+        """
+
+        svc = self._format_svc_string(svc)
+        res = self.disable(svc)
+        os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+        return res
