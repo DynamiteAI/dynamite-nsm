@@ -273,13 +273,19 @@ class InstallManager:
                 "Corelight_CommunityID configuration returned non-zero; exit-code: {}".format(
                     config_zeek_community_id_script_process.returncode))
         self.logger.info('Compiling Zeek Corelight_CommunityID [PATCHED] plugin.')
-        if self.verbose:
-            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
-                                                                        cwd=bro_commmunity_id_script_path)
+        if utilities.get_cpu_core_count() > 1:
+            parallel_threads = utilities.get_cpu_core_count() - 1
         else:
-            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
-                                                                        cwd=bro_commmunity_id_script_path,
-                                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            parallel_threads = 1
+        if self.verbose:
+            compile_zeek_community_id_script_process = subprocess.Popen(
+                'make -g {}; make install'.format(parallel_threads), shell=True,
+                cwd=bro_commmunity_id_script_path)
+        else:
+            compile_zeek_community_id_script_process = subprocess.Popen(
+                'make -g {}; make install'.format(parallel_threads), shell=True,
+                cwd=bro_commmunity_id_script_path,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             compile_zeek_community_id_script_process.communicate()
         except Exception as e:

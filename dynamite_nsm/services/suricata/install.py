@@ -111,10 +111,15 @@ class InstallManager:
                 "Suricata configuration process returned non-zero; exit-code: {}".format(suricata_config_p.returncode))
         time.sleep(1)
         self.logger.info("Compiling Suricata.")
+        if utilities.get_cpu_core_count() > 1:
+            parallel_threads = utilities.get_cpu_core_count() - 1
+        else:
+            parallel_threads = 1
         if self.verbose:
-            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
-                                                        cwd=os.path.join(const.INSTALL_CACHE,
-                                                                         const.SURICATA_DIRECTORY_NAME))
+            compile_suricata_process = subprocess.Popen(
+                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                cwd=os.path.join(const.INSTALL_CACHE,
+                                 const.SURICATA_DIRECTORY_NAME))
             try:
                 compile_suricata_process.communicate()
             except Exception as e:
@@ -124,10 +129,11 @@ class InstallManager:
                     "General error occurred while compiling Suricata; {}".format(e))
             compile_suricata_return_code = compile_suricata_process.returncode
         else:
-            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
-                                                        cwd=os.path.join(const.INSTALL_CACHE,
-                                                                         const.SURICATA_DIRECTORY_NAME),
-                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            compile_suricata_process = subprocess.Popen(
+                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                cwd=os.path.join(const.INSTALL_CACHE,
+                                 const.SURICATA_DIRECTORY_NAME),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process,
                                                                                     expected_lines=935)
