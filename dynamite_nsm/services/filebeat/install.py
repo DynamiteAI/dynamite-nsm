@@ -13,6 +13,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
@@ -224,6 +225,11 @@ class InstallManager:
             self.logger.debug("General error occurred while attempting to install FileBeat; {}".format(e))
             raise filebeat_exceptions.InstallFilebeatError(
                 "General error occurred while attempting to install FileBeat; {}".format(e))
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise filebeat_exceptions.InstallFilebeatError("Could not find systemctl.")
+        sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'filebeat.service'))
 
 
 def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,

@@ -7,6 +7,7 @@ import tarfile
 import subprocess
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
@@ -385,6 +386,11 @@ class InstallManager:
         except suricata_exceptions.WriteSuricataConfigError:
             self.logger.error("Failed to write Suricata configuration.")
             suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise suricata_exceptions.InstallFilebeatError("Could not find systemctl.")
+        sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))
 
 
 def install_suricata(configuration_directory, install_directory, log_directory, capture_network_interfaces,
