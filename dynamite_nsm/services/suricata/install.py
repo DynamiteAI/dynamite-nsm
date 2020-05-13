@@ -389,8 +389,10 @@ class InstallManager:
         try:
             sysctl = systemctl.SystemCtl()
         except general_exceptions.CallProcessError:
-            raise suricata_exceptions.InstallFilebeatError("Could not find systemctl.")
-        sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))
+            raise suricata_exceptions.InstallSuricataError("Could not find systemctl.")
+        self.logger.info("Installing Suricata systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service')):
+            raise suricata_exceptions.InstallSuricataError("Failed to install Suricata systemd service.")
 
 
 def install_suricata(configuration_directory, install_directory, log_directory, capture_network_interfaces,
@@ -483,3 +485,8 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall Suricata; {}".format(e))
         raise suricata_exceptions.UninstallSuricataError(
             "General error occurred while attempting to uninstall Suricata; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise suricata_exceptions.UninstallSuricataError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('suricata')

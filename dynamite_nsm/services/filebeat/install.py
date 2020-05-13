@@ -229,7 +229,9 @@ class InstallManager:
             sysctl = systemctl.SystemCtl()
         except general_exceptions.CallProcessError:
             raise filebeat_exceptions.InstallFilebeatError("Could not find systemctl.")
-        sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'filebeat.service'))
+        self.logger.info("Installing Filebeat systemd service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'filebeat.service')):
+            raise filebeat_exceptions.InstallFilebeatError("Failed to install Filebeat systemd service.")
 
 
 def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
@@ -318,3 +320,8 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall Filebeat; {}".format(e))
         raise filebeat_exceptions.UninstallFilebeatError(
             "General error occurred while attempting to uninstall Filebeat; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise filebeat_exceptions.UninstallFilebeatError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('filebeat')

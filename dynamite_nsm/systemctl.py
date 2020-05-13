@@ -58,7 +58,9 @@ class SystemCtl:
     @staticmethod
     def _format_svc_string(svc):
         if str(svc).startswith('dynamite'):
-            return svc + '.target'
+            svc = svc + '.target'
+        elif not str(svc).endswith('.service'):
+            svc = svc + '.service'
         return svc
 
     def _get_svc_units(self, roles):
@@ -204,6 +206,12 @@ class SystemCtl:
     def install_and_enable(self, path_to_svc):
         copy2(path_to_svc, self.UNIT_FILE_DIR)
         return self.enable(os.path.basename(path_to_svc))
+
+    def uninstall_and_disable(self, svc):
+        svc = self._format_svc_string(svc)
+        res = self.disable(svc)
+        os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+        return res
 
     def start(self, svc):
         """
