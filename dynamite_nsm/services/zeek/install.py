@@ -271,11 +271,11 @@ class InstallManager:
         self.logger.info('Compiling Zeek Bro_AF_Packet [PATCHED] plugin.')
         if self.verbose:
             compile_zeek_af_packet_process = subprocess.Popen('make; make install', shell=True,
-                                                                        cwd=bro_af_packet_plugin_path)
+                                                              cwd=bro_af_packet_plugin_path)
         else:
             compile_zeek_af_packet_process = subprocess.Popen('make; make install', shell=True,
-                                                                        cwd=bro_af_packet_plugin_path,
-                                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                                              cwd=bro_af_packet_plugin_path,
+                                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             compile_zeek_af_packet_process.communicate()
         except Exception as e:
@@ -656,7 +656,7 @@ class InstallManager:
 
         # Calculate new workers.
         for worker in self.get_zeek_workers(self.capture_network_interfaces, stdout=self.stdout,
-                                               verbose=self.verbose):
+                                            verbose=self.verbose):
             node_config.add_worker(name=worker['name'],
                                    host=worker['host'],
                                    interface=worker['interface'],
