@@ -74,12 +74,6 @@ class SystemCtl:
                     svcs.add(s)
         return svcs
 
-    def __getattribute__(self, name):
-        """
-        Retrieves an attribute by name.
-        """
-        return object.__getattribute__(self, name)
-
     def _get_svc_status(self, svc):
         """
         Retrieve the full status output from systemctl for a given service name.
@@ -134,15 +128,15 @@ class SystemCtl:
         comp_enabled = comp + "_enabled"
         comp_running = comp + "_running"
         if state['LoadState'] == 'loaded':
-            self.__setattr__(comp_enabled, True)
+            setattr(self, comp_enabled, True)
         else:
-            self.__setattr__(comp_enabled, False)
+            setattr(self, comp_enabled, False)
         if state['ActiveState'] == 'active':
-            self.__setattr__(comp_running, True)
+            setattr(self, comp_running, True)
         else:
-            self.__setattr__(comp_running, False)
+            setattr(self, comp_running, False)
 
-        return comp, self.__getattribute__(comp_running), self.__getattribute__(comp_enabled)
+        return comp, getattr(self, comp_running), getattr(self, comp_enabled)
 
     def _exec(self, cmd=None, svc=None, args=None):
         """
