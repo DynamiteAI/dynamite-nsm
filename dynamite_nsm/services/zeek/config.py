@@ -208,11 +208,13 @@ class NodeConfigManager:
         :param lb_procs: The number of Zeek processes associated with a given worker
         :param pin_cpus: Core affinity for the processes (iterable)
         """
+        if not str(interface).startswith('af_packet::'):
+            interface = 'af_packet::' + interface
         if max(pin_cpus) < utilities.get_cpu_core_count() and min(pin_cpus) >= 0:
             pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
             self.node_config[name] = {
                 'type': 'worker',
-                'interface': 'af_packet::' + interface,
+                'interface': interface,
                 'lb_method': 'custom',
                 'lb_procs': lb_procs,
                 'pin_cpus': ','.join(pin_cpus),

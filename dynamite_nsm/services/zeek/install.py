@@ -268,7 +268,7 @@ class InstallManager:
             raise zeek_exceptions.InstallZeekError(
                 "Bro_AF_Packet configuration returned non-zero; exit-code: {}".format(
                     config_zeek_af_packet_process.returncode))
-        self.logger.info('Compiling Zeek Bro_AF_Packet [PATCHED] plugin.')
+        self.logger.info('Compiling Zeek Bro_AF_Packet plugin.')
         if self.verbose:
             compile_zeek_af_packet_process = subprocess.Popen('make; make install', shell=True,
                                                               cwd=bro_af_packet_plugin_path)
