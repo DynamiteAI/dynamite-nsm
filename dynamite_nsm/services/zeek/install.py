@@ -715,7 +715,6 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     zeek_profiler = zeek_profile.ProcessProfiler()
-    pf_ring_profiler = pfring_profile.ModuleProfile()
     if not zeek_profiler.is_installed:
         logger.error("Zeek is not installed. Cannot uninstall.")
         raise zeek_exceptions.UninstallZeekError("Zeek is not installed.")
@@ -735,9 +734,6 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
             logger.error("Could not kill Zeek process. Cannot uninstall.")
             logger.debug("Could not kill Zeek process. Cannot uninstall; {}".format(e))
             raise zeek_exceptions.UninstallZeekError("Could not kill Zeek process; {}".format(e))
-
-    if pf_ring_profiler.is_installed:
-        shutil.rmtree(environment_variables.get('PF_RING_HOME'))
     install_directory = environment_variables.get('ZEEK_HOME')
     config_directory = environment_variables.get('ZEEK_SCRIPTS')
     try:
