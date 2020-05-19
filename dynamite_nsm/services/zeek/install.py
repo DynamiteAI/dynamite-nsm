@@ -79,7 +79,7 @@ class InstallManager:
                 "One or more defined network interfaces is invalid: {}".format(capture_network_interfaces))
 
     @staticmethod
-    def get_pf_ring_workers(network_capture_interfaces, strategy="aggressive", stdout=True, verbose=False):
+    def get_zeek_workers(network_capture_interfaces, strategy="aggressive", stdout=True, verbose=False):
         """
         Algorithm for determining the assignment of CPUs for Zeek workers
 
@@ -420,6 +420,7 @@ class InstallManager:
             raise zeek_exceptions.InstallZeekError(
                 "General error occurred while writing {}; {}".format(zeek_site_local_path, e)
             )
+        self.setup_zeek_af_packet_plugin()
         self.setup_zeek_community_id_plugin()
         self.logger.info('Disabling unneeded Zeek scripts.')
 
@@ -654,7 +655,7 @@ class InstallManager:
                 del node_config.node_config[key]
 
         # Calculate new workers.
-        for worker in self.get_pf_ring_workers(self.capture_network_interfaces, stdout=self.stdout,
+        for worker in self.get_zeek_workers(self.capture_network_interfaces, stdout=self.stdout,
                                                verbose=self.verbose):
             node_config.add_worker(name=worker['name'],
                                    host=worker['host'],
