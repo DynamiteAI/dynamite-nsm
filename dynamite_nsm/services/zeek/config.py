@@ -212,8 +212,8 @@ class NodeConfigManager:
             pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
             self.node_config[name] = {
                 'type': 'worker',
-                'interface': interface,
-                'lb_method': 'pf_ring',
+                'interface': 'af_packet::' + interface,
+                'lb_method': 'custom',
                 'lb_procs': lb_procs,
                 'pin_cpus': ','.join(pin_cpus),
                 'host': host
