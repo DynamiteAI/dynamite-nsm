@@ -24,9 +24,6 @@ from dynamite_nsm.services.zeek import config as zeek_configs
 from dynamite_nsm.services.zeek import profile as zeek_profile
 from dynamite_nsm.services.zeek import process as zeek_process
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
-from dynamite_nsm.services.zeek.pf_ring import install as pfring_install
-from dynamite_nsm.services.zeek.pf_ring import profile as pfring_profile
-from dynamite_nsm.services.zeek.pf_ring import exceptions as pf_ring_exceptions
 
 
 class InstallManager:
@@ -83,7 +80,7 @@ class InstallManager:
                 "One or more defined network interfaces is invalid: {}".format(capture_network_interfaces))
 
     @staticmethod
-    def get_pf_ring_workers(network_capture_interfaces, strategy="aggressive", stdout=True, verbose=False):
+    def get_zeek_workers(network_capture_interfaces, strategy="aggressive", stdout=True, verbose=False):
         """
         Algorithm for determining the assignment of CPUs for Zeek workers
 
@@ -244,21 +241,82 @@ class InstallManager:
                 return False
         return True
 
-    def setup_zeek_community_id_script(self):
-        bro_commmunity_id_script_path = \
+    def setup_zeek_af_packet_plugin(self):
+        bro_af_packet_plugin_path = \
+            os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'uncompiled_scripts', 'zeek-af_packet-plugin')
+        self.logger.info('Configuring Zeek Bro_AF_Packet plugin.')
+        if self.verbose:
+            config_zeek_af_packet_process = subprocess.Popen(
+                './configure --bro-dist={} --install-root={}'.format(
+                    os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory),
+                shell=True, cwd=bro_af_packet_plugin_path
+            )
+        else:
+            config_zeek_af_packet_process = subprocess.Popen(
+                './configure --bro-dist={} --install-root={}'.format(
+                    os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory),
+                shell=True, cwd=bro_af_packet_plugin_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+
+        try:
+            config_zeek_af_packet_process.communicate()
+        except Exception as e:
+            self.logger.error('General error occurred while starting Bro_AF_Packet configuration.')
+            self.logger.debug('General error occurred while starting Bro_AF_Packet configuration; {}'.format(e))
+        if config_zeek_af_packet_process.returncode != 0:
+            self.logger.debug("Bro_AF_Packet configuration returned non-zero; exit-code: {}".format(
+                config_zeek_af_packet_process.returncode))
+            raise zeek_exceptions.InstallZeekError(
+                "Bro_AF_Packet configuration returned non-zero; exit-code: {}".format(
+                    config_zeek_af_packet_process.returncode))
+        self.logger.info('Compiling Zeek Bro_AF_Packet plugin.')
+        if self.verbose:
+            compile_zeek_af_packet_process = subprocess.Popen('make; make install', shell=True,
+                                                              cwd=bro_af_packet_plugin_path)
+        else:
+            compile_zeek_af_packet_process = subprocess.Popen('make; make install', shell=True,
+                                                              cwd=bro_af_packet_plugin_path,
+                                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            compile_zeek_af_packet_process.communicate()
+        except Exception as e:
+            self.logger.error('General error occurred while compiling Bro_AF_Packet.')
+            self.logger.debug("General error occurred while compiling Bro_AF_Packet; {}".format(e))
+            raise zeek_exceptions.InstallZeekError(
+                "General error occurred while compiling Bro_AF_Packet; {}".format(e))
+        if compile_zeek_af_packet_process.returncode != 0:
+            self.logger.error("General error occurred while compiling Bro_AF_Packet; {}".format(
+                compile_zeek_af_packet_process.returncode))
+            raise zeek_exceptions.InstallZeekError(
+                "Bro_AF_Packet compilation process returned non-zero; exit-code: {}".format(
+                    compile_zeek_af_packet_process.returncode))
+        try:
+            shutil.copytree(os.path.join(self.configuration_directory, 'Bro_AF_Packet'),
+                            os.path.join(self.install_directory, 'lib', 'bro', 'plugins', 'Bro_AF_Packet'))
+        except Exception as e:
+            if 'FileExist' not in str(e):
+                self.logger.error("General error occurred while installing Bro_AF_Packet plugin.")
+                self.logger.debug("General error occurred while installing Bro_AF_Packet plugin; "
+                                  "{}".format(e))
+                raise zeek_exceptions.InstallZeekError(
+                    "General error occurred while installing Bro_AF_Packet plugin; {}".format(
+                        e))
+
+    def setup_zeek_community_id_plugin(self):
+        bro_commmunity_id_plugin_path = \
             os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'uncompiled_scripts', 'zeek-community-id')
         self.logger.info('Configuring Zeek Corelight_CommunityID plugin.')
         if self.verbose:
             config_zeek_community_id_script_process = subprocess.Popen(
                 './configure --bro-dist={} --install-root={}'.format(
                     os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory),
-                shell=True, cwd=bro_commmunity_id_script_path
+                shell=True, cwd=bro_commmunity_id_plugin_path
             )
         else:
             config_zeek_community_id_script_process = subprocess.Popen(
                 './configure --bro-dist={} --install-root={}'.format(
                     os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory),
-                shell=True, cwd=bro_commmunity_id_script_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                shell=True, cwd=bro_commmunity_id_plugin_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             config_zeek_community_id_script_process.communicate()
         except Exception as e:
@@ -280,12 +338,17 @@ class InstallManager:
         if self.verbose:
             compile_zeek_community_id_script_process = subprocess.Popen(
                 'make -g {}; make install'.format(parallel_threads), shell=True,
-                cwd=bro_commmunity_id_script_path)
+                cwd=bro_commmunity_id_plugin_path)
+            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
+                                                                        cwd=bro_commmunity_id_plugin_path)
         else:
             compile_zeek_community_id_script_process = subprocess.Popen(
                 'make -g {}; make install'.format(parallel_threads), shell=True,
-                cwd=bro_commmunity_id_script_path,
+                cwd=bro_commmunity_id_plugin_path,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
+                                                                        cwd=bro_commmunity_id_plugin_path,
+                                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             compile_zeek_community_id_script_process.communicate()
         except Exception as e:
@@ -369,7 +432,8 @@ class InstallManager:
             raise zeek_exceptions.InstallZeekError(
                 "General error occurred while writing {}; {}".format(zeek_site_local_path, e)
             )
-        self.setup_zeek_community_id_script()
+        self.setup_zeek_af_packet_plugin()
+        self.setup_zeek_community_id_plugin()
         self.logger.info('Disabling unneeded Zeek scripts.')
 
         # Disable Unneeded Zeek scripts
@@ -502,30 +566,19 @@ class InstallManager:
             self.logger.debug("General error occurred while attempting to create root directories; {}".format(e))
             raise zeek_exceptions.InstallZeekError(
                 "General error occurred while attempting to create root directories; {}".format(e))
-        self.logger.info("Checking PF_RING modules are installed and enabled.")
-        pf_ring_profiler = pfring_profile.ModuleProfile()
-        try:
-            pf_ring_install = pfring_install.InstallManager(self.install_directory,
-                                                            download_pf_ring_archive=True,
-                                                            stdout=self.stdout, verbose=self.verbose)
-            if not pf_ring_profiler.is_installed:
-                self.logger.info("PF_RING KERNEL modules were not installed. Installing.")
-                pf_ring_install.setup_pf_ring()
-        except pf_ring_exceptions.InstallPfringError as e:
-            self.logger.error('PF_RING could not be installed/configured properly.')
-            raise zeek_exceptions.InstallZeekError("PF_RING could not be installed/configured properly; {}.".format(e))
+
         self.logger.info('Compiling Zeek from source. This can take up to 30 minutes.')
         if self.stdout:
             utilities.print_coffee_art()
         time.sleep(1)
         self.logger.info('Configuring Zeek.')
         if self.verbose:
-            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
-                self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
+            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={}'.format(
+                self.install_directory, self.configuration_directory),
                 shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
         else:
-            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={} --with-pcap={}'.format(
-                self.install_directory, self.configuration_directory, pf_ring_install.install_directory),
+            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={}'.format(
+                self.install_directory, self.configuration_directory),
                 shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         try:
@@ -614,8 +667,8 @@ class InstallManager:
                 del node_config.node_config[key]
 
         # Calculate new workers.
-        for worker in self.get_pf_ring_workers(self.capture_network_interfaces, stdout=self.stdout,
-                                               verbose=self.verbose):
+        for worker in self.get_zeek_workers(self.capture_network_interfaces, stdout=self.stdout,
+                                            verbose=self.verbose):
             node_config.add_worker(name=worker['name'],
                                    host=worker['host'],
                                    interface=worker['interface'],
@@ -681,7 +734,6 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     zeek_profiler = zeek_profile.ProcessProfiler()
-    pf_ring_profiler = pfring_profile.ModuleProfile()
     if not zeek_profiler.is_installed:
         logger.error("Zeek is not installed. Cannot uninstall.")
         raise zeek_exceptions.UninstallZeekError("Zeek is not installed.")
@@ -701,9 +753,6 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
             logger.error("Could not kill Zeek process. Cannot uninstall.")
             logger.debug("Could not kill Zeek process. Cannot uninstall; {}".format(e))
             raise zeek_exceptions.UninstallZeekError("Could not kill Zeek process; {}".format(e))
-
-    if pf_ring_profiler.is_installed:
-        shutil.rmtree(environment_variables.get('PF_RING_HOME'))
     install_directory = environment_variables.get('ZEEK_HOME')
     config_directory = environment_variables.get('ZEEK_SCRIPTS')
     try:

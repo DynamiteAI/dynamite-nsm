@@ -36,16 +36,6 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
         logger.error(msg)
 
 
-def check_agent_deps_installed(stdout=True):
-    try:
-        with open(os.path.join(const.CONFIG_PATH, '.agent_environment_prepared'), 'r'):
-            return
-    except IOError:
-        log_message("Agent dependencies were not installed. Install with 'dynamite agent-dependencies install'",
-                    level=logging.WARNING, stdout=stdout)
-        exit(0)
-
-
 def get_agent_status(include_subprocesses=False):
     zeek_profiler = zeek_profile.ProcessProfiler()
     suricata_profiler = suricata_profile.ProcessProfiler()
@@ -171,7 +161,6 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
             )
         )
-        self.add_function(func=check_agent_deps_installed, argument_dict={'stdout': bool(stdout)})
         if not filebeat_profile.ProcessProfiler().is_installed:
             filebeat_args = {
                 'targets': list(targets),

@@ -19,13 +19,9 @@ from dynamite_nsm.components.monitor.component import MonitorCommandlineComponen
 from dynamite_nsm.components.updates.component import UpdatesCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
-from dynamite_nsm.components.agent_dependencies.component import AgentDependencyCommandlineComponent
 
 component_args.register_agent_component_args(
     component_parsers.agent_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_agent_dependency_component_args(
-    component_parsers.agent_deps_component_parser, parent_parsers=[component_parsers.base_parser]
 )
 component_args.register_elasticsearch_component_args(
     component_parsers.elasticsearch_component_parser, parent_parsers=[component_parsers.base_parser]
@@ -82,8 +78,6 @@ if __name__ == '__main__':
     try:
         if args.component_name == "agent":
             AgentCommandlineComponent(args)
-        elif args.component_name == "agent-dependencies":
-            AgentDependencyCommandlineComponent(args)
         elif args.component_name == "elasticsearch":
             ElasticsearchCommandlineComponent(args)
         elif args.component_name == "logstash":

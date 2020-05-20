@@ -1,16 +1,6 @@
 from dynamite_nsm.utilities import get_default_agent_tag
 
 
-def register_agent_dependency_component_args(agt_deps_component_parser, parent_parsers):
-    agt_deps_component_args_subparsers = agt_deps_component_parser.add_subparsers()
-    # === Setup Agent Dependency Component Install Arguments === #
-    agt_deps_install_parser = agt_deps_component_args_subparsers.add_parser(
-        "install",
-        help="Install Agent Dependencies (Requires Reboot).", parents=parent_parsers)
-
-    agt_deps_install_parser.set_defaults(action_name="install")
-
-
 def register_agent_component_args(agt_component_parser, parent_parsers):
     agent_component_args_subparsers = agt_component_parser.add_subparsers()
     agt_config_parser = agent_component_args_subparsers.add_parser("config", help="Configure Agent.",
