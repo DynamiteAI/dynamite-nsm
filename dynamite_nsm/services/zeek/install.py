@@ -215,15 +215,15 @@ class InstallManager:
         packages = None
         if pkt_mng.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
-                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-generic']
+                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-generic', 'tar']
         elif pkt_mng.package_manager == 'yum':
 
             packages = ['dnf-plugins-core', 'cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
                         'openssl-devel', 'python-devel', 'swig', 'zlib-devel', 'kernel-devel-$(uname -r)',
-                        'kernel-devel']
+                        'kernel-devel', 'tar']
 
             # Work around for missing dependencies in RHEL/Centos8
-            enable_powertools_p = subprocess.Popen('yum config-manager --set-enabled PowerTools',
+            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'PowerTools'],
                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             enable_powertools_p.communicate()
         logger.info('Refreshing Package Index.')
