@@ -78,7 +78,7 @@ if __name__ == '__main__':
         if not os.path.exists(const.DEFAULT_CONFIGS):
             logger.info('Updating templates...please wait.')
             updater.update_default_configurations()
-            logger.info('Template update complete. Please re-run: {}'.format(''.join(argv)))
+            logger.info('Template update complete. Please re-run: {}'.format(' '.join(argv)))
             exit(0)
 
     try:
