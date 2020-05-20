@@ -217,7 +217,7 @@ class InstallManager:
                         'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
-                        'python-devel', 'swig', 'zlib-devel', 'kernel-devel-$(uname -r)']
+                        'python-devel', 'swig', 'zlib-devel', 'kernel-devel-$(uname -r)', 'kernel-devel']
         logger.info('Refreshing Package Index.')
         try:
             pkt_mng.refresh_package_indexes()
@@ -244,13 +244,13 @@ class InstallManager:
         self.logger.info('Configuring Zeek Bro_AF_Packet plugin.')
         if self.verbose:
             config_zeek_af_packet_process = subprocess.Popen(
-                './configure --bro-dist={} --install-root={}'.format(
+                './configure --bro-dist={} --install-root={} --with-latest-kernel'.format(
                     os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory),
                 shell=True, cwd=bro_af_packet_plugin_path
             )
         else:
             config_zeek_af_packet_process = subprocess.Popen(
-                './configure --bro-dist={} --install-root={}'.format(
+                './configure --bro-dist={} --install-root={} --with-latest-kernel'.format(
                     os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory),
                 shell=True, cwd=bro_af_packet_plugin_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
