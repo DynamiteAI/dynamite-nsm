@@ -68,13 +68,13 @@ class OSPackageManager:
                 # https://stackoverflow.com/questions/38002543/apt-get-update-returned-a-non-zero-code-100
                 self.logger.warning('{} failed to install.'.format(package))
                 failed_packages.append(package)
-            if failed_packages:
-                self.logger.error(
-                    "One or more packages failed to install install the following packages manually: {}".format(
-                        failed_packages))
-                raise general_exceptions.OsPackageManagerInstallError(
-                    "One or more packages failed to install install the following packages manually: {}".format(
-                        failed_packages))
+        if failed_packages:
+            self.logger.error(
+                "One or more packages failed to install install the following packages manually: {}".format(
+                    failed_packages))
+            raise general_exceptions.OsPackageManagerInstallError(
+                "One or more packages failed to install install the following packages manually: {}".format(
+                    failed_packages))
 
     def refresh_package_indexes(self):
         """
