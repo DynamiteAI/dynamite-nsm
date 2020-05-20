@@ -3,7 +3,7 @@ import logging
 
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.lab import install, process
+from dynamite_nsm.services.lab import install, process, profile
 from dynamite_nsm.components.base import execution_strategy
 from dynamite_nsm.utilities import check_socket, prompt_input
 
@@ -91,7 +91,7 @@ class LabInstallStrategy(execution_strategy.BaseExecStrategy):
                 {
                     "msg": 'Next, Start DynamiteLab: '
                            '\'dynamite lab start\'. It will be available at: \033[4m{}:{}\033[0m once started.'.format(
-                            jupyterhub_host, 8000),
+                        jupyterhub_host, 8000),
                     'stdout': bool(stdout),
                     'verbose': bool(verbose)
                 }
@@ -139,6 +139,23 @@ class LabUninstallStrategy(execution_strategy.BaseExecStrategy):
                 None
             )
         )
+        if profile.ProcessProfiler().is_installed:
+            self.add_function(
+                func=install.uninstall_dynamite_lab,
+                argument_dict={
+                    'prompt_user': bool(prompt_user),
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
+                }
+            )
+            self.add_function(
+                func=log_message,
+                argument_dict={
+                    "msg": '*** Lab uninstalled successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
+                }
+            )
 
 
 class LabProcessStartStrategy(execution_strategy.BaseExecStrategy):
@@ -151,21 +168,15 @@ class LabProcessStartStrategy(execution_strategy.BaseExecStrategy):
             self,
             strategy_name="lab_start",
             strategy_description="Start Lab process.",
-            functions=(
-                process.start,
-            ),
-            arguments=(
-                # process.start
-                {
+        )
+        if profile.ProcessProfiler().is_installed:
+            self.add_function(
+                func=process.start,
+                argument_dict={
                     "stdout": bool(stdout),
                     "verbose": bool(verbose),
                 },
-            ),
-            return_formats=(
-                None,
             )
-
-        )
         if status:
             self.add_function(process.status, {}, return_format="json")
 
@@ -179,21 +190,15 @@ class LabProcessStopStrategy(execution_strategy.BaseExecStrategy):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="lab_stop",
             strategy_description="Stop Lab process.",
-            functions=(
-                process.stop,
-            ),
-            arguments=(
-                # process.start
-                {
+        )
+        if profile.ProcessProfiler().is_installed:
+            self.add_function(
+                func=process.stop,
+                argument_dict={
                     "stdout": bool(stdout),
                     "verbose": bool(verbose),
                 },
-            ),
-            return_formats=(
-                None,
             )
-
-        )
         if status:
             self.add_function(process.status, {}, return_format="json")
 
@@ -207,28 +212,22 @@ class LabProcessRestartStrategy(execution_strategy.BaseExecStrategy):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="lab_restart",
             strategy_description="Restart Lab process.",
-            functions=(
-                process.stop,
-                process.start,
-            ),
-            arguments=(
-                # process.stop
-                {
+        )
+        if profile.ProcessProfiler().is_installed:
+            self.add_function(
+                func=process.stop,
+                argument_dict={
                     "stdout": bool(stdout),
                     "verbose": bool(verbose),
                 },
-
-                # process.start
-                {
+            )
+            self.add_function(
+                func=process.start,
+                argument_dict={
                     "stdout": bool(stdout),
                     "verbose": bool(verbose),
-                }
-            ),
-            return_formats=(
-                None,
-                None
+                },
             )
-        )
         if status:
             self.add_function(process.status, {}, return_format="json")
 
