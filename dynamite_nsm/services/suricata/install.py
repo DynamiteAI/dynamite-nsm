@@ -242,7 +242,7 @@ class InstallManager:
         logger = get_logger('SURICATA', level=log_level, stdout=stdout)
         logger.info('Installing Dependencies.')
 
-        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
+        pkt_mng = package_manager.OSPackageManager(stdout=stdout, verbose=verbose)
 
         packages = None
         if pkt_mng.package_manager == 'apt-get':

@@ -281,7 +281,7 @@ class InstallManager:
         Create required directories, files, and variables to run ElasticSearch successfully;
         """
         try:
-            pacman = package_manager.OSPackageManager(verbose=self.verbose)
+            pacman = package_manager.OSPackageManager(stdout=self.stdout, verbose=self.verbose)
         except general_exceptions.InvalidOsPackageManagerDetectedError:
             self.logger.error("No valid OS package manager detected.")
             raise kibana_exceptions.InstallKibanaError("No valid OS package manager detected.")

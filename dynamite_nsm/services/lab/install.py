@@ -172,7 +172,7 @@ class InstallManager:
             log_level = logging.DEBUG
         logger = get_logger('LAB', level=log_level, stdout=stdout)
 
-        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
+        pkt_mng = package_manager.OSPackageManager(stdout=stdout, verbose=verbose)
         packages = None
         logger.info('Updating Package Indexes.')
         pkt_mng.refresh_package_indexes()
