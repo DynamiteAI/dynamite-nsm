@@ -246,7 +246,7 @@ class InstallManager:
 
     def setup_zeek_community_id_script(self):
         bro_commmunity_id_script_path = \
-            os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'uncompiled_scripts', 'bro-community-id')
+            os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'uncompiled_scripts', 'zeek-community-id')
         self.logger.info('Configuring Zeek Corelight_CommunityID plugin.')
         if self.verbose:
             config_zeek_community_id_script_process = subprocess.Popen(
