@@ -339,16 +339,11 @@ class InstallManager:
             compile_zeek_community_id_script_process = subprocess.Popen(
                 'make -g {}; make install'.format(parallel_threads), shell=True,
                 cwd=bro_commmunity_id_plugin_path)
-            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
-                                                                        cwd=bro_commmunity_id_plugin_path)
         else:
             compile_zeek_community_id_script_process = subprocess.Popen(
                 'make -g {}; make install'.format(parallel_threads), shell=True,
                 cwd=bro_commmunity_id_plugin_path,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            compile_zeek_community_id_script_process = subprocess.Popen('make; make install', shell=True,
-                                                                        cwd=bro_commmunity_id_plugin_path,
-                                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             compile_zeek_community_id_script_process.communicate()
         except Exception as e:
