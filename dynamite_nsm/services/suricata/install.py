@@ -68,7 +68,7 @@ class InstallManager:
         try:
             self.install_dependencies(stdout=stdout, verbose=verbose)
         except (general_exceptions.InvalidOsPackageManagerDetectedError,
-                general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
+                general_exceptions.OsPackageManagerRefreshError):
             raise suricata_exceptions.InstallSuricataError("One or more OS dependencies failed to install.")
         if not self.validate_capture_network_interfaces(self.capture_network_interfaces):
             self.logger.error(
@@ -266,9 +266,7 @@ class InstallManager:
         try:
             pkt_mng.install_packages(packages)
         except general_exceptions.OsPackageManagerInstallError as e:
-            logger.warning("Failed to install packages.")
-            logger.debug("Failed to install packages threw: {}".format(e))
-            raise general_exceptions.OsPackageManagerInstallError('Failed to install packages.')
+            logger.warning("Failed to install one or more packages: {}".format(e))
 
     @staticmethod
     def validate_capture_network_interfaces(network_interfaces):
