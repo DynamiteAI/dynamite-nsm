@@ -1,11 +1,12 @@
 import os
 import re
-import sys
 import logging
 import subprocess
 
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
@@ -25,6 +26,10 @@ class ProcessManager:
             self.logger.error("Could not resolve ZEEK_HOME environment_variable. Is Zeek installed?")
             raise zeek_exceptions.CallZeekProcessError(
                 "Could not resolve ZEEK_HOME environment_variable. Is Zeek installed?")
+        try:
+            self.sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise zeek_exceptions.CallZeekProcessError("Could not find systemctl.")
 
     def start(self):
         """
@@ -33,9 +38,7 @@ class ProcessManager:
         :return: True, if started successfully
         """
         self.logger.info('Attempting to start Zeek cluster.')
-        p = subprocess.Popen('{} deploy'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
-        p.communicate()
-        return p.returncode == 0
+        return self.sysctl.start('zeek')
 
     def stop(self):
         """
@@ -44,9 +47,7 @@ class ProcessManager:
         :return: True, if stopped successfully
         """
         self.logger.info('Attempting to stop Zeek cluster.')
-        p = subprocess.Popen('{} stop'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
-        p.communicate()
-        return p.returncode == 0
+        return self.sysctl.stop('zeek')
 
     def status(self):
         """
@@ -92,10 +93,7 @@ class ProcessManager:
 
         :return: True if restarted successfully
         """
-        self.logger.info('Attempting to restart Zeek cluster.')
-        p = subprocess.Popen('{} restart'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True)
-        p.communicate()
-        return p.returncode == 0
+        return self.sysctl.restart('zeek')
 
 
 def start(stdout=True, verbose=False):

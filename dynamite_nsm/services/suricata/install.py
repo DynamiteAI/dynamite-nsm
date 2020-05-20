@@ -7,6 +7,7 @@ import tarfile
 import subprocess
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
@@ -110,10 +111,15 @@ class InstallManager:
                 "Suricata configuration process returned non-zero; exit-code: {}".format(suricata_config_p.returncode))
         time.sleep(1)
         self.logger.info("Compiling Suricata.")
+        if utilities.get_cpu_core_count() > 1:
+            parallel_threads = utilities.get_cpu_core_count() - 1
+        else:
+            parallel_threads = 1
         if self.verbose:
-            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
-                                                        cwd=os.path.join(const.INSTALL_CACHE,
-                                                                         const.SURICATA_DIRECTORY_NAME))
+            compile_suricata_process = subprocess.Popen(
+                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                cwd=os.path.join(const.INSTALL_CACHE,
+                                 const.SURICATA_DIRECTORY_NAME))
             try:
                 compile_suricata_process.communicate()
             except Exception as e:
@@ -123,10 +129,11 @@ class InstallManager:
                     "General error occurred while compiling Suricata; {}".format(e))
             compile_suricata_return_code = compile_suricata_process.returncode
         else:
-            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
-                                                        cwd=os.path.join(const.INSTALL_CACHE,
-                                                                         const.SURICATA_DIRECTORY_NAME),
-                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            compile_suricata_process = subprocess.Popen(
+                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                cwd=os.path.join(const.INSTALL_CACHE,
+                                 const.SURICATA_DIRECTORY_NAME),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process,
                                                                                     expected_lines=935)
@@ -385,6 +392,13 @@ class InstallManager:
         except suricata_exceptions.WriteSuricataConfigError:
             self.logger.error("Failed to write Suricata configuration.")
             suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise suricata_exceptions.InstallSuricataError("Could not find systemctl.")
+        self.logger.info("Installing Suricata systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service')):
+            raise suricata_exceptions.InstallSuricataError("Failed to install Suricata systemd service.")
 
 
 def install_suricata(configuration_directory, install_directory, log_directory, capture_network_interfaces,
@@ -477,3 +491,8 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall Suricata; {}".format(e))
         raise suricata_exceptions.UninstallSuricataError(
             "General error occurred while attempting to uninstall Suricata; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise suricata_exceptions.UninstallSuricataError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('suricata')
