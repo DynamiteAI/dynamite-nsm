@@ -70,7 +70,8 @@ class InstallManager:
             raise zeek_exceptions.InstallZeekError("Failed to extract Zeek archive.")
         try:
             self.install_dependencies(stdout=stdout, verbose=verbose)
-        except (general_exceptions.InvalidOsPackageManagerDetectedError, general_exceptions.OsPackageManagerRefreshError):
+        except (
+            general_exceptions.InvalidOsPackageManagerDetectedError, general_exceptions.OsPackageManagerRefreshError):
             raise zeek_exceptions.InstallZeekError("One or more OS dependencies failed to install.")
         if not self.validate_capture_network_interfaces(self.capture_network_interfaces):
             self.logger.error(
@@ -216,8 +217,15 @@ class InstallManager:
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
                         'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
-            packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
-                        'python-devel', 'swig', 'zlib-devel', 'kernel-devel-$(uname -r)', 'kernel-devel']
+
+            packages = ['dnf-plugins-core', 'cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
+                        'openssl-devel', 'python-devel', 'swig', 'zlib-devel', 'kernel-devel-$(uname -r)',
+                        'kernel-devel']
+
+            # Work around for missing dependencies in RHEL/Centos8
+            enable_powertools_p = subprocess.Popen('yum config-manager --set-enabled PowerTools',
+                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            enable_powertools_p.communicate()
         logger.info('Refreshing Package Index.')
         try:
             pkt_mng.refresh_package_indexes()
