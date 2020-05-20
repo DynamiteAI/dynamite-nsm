@@ -215,10 +215,10 @@ class InstallManager:
         packages = None
         if pkt_mng.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
-                        'python-dev', 'swig', 'zlib1g-dev']
+                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-generic']
         elif pkt_mng.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel', 'openssl-devel',
-                        'python-devel', 'swig', 'zlib-devel']
+                        'python-devel', 'swig', 'zlib-devel', 'kernel-devel-$(uname -r)']
         logger.info('Refreshing Package Index.')
         try:
             pkt_mng.refresh_package_indexes()
