@@ -147,7 +147,7 @@ class ProcessManager:
         # builtin
         subprocess.call('{}/bin/kibana --optimize --allow-root'.format(
             self.config.kibana_home,
-        ), shell=True, env=utilities.get_environment_file_dict())
+        ), shell=True, env=utilities.get_environment_file_dict(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         # Pass permissions back to dynamite user
         utilities.set_ownership_of_file(self.config.kibana_logs, user='dynamite', group='dynamite')
 
