@@ -223,10 +223,13 @@ class InstallManager:
                         'kernel-devel-$(uname -r)', 'kernel-devel', 'tar']
 
             # Work around for missing dependencies in RHEL/Centos8
-            pkt_mng.install_packages(['dnf-plugins-core'])
-            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'PowerTools'],
-                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            enable_powertools_p.communicate()
+            try:
+                pkt_mng.install_packages(['dnf-plugins-core'])
+                enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'PowerTools'],
+                                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                enable_powertools_p.communicate()
+            except general_exceptions.OsPackageManagerInstallError as e:
+                logger.warning("Failed to install one or more packages: {}".format(e))
         logger.info('Refreshing Package Index.')
         try:
             pkt_mng.refresh_package_indexes()
