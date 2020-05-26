@@ -152,8 +152,11 @@ class SystemCtl:
         p = subprocess.Popen(res.cmd, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True)
         out, err = p.communicate()
-        res.err = err.decode().strip()
-        res.out = out.decode().strip()
+        try:
+            res.err = err.decode().strip()
+            res.out = out.decode().strip()
+        except UnicodeDecodeError:
+            pass
         res.exit = p.returncode
         return res
 
