@@ -219,8 +219,8 @@ class InstallManager:
         elif pkt_mng.package_manager == 'yum':
 
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
-                        'openssl-devel', 'python-devel', 'swig', 'zlib-devel', 'kernel-devel-$(uname -r)',
-                        'kernel-devel', 'tar']
+                        'openssl-devel', 'python-devel', 'python2-devel', 'swig', 'zlib-devel',
+                        'kernel-devel-$(uname -r)', 'kernel-devel', 'tar']
 
             # Work around for missing dependencies in RHEL/Centos8
             pkt_mng.install_packages(['dnf-plugins-core'])
