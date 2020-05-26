@@ -1,11 +1,10 @@
 import os
-import time
-import signal
 import logging
-import subprocess
 
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.suricata import config as suricata_configs
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
@@ -43,38 +42,19 @@ class ProcessManager:
         except (IOError, ValueError):
             self.pid = -1
 
+        try:
+            self.sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise suricata_exceptions.CallSuricataProcessError("Could not find systemctl.")
+
     def start(self):
         """
         Start Suricata IDS process in daemon mode
 
         :return: True, if started successfully
         """
-        if not os.path.exists(PID_DIRECTORY):
-            utilities.makedirs(PID_DIRECTORY, exist_ok=True)
-        p = subprocess.Popen('bin/suricata -i {} -D --pidfile {} -c {}'.format(
-            self.config.af_packet_interfaces[0]['interface'],
-            os.path.join(PID_DIRECTORY, 'suricata.pid'),
-            os.path.join(self.configuration_directory, 'suricata.yaml')), shell=True, cwd=self.install_directory)
-        p.communicate()
-        retry = 0
-        while retry < 6:
-            start_message = '[Attempt: {}] Starting Suricata on PID [{}]'.format(retry + 1, self.pid)
-            try:
-                with open(os.path.join(PID_DIRECTORY, 'suricata.pid')) as f:
-                    self.pid = int(f.read())
-                start_message = '[Attempt: {}] Starting Suricata on PID [{}]'.format(retry + 1, self.pid)
-                self.logger.info(start_message)
-                if not utilities.check_pid(self.pid):
-                    retry += 1
-                    time.sleep(5)
-                else:
-                    return True
-            except IOError:
-                self.logger.info(start_message)
-                retry += 1
-                time.sleep(3)
-        self.logger.error("Failed to start Suricata after {} attempts.".format(retry))
-        return False
+        self.logger.info('Attempting to start Suricata.')
+        return self.sysctl.start("suricata")
 
     def stop(self):
         """
@@ -82,28 +62,8 @@ class ProcessManager:
 
         :return: True if stopped successfully
         """
-        alive = True
-        attempts = 0
-        while alive:
-            try:
-                self.logger.info('Attempting to stop Suricata [{}]'.format(self.pid))
-                if attempts > 3:
-                    sig_command = signal.SIGKILL
-                else:
-                    # Kill the zombie after the third attempt of asking it to kill itself
-                    sig_command = signal.SIGINT
-                attempts += 1
-                if self.pid != -1:
-                    os.kill(self.pid, sig_command)
-                time.sleep(10)
-                alive = utilities.check_pid(self.pid)
-            except Exception as e:
-                self.logger.error('An error occurred while attempting to stop Suricata.')
-                self.logger.debug('An error occurred while attempting to stop Suricata; {}'.format(e))
-                return False
-        self.logger.info("Deleting Suricata PID [{}].".format(self.pid))
-        utilities.safely_remove_file(os.path.join(PID_DIRECTORY, 'suricata.pid'))
-        return True
+        self.logger.info('Attempting to stop Suricata [{}]'.format(self.pid))
+        return self.sysctl.stop("suricata")
 
     def restart(self):
         """
@@ -112,8 +72,7 @@ class ProcessManager:
         :return: True if restarted successfully
         """
         self.logger.info('Attempting to restart Suricata.')
-        self.stop()
-        return self.start()
+        return self.sysctl.restart("suricata")
 
     def status(self):
         """

@@ -7,6 +7,7 @@ import tarfile
 import subprocess
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
@@ -67,7 +68,7 @@ class InstallManager:
         try:
             self.install_dependencies(stdout=stdout, verbose=verbose)
         except (general_exceptions.InvalidOsPackageManagerDetectedError,
-                general_exceptions.OsPackageManagerInstallError, general_exceptions.OsPackageManagerRefreshError):
+                general_exceptions.OsPackageManagerRefreshError):
             raise suricata_exceptions.InstallSuricataError("One or more OS dependencies failed to install.")
         if not self.validate_capture_network_interfaces(self.capture_network_interfaces):
             self.logger.error(
@@ -110,10 +111,15 @@ class InstallManager:
                 "Suricata configuration process returned non-zero; exit-code: {}".format(suricata_config_p.returncode))
         time.sleep(1)
         self.logger.info("Compiling Suricata.")
+        if utilities.get_cpu_core_count() > 1:
+            parallel_threads = utilities.get_cpu_core_count() - 1
+        else:
+            parallel_threads = 1
         if self.verbose:
-            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
-                                                        cwd=os.path.join(const.INSTALL_CACHE,
-                                                                         const.SURICATA_DIRECTORY_NAME))
+            compile_suricata_process = subprocess.Popen(
+                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                cwd=os.path.join(const.INSTALL_CACHE,
+                                 const.SURICATA_DIRECTORY_NAME))
             try:
                 compile_suricata_process.communicate()
             except Exception as e:
@@ -123,10 +129,11 @@ class InstallManager:
                     "General error occurred while compiling Suricata; {}".format(e))
             compile_suricata_return_code = compile_suricata_process.returncode
         else:
-            compile_suricata_process = subprocess.Popen('make; make install; make install-conf', shell=True,
-                                                        cwd=os.path.join(const.INSTALL_CACHE,
-                                                                         const.SURICATA_DIRECTORY_NAME),
-                                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            compile_suricata_process = subprocess.Popen(
+                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                cwd=os.path.join(const.INSTALL_CACHE,
+                                 const.SURICATA_DIRECTORY_NAME),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process,
                                                                                     expected_lines=935)
@@ -235,19 +242,19 @@ class InstallManager:
         logger = get_logger('SURICATA', level=log_level, stdout=stdout)
         logger.info('Installing Dependencies.')
 
-        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
+        pkt_mng = package_manager.OSPackageManager(stdout=stdout, verbose=verbose)
 
         packages = None
         if pkt_mng.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config',
                         'libpcre3-dev', 'libpcap-dev', 'libyaml-dev', 'libjansson-dev', 'rustc', 'cargo', 'python-pip',
                         'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev',
-                        'liblz4-dev']
+                        'liblz4-dev', 'tar', 'wget']
         elif pkt_mng.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
                         'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip',
                         'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel', 'file-devel',
-                        'lz4-devel']
+                        'lz4-devel', 'tar', 'wget']
         logger.info('Refreshing Package Index.')
         try:
             pkt_mng.refresh_package_indexes()
@@ -259,9 +266,7 @@ class InstallManager:
         try:
             pkt_mng.install_packages(packages)
         except general_exceptions.OsPackageManagerInstallError as e:
-            logger.warning("Failed to install packages.")
-            logger.debug("Failed to install packages threw: {}".format(e))
-            raise general_exceptions.OsPackageManagerInstallError('Failed to install packages.')
+            logger.warning("Failed to install one or more packages: {}".format(e))
 
     @staticmethod
     def validate_capture_network_interfaces(network_interfaces):
@@ -385,6 +390,13 @@ class InstallManager:
         except suricata_exceptions.WriteSuricataConfigError:
             self.logger.error("Failed to write Suricata configuration.")
             suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise suricata_exceptions.InstallSuricataError("Could not find systemctl.")
+        self.logger.info("Installing Suricata systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service')):
+            raise suricata_exceptions.InstallSuricataError("Failed to install Suricata systemd service.")
 
 
 def install_suricata(configuration_directory, install_directory, log_directory, capture_network_interfaces,
@@ -477,3 +489,8 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall Suricata; {}".format(e))
         raise suricata_exceptions.UninstallSuricataError(
             "General error occurred while attempting to uninstall Suricata; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise suricata_exceptions.UninstallSuricataError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('suricata')

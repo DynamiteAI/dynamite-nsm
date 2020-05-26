@@ -71,11 +71,11 @@ class LabCommandlineComponent(component.BaseComponent):
             es_password = args.elastic_password
             jupyter_password = args.jupyter_password
             if not es_password:
-                es_password = prompt_password("Enter the password for logging into ElasticSearch: ",
-                                              confirm_prompt="Confirm Password: ")
+                es_password = prompt_password("[?] Enter the password for logging into ElasticSearch: ",
+                                              confirm_prompt="[?] Confirm Password: ")
             if not jupyter_password:
-                es_password = prompt_password("Enter the password for logging into JupyterHub: ",
-                                              confirm_prompt="Confirm Password: ")
+                es_password = prompt_password("[?] Enter the password for logging into JupyterHub: ",
+                                              confirm_prompt="[?] Confirm Password: ")
             self.register_install_strategy(
                 execution_strategy.LabInstallStrategy(
                     jupyterhub_host=args.jupyter_addr,

@@ -172,7 +172,7 @@ class InstallManager:
             log_level = logging.DEBUG
         logger = get_logger('LAB', level=log_level, stdout=stdout)
 
-        pkt_mng = package_manager.OSPackageManager(verbose=verbose)
+        pkt_mng = package_manager.OSPackageManager(stdout=stdout, verbose=verbose)
         packages = None
         logger.info('Updating Package Indexes.')
         pkt_mng.refresh_package_indexes()
@@ -189,7 +189,10 @@ class InstallManager:
                     "Could not install nodejs from third-party RPM; https://rpm.nodesource.com/setup_10.x")
             packages = ['gcc72-c++', 'gcc', 'gcc-c++', 'nodejs', 'python36', 'python36-devel']
         logger.info('Installing the following packages: {}.'.format(packages))
-        pkt_mng.install_packages(packages)
+        try:
+            pkt_mng.install_packages(packages)
+        except general_exceptions.OsPackageManagerInstallError as e:
+            logger.warning("Failed to install one or more packages: {}".format(e))
         logger.info('Installing configurable-http-proxy. This may take some time.')
         p = subprocess.Popen('npm install -g configurable-http-proxy', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              shell=True)

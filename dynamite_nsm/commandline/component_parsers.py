@@ -13,10 +13,6 @@ main_parser = argparse.ArgumentParser(description="Discover your network.")
 component_subparsers = main_parser.add_subparsers()
 
 # === Setup Components === #
-agent_deps_component_parser = component_subparsers.add_parser(
-    "agent-dependencies",
-    help="Install Linux kernel development headers required for agent installation.")
-agent_deps_component_parser.set_defaults(component_name="agent-dependencies")
 
 agent_component_parser = component_subparsers.add_parser(
     "agent",
