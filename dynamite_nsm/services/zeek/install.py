@@ -215,7 +215,7 @@ class InstallManager:
         packages = None
         if pkt_mng.package_manager == 'apt-get':
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
-                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-generic', 'tar']
+                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-$(uname -r)', 'linux-headers-generic', 'tar']
         elif pkt_mng.package_manager == 'yum':
 
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
