@@ -14,8 +14,8 @@ DynamiteNSM has been tested on all the below Linux Distributions. Just because i
 | ![debian-logo](../img/supported_os_logos/debian.png) Debian 10            	| ✅         	| ✅           	| ✅       	|
 | ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 16.04         	| ✅         	| ✅           	| ❓       	|
 | ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 16.10         	| ✅         	| ✅           	| ❓       	|
-| ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 17.04         	| ❓         	| ✅           	| ❓       	|
-| ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 17.10         	| ❓         	| ✅           	| ❓       	|
+| ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 17.04         	| ✅         	| ✅           	| ❓       	|
+| ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 17.10         	| ✅         	| ✅           	| ❓       	|
 | ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 18.04         	| ✅         	| ✅           	| ✅       	|
 | ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 18.10         	| ✅         	| ✅           	| ✅       	|
 | ![ubuntu-logo](../img/supported_os_logos/ubuntu.png) Ubuntu 19.04         	| ❓         	| ✅           	| ❓       	|
