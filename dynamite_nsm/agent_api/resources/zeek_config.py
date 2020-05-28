@@ -103,7 +103,7 @@ class ZeekNodeWorkerConfig(Resource):
                 name=name,
                 interface=args.interface,
                 lb_procs=args.lb_procs,
-                pin_cpus=args.pin_cpus,
+                pin_cpus=args.pinned_cpus,
                 host='localhost'
             )
             self.node_config.write_config()
