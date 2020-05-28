@@ -85,6 +85,12 @@ class ZeekNodeWorkerConfig(Resource):
             pinned_cpus = worker['pin_cpus']
 
         arg_parser.add_argument(
+            'name', dest='name',
+            location='json', required=False, type=str,
+            help='The worker name.'
+        )
+
+        arg_parser.add_argument(
             'interface', dest='interface',
             location='json', required=require_args, type=str,
             help='The network interface to monitor; valid interfaces: {}'.format(net_interfaces)
@@ -100,9 +106,11 @@ class ZeekNodeWorkerConfig(Resource):
             help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in range(0, cpu_count - 1)])
         )
         args = arg_parser.parse_args()
+        # Rename worker operation
+        if verb == 'PUT' and args.name:
+            name = args.name
         if args.interface:
             interface = args.interface
-            name = 'dynamite-worker-' + interface
         if args.pinned_cpus:
             pinned_cpus = args.pinned_cpus
         if args.lb_procs:
