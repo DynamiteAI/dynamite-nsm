@@ -82,7 +82,7 @@ class ZeekNodeWorkerConfig(Resource):
             success_code = 200
             interface = worker['interface']
             lb_procs = worker['lb_procs']
-            pinned_cpus = worker['pin_cpus']
+            pinned_cpus = [int(c) for c in worker['pin_cpus'].split(',')]
 
         arg_parser.add_argument(
             'name', dest='name',
