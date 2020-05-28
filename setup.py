@@ -20,6 +20,8 @@ setup(
     include_package_data=True,
     install_requires=[
         'coloredlogs',
+        'flask',
+        'flask-restful',
         'progressbar',
         'pyyaml',
         'npyscreen'
