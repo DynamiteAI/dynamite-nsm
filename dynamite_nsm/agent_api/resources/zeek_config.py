@@ -70,6 +70,7 @@ class ZeekNodeWorkerConfig(Resource):
         arg_parser = reqparse.RequestParser()
         if verb == 'POST':
             require_args = True
+            success_code = 201
             interface = None
             lb_procs = None
             pinned_cpus = None
@@ -77,10 +78,11 @@ class ZeekNodeWorkerConfig(Resource):
             worker = \
                 [self.node_config.node_config[worker]
                     for worker in self.node_config.list_workers() if worker == name][0]
+            require_args = False
+            success_code = 200
             interface = worker['interface']
             lb_procs = worker['lb_procs']
             pinned_cpus = worker['pin_cpus']
-            require_args = False
 
         arg_parser.add_argument(
             'interface', dest='interface',
@@ -122,7 +124,7 @@ class ZeekNodeWorkerConfig(Resource):
             worker = \
                 [self.node_config.node_config[worker]
                     for worker in self.node_config.list_workers() if worker == name][0]
-            return dict(worker=worker), 201
+            return dict(worker=worker), success_code
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
@@ -135,10 +137,10 @@ class ZeekNodeWorkerConfig(Resource):
 
     def post(self, name):
         if name in self.node_config.list_workers():
-            return dict(message='{} worker already exists. Use PUT to update.'.format(name))
+            return dict(message='{} worker already exists. Use PUT to update.'.format(name)), 409
         return self._create_update(name, verb='POST')
 
     def put(self, name):
         if name not in self.node_config.list_workers():
-            return dict(message='{} worker already does not exists. Use POST to create.'.format(name))
+            return dict(message='{} worker already does not exists. Use POST to create.'.format(name)), 400
         return self._create_update(name, verb='PUT')
