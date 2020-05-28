@@ -107,7 +107,7 @@ class ZeekNodeWorkerConfig(Resource):
                 host='localhost'
             )
             self.node_config.write_config()
-            worker = [self.node_config.node_config[worker] for worker in self.workers if worker == name][0]
+            worker = [self.node_config.node_config[worker] for worker in self.node_config.list_workers() if worker == name][0]
             return dict(worker=worker), 201
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(error=str(e)), 500
