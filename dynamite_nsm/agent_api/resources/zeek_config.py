@@ -149,6 +149,7 @@ class ZeekNodeWorkerConfig(Resource):
             return dict(message='Worker not found.'), 404
         else:
             self.node_config.remove_worker(name)
+            self.node_config.write_config()
             return dict(message='Deleted worker {}.'.format(name)), 200
 
     def get(self, name):
