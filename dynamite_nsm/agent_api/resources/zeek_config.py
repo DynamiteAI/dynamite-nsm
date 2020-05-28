@@ -89,7 +89,7 @@ class ZeekNodeWorkerConfig(Resource):
         post_parser.add_argument(
             'pinned_cpus', dest='pinned_cpus',
             location='form', required=True, type=list,
-            help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in cpu_count - 1])
+            help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in range(0, cpu_count - 1)])
         )
         args = post_parser.parse_args()
         if args.interface not in net_interfaces:
