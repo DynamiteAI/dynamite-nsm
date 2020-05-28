@@ -13,7 +13,7 @@ env_vars = utilities.get_environment_file_dict()
 ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
 
-@api.route('/config/')
+@api.route('/config')
 class ZeekNodeComponentsList(Resource):
 
     @api.doc('list_node_components')

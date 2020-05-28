@@ -6,8 +6,8 @@ from dynamite_nsm.agent_api.resources.zeek import api as zeek_api
 app = Flask(__name__)
 api = Api(app)
 
-api.add_namespace(system_api, path='/api/system/')
-api.add_namespace(zeek_api, path='/api/zeek/')
+api.add_namespace(system_api, path='/api/system')
+api.add_namespace(zeek_api, path='/api/zeek')
 
 if __name__ == '__main__':
     app.run()

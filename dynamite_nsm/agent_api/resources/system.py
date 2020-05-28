@@ -20,28 +20,28 @@ class SystemInfo(Resource):
         )
 
 
-@api.route('/cpu/')
+@api.route('/cpu')
 class CPUCoreCount(Resource):
 
     def get(self):
         return dict(cpu_core_count=utilities.get_cpu_core_count()), 200
 
 
-@api.route('/memory/')
+@api.route('/memory')
 class MemoryBytes(Resource):
 
     def get(self):
         return dict(memory_bytes=utilities.get_memory_available_bytes()), 200
 
 
-@api.route('/ips/')
+@api.route('/ips')
 class NetworkAddresses(Resource):
 
     def get(self):
         return dict(ip_addresses=utilities.get_network_addresses()), 200
 
 
-@api.route('/interfaces/')
+@api.route('/interfaces')
 class NetworkInterfaces(Resource):
 
     def get(self):
