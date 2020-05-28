@@ -70,13 +70,28 @@ class ZeekNodeWorkerConfig(Resource):
         except IndexError:
             return dict(error='Worker not found.'), 404
 
-    @marshal_with(post_fields)
     def post(self, name):
         net_interfaces = utilities.get_network_interface_names()
         net_interfaces_af_fmt = ['af_packet::' + af_int for af_int in net_interfaces]
         net_interfaces.extend(net_interfaces_af_fmt)
         cpu_count = utilities.get_cpu_core_count()
-        args = reqparse.RequestParser()
+        post_parser = reqparse.RequestParser()
+        post_parser.add_argument(
+            'interface', dest='interface',
+            location='form', required=True, type=str,
+            help='The network interface to monitor; valid interfaces: {}'.format(net_interfaces)
+        )
+        post_parser.add_argument(
+            'lb_procs', dest='lb_procs',
+            location='form', required=True, type=int,
+            help='The number of threads the worker will use to monitor your interface.'
+        )
+        post_parser.add_argument(
+            'pinned_cpus', dest='pinned_cpus',
+            location='form', required=True, type=list,
+            help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in cpu_count - 1])
+        )
+        args = post_parser.parse_args()
         if args.interface not in net_interfaces:
             return dict(error='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
         elif len(args.pinned_cpus) > cpu_count:
