@@ -1,15 +1,23 @@
-from flask_restplus import fields, reqparse, Resource
+from flask_restplus import fields, reqparse, Namespace, Resource
 
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.zeek import config as zeek_config
 
+api = Namespace(
+    name='zeek',
+    description='Configure and controll Zeek installation.',
+)
+
 env_vars = utilities.get_environment_file_dict()
 ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
 
+@api.route('/config/')
 class ZeekNodeComponentsList(Resource):
 
+    @api.doc('list_node_components')
+    @api.response(200, 'Listed components.')
     def get(self):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager = node_config.get_manager()
@@ -25,8 +33,13 @@ class ZeekNodeComponentsList(Resource):
         return dict(components=components), 200
 
 
+@api.route('/config/<component>')
 class ZeekNodeConfig(Resource):
 
+    @api.doc('get_node_component')
+    @api.param('component', description='The type of the component: manager, loggers, proxies, workers')
+    @api.response(200, 'Fetched Zeek node component.')
+    @api.response(400, 'Invalid Zeek node component.')
     def get(self, component):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager = node_config.get_manager()
@@ -47,12 +60,8 @@ class ZeekNodeConfig(Resource):
                         "['manager', 'loggers', 'proxies', 'workers']"), 400
 
 
+@api.route('/config/worker/<name>')
 class ZeekNodeWorkerConfig(Resource):
-    post_fields = {
-        'interface': fields.String,
-        'lb_procs': fields.Integer,
-        'pin_cpus': fields.List(fields.Integer)
-    }
 
     def _create_update(self, name, verb='POST'):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
@@ -132,6 +141,10 @@ class ZeekNodeWorkerConfig(Resource):
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
+    @api.doc('delete_worker')
+    @api.param('name', description='The name of the worker.')
+    @api.response(200, 'Deleted Zeek worker.')
+    @api.response(404, 'Could not find Zeek worker.')
     def delete(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         found = False
@@ -146,6 +159,10 @@ class ZeekNodeWorkerConfig(Resource):
             node_config.write_config()
             return dict(message='Deleted worker {}.'.format(name)), 200
 
+    @api.doc('get_worker')
+    @api.param('name', description='The name of the worker.')
+    @api.response(200, 'Fetched Zeek worker.')
+    @api.response(404, 'Could not find Zeek worker.')
     def get(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         try:
@@ -154,12 +171,24 @@ class ZeekNodeWorkerConfig(Resource):
         except IndexError:
             return dict(message='Worker not found.'), 404
 
+    @api.doc('create_worker')
+    @api.param('name', description='The name of the worker.')
+    @api.response(201, 'Created Zeek worker.')
+    @api.response(400, 'One or more parameters are incorrect.')
+    @api.response(409, 'A worker of that name already exists.')
+    @api.response(500, 'An error occurred on the server.')
     def post(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name in node_config.list_workers():
             return dict(message='{} worker already exists. Use PUT to update.'.format(name)), 409
         return self._create_update(name, verb='POST')
 
+    @api.doc('update_worker')
+    @api.param('name', description='The name of the worker.')
+    @api.response(200, 'Updated Zeek worker.')
+    @api.response(400, 'One or more parameters are incorrect.')
+    @api.response(404, 'Could not find Zeek worker.')
+    @api.response(500, 'An error occurred on the server.')
     def put(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name not in node_config.list_workers():
