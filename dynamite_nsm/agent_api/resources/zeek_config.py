@@ -21,19 +21,37 @@ class ZeekNodeConfig(Resource):
         loggers = self.node_config.list_loggers()
         proxies = self.node_config.list_proxies()
         workers = self.node_config.list_workers()
-        config_res = dict(
+        components = dict(
             manager=manager,
             loggers=loggers,
             proxies=proxies,
             workers=workers
         )
         if component == 'all':
-            return config_res, 200
+            return components, 200
         else:
             try:
-                return config_res[component], 200
+                return dict(component=components[component]), 200
             except KeyError:
                 return err_msg(
                     "Invalid component valid components are ['manager', 'loggers', 'proxies', 'workers', 'all']"), 400
 
+
+class ZeekNodeComponentsList(Resource):
+
+    def __init__(self):
+        self.node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+
+    def get(self):
+        manager = self.node_config.get_manager()
+        loggers = self.node_config.list_loggers()
+        proxies = self.node_config.list_proxies()
+        workers = self.node_config.list_workers()
+        components = dict(
+            manager=manager,
+            loggers=loggers,
+            proxies=proxies,
+            workers=workers
+        )
+        return dict(components=components), 200
 
