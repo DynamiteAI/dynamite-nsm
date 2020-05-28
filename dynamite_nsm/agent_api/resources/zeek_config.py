@@ -139,6 +139,18 @@ class ZeekNodeWorkerConfig(Resource):
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
+    def delete(self, name):
+        found = False
+        for worker in self.workers:
+            if worker == name:
+                found = True
+                break
+        if not found:
+            return dict(message='Worker not found.'), 404
+        else:
+            self.node_config.remove_worker(name)
+            return dict(message='Deleted worker {}.'.format(name)), 200
+
     def get(self, name):
         try:
             worker = [self.node_config.node_config[worker] for worker in self.workers if worker == name][0]
@@ -153,5 +165,5 @@ class ZeekNodeWorkerConfig(Resource):
 
     def put(self, name):
         if name not in self.node_config.list_workers():
-            return dict(message='{} worker already does not exists. Use POST to create.'.format(name)), 400
+            return dict(message='{} worker does not exists. Use POST to create.'.format(name)), 400
         return self._create_update(name, verb='PUT')
