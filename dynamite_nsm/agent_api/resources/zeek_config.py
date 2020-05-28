@@ -106,8 +106,10 @@ class ZeekNodeWorkerConfig(Resource):
             help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in range(0, cpu_count - 1)])
         )
         args = arg_parser.parse_args()
+
         # Rename worker operation
         if verb == 'PUT' and args.name:
+            self.node_config.remove_worker(name)
             name = args.name
         if args.interface:
             interface = args.interface
