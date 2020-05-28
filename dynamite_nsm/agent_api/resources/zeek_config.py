@@ -78,8 +78,8 @@ class ZeekNodeWorkerConfig(Resource):
         post_parser = reqparse.RequestParser()
         post_parser.add_argument(
             'interface', dest='interface',
-            location='form', required=True, type=str,
-            help='The network interface to monitor; valid interfaces: {}'.format(net_interfaces)
+            location='form', required=True, choices=net_interfaces,
+            help='The network interface to monitor.'
         )
         post_parser.add_argument(
             'lb_procs', dest='lb_procs',
