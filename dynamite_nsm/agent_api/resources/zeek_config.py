@@ -59,7 +59,7 @@ class ZeekNodeWorkerConfig(Resource):
 
     def get(self, name):
         try:
-            worker = [worker for worker in self.workers if worker['name'] == name][0]
+            worker = [self.node_config.node_config[worker] for worker in self.workers if worker == name][0]
             return dict(worker=worker), 200
         except IndexError:
             return dict(error='Worker not found.'), 404
