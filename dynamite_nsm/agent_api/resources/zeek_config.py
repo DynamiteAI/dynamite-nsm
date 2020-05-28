@@ -1,4 +1,3 @@
-from flask import jsonify
 from flask_restful import Resource
 
 from dynamite_nsm import utilities
@@ -6,10 +5,6 @@ from dynamite_nsm.services.zeek import config as zeek_config
 
 env_vars = utilities.get_environment_file_dict()
 ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
-
-
-def err_msg(msg):
-    return {'error': msg}
 
 
 class ZeekNodeComponentsList(Resource):
@@ -28,7 +23,7 @@ class ZeekNodeComponentsList(Resource):
             proxies=proxies,
             workers=workers
         )
-        return jsonify(components=components), 200
+        return dict(components=components), 200
 
 
 class ZeekNodeConfig(Resource):
@@ -48,8 +43,8 @@ class ZeekNodeConfig(Resource):
             workers=workers
         )
         try:
-            return jsonify(component=components[component]), 200
+            return dict(component=components[component]), 200
         except KeyError:
-            return jsonify(
+            return dict(
                 error="Invalid component valid components are "
                       "['manager', 'loggers', 'proxies', 'workers']"), 400
