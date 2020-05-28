@@ -31,8 +31,8 @@ class SystemInfo(Resource):
 
     def get(self):
         return dict(
-            memory=utilities.get_memory_available_bytes(),
+            memory_bytes=utilities.get_memory_available_bytes(),
             cpu_core_count=utilities.get_cpu_core_count(),
-            addresses=utilities.get_network_addresses(),
+            ip_addresses=utilities.get_network_addresses(),
             interfaces=utilities.get_network_interface_names()
         )

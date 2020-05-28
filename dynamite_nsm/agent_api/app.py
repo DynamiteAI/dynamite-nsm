@@ -14,6 +14,7 @@ api.add_resource(system_info.NetworkInterfaces, '/system/interfaces/')
 
 api.add_resource(zeek_config.ZeekNodeComponentsList, '/zeek/config/node/')
 api.add_resource(zeek_config.ZeekNodeConfig, '/zeek/config/node/<string:component>')
+api.add_resource(zeek_config.ZeekNodeWorkerConfig, '/zeek/config/node/worker/<name>')
 
 if __name__ == '__main__':
     app.run()

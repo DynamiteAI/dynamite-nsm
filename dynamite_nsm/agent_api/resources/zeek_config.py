@@ -1,4 +1,4 @@
-from flask_restful import Resource
+from flask_restful import fields, reqparse, marshal_with,  Resource
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.zeek import config as zeek_config
@@ -30,17 +30,18 @@ class ZeekNodeConfig(Resource):
 
     def __init__(self):
         self.node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        self.manager = self.node_config.get_manager()
+        self.loggers = self.node_config.list_loggers()
+        self.proxies = self.node_config.list_proxies()
+        self.workers = self.node_config.list_workers()
 
     def get(self, component):
-        manager = self.node_config.get_manager()
-        loggers = self.node_config.list_loggers()
-        proxies = self.node_config.list_proxies()
-        workers = self.node_config.list_workers()
+
         components = dict(
-            manager=manager,
-            loggers=loggers,
-            proxies=proxies,
-            workers=workers
+            manager=self.manager,
+            loggers=self.loggers,
+            proxies=self.proxies,
+            workers=self.workers
         )
         try:
             return dict(component=components[component]), 200
@@ -48,3 +49,20 @@ class ZeekNodeConfig(Resource):
             return dict(
                 error="Invalid component valid components are "
                       "['manager', 'loggers', 'proxies', 'workers']"), 400
+
+
+class ZeekNodeWorkerConfig(Resource):
+
+    def __init__(self):
+        self.node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        self.workers = self.node_config.list_workers()
+
+    def get(self, name):
+        try:
+            worker = [worker for worker in self.workers if worker['name'] == name][0]
+            return dict(worker=worker), 200
+        except IndexError:
+            return dict(error='Worker not found.'), 404
+
+
+
