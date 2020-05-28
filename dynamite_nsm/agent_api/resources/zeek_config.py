@@ -102,6 +102,7 @@ class ZeekNodeWorkerConfig(Resource):
         args = arg_parser.parse_args()
         if args.interface:
             interface = args.interface
+            name = 'dynamite-worker-' + interface
         if args.pinned_cpus:
             pinned_cpus = args.pinned_cpus
         if args.lb_procs:
