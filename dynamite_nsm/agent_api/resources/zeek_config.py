@@ -53,6 +53,12 @@ class ZeekNodeConfig(Resource):
 
 class ZeekNodeWorkerConfig(Resource):
 
+    post_fields = {
+        'interface': fields.String,
+        'lb_procs': fields.Integer,
+        'pin_cpus': fields.List(fields.Integer)
+    }
+
     def __init__(self):
         self.node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         self.workers = self.node_config.list_workers()
@@ -63,6 +69,33 @@ class ZeekNodeWorkerConfig(Resource):
             return dict(worker=worker), 200
         except IndexError:
             return dict(error='Worker not found.'), 404
+
+    @marshal_with(post_fields)
+    def post(self, name):
+        net_interfaces = utilities.get_network_interface_names()
+        net_interfaces_af_fmt = ['af_packet::' + af_int for af_int in net_interfaces]
+        net_interfaces.extend(net_interfaces_af_fmt)
+        cpu_count = utilities.get_cpu_core_count()
+        args = reqparse.RequestParser()
+        if args.interface not in net_interfaces:
+            return dict(error='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
+        elif len(args.pinned_cpus) > cpu_count:
+            return dict(error='Too many CPUs specified; cores available: {}'.format(cpu_count)), 400
+        elif max(args.pinned_cpus) >= cpu_count:
+            return dict(error='Invalid CPU core id; must be between 0 and {}'.format(cpu_count - 1)), 400
+        try:
+            self.node_config.add_worker(
+                name=name,
+                interface=args.interface,
+                lb_procs=args.lb_procs,
+                pin_cpus=args.pin_cpus,
+                host='localhost'
+            )
+            self.node_config.write_config()
+            worker = [self.node_config.node_config[worker] for worker in self.workers if worker == name][0]
+            return dict(worker=worker), 201
+        except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
+            return dict(error=str(e)), 500
 
 
 
