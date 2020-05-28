@@ -21,6 +21,7 @@ setup(
     install_requires=[
         'coloredlogs',
         'flask',
+        'Flask',
         'flask-restful',
         'progressbar',
         'pyyaml',
