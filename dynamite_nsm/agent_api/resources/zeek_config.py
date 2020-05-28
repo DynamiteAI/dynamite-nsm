@@ -44,7 +44,7 @@ class ZeekNodeConfig(Resource):
             workers=self.workers
         )
         try:
-            return dict(component=components[component]), 200
+            return {component: components[component]}, 200
         except KeyError:
             return dict(
                 error="Invalid component valid components are "
