@@ -22,7 +22,7 @@ setup(
         'coloredlogs',
         'flask',
         'Flask',
-        'flask-restful',
+        'flask-restplus',
         'progressbar',
         'pyyaml',
         'npyscreen'

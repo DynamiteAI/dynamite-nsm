@@ -1,4 +1,4 @@
-from flask_restful import Resource
+from flask_restplus import Resource
 
 from dynamite_nsm import utilities
 

@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restful import Api
+from flask_restplus import Api
 from dynamite_nsm.agent_api.resources import system_info
 from dynamite_nsm.agent_api.resources import zeek_config
 

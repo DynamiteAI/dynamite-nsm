@@ -1,4 +1,5 @@
-from flask_restful import fields, reqparse, marshal_with, Resource
+from flask_restplus import fields, reqparse, Resource
+
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.zeek import config as zeek_config
@@ -9,14 +10,12 @@ ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
 class ZeekNodeComponentsList(Resource):
 
-    def __init__(self):
-        self.node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
-
     def get(self):
-        manager = self.node_config.get_manager()
-        loggers = self.node_config.list_loggers()
-        proxies = self.node_config.list_proxies()
-        workers = self.node_config.list_workers()
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        manager = node_config.get_manager()
+        loggers = node_config.list_loggers()
+        proxies = node_config.list_proxies()
+        workers = node_config.list_workers()
         components = dict(
             manager=manager,
             loggers=loggers,
@@ -28,20 +27,17 @@ class ZeekNodeComponentsList(Resource):
 
 class ZeekNodeConfig(Resource):
 
-    def __init__(self):
-        self.node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
-        self.manager = self.node_config.get_manager()
-        self.loggers = self.node_config.list_loggers()
-        self.proxies = self.node_config.list_proxies()
-        self.workers = self.node_config.list_workers()
-
     def get(self, component):
-
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        manager = node_config.get_manager()
+        loggers = node_config.list_loggers()
+        proxies = node_config.list_proxies()
+        workers = node_config.list_workers()
         components = dict(
-            manager=self.manager,
-            loggers=self.loggers,
-            proxies=self.proxies,
-            workers=self.workers
+            manager=manager,
+            loggers=loggers,
+            proxies=proxies,
+            workers=workers
         )
         try:
             return {component: components[component]}, 200
@@ -58,11 +54,8 @@ class ZeekNodeWorkerConfig(Resource):
         'pin_cpus': fields.List(fields.Integer)
     }
 
-    def __init__(self):
-        self.node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
-        self.workers = self.node_config.list_workers()
-
     def _create_update(self, name, verb='POST'):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
         net_interfaces_af_fmt = ['af_packet::' + af_int for af_int in net_interfaces]
         net_interfaces.extend(net_interfaces_af_fmt)
@@ -76,8 +69,8 @@ class ZeekNodeWorkerConfig(Resource):
             pinned_cpus = None
         else:
             worker = \
-                [self.node_config.node_config[worker]
-                    for worker in self.node_config.list_workers() if worker == name][0]
+                [node_config.node_config[worker]
+                    for worker in node_config.list_workers() if worker == name][0]
             require_args = False
             success_code = 200
             interface = worker['interface']
@@ -109,7 +102,7 @@ class ZeekNodeWorkerConfig(Resource):
 
         # Rename worker operation
         if verb == 'PUT' and args.name:
-            self.node_config.remove_worker(name)
+            node_config.remove_worker(name)
             name = args.name
         if args.interface:
             interface = args.interface
@@ -124,47 +117,51 @@ class ZeekNodeWorkerConfig(Resource):
         elif max(pinned_cpus) >= cpu_count:
             return dict(message='Invalid CPU core id; must be between 0 and {}'.format(cpu_count)), 400
         try:
-            self.node_config.add_worker(
+            node_config.add_worker(
                 name=name,
                 interface=interface,
                 lb_procs=lb_procs,
                 pin_cpus=pinned_cpus,
                 host='localhost'
             )
-            self.node_config.write_config()
+            node_config.write_config()
             worker = \
-                [self.node_config.node_config[worker]
-                    for worker in self.node_config.list_workers() if worker == name][0]
+                [node_config.node_config[worker]
+                    for worker in node_config.list_workers() if worker == name][0]
             return dict(worker=worker), success_code
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
     def delete(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         found = False
-        for worker in self.workers:
+        for worker in node_config.list_workers():
             if worker == name:
                 found = True
                 break
         if not found:
             return dict(message='Worker not found.'), 404
         else:
-            self.node_config.remove_worker(name)
-            self.node_config.write_config()
+            node_config.remove_worker(name)
+            node_config.write_config()
             return dict(message='Deleted worker {}.'.format(name)), 200
 
     def get(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         try:
-            worker = [self.node_config.node_config[worker] for worker in self.workers if worker == name][0]
+            worker = [node_config.node_config[worker] for worker in node_config.list_workers() if worker == name][0]
             return dict(worker=worker), 200
         except IndexError:
             return dict(message='Worker not found.'), 404
 
     def post(self, name):
-        if name in self.node_config.list_workers():
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        if name in node_config.list_workers():
             return dict(message='{} worker already exists. Use PUT to update.'.format(name)), 409
         return self._create_update(name, verb='POST')
 
     def put(self, name):
-        if name not in self.node_config.list_workers():
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        if name not in node_config.list_workers():
             return dict(message='{} worker does not exists. Use POST to create.'.format(name)), 400
         return self._create_update(name, verb='PUT')
