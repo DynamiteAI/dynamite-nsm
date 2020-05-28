@@ -78,17 +78,17 @@ class ZeekNodeWorkerConfig(Resource):
         post_parser = reqparse.RequestParser()
         post_parser.add_argument(
             'interface', dest='interface',
-            location='form', required=True, choices=net_interfaces,
-            help='The network interface to monitor.'
+            location='json', required=True, type=str,
+            help='The network interface to monitor; valid interfaces: {}'.format(net_interfaces)
         )
         post_parser.add_argument(
             'lb_procs', dest='lb_procs',
-            location='form', required=True, type=int,
+            location='json', required=True, type=int,
             help='The number of threads the worker will use to monitor your interface.'
         )
         post_parser.add_argument(
             'pinned_cpus', dest='pinned_cpus',
-            location='form', required=True, type=list,
+            location='json', required=True, type=list,
             help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in range(0, cpu_count - 1)])
         )
         args = post_parser.parse_args()
