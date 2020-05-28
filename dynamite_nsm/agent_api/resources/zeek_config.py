@@ -103,7 +103,7 @@ class ZeekNodeWorkerConfig(Resource):
         arg_parser.add_argument(
             'pinned_cpus', dest='pinned_cpus',
             location='json', required=require_args, type=list,
-            help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in range(0, cpu_count - 1)])
+            help='A list of CPU core ids to pin; valid cores: {}'.format([c for c in range(0, cpu_count)])
         )
         args = arg_parser.parse_args()
 
@@ -122,7 +122,7 @@ class ZeekNodeWorkerConfig(Resource):
         elif len(pinned_cpus) > cpu_count:
             return dict(message='Too many CPUs specified; cores available: {}'.format(cpu_count)), 400
         elif max(pinned_cpus) >= cpu_count:
-            return dict(message='Invalid CPU core id; must be between 0 and {}'.format(cpu_count - 1)), 400
+            return dict(message='Invalid CPU core id; must be between 0 and {}'.format(cpu_count)), 400
         try:
             self.node_config.add_worker(
                 name=name,
