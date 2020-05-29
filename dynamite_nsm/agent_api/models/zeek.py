@@ -27,10 +27,7 @@ response_list_components_model = dict(
 
 # GET /config/<component>
 response_get_component_model = dict(
-    component=fields.List(dict(
-        host=fields.String,
-        type=fields.String
-    ))
+    component=fields.List(fields.Raw)
 )
 
 # GET  config/worker/<name>
