@@ -4,7 +4,7 @@ from dynamite_nsm.agent_api.resources.system import api as system_api
 from dynamite_nsm.agent_api.resources.zeek import api as zeek_config_api
 
 app = Flask(__name__)
-api = Api(app)
+api = Api(app, title='Agent API', description='Configure and manage the Dynamite agent.', contact='jamin@dynamite.ai')
 
 api.add_namespace(system_api, path='/api/system')
 api.add_namespace(zeek_config_api, path='/api/zeek/config')
