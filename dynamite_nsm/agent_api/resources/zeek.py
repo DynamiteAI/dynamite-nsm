@@ -43,19 +43,19 @@ response_success = dict(
 response_list_components_model = dict(
     components=dict(
         manager=fields.Nested(zeek_simple_node_component),
-        loggers=fields.List(zeek_simple_node_component),
-        proxies=fields.List(zeek_simple_node_component),
-        workers=fields.List(zeek_worker_node_component),
+        loggers=fields.List(fields.Nested(zeek_simple_node_component)),
+        proxies=fields.List(fields.Nested(zeek_simple_node_component)),
+        workers=fields.List(fields.Nested(zeek_worker_node_component)),
     )
 )
 
 # GET /config/<component>
 response_get_component_model = dict(
-    component=fields.List(zeek_simple_node_component)
+    component=fields.List(fields.Nested(zeek_simple_node_component))
 )
 
 response_get_worker_component_model = dict(
-    worker=zeek_worker_node_component
+    worker=fields.Nested(zeek_worker_node_component)
 )
 
 
