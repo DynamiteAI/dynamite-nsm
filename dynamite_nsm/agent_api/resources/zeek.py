@@ -12,14 +12,26 @@ api = Namespace(
 env_vars = utilities.get_environment_file_dict()
 ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
-zeek_simple_node_component = api.model(
-    'SIMPLE_ZEEK_NODE_COMPONENT', model=dict(
+
+# multiple endpoints
+model_response_error = dict(
+    message=fields.String
+)
+
+# multiple endpoints
+
+model_response_success = dict(
+    message=fields.String
+)
+
+model_zeek_simple_node_component = api.model(
+    'ZeekSimpleNodeComponent', model=dict(
         type=fields.String,
         host=fields.String
     )
 )
 
-zeek_worker_node_component = api.model('ZEEK_NODE_WORKER_COMPONENT', dict(
+model_zeek_worker_node_component = api.model('ZeekWorkerNodeComponent', dict(
     type=fields.String,
     interface=fields.String,
     lb_method=fields.String,
@@ -28,35 +40,30 @@ zeek_worker_node_component = api.model('ZEEK_NODE_WORKER_COMPONENT', dict(
     host=fields.String
 ))
 
-# multiple endpoints
-response_error = dict(
-    message=fields.String
+model_zeek_node_components = api.model(
+    'ZeekNodeComponents', model={
+        'manager': fields.Nested(model_zeek_simple_node_component),
+        'loggers': fields.List(fields.Nested(model_zeek_simple_node_component)),
+        'proxies': fields.List(fields.Nested(model_zeek_simple_node_component)),
+        'workers': fields.List(fields.Nested(model_zeek_worker_node_component)),
+    }
 )
 
-# multiple endpoints
-
-response_success = dict(
-    message=fields.String
-)
 
 # GET /config
-response_list_components_model = dict(
-    components=dict(
-        manager=fields.Nested(zeek_simple_node_component),
-        loggers=fields.List(fields.Nested(zeek_simple_node_component)),
-        proxies=fields.List(fields.Nested(zeek_simple_node_component)),
-        workers=fields.List(fields.Nested(zeek_worker_node_component)),
-    )
-)
+model_response_list_components_response = api.model('ZeekNodeComponents', model= {
+    'components': fields.Nested(model_zeek_node_components)
+})
+
 
 # GET /config/<component>
-response_get_component_model = dict(
-    component=fields.List(fields.Nested(zeek_simple_node_component))
-)
+model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
+    'components': fields.List(fields.Nested(model_zeek_simple_node_component))
+})
 
-response_get_worker_component_model = dict(
-    worker=fields.Nested(zeek_worker_node_component)
-)
+model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse', model={
+    'worker': fields.Nested(model_zeek_worker_node_component)
+})
 
 
 @api.route('/', endpoint='zeek-components')
@@ -64,8 +71,7 @@ class ZeekNodeComponentsList(Resource):
 
     @api.doc('list_node_components')
     @api.response(200, 'Listed components.',
-                  model=api.model(name='LISTED_ZEEK_COMPONENTS_SUCCESS',
-                                  model=response_list_components_model))
+                  model=model_response_list_components_response)
     def get(self):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager = node_config.get_manager()
@@ -86,11 +92,8 @@ class ZeekNodeConfig(Resource):
 
     @api.doc('get_node_component')
     @api.param('component', description='The type of the component: manager, loggers, proxies, workers')
-    @api.response(200, 'Fetched Zeek node component.',
-                  api.model(name='FETCHED_ZEEK_COMPONENT_SUCCESS',
-                            model=response_get_component_model))
-    @api.response(400, 'Invalid Zeek node component.',
-                  api.model(name='VALIDATION_ERROR', model=response_error))
+    @api.response(200, 'Fetched Zeek node component.', model=model_response_get_component)
+    @api.response(400, 'Invalid Zeek node component.', model=model_response_error)
     def get(self, component):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager = node_config.get_manager()
@@ -195,11 +198,8 @@ class ZeekNodeWorkerConfig(Resource):
 
     @api.doc('delete_worker')
     @api.param('name', description='The name of the worker.')
-    @api.response(200, 'Deleted Zeek worker.',
-                  model=api.model(name='DELETED_ZEEK_WORKER_SUCCESS',
-                                  model=response_success))
-    @api.response(404, 'Could not find Zeek worker.',
-                  model=api.model(name='NOT_FOUND_ERROR', model=response_error))
+    @api.response(200, 'Deleted Zeek worker.', model=model_response_success)
+    @api.response(404, 'Could not find Zeek worker.', model=model_response_success)
     def delete(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         found = False
@@ -216,11 +216,8 @@ class ZeekNodeWorkerConfig(Resource):
 
     @api.doc('get_worker')
     @api.param('name', description='The name of the worker.')
-    @api.response(200, 'Fetched Zeek worker.',
-                  model=api.model(name='FETCHED_ZEEK_WORKER_SUCCESS',
-                                  model=response_get_worker_component_model))
-    @api.response(404, 'Could not find Zeek worker.',
-                  model=api.model(name='NOT_FOUND_ERROR', model=response_error))
+    @api.response(200, 'Fetched Zeek worker.', model=model_response_get_worker_component)
+    @api.response(404, 'Could not find Zeek worker.', model=model_response_error)
     def get(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         try:
@@ -231,16 +228,10 @@ class ZeekNodeWorkerConfig(Resource):
 
     @api.doc('create_worker')
     @api.param('name', description='The name of the worker.')
-    @api.response(201, 'Created Zeek worker.',
-                  model=api.model(name='FETCHED_ZEEK_WORKER_SUCCESS',
-                                  model=response_get_worker_component_model))
-    @api.response(400, 'One or more parameters are incorrect.',
-                  model=api.model(name='VALIDATION_ERROR', model=response_error))
-    @api.response(409, 'A worker of that name already exists.',
-                  model=api.model(name='ALREADY_EXISTS_ERROR',
-                                  model=response_error))
-    @api.response(500, 'An error occurred on the server.',
-                  model=api.model(name='SERVER_ERROR', model=response_error))
+    @api.response(201, 'Created Zeek worker.', model=model_response_get_worker_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
+    @api.response(409, 'A worker of that name already exists.', model=model_response_error)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
     def post(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name in node_config.list_workers():
@@ -249,15 +240,10 @@ class ZeekNodeWorkerConfig(Resource):
 
     @api.doc('update_worker')
     @api.param('name', description='The name of the worker.')
-    @api.response(200, 'Updated Zeek worker.',
-                  model=api.model(name='FETCHED_ZEEK_WORKER_SUCCESS',
-                                  model=response_get_worker_component_model))
-    @api.response(400, 'One or more parameters are incorrect.',
-                  model=api.model(name='VALIDATION_ERROR', model=response_error))
-    @api.response(404, 'Could not find Zeek worker.',
-                  model=api.model(name='NOT_FOUND_ERROR', model=response_error))
-    @api.response(500, 'An error occurred on the server.',
-                  model=api.model(name='SERVER_ERROR', model=response_error))
+    @api.response(200, 'Updated Zeek worker.', model=model_response_get_worker_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
+    @api.response(404, 'Could not find Zeek worker.', model=model_response_error)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
     def put(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name not in node_config.list_workers():
