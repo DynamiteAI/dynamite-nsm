@@ -1,4 +1,5 @@
-from flask_restplus import fields
+from flask_restplus import fields, Api
+
 
 # multiple endpoints
 response_error = dict(
@@ -18,28 +19,9 @@ response_list_components_model = dict(
             host=fields.String,
             type=fields.String
         ),
-        loggers=fields.List(
-            dict(
-                host=fields.String,
-                type=fields.String
-            )
-        ),
-        proxies=fields.List(
-            dict(
-                host=fields.String,
-                type=fields.String
-            )
-        ),
-        workers=fields.List(
-            dict(
-                type=fields.String,
-                interface=fields.String,
-                lb_method=fields.String,
-                lb_procs=fields.String,
-                pin_cpus=fields.String,
-                host=fields.String
-            )
-        ),
+        loggers=fields.List(fields.Raw()),
+        proxies=fields.List(fields.Raw()),
+        workers=fields.List(fields.Raw()),
     )
 )
 
