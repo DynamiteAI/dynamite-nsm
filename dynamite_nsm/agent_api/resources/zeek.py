@@ -12,18 +12,6 @@ api = Namespace(
 env_vars = utilities.get_environment_file_dict()
 ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
-
-# multiple endpoints
-model_response_error = dict(
-    message=fields.String
-)
-
-# multiple endpoints
-
-model_response_success = dict(
-    message=fields.String
-)
-
 model_zeek_simple_node_component = api.model(
     'ZeekSimpleNodeComponent', model=dict(
         type=fields.String,
@@ -50,6 +38,16 @@ model_zeek_node_components = api.model(
 )
 
 
+# multiple endpoints
+model_response_error = api.model('ErrorResponse', model={
+    'message': fields.String
+})
+
+# multiple endpoints
+model_response_generic_success = api.model('GenericSuccessResponse', model={
+    'message': fields.String
+})
+
 # GET /config
 model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
     'components': fields.Nested(model_zeek_node_components)
@@ -61,6 +59,7 @@ model_response_get_component = api.model(name='ZeekGetComponentResponse', model=
     'components': fields.List(fields.Nested(model_zeek_simple_node_component))
 })
 
+# GET /config/workers/<name>
 model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse', model={
     'worker': fields.Nested(model_zeek_worker_node_component)
 })
@@ -198,7 +197,7 @@ class ZeekNodeWorkerConfig(Resource):
 
     @api.doc('delete_worker')
     @api.param('name', description='The name of the worker.')
-    @api.response(200, 'Deleted Zeek worker.', model=model_response_success)
+    @api.response(200, 'Deleted Zeek worker.', model=model_response_generic_success)
     @api.response(404, 'Could not find Zeek worker.', model=model_response_error)
     def delete(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
