@@ -19,9 +19,9 @@ response_list_components_model = dict(
             host=fields.String,
             type=fields.String
         ),
-        loggers=fields.List(fields.Raw()),
-        proxies=fields.List(fields.Raw()),
-        workers=fields.List(fields.Raw()),
+        loggers=fields.List(fields.Raw),
+        proxies=fields.List(fields.Raw),
+        workers=fields.List(fields.Raw),
     )
 )
 
