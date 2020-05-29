@@ -51,7 +51,7 @@ model_zeek_node_components = api.model(
 
 
 # GET /config
-model_response_list_components_response = api.model('ZeekNodeComponents', model= {
+model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
     'components': fields.Nested(model_zeek_node_components)
 })
 
@@ -199,7 +199,7 @@ class ZeekNodeWorkerConfig(Resource):
     @api.doc('delete_worker')
     @api.param('name', description='The name of the worker.')
     @api.response(200, 'Deleted Zeek worker.', model=model_response_success)
-    @api.response(404, 'Could not find Zeek worker.', model=model_response_success)
+    @api.response(404, 'Could not find Zeek worker.', model=model_response_error)
     def delete(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         found = False
