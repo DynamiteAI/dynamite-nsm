@@ -1,4 +1,4 @@
-from flask_restplus import fields, reqparse, Namespace, Resource
+from flask_restplus import reqparse, Namespace, Resource
 
 from dynamite_nsm import utilities
 
@@ -14,7 +14,7 @@ env_vars = utilities.get_environment_file_dict()
 ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
 
-@zeek_config_api.route('/config', endpoint='zeek-components')
+@zeek_config_api.route('/', endpoint='zeek-components')
 class ZeekNodeComponentsList(Resource):
 
     @zeek_config_api.doc('list_node_components')
@@ -36,7 +36,7 @@ class ZeekNodeComponentsList(Resource):
         return dict(components=components), 200
 
 
-@zeek_config_api.route('/config/<component>', endpoint='component-configurations')
+@zeek_config_api.route('/<component>', endpoint='component-configurations')
 class ZeekNodeConfig(Resource):
 
     @zeek_config_api.doc('get_node_component')
@@ -66,7 +66,7 @@ class ZeekNodeConfig(Resource):
                         "['manager', 'loggers', 'proxies', 'workers']"), 400
 
 
-@zeek_config_api.route('/config/workers/<name>', endpoint='worker-configuration')
+@zeek_config_api.route('/workers/<name>', endpoint='worker-configuration')
 class ZeekNodeWorkerConfig(Resource):
 
     @staticmethod
