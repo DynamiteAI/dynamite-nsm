@@ -14,25 +14,23 @@ response_success = dict(
 # GET /config
 response_list_components_model = dict(
     components=dict(
-        manager=fields.Nested(
+        manager=dict(
+            host=fields.String,
+            type=fields.String
+        ),
+        loggers=fields.List(
             dict(
                 host=fields.String,
                 type=fields.String
             )
         ),
-        loggers=fields.List(fields.Nested(
+        proxies=fields.List(
             dict(
                 host=fields.String,
                 type=fields.String
             )
-        )),
-        proxies=fields.List(fields.Nested(
-            dict(
-                host=fields.String,
-                type=fields.String
-            )
-        )),
-        workers=fields.List(fields.Nested(
+        ),
+        workers=fields.List(
             dict(
                 type=fields.String,
                 interface=fields.String,
@@ -41,16 +39,16 @@ response_list_components_model = dict(
                 pin_cpus=fields.String,
                 host=fields.String
             )
-        )),
+        ),
     )
 )
 
 # GET /config/<component>
 response_get_component_model = dict(
-    component=fields.List(fields.Nested(dict(
+    component=fields.List(dict(
         host=fields.String,
         type=fields.String
-    )))
+    ))
 )
 
 # GET  config/worker/<name>
