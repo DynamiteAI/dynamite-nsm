@@ -19,15 +19,15 @@ response_list_components_model = dict(
             host=fields.String,
             type=fields.String
         ),
-        loggers=fields.List(fields.Raw),
-        proxies=fields.List(fields.Raw),
-        workers=fields.List(fields.Raw),
+        loggers=fields.List,
+        proxies=fields.List,
+        workers=fields.List,
     )
 )
 
 # GET /config/<component>
 response_get_component_model = dict(
-    component=fields.List(fields.Raw)
+    component=fields.List
 )
 
 # GET  config/worker/<name>
