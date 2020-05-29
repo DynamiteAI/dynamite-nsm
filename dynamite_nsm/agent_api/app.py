@@ -11,4 +11,3 @@ api.add_namespace(zeek_config_api, path='/api/zeek/config/')
 
 if __name__ == '__main__':
     app.run()
-

@@ -1,4 +1,4 @@
-from flask_restplus import fields, Api
+from flask_restplus import fields
 
 
 # multiple endpoints
