@@ -7,7 +7,7 @@ app = Flask(__name__)
 api = Api(app)
 
 api.add_namespace(system_api, path='/api/system')
-api.add_namespace(zeek_config_api, path='/api/zeek/config/')
+api.add_namespace(zeek_config_api, path='/api/zeek/config')
 
 if __name__ == '__main__':
     app.run()
