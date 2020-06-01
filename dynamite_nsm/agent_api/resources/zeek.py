@@ -277,10 +277,10 @@ class ZeekNodeManagerConfig(Resource):
                 name=args.name,
                 host='localhost'
             )
-            node_config.remove_manager(manager['name'])
+            node_config.remove_manager(manager)
             node_config.write_config()
             manager = node_config.get_manager()
-            return dict(worker=manager), 200
+            return dict(manager=manager), 200
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
