@@ -171,7 +171,7 @@ class ZeekNodeWorkerConfig(Resource):
             if not validators.validate_name(args.name):
                 return dict(
                     message='Invalid "name"; must be between 5 and 30 characters and match '
-                            '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
+                            '"^[a-zA-Z0-9]([\w -]*[a-zA-Z0-9]$)"'), 400
             node_config.remove_worker(name)
             name = args.name
         if args.interface:
@@ -275,7 +275,7 @@ class ZeekNodeManagerConfig(Resource):
         if not validators.validate_name(args.name):
             return dict(
                 message='Invalid "name"; must be between 5 and 30 characters and match '
-                        '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
+                        '"^[a-zA-Z0-9]([\w -]*[a-zA-Z0-9]$)"'), 400
         # Rename manager operation
         try:
             node_config.add_manager(
@@ -291,7 +291,7 @@ class ZeekNodeManagerConfig(Resource):
             return dict(message=str(e)), 500
 
     @api.doc('update_manager')
-    @api.response(200, 'Updated Zeek manager.', model=model_response_get_worker_component)
+    @api.response(200, 'Updated Zeek manager.', model=model_response_get_manager_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_error)
     def put(self):
