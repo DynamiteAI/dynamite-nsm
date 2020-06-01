@@ -59,6 +59,11 @@ model_response_get_component = api.model(name='ZeekGetComponentResponse', model=
     'components': fields.List(fields.Nested(model_zeek_simple_node_component))
 })
 
+# GET /config/manager
+model_response_get_manager_component = api.model('ZeekGetManagerComponentResponse', model={
+    'worker': fields.Nested(model_zeek_simple_node_component)
+})
+
 # GET /config/workers/<name>
 model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse', model={
     'worker': fields.Nested(model_zeek_worker_node_component)
@@ -248,3 +253,39 @@ class ZeekNodeWorkerConfig(Resource):
         if name not in node_config.list_workers():
             return dict(message='{} worker does not exists. Use POST to create.'.format(name)), 400
         return self._create_update(name, verb='PUT')
+
+
+@api.route('/manager', endpoint='manager-configuration')
+class ZeekNodeManagerConfig(Resource):
+
+    @staticmethod
+    def _update():
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        manager = node_config.get_manager()
+        arg_parser = reqparse.RequestParser()
+        arg_parser.add_argument(
+            'name', dest='name',
+            location='json', required=True, type=str,
+            help='The manager name.'
+        )
+
+        args = arg_parser.parse_args()
+
+        # Rename manager operation
+        try:
+            node_config.add_manager(
+                name=args.name,
+                host='localhost'
+            )
+            node_config.remove_manager(manager['name'])
+            node_config.write_config()
+            manager = node_config.get_manager()
+            return dict(worker=manager), 200
+        except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
+            return dict(message=str(e)), 500
+
+    @api.doc('update_manager')
+    @api.response(200, 'Updated Zeek manager.', model=model_response_get_worker_component)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
+    def put(self):
+        return self._update()
