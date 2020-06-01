@@ -111,13 +111,6 @@ class ZeekNodeConfig(Resource):
             workers=workers
         )
         try:
-            # Since the /manager GET method needs no name specification (there can only be one), we override it here
-            if component == 'manager':
-                return dict(manager={
-                    'name': components[component],
-                    'type': 'manager',
-                    'host': 'localhost'
-                })
             return {component: components[component]}, 200
         except KeyError:
             return dict(
@@ -308,10 +301,15 @@ class ZeekNodeManagerConfig(Resource):
 
     @api.doc('get_manager')
     @api.response(200, 'Get Zeek manager.', model=model_response_get_manager_component)
-    @api.response(500, 'An error occurred on the server.', model=model_response_error)
     def get(self):
-        # Placeholder, effectively overwritten by ZeekNodeConfig.get
-        pass
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        manager_name = node_config.get_manager()
+        manager = dict(
+            name=manager_name,
+            type='manager',
+            host='localhost'
+        )
+        return manager, 200
 
     @api.doc('update_manager')
     @api.response(200, 'Updated Zeek manager.', model=model_response_get_manager_component)
