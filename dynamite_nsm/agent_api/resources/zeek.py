@@ -121,10 +121,6 @@ class ZeekNodeWorkerConfig(Resource):
 
     @staticmethod
     def _create_update(name, verb='POST'):
-        if not validators.validate_name(name):
-            return dict(
-                message='Invalid "name"; must be between 5 and 30 characters and match '
-                        '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
         net_interfaces_af_fmt = ['af_packet::' + af_int for af_int in net_interfaces]
@@ -172,6 +168,10 @@ class ZeekNodeWorkerConfig(Resource):
 
         # Rename worker operation
         if verb == 'PUT' and args.name:
+            if not validators.validate_name(args.name):
+                return dict(
+                    message='Invalid "name"; must be between 5 and 30 characters and match '
+                            '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
             node_config.remove_worker(name)
             name = args.name
         if args.interface:
@@ -264,10 +264,6 @@ class ZeekNodeManagerConfig(Resource):
     def _update():
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager_name = node_config.get_manager()
-        if not validators.validate_name(manager_name):
-            return dict(
-                message='Invalid "name"; must be between 5 and 30 characters and match '
-                        '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
         arg_parser = reqparse.RequestParser()
         arg_parser.add_argument(
             'name', dest='name',
@@ -276,7 +272,10 @@ class ZeekNodeManagerConfig(Resource):
         )
 
         args = arg_parser.parse_args()
-
+        if not validators.validate_name(args.name):
+            return dict(
+                message='Invalid "name"; must be between 5 and 30 characters and match '
+                        '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
         # Rename manager operation
         try:
             node_config.add_manager(

@@ -10,6 +10,6 @@ def validate_name(s):
     :param s: Test string
     :return: True, if meets name conditions
     """
-    if len(s) <= 30 and re.search(r'^[a-zA-Z]([\w -]*[a-zA-Z])?$', s):
+    if 5 >= len(s) <= 30 and re.search(r'^[a-zA-Z]([\w -]*[a-zA-Z])?$', s):
         return True
     return False
