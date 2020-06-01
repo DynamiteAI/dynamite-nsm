@@ -15,12 +15,14 @@ ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 model_zeek_simple_node_component = api.model(
     'ZeekSimpleNodeComponent', model=dict(
         type=fields.String,
+        name=fields.String,
         host=fields.String
     )
 )
 
 model_zeek_worker_node_component = api.model('ZeekWorkerNodeComponent', dict(
     type=fields.String,
+    name=fields.String,
     interface=fields.String,
     lb_method=fields.String,
     lb_procs=fields.String,
@@ -59,7 +61,7 @@ model_response_get_component = api.model(name='ZeekGetComponentResponse', model=
 
 # GET /config/manager
 model_response_get_manager_component = api.model('ZeekGetManagerComponentResponse', model={
-    'worker': fields.Nested(model_zeek_simple_node_component)
+    'manager': fields.Nested(model_zeek_simple_node_component)
 })
 
 # GET /config/workers/<name>
@@ -198,6 +200,7 @@ class ZeekNodeWorkerConfig(Resource):
             worker = \
                 [node_config.node_config[worker]
                  for worker in node_config.list_workers() if worker == name][0]
+            worker.update({'name': name})
             return dict(worker=worker), success_code
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
@@ -228,6 +231,7 @@ class ZeekNodeWorkerConfig(Resource):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         try:
             worker = [node_config.node_config[worker] for worker in node_config.list_workers() if worker == name][0]
+            worker.update({'name': name})
             return dict(worker=worker), 200
         except IndexError:
             return dict(message='Worker not found.'), 404
@@ -285,7 +289,12 @@ class ZeekNodeManagerConfig(Resource):
             if args.name != manager_name:
                 node_config.remove_manager(manager_name)
                 node_config.write_config()
-            manager = node_config.get_manager()
+            manager_name = node_config.get_manager()
+            manager = dict(
+                name=manager_name,
+                type='manager',
+                host='localhost'
+            )
             return dict(manager=manager), 200
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
