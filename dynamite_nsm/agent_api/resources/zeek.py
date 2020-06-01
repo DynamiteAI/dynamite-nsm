@@ -312,6 +312,7 @@ class ZeekNodeManagerConfig(Resource):
         return manager, 200
 
     @api.doc('update_manager')
+    @api.param('name', description='The name of the manager.')
     @api.response(200, 'Updated Zeek manager.', model=model_response_get_manager_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_error)
