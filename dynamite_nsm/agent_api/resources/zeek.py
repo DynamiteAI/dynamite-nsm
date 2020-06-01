@@ -118,6 +118,65 @@ class ZeekNodeConfig(Resource):
                         "['manager', 'loggers', 'proxies', 'workers']"), 400
 
 
+@api.route('/manager', endpoint='manager-configuration')
+class ZeekNodeManagerConfig(Resource):
+
+    @staticmethod
+    def _update():
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        manager_name = node_config.get_manager()
+        arg_parser = reqparse.RequestParser()
+        arg_parser.add_argument(
+            'name', dest='name',
+            location='json', required=True, type=str,
+            help='The manager name.'
+        )
+
+        args = arg_parser.parse_args()
+        if not validators.validate_name(args.name):
+            return dict(
+                message='Invalid "name"; must be between 5 and 30 characters and match '
+                        '"^[a-zA-Z0-9]([\w -]*[a-zA-Z0-9]$)"'), 400
+        # Rename manager operation
+        try:
+            node_config.add_manager(
+                name=args.name,
+                host='localhost'
+            )
+            if args.name != manager_name:
+                node_config.remove_manager(manager_name)
+                node_config.write_config()
+            manager_name = node_config.get_manager()
+            manager = dict(
+                name=manager_name,
+                type='manager',
+                host='localhost'
+            )
+            return dict(manager=manager), 200
+        except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
+            return dict(message=str(e)), 500
+
+    @api.doc('get_manager')
+    @api.response(200, 'Get Zeek manager.', model=model_response_get_manager_component)
+    def get(self):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        manager_name = node_config.get_manager()
+        manager = dict(
+            name=manager_name,
+            type='manager',
+            host='localhost'
+        )
+        return manager, 200
+
+    @api.doc('update_manager')
+    @api.param('name', description='The name of the manager.')
+    @api.response(200, 'Updated Zeek manager.', model=model_response_get_manager_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
+    def put(self):
+        return self._update()
+
+
 @api.route('/workers/<name>', endpoint='worker-configuration')
 class ZeekNodeWorkerConfig(Resource):
 
@@ -259,62 +318,3 @@ class ZeekNodeWorkerConfig(Resource):
         if name not in node_config.list_workers():
             return dict(message='{} worker does not exists. Use POST to create.'.format(name)), 400
         return self._create_update(name, verb='PUT')
-
-
-@api.route('/manager', endpoint='manager-configuration')
-class ZeekNodeManagerConfig(Resource):
-
-    @staticmethod
-    def _update():
-        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
-        manager_name = node_config.get_manager()
-        arg_parser = reqparse.RequestParser()
-        arg_parser.add_argument(
-            'name', dest='name',
-            location='json', required=True, type=str,
-            help='The manager name.'
-        )
-
-        args = arg_parser.parse_args()
-        if not validators.validate_name(args.name):
-            return dict(
-                message='Invalid "name"; must be between 5 and 30 characters and match '
-                        '"^[a-zA-Z0-9]([\w -]*[a-zA-Z0-9]$)"'), 400
-        # Rename manager operation
-        try:
-            node_config.add_manager(
-                name=args.name,
-                host='localhost'
-            )
-            if args.name != manager_name:
-                node_config.remove_manager(manager_name)
-                node_config.write_config()
-            manager_name = node_config.get_manager()
-            manager = dict(
-                name=manager_name,
-                type='manager',
-                host='localhost'
-            )
-            return dict(manager=manager), 200
-        except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
-            return dict(message=str(e)), 500
-
-    @api.doc('get_manager')
-    @api.response(200, 'Get Zeek manager.', model=model_response_get_manager_component)
-    def get(self):
-        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
-        manager_name = node_config.get_manager()
-        manager = dict(
-            name=manager_name,
-            type='manager',
-            host='localhost'
-        )
-        return manager, 200
-
-    @api.doc('update_manager')
-    @api.param('name', description='The name of the manager.')
-    @api.response(200, 'Updated Zeek manager.', model=model_response_get_manager_component)
-    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
-    @api.response(500, 'An error occurred on the server.', model=model_response_error)
-    def put(self):
-        return self._update()
