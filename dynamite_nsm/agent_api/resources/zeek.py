@@ -1,7 +1,7 @@
 from flask_restplus import fields, reqparse, Namespace, Resource
 
 from dynamite_nsm import utilities
-
+from dynamite_nsm.agent_api import validators
 from dynamite_nsm.services.zeek import config as zeek_config
 
 api = Namespace(
@@ -37,7 +37,6 @@ model_zeek_node_components = api.model(
     }
 )
 
-
 # multiple endpoints
 model_response_error = api.model('ErrorResponse', model={
     'message': fields.String
@@ -52,7 +51,6 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
     'components': fields.Nested(model_zeek_node_components)
 })
-
 
 # GET /config/<component>
 model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
@@ -123,6 +121,10 @@ class ZeekNodeWorkerConfig(Resource):
 
     @staticmethod
     def _create_update(name, verb='POST'):
+        if not validators.validate_name(name):
+            return dict(
+                message='Invalid "name"; must be between 5 and 30 characters and match '
+                        '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
         net_interfaces_af_fmt = ['af_packet::' + af_int for af_int in net_interfaces]
@@ -262,6 +264,10 @@ class ZeekNodeManagerConfig(Resource):
     def _update():
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager_name = node_config.get_manager()
+        if not validators.validate_name(manager_name):
+            return dict(
+                message='Invalid "name"; must be between 5 and 30 characters and match '
+                        '"^[a-zA-Z]([\w -]*[a-zA-Z])?$"'), 400
         arg_parser = reqparse.RequestParser()
         arg_parser.add_argument(
             'name', dest='name',
@@ -287,6 +293,7 @@ class ZeekNodeManagerConfig(Resource):
 
     @api.doc('update_manager')
     @api.response(200, 'Updated Zeek manager.', model=model_response_get_worker_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_error)
     def put(self):
         return self._update()
