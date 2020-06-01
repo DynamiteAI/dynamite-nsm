@@ -261,7 +261,7 @@ class ZeekNodeManagerConfig(Resource):
     @staticmethod
     def _update():
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
-        manager = node_config.get_manager()
+        manager_name = node_config.get_manager()
         arg_parser = reqparse.RequestParser()
         arg_parser.add_argument(
             'name', dest='name',
@@ -277,8 +277,9 @@ class ZeekNodeManagerConfig(Resource):
                 name=args.name,
                 host='localhost'
             )
-            node_config.remove_manager(manager)
-            node_config.write_config()
+            if args.name != manager_name:
+                node_config.remove_manager(manager_name)
+                node_config.write_config()
             manager = node_config.get_manager()
             return dict(manager=manager), 200
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
