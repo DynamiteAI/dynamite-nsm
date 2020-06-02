@@ -20,8 +20,8 @@ class ZeekScriptConfig(Resource):
         enabled_scripts = script_config.list_enabled_scripts()
         disabled_scripts = script_config.list_disabled_scripts()
         return dict(
-            enabled=sorted([{"id": hash(name) % len(enabled_scripts) + len(disabled_scripts), "name": name} for name in
+            enabled=sorted([{"id": hash(name) % (len(enabled_scripts) + len(disabled_scripts)), "name": name} for name in
                             enabled_scripts], key=lambda i: i['id']),
-            disabled=sorted([{"id": hash(name) % len(enabled_scripts) + len(disabled_scripts), "name": name} for name in
+            disabled=sorted([{"id": hash(name) % (len(enabled_scripts) + len(disabled_scripts)), "name": name} for name in
                              disabled_scripts], key=lambda i: i['id'])
         )
