@@ -42,16 +42,16 @@ class ZeekScriptManager(Resource):
         script_config = zeek_config.ScriptConfigManager(configuration_directory=ZEEK_SCRIPT_DIRECTORY)
         scripts_and_ids = ZeekScriptConfig.hash_and_id_scripts(script_config.list_enabled_scripts(),
                                                                script_config.list_disabled_scripts())
-        enabled_scripts = [script['id'] for script in scripts_and_ids['enabled']]
-        disabled_scripts = [script['id'] for script in scripts_and_ids['disabled']]
+        enabled_scripts = [str(script['id']) for script in scripts_and_ids['enabled']]
+        disabled_scripts = [str(script['id']) for script in scripts_and_ids['disabled']]
         if not script_id:
             return scripts_and_ids, 200
 
-        if int(script_id) in enabled_scripts:
+        if script_id in enabled_scripts:
             idx = enabled_scripts.index(script_id)
             enabled_scripts[idx].update({'status': 'enabled'})
             return enabled_scripts[idx], 200
-        elif int(script_id) in disabled_scripts:
+        elif script_id in disabled_scripts:
             idx = disabled_scripts.index(script_id)
             disabled_scripts[idx].update({'status': 'disabled'})
             return disabled_scripts[idx], 200
