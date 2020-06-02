@@ -1,3 +1,4 @@
+from zlib import adler32
 from flask_restplus import fields, reqparse, Namespace, Resource
 
 from dynamite_nsm import utilities
@@ -22,9 +23,9 @@ class ZeekScriptConfig(Resource):
         script_count = len(enabled_scripts) + len(disabled_scripts)
 
         return dict(
-            enabled=sorted([{"id": hash(name) % (script_count ** 3), "name": name} for name in
+            enabled=sorted([{"id": adler32(name) % (script_count ** 3), "name": name} for name in
                             enabled_scripts], key=lambda i: i['id']),
-            disabled=sorted([{"id": hash(name) % (script_count ** 3), "name": name} for name in
+            disabled=sorted([{"id": adler32(name) % (script_count ** 3), "name": name} for name in
                              disabled_scripts], key=lambda i: i['id'])
         )
 
