@@ -45,8 +45,6 @@ class ZeekScriptManager(Resource):
                                                                script_config.list_disabled_scripts())
         enabled_scripts = [str(script['id']) for script in scripts_and_ids['enabled']]
         disabled_scripts = [str(script['id']) for script in scripts_and_ids['disabled']]
-        if not script_id:
-            return scripts_and_ids, 200
 
         if script_id in enabled_scripts:
             idx = enabled_scripts.index(script_id)
@@ -58,3 +56,40 @@ class ZeekScriptManager(Resource):
             return scripts_and_ids['disabled'][idx], 200
         else:
             return dict(message='Could not find script {}'.format(script_id)), 404
+
+    def put(self, script_id):
+        arg_parser = reqparse.RequestParser()
+        arg_parser.add_argument(
+            'status', dest='status',
+            location='json', required=True, type=str, choices=['enabled', 'disabled', 'enable', 'disable'],
+            help='Enable/Disable a script.'
+        )
+        args = arg_parser.parse_args()
+
+        script_config = zeek_config.ScriptConfigManager(configuration_directory=ZEEK_SCRIPT_DIRECTORY)
+        scripts_and_ids = ZeekScriptConfig.hash_and_id_scripts(script_config.list_enabled_scripts(),
+                                                               script_config.list_disabled_scripts())
+        enabled_scripts = [str(script['id']) for script in scripts_and_ids['enabled']]
+        disabled_scripts = [str(script['id']) for script in scripts_and_ids['disabled']]
+
+        if script_id in enabled_scripts:
+            idx = enabled_scripts.index(script_id)
+            script_name = scripts_and_ids['enabled'][idx]['name']
+        elif script_id in disabled_scripts:
+            idx = disabled_scripts.index(script_id)
+            script_name = scripts_and_ids['disabled'][idx]['name']
+        else:
+            script_name = None
+            return dict(message='Could not find script {}'.format(script_id)), 404
+
+        if args.status == 'enabled' or args.status == 'enable':
+            script_config.enable_script(script_name)
+            action = 'enabled'
+        else:
+            script_config.disable_script(script_name)
+            action = 'disabled'
+        try:
+            script_config.write_config()
+        except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
+            return dict(message=str(e)), 500
+        return dict(message='Script {} ({}) {}.'.format(script_id, script_name, action)), 200
