@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restplus import Api
-from dynamite_nsm.agent_api.resources.system import api as system_api
+from dynamite_nsm.agent_api.resources.system_info import api as system_api
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
 
 app = Flask(__name__)
