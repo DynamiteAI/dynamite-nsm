@@ -50,11 +50,11 @@ class ZeekScriptManager(Resource):
 
         if script_id in enabled_scripts:
             idx = enabled_scripts.index(script_id)
-            enabled_scripts[idx].update({'status': 'enabled'})
-            return enabled_scripts[idx], 200
+            scripts_and_ids['enabled'][idx].update({'status': 'enabled'})
+            return scripts_and_ids['enabled'][idx], 200
         elif script_id in disabled_scripts:
             idx = disabled_scripts.index(script_id)
-            disabled_scripts[idx].update({'status': 'disabled'})
-            return disabled_scripts[idx], 200
+            scripts_and_ids['disabled'][idx].update({'status': 'disabled'})
+            return scripts_and_ids['disabled'][idx], 200
         else:
             return dict(message='Could not find script {}'.format(script_id)), 404
