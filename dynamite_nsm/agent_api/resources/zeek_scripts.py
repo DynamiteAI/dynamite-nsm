@@ -23,9 +23,9 @@ class ZeekScriptConfig(Resource):
         script_count = len(enabled_scripts) + len(disabled_scripts)
 
         return dict(
-            enabled=sorted([{"id": adler32(name) % (script_count ** 3), "name": name} for name in
+            enabled=sorted([{"id": adler32(str(name).encode("utf-8")) % (script_count ** 3), "name": name} for name in
                             enabled_scripts], key=lambda i: i['id']),
-            disabled=sorted([{"id": adler32(name) % (script_count ** 3), "name": name} for name in
+            disabled=sorted([{"id": adler32(str(name).encode("utf-8")) % (script_count ** 3), "name": name} for name in
                              disabled_scripts], key=lambda i: i['id'])
         )
 
