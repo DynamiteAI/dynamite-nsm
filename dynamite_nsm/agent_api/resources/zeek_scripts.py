@@ -20,6 +20,6 @@ class ZeekScriptConfig(Resource):
         enabled_scripts = script_config.list_enabled_scripts()
         disabled_scripts = script_config.list_disabled_scripts()
         return dict(
-            enabled=[{"id": i+1, "name": name} for i, name in enumerate(enabled_scripts)],
-            disabled=[{"id": len(enabled_scripts) + j+1, "name": name} for j, name in enumerate(disabled_scripts)]
+            enabled=[{"id": hash(name) % (10 ** 3), "name": name} for name in enabled_scripts],
+            disabled=[{"id": hash(name) % (10 ** 3), "name": name} for name in disabled_scripts]
         )
