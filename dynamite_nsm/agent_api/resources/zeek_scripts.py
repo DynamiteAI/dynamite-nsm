@@ -35,7 +35,7 @@ class ZeekScriptConfig(Resource):
         return scripts_and_ids, 200
 
 
-@api.route('/scripts/<script_id>', endpoint='script-manager')
+@api.route('/<script_id>', endpoint='script-manager')
 class ZeekScriptManager(Resource):
 
     def get(self, script_id):
