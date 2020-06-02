@@ -47,11 +47,11 @@ class ZeekScriptManager(Resource):
         if not script_id:
             return scripts_and_ids, 200
 
-        if script_id in enabled_scripts:
+        if int(script_id) in enabled_scripts:
             idx = enabled_scripts.index(script_id)
             enabled_scripts[idx].update({'status': 'enabled'})
             return enabled_scripts[idx], 200
-        elif script_id in disabled_scripts:
+        elif int(script_id) in disabled_scripts:
             idx = disabled_scripts.index(script_id)
             disabled_scripts[idx].update({'status': 'disabled'})
             return disabled_scripts[idx], 200
