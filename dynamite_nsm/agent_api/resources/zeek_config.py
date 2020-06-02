@@ -6,7 +6,7 @@ from dynamite_nsm.services.zeek import config as zeek_config
 
 api = Namespace(
     name='Zeek Configuration',
-    description='Configure and control Zeek installation.',
+    description='Configure Zeek Network Settings.',
 )
 
 env_vars = utilities.get_environment_file_dict()
