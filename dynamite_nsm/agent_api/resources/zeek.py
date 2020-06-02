@@ -64,6 +64,11 @@ model_response_get_manager_component = api.model('ZeekGetManagerComponentRespons
     'manager': fields.Nested(model_zeek_simple_node_component)
 })
 
+# GET /config/loggers/<name>
+model_response_get_logger_component = api.model('ZeekGetLoggerComponentResponse', model={
+    'manager': fields.Nested(model_zeek_simple_node_component)
+})
+
 # GET /config/workers/<name>
 model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse', model={
     'worker': fields.Nested(model_zeek_worker_node_component)
@@ -175,6 +180,104 @@ class ZeekNodeManagerConfig(Resource):
     @api.response(500, 'An error occurred on the server.', model=model_response_error)
     def put(self):
         return self._update()
+
+
+@api.route('/loggers/<name>', endpoint='logger-configuration')
+class ZeekNodeLoggerConfig(Resource):
+
+    @staticmethod
+    def _create_update(name, verb='POST'):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        arg_parser = reqparse.RequestParser()
+        if verb == 'POST':
+            success_code = 201
+        else:
+            success_code = 200
+
+        arg_parser.add_argument(
+            'name', dest='name',
+            location='json', required=True, type=str,
+            help='The logger name.'
+        )
+
+        args = arg_parser.parse_args()
+
+        # Rename logger operation
+        if verb == 'PUT' and args.name:
+            if not validators.validate_name(args.name):
+                return dict(
+                    message='Invalid "name"; must be between 5 and 30 characters and match '
+                            '"^[a-zA-Z0-9]([\w -]*[a-zA-Z0-9]$)"'), 400
+            node_config.remove_logger(name)
+            name = args.name
+        try:
+            node_config.add_logger(
+                name=name,
+                host='localhost'
+            )
+            node_config.write_config()
+            logger = \
+                [node_config.node_config[logger]
+                 for logger in node_config.list_loggers() if logger == name][0]
+            logger.update({'name': name})
+            return dict(logger=logger), success_code
+        except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
+            return dict(message=str(e)), 500
+
+    @api.doc('delete_logger')
+    @api.param('name', description='The name of the logger.')
+    @api.response(200, 'Deleted Zeek logger.', model=model_response_generic_success)
+    @api.response(404, 'Could not find Zeek logger.', model=model_response_error)
+    def delete(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        found = False
+        for logger in node_config.list_loggers():
+            if logger == name:
+                found = True
+                break
+        if not found:
+            return dict(message='Logger not found.'), 404
+        else:
+            node_config.remove_logger(name)
+            node_config.write_config()
+            return dict(message='Deleted logger {}.'.format(name)), 200
+
+    @api.doc('get_logger')
+    @api.param('name', description='The name of the logger.')
+    @api.response(200, 'Fetched Zeek logger.', model=model_response_get_logger_component)
+    @api.response(404, 'Could not find Zeek logger.', model=model_response_error)
+    def get(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        try:
+            logger = [node_config.node_config[logger] for logger in node_config.list_loggers() if logger == name][0]
+            logger.update({'name': name})
+            return dict(logger=logger), 200
+        except IndexError:
+            return dict(message='Logger not found.'), 404
+
+    @api.doc('create_logger')
+    @api.param('name', description='The name of the logger.')
+    @api.response(201, 'Created Zeek logger.', model=model_response_get_logger_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
+    @api.response(409, 'A logger of that name already exists.', model=model_response_error)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
+    def post(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        if name in node_config.list_loggers():
+            return dict(message='{} logger already exists. Use PUT to update.'.format(name)), 409
+        return self._create_update(name, verb='POST')
+
+    @api.doc('update_logger')
+    @api.param('name', description='The name of the logger.')
+    @api.response(200, 'Updated Zeek logger.', model=model_response_get_logger_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
+    @api.response(404, 'Could not find Zeek logger.', model=model_response_error)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
+    def put(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        if name not in node_config.list_loggers():
+            return dict(message='{} logger does not exists. Use POST to create.'.format(name)), 400
+        return self._create_update(name, verb='PUT')
 
 
 @api.route('/workers/<name>', endpoint='worker-configuration')
