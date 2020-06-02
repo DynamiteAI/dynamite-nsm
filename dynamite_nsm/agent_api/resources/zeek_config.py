@@ -5,7 +5,7 @@ from dynamite_nsm.agent_api import validators
 from dynamite_nsm.services.zeek import config as zeek_config
 
 api = Namespace(
-    name='zeek_config',
+    name='Zeek Configuration',
     description='Configure and control Zeek installation.',
 )
 
@@ -68,7 +68,6 @@ model_response_get_manager_component = api.model('ZeekGetManagerComponentRespons
 model_response_get_logger_component = api.model('ZeekGetLoggerComponentResponse', model={
     'loggers': fields.List(fields.Nested(model_zeek_simple_node_component))
 })
-
 
 # GET /config/proxies/<name>
 model_response_get_proxy_component = api.model('ZeekGetProxyComponentResponse', model={
@@ -284,7 +283,7 @@ class ZeekNodeLoggerConfig(Resource):
         if name not in node_config.list_loggers():
             return dict(message='{} logger does not exists. Use POST to create.'.format(name)), 400
         return self._create_update(name, verb='PUT')
-    
+
 
 @api.route('/proxies/<name>', endpoint='proxy-configuration')
 class ZeekNodeProxyConfig(Resource):

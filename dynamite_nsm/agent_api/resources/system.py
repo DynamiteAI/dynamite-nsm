@@ -3,7 +3,7 @@ from flask_restplus import Namespace, Resource
 from dynamite_nsm import utilities
 
 api = Namespace(
-    name='system',
+    name='System Information',
     description='Get various information about the system the agent is installed on.',
 )
 
