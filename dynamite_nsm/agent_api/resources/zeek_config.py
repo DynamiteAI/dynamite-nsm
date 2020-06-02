@@ -80,7 +80,7 @@ model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse'
 })
 
 
-@api.route('/', endpoint='zeek-components')
+@api.route('/', endpoint='node-configs')
 class ZeekNodeComponentsList(Resource):
 
     @api.doc('list_node_components')
@@ -101,7 +101,7 @@ class ZeekNodeComponentsList(Resource):
         return dict(components=components), 200
 
 
-@api.route('/<component>', endpoint='component-configurations')
+@api.route('/<component>', endpoint='node-config')
 class ZeekNodeConfig(Resource):
 
     @api.doc('get_node_component')
@@ -128,8 +128,8 @@ class ZeekNodeConfig(Resource):
                         "['manager', 'loggers', 'proxies', 'workers']"), 400
 
 
-@api.route('/manager', endpoint='manager-configuration')
-class ZeekNodeManagerConfig(Resource):
+@api.route('/manager', endpoint='node-manager')
+class ZeekNodeManagerManager(Resource):
 
     @staticmethod
     def _update():
@@ -187,8 +187,8 @@ class ZeekNodeManagerConfig(Resource):
         return self._update()
 
 
-@api.route('/loggers/<name>', endpoint='logger-configuration')
-class ZeekNodeLoggerConfig(Resource):
+@api.route('/loggers/<name>', endpoint='logger-manager')
+class ZeekNodeLoggerManager(Resource):
 
     @staticmethod
     def _create_update(name, verb='POST'):
@@ -285,8 +285,8 @@ class ZeekNodeLoggerConfig(Resource):
         return self._create_update(name, verb='PUT')
 
 
-@api.route('/proxies/<name>', endpoint='proxy-configuration')
-class ZeekNodeProxyConfig(Resource):
+@api.route('/proxies/<name>', endpoint='proxy-manager')
+class ZeekNodeProxyManager(Resource):
 
     @staticmethod
     def _create_update(name, verb='POST'):
@@ -383,8 +383,8 @@ class ZeekNodeProxyConfig(Resource):
         return self._create_update(name, verb='PUT')
 
 
-@api.route('/workers/<name>', endpoint='worker-configuration')
-class ZeekNodeWorkerConfig(Resource):
+@api.route('/workers/<name>', endpoint='worker-manager')
+class ZeekNodeWorkerManager(Resource):
 
     @staticmethod
     def _create_update(name, verb='POST'):
