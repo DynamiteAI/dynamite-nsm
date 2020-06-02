@@ -11,12 +11,15 @@ api = Namespace(
 env_vars = utilities.get_environment_file_dict()
 ZEEK_SCRIPT_DIRECTORY = env_vars.get('ZEEK_SCRIPTS')
 
+
 @api.route('/', endpoint='zeek-scripts')
 class ZeekScriptConfig(Resource):
 
     def get(self):
         script_config = zeek_config.ScriptConfigManager(configuration_directory=ZEEK_SCRIPT_DIRECTORY)
+        enabled_scripts = script_config.list_enabled_scripts()
+        disabled_scripts = script_config.list_disabled_scripts()
         return dict(
-            enabled=script_config.list_enabled_scripts(),
-            disabled=script_config.list_disabled_scripts()
+            enabled=[{"id": i+1, "name": name} for i, name in enumerate(enabled_scripts)],
+            disabled=[{"id": len(disabled_scripts) + i+1, "name": name} for i, name in enumerate(disabled_scripts)]
         )
