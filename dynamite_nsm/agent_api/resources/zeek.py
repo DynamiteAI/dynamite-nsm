@@ -66,7 +66,13 @@ model_response_get_manager_component = api.model('ZeekGetManagerComponentRespons
 
 # GET /config/loggers/<name>
 model_response_get_logger_component = api.model('ZeekGetLoggerComponentResponse', model={
-    'manager': fields.Nested(model_zeek_simple_node_component)
+    'loggers': fields.List(fields.Nested(model_zeek_simple_node_component))
+})
+
+
+# GET /config/proxies/<name>
+model_response_get_proxy_component = api.model('ZeekGetProxyComponentResponse', model={
+    'proxies': fields.List(fields.Nested(model_zeek_simple_node_component))
 })
 
 # GET /config/workers/<name>
@@ -277,6 +283,104 @@ class ZeekNodeLoggerConfig(Resource):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name not in node_config.list_loggers():
             return dict(message='{} logger does not exists. Use POST to create.'.format(name)), 400
+        return self._create_update(name, verb='PUT')
+    
+
+@api.route('/proxies/<name>', endpoint='proxy-configuration')
+class ZeekNodeProxyConfig(Resource):
+
+    @staticmethod
+    def _create_update(name, verb='POST'):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        arg_parser = reqparse.RequestParser()
+        if verb == 'POST':
+            success_code = 201
+        else:
+            success_code = 200
+
+        arg_parser.add_argument(
+            'name', dest='name',
+            location='json', required=True, type=str,
+            help='The proxy name.'
+        )
+
+        args = arg_parser.parse_args()
+
+        # Rename proxy operation
+        if verb == 'PUT' and args.name:
+            if not validators.validate_name(args.name):
+                return dict(
+                    message='Invalid "name"; must be between 5 and 30 characters and match '
+                            '"^[a-zA-Z0-9]([\w -]*[a-zA-Z0-9]$)"'), 400
+            node_config.remove_logger(name)
+            name = args.name
+        try:
+            node_config.add_logger(
+                name=name,
+                host='localhost'
+            )
+            node_config.write_config()
+            proxy = \
+                [node_config.node_config[proxy]
+                 for proxy in node_config.list_proxies() if proxy == name][0]
+            proxy.update({'name': name})
+            return dict(proxy=proxy), success_code
+        except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
+            return dict(message=str(e)), 500
+
+    @api.doc('delete_proxy')
+    @api.param('name', description='The name of the proxy.')
+    @api.response(200, 'Deleted Zeek proxy.', model=model_response_generic_success)
+    @api.response(404, 'Could not find Zeek proxy.', model=model_response_error)
+    def delete(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        found = False
+        for proxy in node_config.list_proxies():
+            if proxy == name:
+                found = True
+                break
+        if not found:
+            return dict(message='Logger not found.'), 404
+        else:
+            node_config.remove_logger(name)
+            node_config.write_config()
+            return dict(message='Deleted proxy {}.'.format(name)), 200
+
+    @api.doc('get_proxy')
+    @api.param('name', description='The name of the proxy.')
+    @api.response(200, 'Fetched Zeek proxy.', model=model_response_get_proxy_component)
+    @api.response(404, 'Could not find Zeek proxy.', model=model_response_error)
+    def get(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        try:
+            proxy = [node_config.node_config[proxy] for proxy in node_config.list_proxies() if proxy == name][0]
+            proxy.update({'name': name})
+            return dict(proxy=proxy), 200
+        except IndexError:
+            return dict(message='Logger not found.'), 404
+
+    @api.doc('create_proxy')
+    @api.param('name', description='The name of the proxy.')
+    @api.response(201, 'Created Zeek proxy.', model=model_response_get_proxy_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
+    @api.response(409, 'A proxy of that name already exists.', model=model_response_error)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
+    def post(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        if name in node_config.list_proxies():
+            return dict(message='{} proxy already exists. Use PUT to update.'.format(name)), 409
+        return self._create_update(name, verb='POST')
+
+    @api.doc('update_proxy')
+    @api.param('name', description='The name of the proxy.')
+    @api.response(200, 'Updated Zeek proxy.', model=model_response_get_proxy_component)
+    @api.response(400, 'One or more parameters are incorrect.', model=model_response_error)
+    @api.response(404, 'Could not find Zeek proxy.', model=model_response_error)
+    @api.response(500, 'An error occurred on the server.', model=model_response_error)
+    def put(self, name):
+        node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
+        if name not in node_config.list_proxies():
+            return dict(message='{} proxy does not exists. Use POST to create.'.format(name)), 400
         return self._create_update(name, verb='PUT')
 
 
