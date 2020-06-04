@@ -49,7 +49,7 @@ class SuricataAddressGroupsConfig(Resource):
         )
 
 
-@api.route('/address-groups/<address_group>', endpoint='suricata-address-groups-manager')
+@api.route('/interfaces', endpoint='suricata-network-interfaces-config')
 class SuricataInterfacesConfig(Resource):
 
     def get(self):
