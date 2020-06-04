@@ -85,7 +85,7 @@ class SuricataAddressGroupsManager(Resource):
             return dict(message='Invalid "address_group"; must be one of the following : {}'.format(
                 self.VALID_ADDRESS_GROUP_NAMES)), 400
         args = arg_parser.parse_args()
-        if validators.validate_suricata_address_group_values(args.group_expression):
+        if not validators.validate_suricata_address_group_values(args.group_expression):
             return dict(
                 message='Invalid "group_expression"; '
                         'examples can be found here: '
