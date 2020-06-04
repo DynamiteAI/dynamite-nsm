@@ -6,7 +6,7 @@ from dynamite_nsm.services.zeek import config as zeek_config
 
 api = Namespace(
     name='Zeek Configuration',
-    description='Configure Zeek Network Settings.',
+    description='Configure Zeek Node Settings.',
 )
 
 env_vars = utilities.get_environment_file_dict()
@@ -84,8 +84,7 @@ model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse'
 class ZeekNodeComponentsList(Resource):
 
     @api.doc('list_node_components')
-    @api.response(200, 'Listed components.',
-                  model=model_response_list_components_response)
+    @api.response(200, 'Listed components.', model=model_response_list_components_response)
     def get(self):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager = node_config.get_manager()
