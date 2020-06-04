@@ -29,7 +29,7 @@ model_response_zeek_scripts = api.model(
 )
 
 model_response_zeek_script = api.model(
-    'ZeekScript', model=dict(
+    'ZeekScriptResponse', model=dict(
         id=fields.Integer,
         name=fields.String,
         status=fields.String
