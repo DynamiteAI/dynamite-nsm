@@ -28,8 +28,9 @@ model_response_zeek_scripts = api.model(
     )
 )
 
+# GET /<script_id>
 model_response_zeek_script = api.model(
-    'ZeekScriptResponse', model=dict(
+    'ZeekGetScriptResponse', model=dict(
         id=fields.Integer,
         name=fields.String,
         status=fields.String
