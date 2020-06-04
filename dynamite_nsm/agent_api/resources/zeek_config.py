@@ -56,7 +56,7 @@ model_response_list_components_response = api.model('ZeekNodeComponentsResponse'
 
 # GET /<component>
 model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
-    'name': fields.String, 'values': fields.Nested(model_zeek_simple_node_component)
+    'name': fields.String, 'values': fields.List(fields.String)
 })
 
 # GET /manager
@@ -66,12 +66,12 @@ model_response_get_manager_component = api.model('ZeekGetManagerComponentRespons
 
 # GET /loggers/<name>
 model_response_get_logger_component = api.model('ZeekGetLoggerComponentResponse', model={
-    'loggers': fields.List(fields.Nested(model_zeek_simple_node_component))
+    'logger': fields.Nested(model_zeek_simple_node_component)
 })
 
 # GET /proxies/<name>
 model_response_get_proxy_component = api.model('ZeekGetProxyComponentResponse', model={
-    'proxies': fields.List(fields.Nested(model_zeek_simple_node_component))
+    'proxy': fields.Nested(model_zeek_simple_node_component)
 })
 
 # GET /workers/<name>
@@ -338,7 +338,7 @@ class ZeekNodeProxyManager(Resource):
                 found = True
                 break
         if not found:
-            return dict(message='Logger not found.'), 404
+            return dict(message='Proxy not found.'), 404
         else:
             node_config.remove_logger(name)
             node_config.write_config()
@@ -355,7 +355,7 @@ class ZeekNodeProxyManager(Resource):
             proxy.update({'name': name})
             return dict(proxy=proxy), 200
         except IndexError:
-            return dict(message='Logger not found.'), 404
+            return dict(message='Proxy not found.'), 404
 
     @api.doc('create_proxy')
     @api.param('name', description='The name of the proxy.')
