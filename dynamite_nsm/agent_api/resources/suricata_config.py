@@ -73,6 +73,8 @@ class SuricataAddressGroupsManager(Resource):
             address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)}), 200
 
     def put(self, address_group):
+        var_sub = '$' + address_group.upper()
+        corresponding_var_subs = [var_sub, '!' + var_sub]
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         arg_parser = reqparse.RequestParser()
         arg_parser.add_argument(
@@ -85,6 +87,11 @@ class SuricataAddressGroupsManager(Resource):
             return dict(message='Invalid "address_group"; must be one of the following : {}'.format(
                 self.VALID_ADDRESS_GROUP_NAMES)), 400
         args = arg_parser.parse_args()
+        if args.group_expression.replace(' ', '') in corresponding_var_subs:
+            return dict(
+                message='{} cannot be {}, this would lead to circular references.'.format(args.group_expression,
+                                                                                          corresponding_var_subs)
+            ), 400
         if not validators.validate_suricata_address_group_values(args.group_expression):
             return dict(
                 message='Invalid "group_expression"; '
