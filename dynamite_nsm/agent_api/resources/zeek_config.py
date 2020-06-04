@@ -51,12 +51,12 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 
 # GET /
 model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
-    'components': fields.Nested(model_zeek_node_components)
+    'components': fields.List(fields.Nested(model_zeek_node_components))
 })
 
 # GET /<component>
 model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
-    'components': fields.List(fields.Nested(model_zeek_simple_node_component))
+    'name': fields.String, 'values': fields.Nested(model_zeek_simple_node_component)
 })
 
 # GET /manager
@@ -120,7 +120,7 @@ class ZeekNodeConfig(Resource):
             workers=workers
         )
         try:
-            return {component: components[component]}, 200
+            return {'name': component, 'values': components[component]}, 200
         except KeyError:
             return dict(
                 message="Invalid component valid components are "
