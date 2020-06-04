@@ -20,9 +20,9 @@ model_zeek_script = api.model(
 )
 
 model_zeek_scripts = api.model(
-    'ZeekScripts', model=fields.List(
+    'ZeekScripts', model=[
         fields.Nested(model_zeek_script)
-    )
+    ]
 )
 
 # GET /
