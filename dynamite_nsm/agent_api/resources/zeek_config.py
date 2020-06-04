@@ -49,32 +49,32 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
     'message': fields.String
 })
 
-# GET /config
+# GET /
 model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
     'components': fields.Nested(model_zeek_node_components)
 })
 
-# GET /config/<component>
+# GET /<component>
 model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
     'components': fields.List(fields.Nested(model_zeek_simple_node_component))
 })
 
-# GET /config/manager
+# GET /manager
 model_response_get_manager_component = api.model('ZeekGetManagerComponentResponse', model={
     'manager': fields.Nested(model_zeek_simple_node_component)
 })
 
-# GET /config/loggers/<name>
+# GET /loggers/<name>
 model_response_get_logger_component = api.model('ZeekGetLoggerComponentResponse', model={
     'loggers': fields.List(fields.Nested(model_zeek_simple_node_component))
 })
 
-# GET /config/proxies/<name>
+# GET /proxies/<name>
 model_response_get_proxy_component = api.model('ZeekGetProxyComponentResponse', model={
     'proxies': fields.List(fields.Nested(model_zeek_simple_node_component))
 })
 
-# GET /config/workers/<name>
+# GET /workers/<name>
 model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse', model={
     'worker': fields.Nested(model_zeek_worker_node_component)
 })
@@ -167,7 +167,7 @@ class ZeekNodeManagerManager(Resource):
             return dict(message=str(e)), 500
 
     @api.doc('get_manager')
-    @api.response(200, 'Get Zeek manager.', model=model_response_get_manager_component)
+    @api.response(200, 'Fetched Zeek manager.', model=model_response_get_manager_component)
     def get(self):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager_name = node_config.get_manager()
