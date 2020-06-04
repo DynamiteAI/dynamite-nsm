@@ -22,7 +22,7 @@ model_suricata_address_groups = api.model('SuricataAddressGroupsResponse', model
     aim_servers=fields.String,
     domain_controllers=fields.String,
     modbus_server=fields.String,
-    modbud_client=fields.String,
+    modbus_client=fields.String,
     enip_client=fields.String,
     enip_server=fields.String
 ))
@@ -43,7 +43,7 @@ class SuricataAddressGroupsConfig(Resource):
             aim_servers=suricata_instance_config.aim_servers,
             dc_servers=suricata_instance_config.dc_servers,
             modbus_server=suricata_instance_config.modbus_server,
-            modbud_client=suricata_instance_config.modbus_client,
+            modbus_client=suricata_instance_config.modbus_client,
             enip_client=suricata_instance_config.enip_client,
             enip_server=suricata_instance_config.enip_server
         )
@@ -60,7 +60,7 @@ class SuricataInterfacesConfig(Resource):
 @api.route('/address-groups/<address_group>', endpoint='suricata-address-group-manager')
 class SuricataAddressGroupsManager(Resource):
     VALID_ADDRESS_GROUP_NAMES = ['home_net', 'external_net', 'http_servers', 'sql_servers', 'dns_servers',
-                                 'telnet_servers', 'aim_servers', 'dc_servers', 'modbus_server', 'modbud_client',
+                                 'telnet_servers', 'aim_servers', 'dc_servers', 'modbus_server', 'modbus_client',
                                  'enip_client', 'enip_server'
                                  ]
 
@@ -69,4 +69,29 @@ class SuricataAddressGroupsManager(Resource):
         if not validators.validate_name(address_group):
             return dict(message='Invalid "address_group"; must be one of the following : {}'.format(
                 self.VALID_ADDRESS_GROUP_NAMES)), 400
-        return dict(address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)})
+        return dict(
+            address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)}), 200
+
+    def put(self, address_group):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        arg_parser = reqparse.RequestParser()
+        arg_parser.add_argument(
+            'group_expression', dest='group_expression',
+            location='json', required=True, type=str,
+            help='An expression representing an IP range or group, examples can be found here: '
+                 'https://suricata.readthedocs.io/en/suricata-4.0.0-beta1/rules/intro.html#source-and-destination'
+        )
+        if not validators.validate_name(address_group):
+            return dict(message='Invalid "address_group"; must be one of the following : {}'.format(
+                self.VALID_ADDRESS_GROUP_NAMES)), 400
+        args = arg_parser.parse_args()
+        if validators.validate_suricata_address_group_values(args.group_expression):
+            return dict(
+                message='Invalid "group_expression"; '
+                        'examples can be found here: '
+                        'https://suricata.readthedocs.io/en/suricata-4.0.0-beta1/rules/intro.html'
+                        '#source-and-destination'), 400
+        setattr(suricata_instance_config, address_group, args.group_expression)
+        suricata_instance_config.write_config()
+        return dict(
+            address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)}), 200
