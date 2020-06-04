@@ -19,17 +19,12 @@ model_zeek_script = api.model(
     )
 )
 
-model_zeek_scripts = api.model(
-    'ZeekScripts', model=[
-        fields.Nested(model_zeek_script)
-    ]
-)
 
 # GET /
 model_response_zeek_scripts = api.model(
     'ZeekGetScriptsResponse', model=dict(
-        enabled=fields.Nested(model_zeek_scripts),
-        disabled=fields.Nested(model_zeek_scripts)
+        enabled=fields.List(fields.Nested(model_zeek_script)),
+        disabled=fields.List(fields.Nested(model_zeek_script))
     )
 )
 
