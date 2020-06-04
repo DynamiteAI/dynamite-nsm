@@ -40,7 +40,7 @@ class ConfigManager:
     tokens = {
         'home_net': ('vars', 'address-groups', 'HOME_NET'),
         'external_net': ('vars', 'address-groups', 'EXTERNAL_NET'),
-        'http_net': ('vars', 'address-groups', 'HTTP_SERVERS'),
+        'http_servers': ('vars', 'address-groups', 'HTTP_SERVERS'),
         'sql_servers': ('vars', 'address-groups', 'SQL_SERVERS'),
         'dns_servers': ('vars', 'address-groups', 'DNS_SERVERS'),
         'telnet_servers': ('vars', 'address-groups', 'TELNET_SERVERS'),
@@ -78,7 +78,7 @@ class ConfigManager:
 
         self.home_net = None
         self.external_net = None
-        self.http_net = None
+        self.http_servers = None
         self.sql_servers = None
         self.dns_servers = None
         self.telnet_servers = None

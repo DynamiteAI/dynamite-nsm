@@ -12,7 +12,7 @@ env_vars = utilities.get_environment_file_dict()
 SURICATA_CONFIG_DIRECTORY = env_vars.get('SURICATA_CONFIG')
 
 
-@api.route('/address-groups', endpoint='suricata-config')
+@api.route('/address-groups', endpoint='suricata-address-groups-config')
 class SuricataAddressGroupsConfig(Resource):
 
     def get(self):
