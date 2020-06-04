@@ -109,7 +109,7 @@ def validate_suricata_address_group_values(s):
         if 'any' == s:
             return True
         # Check if string is valid variable substitution, IP, or CIDR
-        return validate_token(s) and s not in valid_var_subs
+        return validate_token(s) or s in valid_var_subs
 
 
 def test_validate_suricata_address_groups():
@@ -135,6 +135,7 @@ def test_validate_suricata_address_groups():
         '!2001:0002::/48',
         '::/128',
         '::1/128',
+        '$HOME_NET',
         '[$EXTERNAL_NET]',
         '![$EXTERNAL_NET]',
         '[!$EXTERNAL_NET]',
@@ -158,3 +159,4 @@ def test_validate_suricata_address_groups():
 
     for expr in valid_test_expressions + invalid_test_expressions:
         print(expr, validate_suricata_address_group_values(expr))
+test_validate_suricata_address_groups()
