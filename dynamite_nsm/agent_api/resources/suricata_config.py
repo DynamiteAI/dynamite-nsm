@@ -57,6 +57,21 @@ class SuricataInterfacesConfig(Resource):
         return suricata_instance_config.af_packet_interfaces, 200
 
 
+@api.route('/interfaces/<interface>', endpoint='suricata-network-interface-manager')
+class SuricataInterfaceManager(Resource):
+
+    def get(self, interface):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        net_interfaces = utilities.get_network_interface_names()
+
+        if interface not in net_interfaces:
+            return dict(message='Invalid network interface.'), 400
+        for interface in suricata_instance_config.af_packet_interfaces:
+            if interface['interface'] == interface:
+                return interface, 200
+        return dict(message='Network interface not found.'), 404
+
+
 @api.route('/address-groups/<address_group>', endpoint='suricata-address-group-manager')
 class SuricataAddressGroupsManager(Resource):
     VALID_ADDRESS_GROUP_NAMES = ['home_net', 'external_net', 'http_servers', 'sql_servers', 'dns_servers',
