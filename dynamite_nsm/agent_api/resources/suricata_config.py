@@ -66,10 +66,9 @@ class SuricataInterfaceManager(Resource):
 
         if interface not in net_interfaces:
             return dict(message='Invalid network interface.'), 400
-        for interface in suricata_instance_config.af_packet_interfaces:
-            print(interface)
-            if interface['interface'] == interface:
-                return interface, 200
+        for net_interface in suricata_instance_config.af_packet_interfaces:
+            if net_interface['interface'] == interface:
+                return net_interface, 200
         return dict(message='Network interface not found.'), 404
 
 
