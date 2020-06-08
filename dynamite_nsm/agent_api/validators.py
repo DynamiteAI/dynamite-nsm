@@ -224,6 +224,3 @@ def test_validate_suricata_port_groups():
 
     for expr in valid_test_expressions + invalid_test_expressions:
         print(expr, validate_suricata_port_group_values(expr))
-
-
-test_validate_suricata_port_groups()
