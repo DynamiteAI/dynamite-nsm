@@ -63,10 +63,6 @@ class SuricataPortGroupsConfig(Resource):
             modbus_ports=suricata_instance_config.modbus_ports,
             file_data_ports=suricata_instance_config.file_data_ports,
             ftp_ports=suricata_instance_config.ftp_ports,
-            modbus_server=suricata_instance_config.modbus_server,
-            modbus_client=suricata_instance_config.modbus_client,
-            enip_client=suricata_instance_config.enip_client,
-            enip_server=suricata_instance_config.enip_server
         ), 200
 
 

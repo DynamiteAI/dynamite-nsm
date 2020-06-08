@@ -207,7 +207,7 @@ def test_validate_suricata_port_groups():
         '![80, 8080, 8888]',
         '$SHELLCODE_PORTS',
         '!$SHELLCODE_PORTS',
-        '[$DNP3_PORTS, 8080, 8888]'
+        '[$DNP3_PORTS, 8080, 8888]',
         '[$DNP3_PORTS, 8080, 8888]',
     ]
 
