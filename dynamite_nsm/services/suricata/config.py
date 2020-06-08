@@ -94,6 +94,8 @@ class ConfigManager:
         self.ssh_ports = None
         self.dnp3_ports = None
         self.modbus_ports = None
+        self.ftp_ports = None
+        self.file_data_ports = None
         self.default_log_directory = None
         self.default_rules_directory = None
         self.classification_file = None

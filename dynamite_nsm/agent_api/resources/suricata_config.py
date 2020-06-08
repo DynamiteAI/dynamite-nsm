@@ -46,7 +46,28 @@ class SuricataAddressGroupsConfig(Resource):
             modbus_client=suricata_instance_config.modbus_client,
             enip_client=suricata_instance_config.enip_client,
             enip_server=suricata_instance_config.enip_server
-        )
+        ), 200
+
+
+@api.route('/port-groups', endpoint='port-groups-config')
+class SuricataPortGroupsConfig(Resource):
+
+    def get(self):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        return dict(
+            http_ports=suricata_instance_config.http_ports,
+            shellcode_ports=suricata_instance_config.shellcode_ports,
+            oracle_ports=suricata_instance_config.oracle_ports,
+            ssh_ports=suricata_instance_config.ssh_ports,
+            dnp3_ports=suricata_instance_config.dnp3_ports,
+            modbus_ports=suricata_instance_config.modbus_ports,
+            file_data_ports=suricata_instance_config.file_data_ports,
+            ftp_ports=suricata_instance_config.ftp_ports,
+            modbus_server=suricata_instance_config.modbus_server,
+            modbus_client=suricata_instance_config.modbus_client,
+            enip_client=suricata_instance_config.enip_client,
+            enip_server=suricata_instance_config.enip_server
+        ), 200
 
 
 @api.route('/interfaces', endpoint='suricata-network-interfaces-config')

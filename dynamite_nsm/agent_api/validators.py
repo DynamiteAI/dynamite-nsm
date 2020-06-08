@@ -82,6 +82,7 @@ def validate_suricata_address_group_values(s):
             return True
         return False
 
+    s = str(s)
     valid_group_value_vars = ['$HOME_NET', '$EXTERNAL_NET', '$HTTP_SERVERS', '$SQL_SERVERS',
                               '$DNS_SERVERS', '$TELNET_SERVERS', '$AIM_SERVERS', '$DC_SERVERS',
                               '$MODBUS_SERVER', '$MODBUS_CLIENT', '$ENIP_CLIENT', '$ENIP_SERVER']
@@ -109,6 +110,42 @@ def validate_suricata_address_group_values(s):
         if 'any' == s:
             return True
         # Check if string is valid variable substitution, IP, or CIDR
+        return validate_token(s) or s in valid_var_subs
+
+
+def validate_suricata_port_group_values(s):
+
+    def validate_token(token):
+        if '.' in str(token):
+            return False
+        if str(token).startswith('!'):
+            token = token[1:]
+        try:
+            int(token)
+            if int(token) < 1 or int(token) > 65535:
+                return False
+        except ValueError:
+            return False
+        return True
+
+    s = str(s)
+    valid_group_value_vars = ['$HTTP_PORTS', '$SHELLCODE_PORTS', '$ORACLE_PORTS', '$SSH_PORTS',
+                              '$DNP3_PORTS', '$MODBUS_PORTS', '$FILE_DATA_PORTS', '$FTP_PORTS']
+
+    valid_neg_group_value_vars = ['!' + g for g in valid_group_value_vars]
+
+    valid_var_subs = valid_group_value_vars + valid_neg_group_value_vars
+    # List Formatting
+    if '[' in s and ']' in s:
+        # Negation is valid against sets as well (E.G ![ $HOME_NET, 192.168.0.0/24])
+        if s.startswith('!'):
+            s = s.replace(' ', '')[1:]
+        tokenized_list = s.replace(' ', '')[1:-1].split(',')
+        for t in tokenized_list:
+            if t not in valid_var_subs and not validate_token(t):
+                return False
+        return True
+    else:
         return validate_token(s) or s in valid_var_subs
 
 
@@ -153,9 +190,40 @@ def test_validate_suricata_address_groups():
         '192.168.1',
         '2002:cb0a:3cdd:1:',
         '::1/129',
-        '[$HOME_NET, any]'
-
+        '[$HOME_NET, any]',
+        ''
     ]
 
     for expr in valid_test_expressions + invalid_test_expressions:
         print(expr, validate_suricata_address_group_values(expr))
+
+
+def test_validate_suricata_port_groups():
+    valid_test_expressions = [
+        80,
+        '80',
+        '!80',
+        '[80, 8080, 8888]',
+        '![80, 8080, 8888]',
+        '$SHELLCODE_PORTS',
+        '!$SHELLCODE_PORTS',
+        '[$DNP3_PORTS, 8080, 8888]'
+        '[$DNP3_PORTS, 8080, 8888]',
+    ]
+
+    invalid_test_expressions = [
+        'badstring',
+        '!any',
+        '![any]',
+        '',
+        0,
+        5.5,
+        '65536'
+
+    ]
+
+    for expr in valid_test_expressions + invalid_test_expressions:
+        print(expr, validate_suricata_port_group_values(expr))
+
+
+test_validate_suricata_port_groups()
