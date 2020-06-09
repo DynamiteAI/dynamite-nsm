@@ -178,4 +178,4 @@ class SuricataAddressGroupsManager(Resource):
         setattr(suricata_instance_config, port_group, args.group_expression)
         suricata_instance_config.write_config()
         return dict(
-            address_group={'name': port_group, 'value': getattr(suricata_instance_config, port_group)}), 200
+            port_group={'name': port_group, 'value': getattr(suricata_instance_config, port_group)}), 200
