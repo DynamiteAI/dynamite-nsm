@@ -64,25 +64,37 @@ def validate_suricata_address_group_values(s):
     """
 
     def validate_token(token):
+        if str(token).startswith('!'):
+            token = token[1:]
 
-        # Check for CIDR notation
-        if '/' in token:
-            ip, prefix = token.split('/')
-            # Check for invalid prefix
-            if int(prefix) < 0 or int(prefix) > 128:
+        def token_is_cidr(tok):
+            if '/' in tok:
+                ip, prefix = tok.split('/')
+                # Check for invalid prefix
+                try:
+                    if int(prefix) < 0 or int(prefix) > 128:
+                        return False
+                except ValueError:
+                    return False
+            else:
                 return False
-        else:
-            ip = token
-        if ip in valid_var_subs:
             return True
-        elif ipv4_address_pattern.findall(ip) or ipv6_address_pattern.findall(ip):
-            return True
-        elif ip.startswith('!') and ipv4_address_pattern.findall(ip[1:]) \
-                or ipv6_address_pattern.findall(ip[1:]):
-            return True
-        return False
 
-    s = str(s)
+        def token_is_ip(tok):
+            return bool(ipv4_address_pattern.findall(tok) or ipv6_address_pattern.findall(tok))
+
+        def token_is_list(tok):
+            tok = str(tok)
+            if '[' in tok and ']' in tok:
+                # Negation is valid against sets as well (E.G ![ $HOME_NET, 192.168.0.0/24])
+                if tok.startswith('!'):
+                    tok = tok[1:]
+                return validate_suricata_address_group_values(tok)
+            return False
+
+        return token_is_cidr(token) or token_is_ip(token) or token_is_list(token)
+
+    s = str(s).replace(' ', '')
     valid_group_value_vars = ['$HOME_NET', '$EXTERNAL_NET', '$HTTP_SERVERS', '$SQL_SERVERS',
                               '$DNS_SERVERS', '$TELNET_SERVERS', '$AIM_SERVERS', '$DC_SERVERS',
                               '$MODBUS_SERVER', '$MODBUS_CLIENT', '$ENIP_CLIENT', '$ENIP_SERVER']
@@ -96,7 +108,9 @@ def validate_suricata_address_group_values(s):
         # Negation is valid against sets as well (E.G ![ $HOME_NET, 192.168.0.0/24])
         if s.startswith('!'):
             s = s.replace(' ', '')[1:]
-        tokenized_list = s.replace(' ', '')[1:-1].split(',')
+
+        # split on comma, but exclude values in square brackets
+        tokenized_list = re.split(r",(?![^(\[]*[\])])", s[1:-1])
         for t in tokenized_list:
             # Check if token in string is valid variable substitution, IP, or CIDR
             if t not in valid_var_subs and not validate_token(t):
@@ -114,21 +128,63 @@ def validate_suricata_address_group_values(s):
 
 
 def validate_suricata_port_group_values(s):
+    """
+
+    Must be like the following:
+        [80, 81, 82]    (port 80, 81 and 82)
+        [80: 82]        (Range from 80 till 82)
+        [1024: ]        (From 1024 till the highest port-number)
+        !80             (Every port but 80)
+        [80:100,!99]    (Range from 80 till 100 but 99 excluded)
+        [1:80,![2,4]]
+
+    :param s: Test String
+    :return: True if meets the suricata_port_group_value conditions
+    """
 
     def validate_token(token):
-        if '.' in str(token):
-            return False
+
         if str(token).startswith('!'):
             token = token[1:]
-        try:
-            int(token)
-            if int(token) < 1 or int(token) > 65535:
-                return False
-        except ValueError:
-            return False
-        return True
 
-    s = str(s)
+        def token_is_int(tok):
+            tok = str(tok)
+            try:
+                int(tok)
+                if int(tok) < 1 or int(tok) > 65535:
+                    return False
+            except ValueError:
+                return False
+            return True
+        if '.' in str(token):
+            return False
+
+        def token_is_range(tok):
+            tok = str(tok)
+            if ':' in str(tok):
+                port_range = tok.split(':')
+                if len(port_range) == 1:
+                    tok = port_range[0]
+                    return token_is_int(tok)
+                elif len(port_range) == 2:
+                    r1, r2 = port_range
+                    return token_is_int(r1) and token_is_int(r2)
+                else:
+                    return False
+
+        def token_is_list(tok):
+            tok = str(tok)
+            if '[' in tok and ']' in tok:
+
+                # Negation is valid against sets as well (E.G ![ $HOME_NET, 192.168.0.0/24])
+                if tok.startswith('!'):
+                    tok = tok[1:]
+                return validate_suricata_port_group_values(tok)
+            return False
+
+        return token_is_range(token) or token_is_int(token) or token_is_list(token)
+
+    s = str(s).replace(' ', '')
     valid_group_value_vars = ['$HTTP_PORTS', '$SHELLCODE_PORTS', '$ORACLE_PORTS', '$SSH_PORTS',
                               '$DNP3_PORTS', '$MODBUS_PORTS', '$FILE_DATA_PORTS', '$FTP_PORTS']
 
@@ -139,8 +195,9 @@ def validate_suricata_port_group_values(s):
     if '[' in s and ']' in s:
         # Negation is valid against sets as well (E.G ![ $HOME_NET, 192.168.0.0/24])
         if s.startswith('!'):
-            s = s.replace(' ', '')[1:]
-        tokenized_list = s.replace(' ', '')[1:-1].split(',')
+            s = s[1:]
+            # split on comma, but exclude values in square brackets
+        tokenized_list = re.split(r",(?![^(\[]*[\])])", s[1:-1])
         for t in tokenized_list:
             if t not in valid_var_subs and not validate_token(t):
                 return False
@@ -180,7 +237,8 @@ def test_validate_suricata_address_groups():
         '![$EXTERNAL_NET, !$HOME_NET]',
         '[$EXTERNAL_NET, !$HOME_NET, $MODBUS_CLIENT, $HTTP_SERVERS]',
         '[$EXTERNAL_NET, !$HOME_NET, $MODBUS_CLIENT, $HTTP_SERVERS, 192.168.0.1, 8.8.8.8]',
-        '[$EXTERNAL_NET, !$HOME_NET, $MODBUS_CLIENT, $HTTP_SERVERS, 192.168.0.1, 8.8.8.8, ff01:0:0:0:0:0:0:2, ::/128]'
+        '[$EXTERNAL_NET, !$HOME_NET, $MODBUS_CLIENT, $HTTP_SERVERS, 192.168.0.1, 8.8.8.8, ff01:0:0:0:0:0:0:2, ::/128]',
+        '[192.168.0.1, 8.8.8.8, ff01:0:0:0:0:0:0:2, ::/128, 192.168.0.0/24, [192.168.0.1, 192.168.0.5, 192.168.0.5/32, $HTTP_SERVERS]]'
     ]
 
     invalid_test_expressions = [
@@ -209,6 +267,9 @@ def test_validate_suricata_port_groups():
         '!$SHELLCODE_PORTS',
         '[$DNP3_PORTS, 8080, 8888]',
         '[$DNP3_PORTS, 8080, 8888]',
+        '80:8000',
+        '[80:440, !88, [80, 443]]'
+
     ]
 
     invalid_test_expressions = [
@@ -218,8 +279,8 @@ def test_validate_suricata_port_groups():
         '',
         0,
         5.5,
-        '65536'
-
+        '65536',
+        ''
     ]
 
     for expr in valid_test_expressions + invalid_test_expressions:

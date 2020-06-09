@@ -134,3 +134,48 @@ class SuricataAddressGroupsManager(Resource):
         suricata_instance_config.write_config()
         return dict(
             address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)}), 200
+
+
+@api.route('/port-groups/<port_group>', endpoint='suricata-port-group-manager')
+class SuricataAddressGroupsManager(Resource):
+    VALID_PORT_GROUP_NAMES = ['http_ports', 'shellcode_ports', 'oracle_ports', 'ssh_ports', 'dnp3_ports',
+                              'modbus_ports', 'ftp_ports', 'file_data_ports']
+
+    def get(self, port_group):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        if not validators.validate_name(port_group):
+            return dict(message='Invalid "port_group"; must be one of the following : {}'.format(
+                self.VALID_ADDRESS_GROUP_NAMES)), 400
+        return dict(
+            port_group={'name': port_group, 'value': getattr(suricata_instance_config, port_group)}), 200
+
+    def put(self, port_group):
+        var_sub = '$' + port_group.upper()
+        corresponding_var_subs = [var_sub, '!' + var_sub]
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        arg_parser = reqparse.RequestParser()
+        arg_parser.add_argument(
+            'group_expression', dest='group_expression',
+            location='json', required=True, type=str,
+            help='An expression representing an group of ports, examples can be found here: '
+                 'https://suricata.readthedocs.io/en/suricata-4.0.0-beta1/rules/intro.html#'
+                 'ports-source-and-destination-port'
+        )
+        if not validators.validate_name(port_group):
+            return dict(message='Invalid "port_group"; must be one of the following : {}'.format(
+                self.VALID_ADDRESS_GROUP_NAMES)), 400
+        args = arg_parser.parse_args()
+        if args.group_expression.replace(' ', '') in corresponding_var_subs:
+            return dict(
+                message='{} cannot be {}, this would lead to circular references.'.format(args.group_expression,
+                                                                                          corresponding_var_subs)
+            ), 400
+        if not validators.validate_suricata_port_group_values(args.group_expression):
+            return dict(
+                message='Invalid "group_expression"; '
+                        'examples can be found here: https://suricata.readthedocs.io/en/suricata-4.0.0-beta1/rules/'
+                        'intro.html#ports-source-and-destination-port'), 400
+        setattr(suricata_instance_config, port_group, args.group_expression)
+        suricata_instance_config.write_config()
+        return dict(
+            address_group={'name': port_group, 'value': getattr(suricata_instance_config, port_group)}), 200
