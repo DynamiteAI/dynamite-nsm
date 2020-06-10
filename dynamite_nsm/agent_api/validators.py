@@ -1,4 +1,10 @@
+import os
 import re
+import json
+from subprocess import Popen, PIPE
+
+from dynamite_nsm import const
+
 
 ipv4_address_pattern = re.compile('^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}(?:[0-9]|[1-9][0-9]|1'
                                   '[0-9]{2}|2[0-4][0-9]|25[0-5])$')
@@ -23,6 +29,17 @@ ipv6_address_pattern = re.compile('^(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,
                                   '|25[0-5])\\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(?:(?:'
                                   '[0-9A-Fa-f]{1,4}:){,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:)'
                                   '{,6}[0-9A-Fa-f]{1,4})?::)$')
+
+
+def validate_bpf_filter(s, include_message=False):
+    bpf_validate_path = os.path.join(const.BIN_DEPS_PATH, 'bpf_validate')
+    p = Popen([bpf_validate_path, s.split(' ')], stdout=PIPE)
+    p.communicate()
+    serialized_values = json.loads(p.stdout)
+    if not include_message:
+        return serialized_values['success']
+    else:
+        return serialized_values['success'], serialized_values['msg']
 
 
 def validate_name(s):
