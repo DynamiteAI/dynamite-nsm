@@ -102,7 +102,7 @@ class SuricataInterfaceManager(Resource):
                 threads = int(interface_config['threads'])
             else:
                 threads = 'auto'
-            cluster_id = int(interface_config['threads'])
+            cluster_id = int(interface_config['cluster-id'])
             cluster_type = interface_config['cluster-type']
             bpf_filter = interface_config.get('bpf-filter')
 
