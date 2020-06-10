@@ -43,9 +43,9 @@ def validate_bpf_filter(s, include_message=False):
 
 
 def validate_integer(s):
-    tok = str(s)
+    s = str(s)
     try:
-        int(tok)
+        int(s)
     except ValueError:
         return False
     return '.' not in str(s)
