@@ -146,9 +146,7 @@ class SuricataInterfaceManager(Resource):
         if args.interface:
             interface = args.interface
         if args.threads:
-            if not validators.validate_integer(args.threads):
-                return dict(message="Invalid threads option; valid options are any integer or 'auto' keyword."), 400
-            elif args.threads != 'auto':
+            if not (validators.validate_integer(args.threads) or args.threads == 'auto'):
                 return dict(message="Invalid threads option; valid options are any integer or 'auto' keyword."), 400
             threads = int(args.threads)
         if args.cluster_id:
