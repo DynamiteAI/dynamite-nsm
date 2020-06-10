@@ -165,7 +165,7 @@ class SuricataInterfaceManager(Resource):
                 interface_config = \
                     [af_packet_interface
                      for af_packet_interface in suricata_instance_config.af_packet_interfaces if
-                     af_packet_interface['interface'] == net_interface][0]
+                     af_packet_interface['interface'] == interface][0]
             except IndexError:
                 return dict(message='{} interface does not exists. Use POST to create.'.format(interface)), 400
             return dict(interface=interface_config), success_code
