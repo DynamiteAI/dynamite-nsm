@@ -71,7 +71,7 @@ class SuricataInterfacesConfig(Resource):
 
     def get(self):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
-        return suricata_instance_config.af_packet_interfaces, 200
+        return dict(interfaces=suricata_instance_config.list_af_packet_interfaces()), 200
 
 
 @api.route('/interfaces/<interface>', endpoint='suricata-network-interface-manager')
@@ -159,10 +159,13 @@ class SuricataInterfaceManager(Resource):
             suricata_instance_config.add_afpacket_interface(interface=interface, threads=threads, cluster_id=cluster_id,
                                                             cluster_type=cluster_type, bpf_filter=bpf_filter)
             suricata_instance_config.write_config()
-            interface_config = \
-                [af_packet_interface
-                 for af_packet_interface in suricata_instance_config.af_packet_interfaces if
-                 af_packet_interface['interface'] == net_interface][0]
+            try:
+                interface_config = \
+                    [af_packet_interface
+                     for af_packet_interface in suricata_instance_config.af_packet_interfaces if
+                     af_packet_interface['interface'] == net_interface][0]
+            except IndexError:
+                return dict(message='{} interface does not exists. Use POST to create.'.format(interface)), 400
             return dict(interface=interface_config), success_code
         except suricata_config.suricata_exceptions.WriteSuricataConfigError as e:
             return dict(message=str(e)), 500
