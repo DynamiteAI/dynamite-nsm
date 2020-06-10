@@ -49,6 +49,18 @@ def validate_suricata_address_group_name(s):
                  ]
 
 
+def validate_suricata_port_group_name(s):
+    """
+    Must be one of the valid Suricata port groups
+
+    :param s: Test string
+    :return: True, if meets the suricata_port_group_name conditions
+    """
+    return s in ['http_ports', 'shellcode_ports', 'oracle_ports', 'ssh_ports', 'dnp3_ports', 'modbus_ports',
+                 'ftp_ports', 'file_data_ports'
+                 ]
+
+
 def validate_suricata_address_group_values(s):
     """
 
@@ -168,7 +180,8 @@ def validate_suricata_port_group_values(s):
                     return token_is_int(tok)
                 elif len(port_range) == 2:
                     r1, r2 = port_range
-                    return token_is_int(r1) and token_is_int(r2)
+                    return token_is_int(r1) and token_is_int(r2) and int(r1) < int(r2)
+
                 else:
                     return False
 
@@ -285,3 +298,4 @@ def test_validate_suricata_port_groups():
 
     for expr in valid_test_expressions + invalid_test_expressions:
         print(expr, validate_suricata_port_group_values(expr))
+

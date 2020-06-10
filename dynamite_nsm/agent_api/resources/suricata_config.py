@@ -77,6 +77,89 @@ class SuricataInterfacesConfig(Resource):
 @api.route('/interfaces/<interface>', endpoint='suricata-network-interface-manager')
 class SuricataInterfaceManager(Resource):
 
+    @staticmethod
+    def _create_update(net_interface, verb='POST'):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        net_interfaces = utilities.get_network_interface_names()
+        arg_parser = reqparse.RequestParser()
+        if verb == 'POST':
+            require_args = True
+            success_code = 201
+            interface = None
+            threads = None
+            cluster_id = None
+            cluster_type = None
+            bpf_filter = None
+        else:
+            interface_config = \
+                [af_packet_interface
+                 for af_packet_interface in suricata_instance_config.af_packet_interfaces if
+                 af_packet_interface['interface'] == net_interface][0]
+            require_args = False
+            success_code = 200
+            interface = interface_config['interface']
+            threads = int(interface_config['threads'])
+            cluster_id = int(interface_config['threads'])
+            cluster_type = interface_config['cluster-type']
+            bpf_filter = interface_config.get('bpf-filter')
+
+        arg_parser.add_argument(
+            'interface', dest='interface',
+            location='json', required=require_args, type=str,
+            help='The network interface to monitor; valid interfaces: {}'.format(net_interfaces)
+        )
+        arg_parser.add_argument(
+            'threads', dest='threads',
+            location='json', required=require_args, type=int,
+            help='The number of threads used to monitor your interface.'
+        )
+        arg_parser.add_argument(
+            'cluster_id', dest='cluster_id',
+            location='json', required=require_args, type=int,
+            help='The AF_PACKET cluster id; AF_PACKET will load balance packets based on flow.',
+            choices=range(1, 99)
+        )
+        arg_parser.add_argument(
+            'cluster_type', dest='cluster_type',
+            location='json', required=require_args, type=list,
+            help='A method by which packet-load-balancing is accomplished.',
+            choices=['cluster_flow', 'cluster_cpu', 'cluster_qm']
+        )
+        arg_parser.add_argument(
+            'bpf_filter', dest='bpf_filter',
+            location='json', required=require_args, type=str,
+            help='Berkeley Packet Filter expression used for filtering out undesired packets on this interface.'
+        )
+
+        args = arg_parser.parse_args()
+
+        # Reassign interface operation
+        if verb == 'PUT' and args.interface:
+            suricata_instance_config.remove_afpacket_interface(net_interface)
+            interface = args.interface
+        if args.interface:
+            interface = args.interface
+        if args.threads:
+            threads = args.threads
+        if args.cluster_id:
+            cluster_id = args.cluster_id
+        if args.cluster_type:
+            cluster_type = args.cluster_type
+        if interface not in net_interfaces:
+            return dict(message='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
+
+        try:
+            suricata_instance_config.add_afpacket_interface(interface=interface, threads=threads, cluster_id=cluster_id,
+                                                            cluster_type=cluster_type, bpf_filter=bpf_filter)
+            suricata_instance_config.write_config()
+            interface_config = \
+                [af_packet_interface
+                 for af_packet_interface in suricata_instance_config.af_packet_interfaces if
+                 af_packet_interface['interface'] == net_interface][0]
+            return dict(interface=interface_config), success_code
+        except suricata_config.suricata_exceptions.WriteSuricataConfigError as e:
+            return dict(message=str(e)), 500
+
     def get(self, interface):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
@@ -85,8 +168,16 @@ class SuricataInterfaceManager(Resource):
             return dict(message='Invalid network interface.'), 400
         for net_interface in suricata_instance_config.af_packet_interfaces:
             if net_interface['interface'] == interface:
-                return net_interface, 200
+                return dict(interface=net_interface), 200
         return dict(message='Network interface not found.'), 404
+
+    def put(self, interface):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        interface_names = \
+            [af_packet_interface['interface'] for af_packet_interface in suricata_instance_config.af_packet_interfaces]
+        if interface not in interface_names:
+            return dict(message='{} interface does not exists. Use POST to create.'.format(interface)), 400
+        return self._create_update(interface, verb='PUT')
 
 
 @api.route('/address-groups/<address_group>', endpoint='suricata-address-group-manager')
@@ -98,13 +189,16 @@ class SuricataAddressGroupsManager(Resource):
 
     def get(self, address_group):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
-        if not validators.validate_name(address_group):
+        if not validators.validate_suricata_address_group_name(address_group):
             return dict(message='Invalid "address_group"; must be one of the following : {}'.format(
                 self.VALID_ADDRESS_GROUP_NAMES)), 400
         return dict(
             address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)}), 200
 
     def put(self, address_group):
+        if not validators.validate_suricata_address_group_name(address_group):
+            return dict(message='Invalid "address_group"; must be one of the following : {}'.format(
+                self.VALID_ADDRESS_GROUP_NAMES)), 400
         var_sub = '$' + address_group.upper()
         corresponding_var_subs = [var_sub, '!' + var_sub]
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
@@ -143,13 +237,16 @@ class SuricataAddressGroupsManager(Resource):
 
     def get(self, port_group):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
-        if not validators.validate_name(port_group):
+        if not validators.validate_suricata_port_group_name(port_group):
             return dict(message='Invalid "port_group"; must be one of the following : {}'.format(
-                self.VALID_ADDRESS_GROUP_NAMES)), 400
+                self.VALID_PORT_GROUP_NAMES)), 400
         return dict(
             port_group={'name': port_group, 'value': getattr(suricata_instance_config, port_group)}), 200
 
     def put(self, port_group):
+        if not validators.validate_suricata_port_group_name(port_group):
+            return dict(message='Invalid "port_group"; must be one of the following : {}'.format(
+                self.VALID_PORT_GROUP_NAMES)), 400
         var_sub = '$' + port_group.upper()
         corresponding_var_subs = [var_sub, '!' + var_sub]
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
