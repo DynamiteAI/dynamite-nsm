@@ -98,10 +98,7 @@ class SuricataInterfaceManager(Resource):
             require_args = False
             success_code = 200
             interface = interface_config['interface']
-            if interface_config['threads'] != 'auto':
-                threads = int(interface_config['threads'])
-            else:
-                threads = 'auto'
+            threads = interface_config['threads']
             cluster_id = int(interface_config['cluster-id'])
             cluster_type = interface_config['cluster-type']
             bpf_filter = interface_config.get('bpf-filter')
@@ -149,9 +146,9 @@ class SuricataInterfaceManager(Resource):
         if args.interface:
             interface = args.interface
         if args.threads:
-            threads = args.threads
-            if not validators.validate_integer(threads) and threads != 'auto':
+            if not validators.validate_integer(args.threads) and args.threads != 'auto':
                 return dict(message="Invalid threads option; valid options are any integer or 'auto' keyword.")
+            threads = int(args.threads)
         if args.cluster_id:
             cluster_id = args.cluster_id
         if args.cluster_type:
