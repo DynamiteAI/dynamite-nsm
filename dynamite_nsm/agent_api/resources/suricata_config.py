@@ -85,7 +85,7 @@ class SuricataInterfaceManager(Resource):
         if verb == 'POST':
             require_args = True
             success_code = 201
-            interface = None
+            interface = net_interface
             threads = None
             cluster_id = None
             cluster_type = None
@@ -108,7 +108,7 @@ class SuricataInterfaceManager(Resource):
 
         arg_parser.add_argument(
             'interface', dest='interface',
-            location='json', required=require_args, type=str,
+            location='json', required=False, type=str,
             help='The network interface to monitor; valid interfaces: {}'.format(net_interfaces)
         )
         arg_parser.add_argument(
