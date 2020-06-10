@@ -138,7 +138,6 @@ class SuricataInterfaceManager(Resource):
 
         # Reassign interface operation
         if verb == 'PUT' and args.interface:
-            suricata_instance_config.remove_afpacket_interface(net_interface)
             interface = args.interface
         if args.interface:
             interface = args.interface
@@ -152,6 +151,7 @@ class SuricataInterfaceManager(Resource):
             return dict(message='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
 
         try:
+            suricata_instance_config.remove_afpacket_interface(net_interface)
             suricata_instance_config.add_afpacket_interface(interface=interface, threads=threads, cluster_id=cluster_id,
                                                             cluster_type=cluster_type, bpf_filter=bpf_filter)
             suricata_instance_config.write_config()
