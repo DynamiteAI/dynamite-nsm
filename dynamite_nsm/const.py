@@ -17,7 +17,7 @@ LOG_PATH = '/var/log/dynamite/'
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 
 # TODO add to config
-BIN_DEPS_PATH = '/opt/dynamite/binaries_deps/'
+BIN_DEPS_PATH = '/opt/dynamite/binaries/'
 
 
 def bootstrap_constants_from_const_environment_file():
