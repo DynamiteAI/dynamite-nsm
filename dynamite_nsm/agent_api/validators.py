@@ -42,6 +42,15 @@ def validate_bpf_filter(s, include_message=False):
         return serialized_values['success'], serialized_values['msg']
 
 
+def validate_integer(s):
+    tok = str(s)
+    try:
+        int(tok)
+    except ValueError:
+        return False
+    return '.' not in str(s)
+
+
 def validate_name(s):
     """
     Must be between 5 and 30 characters and
@@ -176,7 +185,7 @@ def validate_suricata_port_group_values(s):
         if str(token).startswith('!'):
             token = token[1:]
 
-        def token_is_int(tok):
+        def token_is_port(tok):
             tok = str(tok)
             try:
                 int(tok)
@@ -184,9 +193,7 @@ def validate_suricata_port_group_values(s):
                     return False
             except ValueError:
                 return False
-            return True
-        if '.' in str(token):
-            return False
+            return '.' not in str(tok)
 
         def token_is_range(tok):
             tok = str(tok)
@@ -194,10 +201,10 @@ def validate_suricata_port_group_values(s):
                 port_range = tok.split(':')
                 if len(port_range) == 1:
                     tok = port_range[0]
-                    return token_is_int(tok)
+                    return token_is_port(tok)
                 elif len(port_range) == 2:
                     r1, r2 = port_range
-                    return token_is_int(r1) and token_is_int(r2) and int(r1) < int(r2)
+                    return token_is_port(r1) and token_is_port(r2) and int(r1) < int(r2)
 
                 else:
                     return False
@@ -212,7 +219,7 @@ def validate_suricata_port_group_values(s):
                 return validate_suricata_port_group_values(tok)
             return False
 
-        return token_is_range(token) or token_is_int(token) or token_is_list(token)
+        return token_is_range(token) or token_is_port(token) or token_is_list(token)
 
     s = str(s).replace(' ', '')
     valid_group_value_vars = ['$HTTP_PORTS', '$SHELLCODE_PORTS', '$ORACLE_PORTS', '$SSH_PORTS',
@@ -316,3 +323,4 @@ def test_validate_suricata_port_groups():
     for expr in valid_test_expressions + invalid_test_expressions:
         print(expr, validate_suricata_port_group_values(expr))
 
+test_validate_suricata_port_groups()
