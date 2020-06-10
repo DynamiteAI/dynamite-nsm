@@ -48,7 +48,7 @@ def validate_integer(s):
         int(s)
     except ValueError:
         return False
-    return '.' not in str(s)
+    return '.' not in s
 
 
 def validate_name(s):
@@ -322,5 +322,3 @@ def test_validate_suricata_port_groups():
 
     for expr in valid_test_expressions + invalid_test_expressions:
         print(expr, validate_suricata_port_group_values(expr))
-
-test_validate_suricata_port_groups()
