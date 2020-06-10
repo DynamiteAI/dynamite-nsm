@@ -98,7 +98,10 @@ class SuricataInterfaceManager(Resource):
             require_args = False
             success_code = 200
             interface = interface_config['interface']
-            threads = int(interface_config['threads'])
+            if interface_config['threads'] != 'auto':
+                threads = int(interface_config['threads'])
+            else:
+                threads = 'auto'
             cluster_id = int(interface_config['threads'])
             cluster_type = interface_config['cluster-type']
             bpf_filter = interface_config.get('bpf-filter')
@@ -110,7 +113,7 @@ class SuricataInterfaceManager(Resource):
         )
         arg_parser.add_argument(
             'threads', dest='threads',
-            location='json', required=require_args, type=int,
+            location='json', required=require_args, type=str,
             help='The number of threads used to monitor your interface.'
         )
         arg_parser.add_argument(
