@@ -120,13 +120,13 @@ class SuricataInterfaceManager(Resource):
             'cluster_id', dest='cluster_id',
             location='json', required=require_args, type=int,
             help='The AF_PACKET cluster id; AF_PACKET will load balance packets based on flow;'
-                 ' Valid choices are integers between 1 and 99.',
+                 ' valid choices are integers between 1 and 99.',
             choices=range(0, 100)
         )
         arg_parser.add_argument(
             'cluster_type', dest='cluster_type',
             location='json', required=require_args, type=str,
-            help='A method by which packet-load-balancing is accomplished; Valid choices are: {}'.format(
+            help='A method by which packet-load-balancing is accomplished; valid choices are: {}'.format(
                 ['cluster_flow', 'cluster_cpu', 'cluster_qm']),
             choices=['cluster_flow', 'cluster_cpu', 'cluster_qm']
         )
@@ -140,8 +140,8 @@ class SuricataInterfaceManager(Resource):
 
         # Reassign interface operation
         if verb == 'PUT' and args.interface:
-            if args.interface not in suricata_instance_config.list_af_packet_interfaces():
-                return dict(message='{} interface does not exists. Use POST to create.'.format(args.interface)), 400
+            if args.interface not in net_interfaces:
+                return dict(message='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
             interface = args.interface
         if args.interface:
             interface = args.interface
@@ -184,6 +184,11 @@ class SuricataInterfaceManager(Resource):
         return dict(message='Network interface not found.'), 404
 
     def put(self, interface):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        interface_names = \
+            [af_packet_interface['interface'] for af_packet_interface in suricata_instance_config.af_packet_interfaces]
+        if interface not in interface_names:
+            return dict(message='{} interface does not exists. Use POST to create.'.format(interface)), 400
         return self._create_update(interface, verb='PUT')
 
 
