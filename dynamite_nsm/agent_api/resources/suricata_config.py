@@ -119,13 +119,15 @@ class SuricataInterfaceManager(Resource):
         arg_parser.add_argument(
             'cluster_id', dest='cluster_id',
             location='json', required=require_args, type=int,
-            help='The AF_PACKET cluster id; AF_PACKET will load balance packets based on flow.',
+            help='The AF_PACKET cluster id; AF_PACKET will load balance packets based on flow;'
+                 ' Valid choices are integers between 1 and 99.',
             choices=range(0, 100)
         )
         arg_parser.add_argument(
             'cluster_type', dest='cluster_type',
             location='json', required=require_args, type=str,
-            help='A method by which packet-load-balancing is accomplished.',
+            help='A method by which packet-load-balancing is accomplished; Valid choices are: {}'.format(
+                ['cluster_flow', 'cluster_cpu', 'cluster_qm']),
             choices=['cluster_flow', 'cluster_cpu', 'cluster_qm']
         )
         arg_parser.add_argument(
@@ -147,6 +149,8 @@ class SuricataInterfaceManager(Resource):
             cluster_id = args.cluster_id
         if args.cluster_type:
             cluster_type = args.cluster_type
+        if args.bpf_filter:
+            bpf_filter = args.bpf_filter
         if interface not in net_interfaces:
             return dict(message='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
 
