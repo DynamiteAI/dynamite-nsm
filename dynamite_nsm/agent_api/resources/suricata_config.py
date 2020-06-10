@@ -153,6 +153,9 @@ class SuricataInterfaceManager(Resource):
             cluster_type = args.cluster_type
         if args.bpf_filter:
             bpf_filter = args.bpf_filter
+            success, msg = validators.validate_bpf_filter(bpf_filter, include_message=True)
+            if not success:
+                return dict(message='Invalid BPF Filter: {}'.format(msg)), 400
         if interface not in net_interfaces:
             return dict(message='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
 
