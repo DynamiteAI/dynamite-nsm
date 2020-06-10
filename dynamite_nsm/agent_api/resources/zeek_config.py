@@ -208,6 +208,9 @@ class ZeekNodeLoggerManager(Resource):
 
         # Rename logger operation
         if verb == 'PUT' and args.name:
+            if args.name in node_config.list_loggers():
+                return dict(message='A logger by this name already exits. Please choose a different name, or delete '
+                                    '{} first.'.format(args.name)), 400
             if not validators.validate_name(args.name):
                 return dict(
                     message='Invalid "name"; must be between 5 and 30 characters and match '
@@ -306,6 +309,9 @@ class ZeekNodeProxyManager(Resource):
 
         # Rename proxy operation
         if verb == 'PUT' and args.name:
+            if args.name in node_config.list_proxies():
+                return dict(message='A proxy by this name already exits. Please choose a different name, or delete '
+                                    '{} first.'.format(args.name)), 400
             if not validators.validate_name(args.name):
                 return dict(
                     message='Invalid "name"; must be between 5 and 30 characters and match '

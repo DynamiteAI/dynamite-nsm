@@ -140,6 +140,9 @@ class SuricataInterfaceManager(Resource):
 
         # Reassign interface operation
         if verb == 'PUT' and args.interface:
+            if args.interface in suricata_instance_config.list_af_packet_interfaces():
+                return dict(message='An interface configuration for {} already exits. Please choose a different name, '
+                                    'or delete {} interface config first.'.format(args.interface, args.interface)), 400
             if args.interface not in net_interfaces:
                 return dict(message='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
             interface = args.interface
