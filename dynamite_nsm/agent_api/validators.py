@@ -34,8 +34,8 @@ ipv6_address_pattern = re.compile('^(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,
 def validate_bpf_filter(s, include_message=False):
     bpf_validate_path = os.path.join(const.BIN_DEPS_PATH, 'bpf_validate')
     p = Popen([bpf_validate_path] + s.split(' '), stdout=PIPE)
-    p.communicate()
-    serialized_values = json.loads(p.stdout.read())
+    output, _ = p.communicate()
+    serialized_values = json.loads(output)
     if not include_message:
         return serialized_values['success']
     else:
