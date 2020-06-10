@@ -178,6 +178,17 @@ class SuricataInterfaceManager(Resource):
         except suricata_config.suricata_exceptions.WriteSuricataConfigError as e:
             return dict(message=str(e)), 500
 
+    def delete(self, interface):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        net_interfaces = utilities.get_network_interface_names()
+        if interface not in net_interfaces:
+            return dict(message='Invalid network interface.'), 400
+        elif interface not in suricata_instance_config.list_af_packet_interfaces():
+            return dict(message='Network interface not found.'), 404
+        suricata_instance_config.remove_afpacket_interface(interface)
+        suricata_instance_config.write_config()
+        return dict(message='Deleted network interface {}.'.format(interface)), 200
+
     def get(self, interface):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
