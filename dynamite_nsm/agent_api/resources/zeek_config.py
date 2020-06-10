@@ -435,8 +435,7 @@ class ZeekNodeWorkerManager(Resource):
         # Rename worker operation
         if verb == 'PUT' and args.name:
             if not validators.validate_name(args.name):
-                return dict(
-                    message='Invalid "name"; must be between 5 and 30 characters and match '
+                return dict(message='Invalid "name"; must be between 5 and 30 characters and match '
                             '"^[a-zA-Z0-9]([\w -]*[a-zA-Z0-9]$)"'), 400
             node_config.remove_worker(name)
             name = args.name
