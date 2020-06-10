@@ -186,6 +186,14 @@ class SuricataInterfaceManager(Resource):
                 return dict(interface=net_interface), 200
         return dict(message='Network interface not found.'), 404
 
+    def post(self, interface):
+        suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
+        interface_names = \
+            [af_packet_interface['interface'] for af_packet_interface in suricata_instance_config.af_packet_interfaces]
+        if interface in interface_names:
+            return dict(message='{} interface already exists. Use PUT to update.'.format(interface)), 400
+        return self._create_update(interface, verb='POST')
+
     def put(self, interface):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         interface_names = \
