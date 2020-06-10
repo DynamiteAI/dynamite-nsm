@@ -120,11 +120,11 @@ class SuricataInterfaceManager(Resource):
             'cluster_id', dest='cluster_id',
             location='json', required=require_args, type=int,
             help='The AF_PACKET cluster id; AF_PACKET will load balance packets based on flow.',
-            choices=range(1, 99)
+            choices=range(0, 100)
         )
         arg_parser.add_argument(
             'cluster_type', dest='cluster_type',
-            location='json', required=require_args, type=list,
+            location='json', required=require_args, type=str,
             help='A method by which packet-load-balancing is accomplished.',
             choices=['cluster_flow', 'cluster_cpu', 'cluster_qm']
         )
