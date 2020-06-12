@@ -59,24 +59,24 @@ model_suricata_interface = api.model('SuricataInterface', model={
 
 # REQUEST MODELS =======================================================================================================
 
-model_request_update_group = api.model('SuricataGroupRequest', model={
-    "group_expression": fields.String
-}),
+model_request_update_group = api.model('SuricataGroupRequest', model=dict(
+    group_expression=fields.String
+)),
 
-model_request_create_suricata_interface = api.model('SuricataInterfaceCreateRequest', model={
-    "bpf_filter": fields.String,
-    "cluster_id": fields.Integer,
-    "cluster_type": fields.String,
-    "threads": fields.String
-}),
+model_request_create_suricata_interface = api.model('SuricataInterfaceCreateRequest', dict(
+    bpf_filter=fields.String,
+    cluster_id=fields.Integer,
+    cluster_type=fields.String,
+    threads=fields.String
+)),
 
-model_request_update_suricata_interface = api.model('SuricataInterfaceUpdateRequest', model={
-    "interface": fields.String(required=False),
-    "bpf_filter": fields.String(required=False),
-    "cluster_id": fields.Integer(required=False),
-    "cluster_type": fields.String(required=False),
-    "threads": fields.String(required=False),
-})
+model_request_update_suricata_interface = api.model('SuricataInterfaceUpdateRequest', model=dict(
+    interface=fields.String(required=False),
+    bpf_filter=fields.String(required=False),
+    cluster_id=fields.Integer(required=False),
+    cluster_type=fields.String(required=False),
+    threads=fields.String(required=False)
+))
 
 # RESPONSE MODELS ======================================================================================================
 
