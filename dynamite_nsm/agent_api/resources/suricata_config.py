@@ -316,7 +316,12 @@ class SuricataInterfaceManager(Resource):
 
     @api.doc('create_suricata_network_interface')
     @api.param('interface', description='A valid network interface.')
-    @api.expect(model_request_create_suricata_interface)
+    @api.expect(model_request_create_suricata_interface, example={
+        "bpf_filter": "tcp or udp and port 80",
+        "threads": 5,
+        "cluster_id": 5,
+        "cluster_type": "cluster_flow"
+    })
     @api.response(201, 'Created network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (already exists) or bad value(s).', model=model_response_error)
     def post(self, interface):
