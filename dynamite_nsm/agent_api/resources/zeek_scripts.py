@@ -12,6 +12,8 @@ api = Namespace(
 env_vars = utilities.get_environment_file_dict()
 ZEEK_SCRIPT_DIRECTORY = env_vars.get('ZEEK_SCRIPTS')
 
+# BASE MODELS ==========================================================================================================
+
 model_zeek_script_no_status = api.model(
     'ZeekScript', model=dict(
         id=fields.Integer,
@@ -34,6 +36,13 @@ model_zeek_scripts = api.model(
     )
 )
 
+# REQUEST MODELS =======================================================================================================
+
+model_zeek_request_update_script = api.model('ZeekScriptRequest', model=dict(
+    status=fields.String(pattern='enabled|disabled')
+))
+
+# RESPONSE MODELS ======================================================================================================
 
 # GET /
 model_response_zeek_scripts = api.model('ZeekGetScriptsResponse', model=dict(
@@ -110,6 +119,7 @@ class ZeekScriptManager(Resource):
 
     @api.doc('update_zeek_script')
     @api.param('script_id', description='A numeric identifier representing a Zeek script.')
+    @api.expect(model_zeek_request_update_script)
     @api.response(200, 'Updated Zeek Script.', model=model_response_generic_success)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_error)
     def put(self, script_id):

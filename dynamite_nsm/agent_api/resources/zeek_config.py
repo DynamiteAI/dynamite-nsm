@@ -14,7 +14,6 @@ ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
 # BASE MODELS ==========================================================================================================
 
-
 model_zeek_simple_node_multiple_component = api.model(
     'ZeekSimpleNodeMultipleComponents', model=dict(
         name=fields.String,

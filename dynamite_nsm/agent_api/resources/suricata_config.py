@@ -66,7 +66,7 @@ model_request_update_group = api.model('SuricataGroupRequest', model=dict(
 model_request_create_suricata_interface = api.model('SuricataInterfaceCreateRequest', model=dict(
     bpf_filter=fields.String,
     cluster_id=fields.Integer,
-    cluster_type=fields.String,
+    cluster_type=fields.String(pattern='cluster_flow|cluster_cpu|cluster_qm'),
     threads=fields.String
 ))
 
@@ -74,7 +74,7 @@ model_request_update_suricata_interface = api.model('SuricataInterfaceUpdateRequ
     interface=fields.String(required=False),
     bpf_filter=fields.String(required=False),
     cluster_id=fields.Integer(required=False),
-    cluster_type=fields.String(required=False),
+    cluster_type=fields.String(required=False, pattern='cluster_flow|cluster_cpu|cluster_qm'),
     threads=fields.String(required=False)
 ))
 
