@@ -12,28 +12,38 @@ api = Namespace(
 env_vars = utilities.get_environment_file_dict()
 ZEEK_SCRIPT_DIRECTORY = env_vars.get('ZEEK_SCRIPTS')
 
-model_zeek_script = api.model(
+model_zeek_script_no_status = api.model(
     'ZeekScript', model=dict(
         id=fields.Integer,
         name=fields.String,
     )
 )
 
-
-# GET /
-model_response_zeek_scripts = api.model(
-    'ZeekGetScriptsResponse', model=dict(
-        enabled=fields.List(fields.Nested(model_zeek_script)),
-        disabled=fields.List(fields.Nested(model_zeek_script))
+model_zeek_script_status = api.model(
+    'ZeekScript', model=dict(
+        id=fields.Integer,
+        name=fields.String,
+        status=fields.String
     )
 )
+
+model_zeek_scripts = api.model(
+    'ZeekScripts', model=dict(
+        enabled=fields.List(fields.Nested(model_zeek_script_no_status)),
+        disabled=fields.List(fields.Nested(model_zeek_script_no_status))
+    )
+)
+
+
+# GET /
+model_response_zeek_scripts = api.model('ZeekGetScriptsResponse', model=dict(
+    scripts=fields.Nested(model_zeek_scripts)
+))
 
 # GET /<script_id>
 model_response_zeek_script = api.model(
     'ZeekGetScriptResponse', model=dict(
-        id=fields.Integer,
-        name=fields.String,
-        status=fields.String
+        script=fields.Nested(model_zeek_script_status)
     )
 )
 
@@ -70,7 +80,7 @@ class ZeekScriptConfig(Resource):
         script_config = zeek_config.ScriptConfigManager(configuration_directory=ZEEK_SCRIPT_DIRECTORY)
         scripts_and_ids = self.hash_and_id_scripts(script_config.list_enabled_scripts(),
                                                    script_config.list_disabled_scripts())
-        return scripts_and_ids, 200
+        return dict(scripts=scripts_and_ids), 200
 
 
 @api.route('/<script_id>', endpoint='script-manager')
@@ -90,11 +100,11 @@ class ZeekScriptManager(Resource):
         if script_id in enabled_scripts:
             idx = enabled_scripts.index(script_id)
             scripts_and_ids['enabled'][idx].update({'status': 'enabled'})
-            return scripts_and_ids['enabled'][idx], 200
+            return dict(script=scripts_and_ids['enabled'][idx]), 200
         elif script_id in disabled_scripts:
             idx = disabled_scripts.index(script_id)
             scripts_and_ids['disabled'][idx].update({'status': 'disabled'})
-            return scripts_and_ids['disabled'][idx], 200
+            return dict(script=scripts_and_ids['disabled'][idx]), 200
         else:
             return dict(message='Could not find script {}'.format(script_id)), 404
 
