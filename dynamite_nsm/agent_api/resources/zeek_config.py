@@ -51,8 +51,21 @@ model_zeek_node_components = api.model(
 
 # REQUEST MODELS =======================================================================================================
 
-model_request_zeek_simple_component_create_update = api.model('ZeekNodeComponentResponse', model=dict(
+model_request_zeek_simple_component_create_update = api.model('ZeekSimpleComponentRequest', model=dict(
     name=fields.String
+))
+
+model_request_zeek_worker_component_create = api.model('ZeekWorkerComponentCreateRequest', model=dict(
+    interface=fields.String,
+    lb_procs=fields.Integer,
+    pinned_cpus=fields.List(fields.Integer)
+))
+
+model_request_zeek_worker_component_update = api.model('ZeekWorkerComponentUpdateRequest', model=dict(
+    name=fields.String(required=False),
+    interface=fields.String(required=False),
+    lb_procs=fields.Integer(required=False),
+    pinned_cpus=fields.List(fields.Integer(required=False))
 ))
 
 # RESPONSE MODELS ======================================================================================================
@@ -533,6 +546,7 @@ class ZeekNodeWorkerManager(Resource):
 
     @api.doc('create_worker')
     @api.param('name', description='The name of the worker.')
+    @api.expect(model_request_zeek_worker_component_create)
     @api.response(201, 'Created Zeek worker.', model=model_response_zeek_get_worker_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(409, 'A worker of that name already exists.', model=model_response_zeek_error)
@@ -545,6 +559,7 @@ class ZeekNodeWorkerManager(Resource):
 
     @api.doc('update_worker')
     @api.param('name', description='The name of the worker.')
+    @api.expect(model_request_zeek_worker_component_update)
     @api.response(200, 'Updated Zeek worker.', model=model_response_zeek_get_worker_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(404, 'Could not find Zeek worker.', model=model_response_zeek_error)
