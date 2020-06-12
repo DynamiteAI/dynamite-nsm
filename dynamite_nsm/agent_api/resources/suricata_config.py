@@ -59,6 +59,10 @@ model_suricata_interface = api.model('SuricataInterface', model={
 
 # REQUEST MODELS =======================================================================================================
 
+model_request_update_group = api.model('SuricataGroupRequest', model={
+    "group_expression": fields.String
+}),
+
 model_request_create_suricata_interface = api.model('SuricataInterfaceRequest', model={
     "bpf_filter": fields.String,
     "cluster_id": fields.Integer,
@@ -358,6 +362,7 @@ class SuricataAddressGroupsManager(Resource):
 
     @api.doc('update_address_group')
     @api.param('address_group', 'The name of the address group to update.')
+    @api.expect(model_request_update_group)
     @api.response(200, 'Updated Suricata address group.', model=model_response_suricata_address_group)
     @api.response(400, 'Invalid address group; invalid group expression.', model=model_response_error)
     def put(self, address_group):
@@ -414,6 +419,7 @@ class SuricataPortGroupsManager(Resource):
 
     @api.doc('update_port_group')
     @api.param('port_group', 'The name of the port group to update.')
+    @api.expect(model_request_update_group)
     @api.response(200, 'Updated Suricata port group.', model=model_response_suricata_port_group)
     @api.response(400, 'Invalid port group; invalid group expression.', model=model_response_error)
     def put(self, port_group):
