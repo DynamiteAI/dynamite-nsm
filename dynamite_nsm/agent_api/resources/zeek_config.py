@@ -12,11 +12,18 @@ api = Namespace(
 env_vars = utilities.get_environment_file_dict()
 ZEEK_INSTALL_DIRECTORY = env_vars.get('ZEEK_HOME')
 
-model_zeek_simple_node_component = api.model(
+model_zeek_simple_node_single_component = api.model(
     'ZeekSimpleNodeComponent', model=dict(
         type=fields.String,
         name=fields.String,
         host=fields.String
+    )
+)
+
+model_zeek_simple_node_multiple_component = api.model(
+    'ZeekSimpleNodeComponent', model=dict(
+        name=fields.String,
+        values=fields.List(fields.String)
     )
 )
 
@@ -32,10 +39,10 @@ model_zeek_worker_node_component = api.model('ZeekWorkerNodeComponent', dict(
 
 model_zeek_node_components = api.model(
     'ZeekNodeComponents', model={
-        'manager': fields.Nested(model_zeek_simple_node_component),
-        'loggers': fields.List(fields.Nested(model_zeek_simple_node_component)),
-        'proxies': fields.List(fields.Nested(model_zeek_simple_node_component)),
-        'workers': fields.List(fields.Nested(model_zeek_worker_node_component)),
+        'manager': fields.Nested(model_zeek_simple_node_single_component),
+        'loggers': fields.List(fields.Nested(model_zeek_simple_node_multiple_component)),
+        'proxies': fields.List(fields.Nested(model_zeek_simple_node_multiple_component)),
+        'workers': fields.List(fields.Nested(model_zeek_simple_node_multiple_component)),
     }
 )
 
@@ -50,9 +57,7 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 })
 
 # GET /
-model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
-    'components': fields.List(fields.Nested(model_zeek_node_components))
-})
+model_response_list_components_response = model_zeek_simple_node_multiple_component
 
 # GET /<component>
 model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
@@ -61,22 +66,22 @@ model_response_get_component = api.model(name='ZeekGetComponentResponse', model=
 
 # GET /manager
 model_response_get_manager_component = api.model('ZeekGetManagerComponentResponse', model={
-    'manager': fields.Nested(model_zeek_simple_node_component)
+    'manager': fields.Nested(model_zeek_simple_node_single_component)
 })
 
 # GET /loggers/<name>
 model_response_get_logger_component = api.model('ZeekGetLoggerComponentResponse', model={
-    'logger': fields.Nested(model_zeek_simple_node_component)
+    'logger': fields.Nested(model_zeek_simple_node_multiple_component)
 })
 
 # GET /proxies/<name>
 model_response_get_proxy_component = api.model('ZeekGetProxyComponentResponse', model={
-    'proxy': fields.Nested(model_zeek_simple_node_component)
+    'proxy': fields.Nested(model_zeek_simple_node_multiple_component)
 })
 
 # GET /workers/<name>
 model_response_get_worker_component = api.model('ZeekGetWorkerComponentResponse', model={
-    'worker': fields.Nested(model_zeek_worker_node_component)
+    'worker': fields.Nested(model_zeek_simple_node_multiple_component)
 })
 
 
