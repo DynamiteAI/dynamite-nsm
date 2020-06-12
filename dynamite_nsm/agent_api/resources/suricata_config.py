@@ -12,7 +12,7 @@ api = Namespace(
 env_vars = utilities.get_environment_file_dict()
 SURICATA_CONFIG_DIRECTORY = env_vars.get('SURICATA_CONFIG')
 
-model_suricata_address_groups = api.model('SuricataAddressGroupsResponse', model=dict(
+model_suricata_address_groups = api.model('SuricataAddressGroups', model=dict(
     home_net=fields.String,
     external_net=fields.String,
     http_servers=fields.String,
@@ -27,42 +27,69 @@ model_suricata_address_groups = api.model('SuricataAddressGroupsResponse', model
     enip_server=fields.String
 ))
 
+model_suricata_port_groups = api.model('SuricataPortGroups', model=dict(
+    http_ports=fields.String,
+    shellcode_ports=fields.String,
+    oracle_ports=fields.String,
+    ssh_ports=fields.String,
+    dnp3_ports=fields.String,
+    modbus_ports=fields.String,
+    file_data_ports=fields.String,
+    ftp_ports=fields.String,
+))
+
+model_response_suricata_address_groups = api.model('SuricataGetAddressGroupsResponse', model=dict(
+    address_groups=fields.Nested(model_suricata_address_groups)
+))
+
+model_response_suricata_port_groups = api.model('SuricataGetPortGroupsResponse', model=dict(
+    port_groups=fields.Nested(model_suricata_port_groups)
+))
+
 
 @api.route('/address-groups', endpoint='suricata-address-groups-config')
 class SuricataAddressGroupsConfig(Resource):
 
+    @api.doc('list_suricata_address_groups')
+    @api.response(200, 'Listed address groups.', model=model_response_suricata_address_groups)
     def get(self):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         return dict(
-            home_net=suricata_instance_config.home_net,
-            external_net=suricata_instance_config.external_net,
-            http_servers=suricata_instance_config.http_servers,
-            sql_servers=suricata_instance_config.sql_servers,
-            dns_servers=suricata_instance_config.dns_servers,
-            telnet_servers=suricata_instance_config.telnet_servers,
-            aim_servers=suricata_instance_config.aim_servers,
-            dc_servers=suricata_instance_config.dc_servers,
-            modbus_server=suricata_instance_config.modbus_server,
-            modbus_client=suricata_instance_config.modbus_client,
-            enip_client=suricata_instance_config.enip_client,
-            enip_server=suricata_instance_config.enip_server
+            address_groups=dict(
+                home_net=suricata_instance_config.home_net,
+                external_net=suricata_instance_config.external_net,
+                http_servers=suricata_instance_config.http_servers,
+                sql_servers=suricata_instance_config.sql_servers,
+                dns_servers=suricata_instance_config.dns_servers,
+                telnet_servers=suricata_instance_config.telnet_servers,
+                aim_servers=suricata_instance_config.aim_servers,
+                dc_servers=suricata_instance_config.dc_servers,
+                modbus_server=suricata_instance_config.modbus_server,
+                modbus_client=suricata_instance_config.modbus_client,
+                enip_client=suricata_instance_config.enip_client,
+                enip_server=suricata_instance_config.enip_server
+            )
         ), 200
 
 
 @api.route('/port-groups', endpoint='port-groups-config')
 class SuricataPortGroupsConfig(Resource):
 
+    @api.doc('list_suricata_port_groups')
+    @api.response(200, 'Listed port groups.', model=model_response_suricata_port_groups)
     def get(self):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         return dict(
-            http_ports=suricata_instance_config.http_ports,
-            shellcode_ports=suricata_instance_config.shellcode_ports,
-            oracle_ports=suricata_instance_config.oracle_ports,
-            ssh_ports=suricata_instance_config.ssh_ports,
-            dnp3_ports=suricata_instance_config.dnp3_ports,
-            modbus_ports=suricata_instance_config.modbus_ports,
-            file_data_ports=suricata_instance_config.file_data_ports,
-            ftp_ports=suricata_instance_config.ftp_ports,
+            port_groups=dict(
+                http_ports=suricata_instance_config.http_ports,
+                shellcode_ports=suricata_instance_config.shellcode_ports,
+                oracle_ports=suricata_instance_config.oracle_ports,
+                ssh_ports=suricata_instance_config.ssh_ports,
+                dnp3_ports=suricata_instance_config.dnp3_ports,
+                modbus_ports=suricata_instance_config.modbus_ports,
+                file_data_ports=suricata_instance_config.file_data_ports,
+                ftp_ports=suricata_instance_config.ftp_ports
+            )
         ), 200
 
 
