@@ -38,12 +38,48 @@ model_suricata_port_groups = api.model('SuricataPortGroups', model=dict(
     ftp_ports=fields.String,
 ))
 
+model_suricata_group = api.model('SuricataGroup', model=dict(
+    name=fields.String,
+    value=fields.String
+))
+
+model_suricata_interfaces = api.model('SuricataInterfaces', model=dict(
+    values=fields.List(fields.String)
+))
+
+# multiple endpoints
+model_response_error = api.model('ErrorResponse', model={
+    'message': fields.String
+})
+
+# multiple endpoints
+model_response_generic_success = api.model('GenericSuccessResponse', model={
+    'message': fields.String
+})
+
+# GET /address-groups
 model_response_suricata_address_groups = api.model('SuricataGetAddressGroupsResponse', model=dict(
     address_groups=fields.Nested(model_suricata_address_groups)
 ))
 
+# GET /port-groups
 model_response_suricata_port_groups = api.model('SuricataGetPortGroupsResponse', model=dict(
     port_groups=fields.Nested(model_suricata_port_groups)
+))
+
+# GET /interfaces
+model_response_suricata_interfaces = api.model('SuricataGetInterfacesResponse', model=dict(
+    interfaces=fields.Nested(model_suricata_interfaces)
+))
+
+# GET, PUT /address-groups/<address_group>
+model_response_suricata_address_group = api.model('SuricataModelAddressGroupResponse', model=dict(
+    address_group=fields.Nested(model_suricata_group)
+))
+
+# GET, PUT /port-groups/<port_group>
+model_response_suricata_port_group = api.model('SuricataModelPortGroupResponse', model=dict(
+    port_group=fields.Nested(model_suricata_group)
 ))
 
 
@@ -96,6 +132,8 @@ class SuricataPortGroupsConfig(Resource):
 @api.route('/interfaces', endpoint='suricata-network-interfaces-config')
 class SuricataInterfacesConfig(Resource):
 
+    @api.doc('list_suricata_interfaces')
+    @api.response(200, 'Listed network interfaces', model=model_response_suricata_interfaces)
     def get(self):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         return dict(interfaces=suricata_instance_config.list_af_packet_interfaces()), 200
@@ -251,6 +289,10 @@ class SuricataAddressGroupsManager(Resource):
                                  'enip_client', 'enip_server'
                                  ]
 
+    @api.doc('get_address_group')
+    @api.param('address_group', 'The name of the address group to get details about.')
+    @api.response(200, 'Fetched Suricata address group.', model=model_response_suricata_address_group)
+    @api.response(400, 'Invalid address group.', model=model_response_error)
     def get(self, address_group):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         if not validators.validate_suricata_address_group_name(address_group):
@@ -259,6 +301,10 @@ class SuricataAddressGroupsManager(Resource):
         return dict(
             address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)}), 200
 
+    @api.doc('update_address_group')
+    @api.param('address_group', 'The name of the address group to update.')
+    @api.response(200, 'Updated Suricata address group.', model=model_response_suricata_address_group)
+    @api.response(400, 'Invalid address group; invalid group expression.', model=model_response_error)
     def put(self, address_group):
         if not validators.validate_suricata_address_group_name(address_group):
             return dict(message='Invalid "address_group"; must be one of the following : {}'.format(
@@ -295,10 +341,14 @@ class SuricataAddressGroupsManager(Resource):
 
 
 @api.route('/port-groups/<port_group>', endpoint='suricata-port-group-manager')
-class SuricataAddressGroupsManager(Resource):
+class SuricataPortGroupsManager(Resource):
     VALID_PORT_GROUP_NAMES = ['http_ports', 'shellcode_ports', 'oracle_ports', 'ssh_ports', 'dnp3_ports',
                               'modbus_ports', 'ftp_ports', 'file_data_ports']
 
+    @api.doc('get_port_group')
+    @api.param('port_group', 'The name of the port group to get details about.')
+    @api.response(200, 'Fetched Suricata port group.', model=model_response_suricata_port_group)
+    @api.response(400, 'Invalid port group.', model=model_response_error)
     def get(self, port_group):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         if not validators.validate_suricata_port_group_name(port_group):
@@ -307,6 +357,10 @@ class SuricataAddressGroupsManager(Resource):
         return dict(
             port_group={'name': port_group, 'value': getattr(suricata_instance_config, port_group)}), 200
 
+    @api.doc('update_port_group')
+    @api.param('port_group', 'The name of the port group to update.')
+    @api.response(200, 'Updated Suricata port group.', model=model_response_suricata_port_group)
+    @api.response(400, 'Invalid port group; invalid group expression.', model=model_response_error)
     def put(self, port_group):
         if not validators.validate_suricata_port_group_name(port_group):
             return dict(message='Invalid "port_group"; must be one of the following : {}'.format(
