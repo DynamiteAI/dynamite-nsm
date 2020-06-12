@@ -57,11 +57,13 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 })
 
 # GET /
-model_response_list_components_response = model_zeek_simple_node_multiple_component
+model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
+    'components': fields.List(fields.Nested(model_zeek_node_components))
+})
 
 # GET /<component>
 model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
-    'name': fields.String, 'values': fields.List(fields.String)
+    'component': fields.Nested(model_zeek_simple_node_multiple_component)
 })
 
 # GET /manager
