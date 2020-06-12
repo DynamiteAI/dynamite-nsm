@@ -38,6 +38,8 @@ model_suricata_port_groups = api.model('SuricataPortGroups', model=dict(
     ftp_ports=fields.String,
 ))
 
+# BASE MODELS ==========================================================================================================
+
 model_suricata_group = api.model('SuricataGroup', model=dict(
     name=fields.String,
     value=fields.String
@@ -54,6 +56,25 @@ model_suricata_interface = api.model('SuricataInterface', model={
     "interface": fields.String,
     "threads": fields.String
 })
+
+# REQUEST MODELS =======================================================================================================
+
+model_request_create_suricata_interface = api.model('SuricataInterfaceRequest', model={
+    "bpf_filter": fields.String,
+    "cluster_id": fields.Integer,
+    "cluster_type": fields.String,
+    "threads": fields.String
+}),
+
+model_request_update_suricata_interface = api.model('SuricataInterfaceRequest', model={
+    "interface": fields.String(required=False),
+    "bpf_filter": fields.String(required=False),
+    "cluster_id": fields.Integer(required=False),
+    "cluster_type": fields.String(required=False),
+    "threads": fields.String(required=False),
+})
+
+# RESPONSE MODELS ======================================================================================================
 
 # multiple endpoints
 model_response_error = api.model('ErrorResponse', model={
@@ -291,6 +312,7 @@ class SuricataInterfaceManager(Resource):
 
     @api.doc('create_suricata_network_interface')
     @api.param('interface', description='A valid network interface.')
+    @api.expect(model_request_create_suricata_interface)
     @api.response(201, 'Created network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (already exists) or bad value(s).', model=model_response_error)
     def post(self, interface):
@@ -303,6 +325,7 @@ class SuricataInterfaceManager(Resource):
 
     @api.doc('update_suricata_network_interface')
     @api.param('interface', description='A valid network interface.')
+    @api.expect(model_request_update_suricata_interface)
     @api.response(201, 'Updated network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (does not exists) or bad value(s).', model=model_response_error)
     def put(self, interface):
