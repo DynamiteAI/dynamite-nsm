@@ -47,6 +47,14 @@ model_suricata_interfaces = api.model('SuricataInterfaces', model=dict(
     values=fields.List(fields.String)
 ))
 
+model_suricata_interface = api.model('SuricataInterface', model={
+    "bpf-filter": fields.String,
+    "cluster-id": fields.Integer,
+    "cluster-type": fields.String,
+    "interface": fields.String,
+    "threads": fields.String
+})
+
 # multiple endpoints
 model_response_error = api.model('ErrorResponse', model={
     'message': fields.String
@@ -70,6 +78,11 @@ model_response_suricata_port_groups = api.model('SuricataGetPortGroupsResponse',
 # GET /interfaces
 model_response_suricata_interfaces = api.model('SuricataGetInterfacesResponse', model=dict(
     interfaces=fields.Nested(model_suricata_interfaces)
+))
+
+# GET, POST, PUT /interfaces/<interface>
+model_response_suricata_interface = api.model('SuricataInterfaceResponse', model=dict(
+    interface=fields.Nested(model_suricata_interface)
 ))
 
 # GET, PUT /address-groups/<address_group>
@@ -243,6 +256,12 @@ class SuricataInterfaceManager(Resource):
         except suricata_config.suricata_exceptions.WriteSuricataConfigError as e:
             return dict(message=str(e)), 500
 
+    @api.doc('delete_suricata_network_interface')
+    @api.param('interface', description='A configured network interface.')
+    @api.response(200, 'Deleted network interface.', model=model_response_generic_success)
+    @api.response(400, 'Invalid network interface (not configured in Suricata) or bad value(s).',
+                  model=model_response_error)
+    @api.response(404, 'Could not find network interface.', model=model_response_error)
     def delete(self, interface):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
@@ -254,6 +273,11 @@ class SuricataInterfaceManager(Resource):
         suricata_instance_config.write_config()
         return dict(message='Deleted network interface {}.'.format(interface)), 200
 
+    @api.doc('get_suricata_network_interface')
+    @api.param('interface', description='A configured network interface.')
+    @api.response(200, 'Fetched network interface.', model=model_response_suricata_interface)
+    @api.response(400, 'Invalid network interface (not configured in Suricata).', model=model_response_error)
+    @api.response(404, 'Could not find network interface.', model=model_response_error)
     def get(self, interface):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
@@ -265,6 +289,10 @@ class SuricataInterfaceManager(Resource):
                 return dict(interface=net_interface), 200
         return dict(message='Network interface not found.'), 404
 
+    @api.doc('create_suricata_network_interface')
+    @api.param('interface', description='A valid network interface.')
+    @api.response(201, 'Created network interface.', model=model_response_suricata_interface)
+    @api.response(400, 'Invalid network interface (already exists) or bad value(s).', model=model_response_error)
     def post(self, interface):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         interface_names = \
@@ -273,6 +301,10 @@ class SuricataInterfaceManager(Resource):
             return dict(message='{} interface already exists. Use PUT to update.'.format(interface)), 400
         return self._create_update(interface, verb='POST')
 
+    @api.doc('update_suricata_network_interface')
+    @api.param('interface', description='A valid network interface.')
+    @api.response(201, 'Updated network interface.', model=model_response_suricata_interface)
+    @api.response(400, 'Invalid network interface (does not exists) or bad value(s).', model=model_response_error)
     def put(self, interface):
         suricata_instance_config = suricata_config.ConfigManager(configuration_directory=SURICATA_CONFIG_DIRECTORY)
         interface_names = \
