@@ -61,14 +61,14 @@ model_suricata_interface = api.model('SuricataInterface', model={
 
 model_request_update_group = api.model('SuricataGroupRequest', model=dict(
     group_expression=fields.String
-)),
+))
 
-model_request_create_suricata_interface = api.model('SuricataInterfaceCreateRequest', dict(
+model_request_create_suricata_interface = api.model('SuricataInterfaceCreateRequest', model=dict(
     bpf_filter=fields.String,
     cluster_id=fields.Integer,
     cluster_type=fields.String,
     threads=fields.String
-)),
+))
 
 model_request_update_suricata_interface = api.model('SuricataInterfaceUpdateRequest', model=dict(
     interface=fields.String(required=False),
