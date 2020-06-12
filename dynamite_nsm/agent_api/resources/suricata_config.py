@@ -63,14 +63,14 @@ model_request_update_group = api.model('SuricataGroupRequest', model={
     "group_expression": fields.String
 }),
 
-model_request_create_suricata_interface = api.model('SuricataInterfaceRequest', model={
+model_request_create_suricata_interface = api.model('SuricataInterfaceCreateRequest', model={
     "bpf_filter": fields.String,
     "cluster_id": fields.Integer,
     "cluster_type": fields.String,
     "threads": fields.String
 }),
 
-model_request_update_suricata_interface = api.model('SuricataInterfaceRequest', model={
+model_request_update_suricata_interface = api.model('SuricataInterfaceUpdateRequest', model={
     "interface": fields.String(required=False),
     "bpf_filter": fields.String(required=False),
     "cluster_id": fields.Integer(required=False),
@@ -91,17 +91,17 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 })
 
 # GET /address-groups
-model_response_suricata_address_groups = api.model('SuricataGetAddressGroupsResponse', model=dict(
+model_response_suricata_address_groups = api.model('SuricataAddressGroupsResponse', model=dict(
     address_groups=fields.Nested(model_suricata_address_groups)
 ))
 
 # GET /port-groups
-model_response_suricata_port_groups = api.model('SuricataGetPortGroupsResponse', model=dict(
+model_response_suricata_port_groups = api.model('SuricataPortGroupsResponse', model=dict(
     port_groups=fields.Nested(model_suricata_port_groups)
 ))
 
 # GET /interfaces
-model_response_suricata_interfaces = api.model('SuricataGetInterfacesResponse', model=dict(
+model_response_suricata_interfaces = api.model('SuricataInterfacesResponse', model=dict(
     interfaces=fields.Nested(model_suricata_interfaces)
 ))
 
@@ -316,12 +316,7 @@ class SuricataInterfaceManager(Resource):
 
     @api.doc('create_suricata_network_interface')
     @api.param('interface', description='A valid network interface.')
-    @api.expect(model_request_create_suricata_interface, example={
-        "bpf_filter": "tcp or udp and port 80",
-        "threads": 5,
-        "cluster_id": 5,
-        "cluster_type": "cluster_flow"
-    })
+    @api.expect(model_request_create_suricata_interface)
     @api.response(201, 'Created network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (already exists) or bad value(s).', model=model_response_error)
     def post(self, interface):
