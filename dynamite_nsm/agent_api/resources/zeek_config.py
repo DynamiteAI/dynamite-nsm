@@ -50,9 +50,9 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 })
 
 # GET /
-model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={'component': {
+model_response_list_components_response = api.model('ZeekNodeComponentsResponse', model={
     'components': fields.List(fields.Nested(model_zeek_node_components))
-}})
+})
 
 # GET /<component>
 model_response_get_component = api.model(name='ZeekGetComponentResponse', model={
@@ -175,7 +175,7 @@ class ZeekNodeManagerManager(Resource):
             type='manager',
             host='localhost'
         )
-        return manager, 200
+        return dict(manager=manager), 200
 
     @api.doc('update_manager')
     @api.param('name', description='The name of the manager.')
