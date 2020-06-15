@@ -15,14 +15,14 @@ ZEEK_SCRIPT_DIRECTORY = env_vars.get('ZEEK_SCRIPTS')
 # BASE MODELS ==========================================================================================================
 
 model_zeek_script_no_status = api.model(
-    'ZeekScript', model=dict(
+    'ZeekScriptStatus', model=dict(
         id=fields.Integer,
         name=fields.String,
     )
 )
 
 model_zeek_script_status = api.model(
-    'ZeekScript', model=dict(
+    'ZeekScriptNoStatus', model=dict(
         id=fields.Integer,
         name=fields.String,
         status=fields.String
@@ -38,20 +38,20 @@ model_zeek_scripts = api.model(
 
 # REQUEST MODELS =======================================================================================================
 
-model_zeek_request_update_script = api.model('ZeekScriptRequest', model=dict(
+model_request_zeek_update_script = api.model('ZeekScriptRequest', model=dict(
     status=fields.String(pattern='enabled|disabled')
 ))
 
 # RESPONSE MODELS ======================================================================================================
 
 # GET /
-model_response_zeek_scripts = api.model('ZeekGetScriptsResponse', model=dict(
+model_response_zeek_scripts = api.model('ZeekScriptsResponse', model=dict(
     scripts=fields.Nested(model_zeek_scripts)
 ))
 
-# GET /<script_id>
+# GET, PUT /<script_id>
 model_response_zeek_script = api.model(
-    'ZeekGetScriptResponse', model=dict(
+    'ZeekScriptResponse', model=dict(
         script=fields.Nested(model_zeek_script_status)
     )
 )
@@ -98,7 +98,7 @@ class ZeekScriptManager(Resource):
     @api.doc('get_zeek_script')
     @api.param('script_id', description='A numeric identifier representing a Zeek script.')
     @api.response(200, 'Fetched Zeek Script.', model=model_response_zeek_script)
-    @api.response(404, 'Could not find Zeek logger.', model=model_response_error)
+    @api.response(404, 'Could not find Zeek script.', model=model_response_error)
     def get(self, script_id):
         script_config = zeek_config.ScriptConfigManager(configuration_directory=ZEEK_SCRIPT_DIRECTORY)
         scripts_and_ids = ZeekScriptConfig.hash_and_id_scripts(script_config.list_enabled_scripts(),
@@ -119,7 +119,7 @@ class ZeekScriptManager(Resource):
 
     @api.doc('update_zeek_script')
     @api.param('script_id', description='A numeric identifier representing a Zeek script.')
-    @api.expect(model_zeek_request_update_script)
+    @api.expect(model_request_zeek_update_script)
     @api.response(200, 'Updated Zeek Script.', model=model_response_generic_success)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_error)
     def put(self, script_id):
