@@ -143,10 +143,16 @@ class SuricataRuleManager(Resource):
             return dict(message='Could not find rule {}'.format(rule_id)), 404
 
         if args.status == 'enabled' or args.status == 'enable':
-            rules_config.enable_rule(rule_name)
+            try:
+                rules_config.enable_rule(rule_name)
+            except suricata_config.suricata_exceptions.SuricataRuleNotFoundError:
+                pass
             action = 'enabled'
         else:
-            rules_config.disable_rule(rule_name)
+            try:
+                rules_config.disable_rule(rule_name)
+            except suricata_config.suricata_exceptions.SuricataRuleNotFoundError:
+                pass
             action = 'disabled'
         try:
             rules_config.write_config()
