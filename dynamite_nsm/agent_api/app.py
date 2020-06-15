@@ -6,9 +6,6 @@ from dynamite_nsm.agent_api.resources.zeek_scripts import api as zeek_scripts_ap
 from dynamite_nsm.agent_api.resources.suricata_rules import api as suricata_rules_api
 from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_config_api
 
-
-
-
 app = Flask(__name__)
 api = Api(app, title='Agent API', description='Configure and manage the Dynamite agent.', contact='jamin@dynamite.ai')
 
