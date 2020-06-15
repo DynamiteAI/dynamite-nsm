@@ -52,3 +52,38 @@ class SuricataRuleManager(Resource):
             return dict(script=rules_and_ids['disabled'][idx]), 200
         else:
             return dict(message='Could not find rule {}'.format(rule_id)), 404
+
+    def put(self, rule_id):
+        arg_parser = reqparse.RequestParser()
+        arg_parser.add_argument(
+            'status', dest='status',
+            location='json', required=True, type=str, choices=['enabled', 'disabled', 'enable', 'disable'],
+            help='Enable/Disable a rule.'
+        )
+        args = arg_parser.parse_args()
+
+        rules_config = suricata_config.ConfigManager(SURICATA_CONFIG_DIRECTORY)
+        rules_and_ids = SuricataRuleConfig.hash_and_id_rules(rules_config.list_enabled_rules(),
+                                                             rules_config.list_disabled_rules())
+        enabled_rules = [str(script['id']) for script in rules_and_ids['enabled']]
+        disabled_rules = [str(script['id']) for script in rules_and_ids['disabled']]
+        if rule_id in enabled_rules:
+            idx = enabled_rules.index(rule_id)
+            rule_name = rules_and_ids['enabled'][idx]['name']
+        elif rule_id in disabled_rules:
+            idx = disabled_rules.index(rule_id)
+            rule_name = rules_and_ids['disabled'][idx]['name']
+        else:
+            return dict(message='Could not find rule {}'.format(rule_id)), 404
+
+        if args.status == 'enabled' or args.status == 'enable':
+            rules_config.enable_rule(rule_name)
+            action = 'enabled'
+        else:
+            rules_config.disable_rule(rule_name)
+            action = 'disabled'
+        try:
+            rules_config.write_config()
+        except suricata_config.suricata_exceptions.WriteSuricataConfigError as e:
+            return dict(message=str(e)), 500
+        return dict(message='Rule {} ({}) {}.'.format(rule_id, rule_name, action)), 200
