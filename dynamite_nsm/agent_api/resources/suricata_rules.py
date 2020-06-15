@@ -28,6 +28,6 @@ class SuricataRuleConfig(Resource):
 
     def get(self):
         rules_config = suricata_config.ConfigManager(SURICATA_CONFIG_DIRECTORY)
-        rules_and_ids = self.hash_and_id_scripts(rules_config.list_enabled_rules(), rules_config.list_disabled_rules())
+        rules_and_ids = self.hash_and_id_rules(rules_config.list_enabled_rules(), rules_config.list_disabled_rules())
         return dict(rules=rules_and_ids), 200
 
