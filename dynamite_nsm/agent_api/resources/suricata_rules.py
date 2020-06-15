@@ -13,6 +13,7 @@ env_vars = utilities.get_environment_file_dict()
 SURICATA_CONFIG_DIRECTORY = env_vars.get('SURICATA_CONFIG')
 
 
+@api.route('/', endpoint='rules-config')
 class SuricataRuleConfig(Resource):
 
     @staticmethod
