@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, DateTime, Column, Integer, String, ForeignKey
 
 from dynamite_nsm.agent_api.database import Base
 
+
 class RolesUsers(Base):
     __tablename__ = 'roles_users'
     id = Column(Integer(), primary_key=True)
