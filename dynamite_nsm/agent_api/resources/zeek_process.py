@@ -7,10 +7,45 @@ api = Namespace(
     description='Start/Stop Monitor Zeek processes.',
 )
 
+# BASE MODELS ==========================================================================================================
+
+model_zeek_subprocess_status = api.model('ZeekSubProcessStatus', model=dict(
+    process_name=fields.String,
+    process_type=fields.String(pattern='manager|logger|proxy|worker'),
+    host=fields.String,
+    status=fields.String(pattern='stopped|started'),
+    pid=fields.Integer
+))
+
+model_zeek_process_status = api.model('ZeekProcessStatus', model=dict(
+    running=fields.Boolean,
+    subprocesses=fields.List(fields.Nested(model_zeek_subprocess_status))
+))
+
+# RESPONSE MODELS ======================================================================================================
+
+# GET /
+model_response_zeek_process_status = api.model('ZeekProcessStatusResponse', model=dict(
+    status=fields.Nested(model_zeek_process_status)
+))
+
+# multiple endpoints
+model_response_error = api.model('ErrorResponse', model={
+    'message': fields.String
+})
+
+# multiple endpoints
+model_response_generic_success = api.model('GenericSuccessResponse', model={
+    'message': fields.String
+})
+
 
 @api.route('/', endpoint='zeek-status')
 class ZeekStatus(Resource):
 
+    @api.doc('get_zeek_process_status')
+    @api.response(200, 'Fetched Zeek process status.', model=model_response_zeek_process_status)
+    @api.response(500, 'Failed to get Zeek process status.', model=model_response_error)
     def get(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
@@ -25,6 +60,9 @@ class ZeekStatus(Resource):
 @api.route('/start', endpoint='zeek-start')
 class ZeekStart(Resource):
 
+    @api.doc('start_zeek_process')
+    @api.response(200, 'Started Zeek process.', model=model_response_generic_success)
+    @api.response(500, 'Failed to start Zeek process.', model=model_response_error)
     def post(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
@@ -36,7 +74,10 @@ class ZeekStart(Resource):
 
 
 @api.route('/stop', endpoint='zeek-stop')
-class ZeekStart(Resource):
+@api.doc('stop_zeek_process')
+@api.response(200, 'Stopped Zeek process.', model=model_response_generic_success)
+@api.response(500, 'Failed to stop Zeek process.', model=model_response_error)
+class ZeekStop(Resource):
 
     def post(self):
         try:
