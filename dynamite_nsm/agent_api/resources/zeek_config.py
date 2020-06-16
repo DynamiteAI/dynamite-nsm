@@ -430,7 +430,6 @@ class ZeekNodeWorkerManager(Resource):
     def _create_update(name, verb='POST'):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
-        net_interfaces.pop('lo')
         net_interfaces_af_fmt = ['af_packet::' + af_int for af_int in net_interfaces]
         net_interfaces.extend(net_interfaces_af_fmt)
         cpu_count = utilities.get_cpu_core_count()
