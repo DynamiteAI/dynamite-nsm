@@ -6,6 +6,7 @@ from dynamite_nsm.agent_api.resources.zeek_process import api as zeek_process_ap
 from dynamite_nsm.agent_api.resources.zeek_scripts import api as zeek_scripts_api
 from dynamite_nsm.agent_api.resources.suricata_rules import api as suricata_rules_api
 from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_config_api
+from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
 
 app = Flask(__name__)
 api = Api(app, title='Agent API', description='Configure and manage the Dynamite agent.', contact='jamin@dynamite.ai')
@@ -16,6 +17,7 @@ api.add_namespace(zeek_process_api, path='/api/zeek/process')
 api.add_namespace(zeek_scripts_api, path='/api/zeek/scripts')
 api.add_namespace(suricata_rules_api, path='/api/suricata/rules')
 api.add_namespace(suricata_config_api, path='/api/suricata/config')
+api.add_namespace(suricata_process_api, path='/api/suricata/process')
 
 if __name__ == '__main__':
     app.run()
