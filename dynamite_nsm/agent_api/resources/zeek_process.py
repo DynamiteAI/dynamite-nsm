@@ -34,3 +34,16 @@ class ZeekStart(Resource):
         except zeek_process.zeek_exceptions.CallZeekProcessError as e:
             return dict(message=e), 500
 
+
+@api.route('/stop', endpoint='zeek-stop')
+class ZeekStart(Resource):
+
+    def post(self):
+        try:
+            zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
+            if not zeek_p.stop():
+                return dict(message='Failed to stop Zeek process.'), 500
+            return dict(message='Stopped Zeek.'), 200
+        except zeek_process.zeek_exceptions.CallZeekProcessError as e:
+            return dict(message=e), 500
+

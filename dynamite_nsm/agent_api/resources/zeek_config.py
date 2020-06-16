@@ -430,6 +430,7 @@ class ZeekNodeWorkerManager(Resource):
     def _create_update(name, verb='POST'):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         net_interfaces = utilities.get_network_interface_names()
+        net_interfaces.pop('lo')
         net_interfaces_af_fmt = ['af_packet::' + af_int for af_int in net_interfaces]
         net_interfaces.extend(net_interfaces_af_fmt)
         cpu_count = utilities.get_cpu_core_count()
@@ -491,6 +492,8 @@ class ZeekNodeWorkerManager(Resource):
             lb_procs = args.lb_procs
         if interface not in net_interfaces:
             return dict(message='Invalid interface; valid interfaces: {}'.format(net_interfaces)), 400
+        elif interface == 'lo':
+            return dict(message='Invalid interface; cannot use loopback interface.'), 400
         elif len(pinned_cpus) > cpu_count:
             return dict(message='Too many CPUs specified; cores available: {}'.format(cpu_count)), 400
         elif max(pinned_cpus) >= cpu_count:
