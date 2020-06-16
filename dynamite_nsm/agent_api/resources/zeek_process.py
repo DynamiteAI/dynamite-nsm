@@ -14,4 +14,6 @@ class ZeekStatus(Resource):
     def get(self):
         zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
         status = zeek_p.status()
-        return status, 200
+        status.update({'running': status.pop('RUNNING')})
+        status.update({'subprocesses': status.pop('SUBPROCESSES')})
+        return dict(status=status), 200
