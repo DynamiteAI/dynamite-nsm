@@ -1,4 +1,5 @@
 from flask_restplus import fields, Namespace, Resource
+from flask_security import roles_required
 
 from dynamite_nsm import utilities
 
@@ -41,6 +42,7 @@ model_response_system_info = api.model('SystemInfoResponse', model={
 
 
 @api.route('/')
+@roles_required('admin')
 class SystemInfo(Resource):
     @api.doc('get_system_info')
     @api.response(200, 'System Information', model=model_response_system_info)
