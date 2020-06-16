@@ -28,8 +28,9 @@ class ZeekStart(Resource):
     def post(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
-            zeek_p.start()
-            return dict(message='Started Zeek.')
+            if not zeek_p.start():
+                return dict(message='Failed to start Zeek process.'), 500
+            return dict(message='Started Zeek.'), 200
         except zeek_process.zeek_exceptions.CallZeekProcessError as e:
             return dict(message=e), 500
 
