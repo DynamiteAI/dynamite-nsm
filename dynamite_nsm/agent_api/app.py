@@ -1,5 +1,8 @@
 from flask import Flask
 from flask_restplus import Api
+from database import db_session, init_db
+from flask_security import Security, login_required, SQLAlchemySessionUserDatastore
+
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
 from dynamite_nsm.agent_api.resources.zeek_process import api as zeek_process_api
@@ -9,6 +12,8 @@ from dynamite_nsm.agent_api.resources.suricata_rules import api as suricata_rule
 from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_config_api
 from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_profile_api
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
+
+from models import User, Role
 
 
 app = Flask(__name__)
@@ -23,6 +28,22 @@ api.add_namespace(suricata_profile_api, path='/api/suricata')
 api.add_namespace(suricata_rules_api, path='/api/suricata/rules')
 api.add_namespace(suricata_config_api, path='/api/suricata/config')
 api.add_namespace(suricata_process_api, path='/api/suricata/process')
+
+app.config['DEBUG'] = True
+app.config['SECRET_KEY'] = 'super-secret'
+# Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt
+app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
+
+# Setup Flask-Security
+user_datastore = SQLAlchemySessionUserDatastore(db_session, User, Role)
+security = Security(app, user_datastore)
+
+
+@app.before_first_request
+def create_user():
+    init_db()
+    user_datastore.create_user(email='admin@dynamite.local', password='changeme')
+    db_session.commit()
 
 
 if __name__ == '__main__':
