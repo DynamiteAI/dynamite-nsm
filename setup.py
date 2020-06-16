@@ -22,6 +22,7 @@ setup(
         'coloredlogs',
         'flask',
         'Flask',
+        'email_validator',
         'flask-restplus',
         'flask-security',
         'flask-sqlalchemy',

@@ -1,9 +1,8 @@
-from database import Base
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy import Boolean, DateTime, Column, Integer, \
-                       String, ForeignKey
+from sqlalchemy import Boolean, DateTime, Column, Integer, String, ForeignKey
 
+from dynamite_nsm.agent_api.database import Base
 
 class RolesUsers(Base):
     __tablename__ = 'roles_users'
