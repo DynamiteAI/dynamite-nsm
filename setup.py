@@ -23,6 +23,8 @@ setup(
         'flask',
         'Flask',
         'flask-restplus',
+        'flask-security',
+        'flask-sqlalchemy',
         'progressbar',
         'pyyaml',
         'npyscreen',
