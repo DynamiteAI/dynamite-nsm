@@ -41,20 +41,25 @@ security = Security(app, user_datastore)
 @app.before_first_request
 def create_user():
     init_db()
+    user, role = None, None
     try:
-        user_datastore.create_user(email='admin@dynamite.local', password='changeme')
+        user = user_datastore.create_user(email='admin@dynamite.local', password='changeme')
         db_session.commit()
         print('Created Default User')
     except IntegrityError:
         pass
     try:
-        user_datastore.create_role(name='admin',
+        role = user_datastore.create_role(name='admin',
                                    description='User with read/write access to all API components,'
                                                ' and the ability to create new users')
         db_session.commit()
         print('Created Admin Role')
     except IntegrityError:
         pass
+    if user and role:
+        user_datastore.add_role_to_user(user, role)
+        db_session.commit()
+        print("Added user to role.")
 
 
 if __name__ == '__main__':
