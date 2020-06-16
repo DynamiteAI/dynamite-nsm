@@ -1,4 +1,4 @@
-from flask_restplus import fields, reqparse, Namespace, Resource
+from flask_restplus import fields, Namespace, Resource
 
 from dynamite_nsm.services.zeek import process as zeek_process
 
