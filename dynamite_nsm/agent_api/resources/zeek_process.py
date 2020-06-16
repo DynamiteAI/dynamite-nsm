@@ -12,8 +12,24 @@ api = Namespace(
 class ZeekStatus(Resource):
 
     def get(self):
-        zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
-        status = zeek_p.status()
-        status.update({'running': status.pop('RUNNING')})
-        status.update({'subprocesses': status.pop('SUBPROCESSES')})
-        return dict(status=status), 200
+        try:
+            zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
+            status = zeek_p.status()
+            status.update({'running': status.pop('RUNNING')})
+            status.update({'subprocesses': status.pop('SUBPROCESSES')})
+            return dict(status=status), 200
+        except zeek_process.zeek_exceptions.CallZeekProcessError as e:
+            return dict(message=e), 500
+
+
+@api.route('/start', endpoint='zeek-start')
+class ZeekStart(Resource):
+
+    def post(self):
+        try:
+            zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
+            zeek_p.start()
+            return dict(message='Started Zeek.')
+        except zeek_process.zeek_exceptions.CallZeekProcessError as e:
+            return dict(message=e), 500
+
