@@ -9,17 +9,11 @@ api = Namespace(
 
 # BASE MODELS ==========================================================================================================
 
-model_suricata_subprocess_status = api.model('SuricataSubProcessStatus', model=dict(
-    process_name=fields.String,
-    process_type=fields.String(pattern='manager|logger|proxy|worker'),
-    host=fields.String,
-    status=fields.String(pattern='stopped|started'),
-    pid=fields.Integer
-))
 
 model_suricata_process_status = api.model('SuricataProcessStatus', model=dict(
     running=fields.Boolean,
-    subprocesses=fields.List(fields.Nested(model_suricata_subprocess_status))
+    pid=fields.Integer,
+    log=fields.String
 ))
 
 # RESPONSE MODELS ======================================================================================================
@@ -51,6 +45,8 @@ class SuricataStatus(Resource):
             suricata_p = suricata_process.ProcessManager(stdout=False, verbose=True)
             status = suricata_p.status()
             status.update({'running': status.pop('RUNNING')})
+            status.update({'pid': status.pop('PID')})
+            status.update({'log': status.pop('LOG')})
             return dict(status=status), 200
         except suricata_process.suricata_exceptions.CallSuricataProcessError as e:
             return dict(message=e), 500
