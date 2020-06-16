@@ -1,8 +1,9 @@
 from flask import Flask
 from flask_restplus import Api
-from database import db_session, init_db
 from flask_security import Security, login_required, SQLAlchemySessionUserDatastore
 
+from dynamite_nsm.agent_api.models import User, Role
+from dynamite_nsm.agent_api.database import db_session, init_db
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
 from dynamite_nsm.agent_api.resources.zeek_process import api as zeek_process_api
@@ -13,7 +14,7 @@ from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_con
 from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_profile_api
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
 
-from models import User, Role
+
 
 
 app = Flask(__name__)
