@@ -43,10 +43,15 @@ def create_user():
     init_db()
     try:
         user_datastore.create_user(email='admin@dynamite.local', password='changeme')
+        print('Created Default User')
+        db_session.commit()
+    except IntegrityError:
+        pass
+    try:
         user_datastore.create_role(name='admin',
                                    description='User with read/write access to all API components,'
                                                ' and the ability to create new users')
-        db_session.commit()
+        print('Created Admin Role')
     except IntegrityError:
         pass
 
