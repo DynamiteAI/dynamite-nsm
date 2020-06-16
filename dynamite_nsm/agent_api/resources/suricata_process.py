@@ -51,7 +51,6 @@ class SuricataStatus(Resource):
             suricata_p = suricata_process.ProcessManager(stdout=False, verbose=True)
             status = suricata_p.status()
             status.update({'running': status.pop('RUNNING')})
-            status.update({'subprocesses': status.pop('SUBPROCESSES')})
             return dict(status=status), 200
         except suricata_process.suricata_exceptions.CallSuricataProcessError as e:
             return dict(message=e), 500
