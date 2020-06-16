@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_restplus import Api
+from sqlalchemy.exc import IntegrityError
 from flask_security import Security, login_required, SQLAlchemySessionUserDatastore
 
 from dynamite_nsm.agent_api.models import User, Role
@@ -40,8 +41,12 @@ security = Security(app, user_datastore)
 @app.before_first_request
 def create_user():
     init_db()
-    user_datastore.create_user(email='admin@dynamite.local', password='changeme')
-    db_session.commit()
+    try:
+        user_datastore.create_user(email='admin@dynamite.local', password='changeme')
+        db_session.commit()
+    except IntegrityError:
+        pass
+
 
 
 if __name__ == '__main__':
