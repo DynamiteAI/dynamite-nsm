@@ -1,4 +1,5 @@
 from zlib import adler32
+from flask_security import roles_accepted
 from flask_restplus import fields, reqparse, Namespace, Resource
 
 from dynamite_nsm import utilities
@@ -85,6 +86,7 @@ class ZeekScriptConfig(Resource):
 
     @api.doc('list_zeek_scripts')
     @api.response(200, 'Listed Zeek scripts.', model=model_response_zeek_scripts)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         script_config = zeek_config.ScriptConfigManager(configuration_directory=ZEEK_SCRIPT_DIRECTORY)
         scripts_and_ids = self.hash_and_id_scripts(script_config.list_enabled_scripts(),
@@ -99,6 +101,7 @@ class ZeekScriptManager(Resource):
     @api.param('script_id', description='A numeric identifier representing a Zeek script.')
     @api.response(200, 'Fetched Zeek Script.', model=model_response_zeek_script)
     @api.response(404, 'Could not find Zeek script.', model=model_response_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self, script_id):
         script_config = zeek_config.ScriptConfigManager(configuration_directory=ZEEK_SCRIPT_DIRECTORY)
         scripts_and_ids = ZeekScriptConfig.hash_and_id_scripts(script_config.list_enabled_scripts(),
@@ -122,6 +125,7 @@ class ZeekScriptManager(Resource):
     @api.expect(model_request_zeek_update_script)
     @api.response(200, 'Updated Zeek Script.', model=model_response_generic_success)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_error)
+    @roles_accepted('admin', 'superuser')
     def put(self, script_id):
         arg_parser = reqparse.RequestParser()
         arg_parser.add_argument(

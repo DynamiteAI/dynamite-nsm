@@ -1,4 +1,5 @@
 from flask_restplus import fields, reqparse, Namespace, Resource
+from flask_security import roles_accepted
 
 from dynamite_nsm import utilities
 from dynamite_nsm.agent_api import validators
@@ -115,6 +116,7 @@ class ZeekNodeComponentsList(Resource):
 
     @api.doc('list_node_components')
     @api.response(200, 'Listed components.', model=model_response_zeek_list_components_response)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager = node_config.get_manager()
@@ -137,6 +139,7 @@ class ZeekNodeConfig(Resource):
     @api.param('component', description='The type of the component: manager, loggers, proxies, workers')
     @api.response(200, 'Fetched Zeek node component.', model=model_response_zeek_get_component)
     @api.response(400, 'Invalid Zeek node component.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self, component):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager = node_config.get_manager()
@@ -197,6 +200,7 @@ class ZeekNodeManagerManager(Resource):
 
     @api.doc('get_manager')
     @api.response(200, 'Fetched Zeek manager.', model=model_response_zeek_get_manager_component)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         manager_name = node_config.get_manager()
@@ -213,6 +217,7 @@ class ZeekNodeManagerManager(Resource):
     @api.response(200, 'Updated Zeek manager.', model=model_response_zeek_get_manager_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def put(self):
         return self._update()
 
@@ -266,6 +271,7 @@ class ZeekNodeLoggerManager(Resource):
     @api.param('name', description='The name of the logger.')
     @api.response(200, 'Deleted Zeek logger.', model=model_response_zeek_generic_success)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def delete(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         found = False
@@ -284,6 +290,7 @@ class ZeekNodeLoggerManager(Resource):
     @api.param('name', description='The name of the logger.')
     @api.response(200, 'Fetched Zeek logger.', model=model_response_zeek_get_logger_component)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         try:
@@ -300,6 +307,7 @@ class ZeekNodeLoggerManager(Resource):
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(409, 'A logger of that name already exists.', model=model_response_zeek_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def post(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name in node_config.list_loggers():
@@ -369,6 +377,7 @@ class ZeekNodeProxyManager(Resource):
     @api.param('name', description='The name of the proxy.')
     @api.response(200, 'Deleted Zeek proxy.', model=model_response_zeek_generic_success)
     @api.response(404, 'Could not find Zeek proxy.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def delete(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         found = False
@@ -387,6 +396,7 @@ class ZeekNodeProxyManager(Resource):
     @api.param('name', description='The name of the proxy.')
     @api.response(200, 'Fetched Zeek proxy.', model=model_response_zeek_get_proxy_component)
     @api.response(404, 'Could not find Zeek proxy.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         try:
@@ -403,6 +413,7 @@ class ZeekNodeProxyManager(Resource):
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(409, 'A proxy of that name already exists.', model=model_response_zeek_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def post(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name in node_config.list_proxies():
@@ -416,6 +427,7 @@ class ZeekNodeProxyManager(Resource):
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(404, 'Could not find Zeek proxy.', model=model_response_zeek_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def put(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name not in node_config.list_proxies():
@@ -518,6 +530,7 @@ class ZeekNodeWorkerManager(Resource):
     @api.param('name', description='The name of the worker.')
     @api.response(200, 'Deleted Zeek worker.', model=model_response_zeek_generic_success)
     @api.response(404, 'Could not find Zeek worker.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def delete(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         found = False
@@ -536,6 +549,7 @@ class ZeekNodeWorkerManager(Resource):
     @api.param('name', description='The name of the worker.')
     @api.response(200, 'Fetched Zeek worker.', model=model_response_zeek_get_worker_component)
     @api.response(404, 'Could not find Zeek worker.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         try:
@@ -552,6 +566,7 @@ class ZeekNodeWorkerManager(Resource):
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(409, 'A worker of that name already exists.', model=model_response_zeek_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def post(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name in node_config.list_workers():
@@ -565,6 +580,7 @@ class ZeekNodeWorkerManager(Resource):
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
     @api.response(404, 'Could not find Zeek worker.', model=model_response_zeek_error)
     @api.response(500, 'An error occurred on the server.', model=model_response_zeek_error)
+    @roles_accepted('admin', 'superuser')
     def put(self, name):
         node_config = zeek_config.NodeConfigManager(install_directory=ZEEK_INSTALL_DIRECTORY)
         if name not in node_config.list_workers():

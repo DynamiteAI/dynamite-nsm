@@ -1,3 +1,4 @@
+from flask_security import roles_accepted
 from flask_restplus import fields, Namespace, Resource
 
 from dynamite_nsm.services.zeek import process as zeek_process
@@ -46,6 +47,7 @@ class ZeekStatus(Resource):
     @api.doc('get_zeek_process_status')
     @api.response(200, 'Fetched Zeek process status.', model=model_response_zeek_process_status)
     @api.response(500, 'Failed to get Zeek process status.', model=model_response_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
@@ -63,6 +65,7 @@ class ZeekStart(Resource):
     @api.doc('start_zeek_process')
     @api.response(200, 'Started Zeek process.', model=model_response_generic_success)
     @api.response(500, 'Failed to start Zeek process.', model=model_response_error)
+    @roles_accepted('admin', 'superuser')
     def post(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
@@ -74,11 +77,11 @@ class ZeekStart(Resource):
 
 
 @api.route('/stop', endpoint='zeek-stop')
-@api.doc('stop_zeek_process')
-@api.response(200, 'Stopped Zeek process.', model=model_response_generic_success)
-@api.response(500, 'Failed to stop Zeek process.', model=model_response_error)
 class ZeekStop(Resource):
-
+    @api.doc('stop_zeek_process')
+    @api.response(200, 'Stopped Zeek process.', model=model_response_generic_success)
+    @api.response(500, 'Failed to stop Zeek process.', model=model_response_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def post(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)

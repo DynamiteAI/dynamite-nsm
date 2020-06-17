@@ -1,3 +1,4 @@
+from flask_security import roles_accepted
 from flask_restplus import fields, Namespace, Resource
 
 from dynamite_nsm.services.suricata import process as suricata_process
@@ -40,6 +41,7 @@ class SuricataStatus(Resource):
     @api.doc('get_suricata_process_status')
     @api.response(200, 'Fetched Suricata process status.', model=model_response_suricata_process_status)
     @api.response(500, 'Failed to get Suricata process status.', model=model_response_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         try:
             suricata_p = suricata_process.ProcessManager(stdout=False, verbose=True)
@@ -58,6 +60,7 @@ class SuricataStart(Resource):
     @api.doc('start_suricata_process')
     @api.response(200, 'Started Suricata process.', model=model_response_generic_success)
     @api.response(500, 'Failed to start Suricata process.', model=model_response_error)
+    @roles_accepted('admin', 'superuser')
     def post(self):
         try:
             suricata_p = suricata_process.ProcessManager(stdout=False, verbose=True)
@@ -69,11 +72,11 @@ class SuricataStart(Resource):
 
 
 @api.route('/stop', endpoint='suricata-stop')
-@api.doc('stop_suricata_process')
-@api.response(200, 'Stopped Suricata process.', model=model_response_generic_success)
-@api.response(500, 'Failed to stop Suricata process.', model=model_response_error)
 class SuricataStop(Resource):
-
+    @api.doc('stop_suricata_process')
+    @api.response(200, 'Stopped Suricata process.', model=model_response_generic_success)
+    @api.response(500, 'Failed to stop Suricata process.', model=model_response_error)
+    @roles_accepted('admin', 'superuser')
     def post(self):
         try:
             suricata_p = suricata_process.ProcessManager(stdout=False, verbose=True)

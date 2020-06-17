@@ -1,3 +1,4 @@
+from flask_security import roles_accepted
 from flask_restplus import fields, Namespace, Resource
 
 from dynamite_nsm import utilities
@@ -24,6 +25,7 @@ class ZeekProfile(Resource):
 
     @api.doc('get_zeek_installed')
     @api.response(200, 'Checked Zeek installed.', model=model_response_zeek_installed)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         env_vars = utilities.get_environment_file_dict()
         zeek_prof = zeek_profile.ProcessProfiler()

@@ -1,4 +1,5 @@
 from os import path
+from flask_security import roles_accepted
 from flask_restplus import fields, Namespace, Resource
 
 from dynamite_nsm import utilities
@@ -26,6 +27,7 @@ class SuricataProfile(Resource):
 
     @api.doc('get_suricata_installed')
     @api.response(200, 'Checked Suricata installed.', model=model_response_suricata_installed)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         env_vars = utilities.get_environment_file_dict()
         suricata_prof = suricata_profile.ProcessProfiler()

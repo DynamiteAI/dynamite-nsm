@@ -1,4 +1,5 @@
 from zlib import adler32
+from flask_security import roles_accepted
 from flask_restplus import fields, reqparse, Namespace, Resource
 
 from dynamite_nsm import utilities
@@ -83,6 +84,7 @@ class SuricataRuleConfig(Resource):
 
     @api.doc('list_suricata_rules')
     @api.response(200, 'Listed Suricata rules.', model=model_response_suricata_rules)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
         rules_config = suricata_config.ConfigManager(SURICATA_CONFIG_DIRECTORY)
         rules_and_ids = self.hash_and_id_rules(rules_config.list_enabled_rules(), rules_config.list_disabled_rules())
@@ -96,6 +98,7 @@ class SuricataRuleManager(Resource):
     @api.param('rule_id', description='A numeric identifier representing a Suricata rule.')
     @api.response(200, 'Fetched Suricata rule.', model=model_response_suricata_rule)
     @api.response(404, 'Could not find Suricata rule.', model=model_response_error)
+    @roles_accepted('admin', 'superuser', 'analyst')
     def get(self, rule_id):
         rules_config = suricata_config.ConfigManager(SURICATA_CONFIG_DIRECTORY)
         rules_and_ids = SuricataRuleConfig.hash_and_id_rules(rules_config.list_enabled_rules(),
@@ -119,6 +122,7 @@ class SuricataRuleManager(Resource):
     @api.expect(model_request_suricata_update_rule)
     @api.response(200, 'Updated Suricata Script.', model=model_response_generic_success)
     @api.response(404, 'Could not find Suricata rule.', model=model_response_error)
+    @roles_accepted('admin', 'superuser')
     def put(self, rule_id):
         arg_parser = reqparse.RequestParser()
         arg_parser.add_argument(
