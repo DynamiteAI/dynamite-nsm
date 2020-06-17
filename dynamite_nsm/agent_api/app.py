@@ -1,10 +1,7 @@
 from flask import Flask
 from flask_restplus import Api
-from sqlalchemy.exc import IntegrityError
-from flask_security import Security, login_required, SQLAlchemySessionUserDatastore
 
-from dynamite_nsm.agent_api.models import User, Role
-from dynamite_nsm.agent_api.database import db_session, init_db
+from dynamite_nsm.agent_api import bootstrap
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
 from dynamite_nsm.agent_api.resources.zeek_process import api as zeek_process_api
@@ -33,29 +30,9 @@ app.config['SECRET_KEY'] = 'super-secret'
 # Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt
 app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
 
-# Setup Flask-Security
-user_datastore = SQLAlchemySessionUserDatastore(db_session, User, Role)
-security = Security(app, user_datastore)
-
-
 @app.before_first_request
-def create_default_user_and_role():
-    init_db()
-    user, role = None, None
-    if not user_datastore.find_user(email='admin@dynamite.local'):
-        user = user_datastore.create_user(email='admin@dynamite.local', username='admin', password='changeme')
-        db_session.commit()
-        print('Created Default User')
-    if not user_datastore.find_role('admin'):
-        role = user_datastore.find_or_create_role(name='admin',
-                                                  description='User with read/write access to all API components'
-                                                              ', and the ability to create new users')
-        db_session.commit()
-        print('Created Admin Role')
-    if user and role:
-        user_datastore.add_role_to_user(user, role)
-        db_session.commit()
-        print("Added user to role.")
+def bootstrap():
+    bootstrap.create_default_user_and_roles(app)
 
 
 if __name__ == '__main__':
