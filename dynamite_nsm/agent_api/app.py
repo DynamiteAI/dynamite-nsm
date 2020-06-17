@@ -27,6 +27,7 @@ api.add_namespace(suricata_process_api, path='/api/suricata/process')
 
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'super-secret'
+
 # Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt
 app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
 
