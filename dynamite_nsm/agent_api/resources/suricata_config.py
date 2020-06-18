@@ -1,6 +1,7 @@
 from flask_security import roles_accepted
 from flask_restplus import fields, reqparse, Namespace, Resource
 
+
 from dynamite_nsm import utilities
 from dynamite_nsm.agent_api import validators
 from dynamite_nsm.services.suricata import config as suricata_config
