@@ -5,7 +5,7 @@ from flask_security import Security, SQLAlchemySessionUserDatastore
 
 def create_default_user_and_roles(flask_app):
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
-    security = Security(flask_app, user_datastore)
+    Security(flask_app, user_datastore)
     init_db()
     admin_user, admin_role = None, None
     if not user_datastore.find_user(email='admin@dynamite.local'):
