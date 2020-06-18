@@ -15,7 +15,8 @@ from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_pr
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
 
 app = Flask(__name__)
-api = Api(app, title='Agent API', description='Configure and manage the Dynamite agent.', contact='jamin@dynamite.ai')
+api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
+          contact='jamin@dynamite.ai')
 
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
