@@ -5,6 +5,7 @@
 	<table class="table" style="width:100%">
 	    <thead class='thead-light'>
 		<tr>
+            <th></th>
 		    <th>Id</th>
 		    <th>Username</th>
 		    <th>Last Login</th>
@@ -17,6 +18,12 @@
 	    <tbody>
 		{% for user in users %}
 		<tr>
+            <td>
+                <div class="btn-group" role="group">
+                    <a href="#"><button class="btn btn-outline-warning my-2 my-sm-0" type="button">Edit Roles</button></a>
+                    <a href="#"><button class="btn btn-outline-danger my-2 my-sm-0" type="button">Delete</button></a>
+                </div>
+            </td>
 		    <td>{{ user.id }}</td>
 		    <td>{{ user.username }}</td>
 		    <td>{{ user.last_login_at }}</td>
