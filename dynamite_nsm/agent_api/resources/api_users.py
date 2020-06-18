@@ -10,7 +10,7 @@ api = Namespace(
 )
 
 
-@api.route('/', end='api-users')
+@api.route('/', endpoint='api-users')
 class ApiUsers(Resource):
 
     @api.doc('list_api_users')
