@@ -22,4 +22,4 @@ def list_users():
                 'confirmed_at': user.confirmed_at
             }
         )
-    return render_template('templates/users.html', users=users_list)
+    return render_template('admin/users.html', users=users_list)
