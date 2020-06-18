@@ -1,9 +1,7 @@
 from flask_security import roles_accepted
 from flask_restplus import fields, reqparse, Namespace, Resource
-from flask_security import Security, SQLAlchemySessionUserDatastore
 
 from dynamite_nsm.agent_api import models
-from dynamite_nsm.agent_api.database import db_session, init_db, Base
 
 
 api = Namespace(
@@ -12,11 +10,10 @@ api = Namespace(
 )
 
 
-@api.route('/users', end='api-users')
+@api.route('/', end='api-users')
 class ApiUsers(Resource):
 
     @api.doc('list_api_users')
-    #@api.response(200, 'Listed API users')
     @roles_accepted('admin')
     def get(self):
         users = models.User.query.all()
