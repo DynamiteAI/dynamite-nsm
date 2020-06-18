@@ -14,7 +14,11 @@
       </li>
     </ul>
     <form class="form-inline my-2 my-lg-0">
-      <a href="/logout"><button class="btn btn-outline-danger my-2 my-sm-0" type="button">Logout</button></a>
+      {% if current_user.is_authenticated %}
+        <a href="/logout"><button class="btn btn-outline-danger my-2 my-sm-0" type="button">Logout</button></a>
+      {% else %}
+      <a href="/login"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Login</button></a>
+      {% endif %}
     </form>
   </div>
 </nav>
