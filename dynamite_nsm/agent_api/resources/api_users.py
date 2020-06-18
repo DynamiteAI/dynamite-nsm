@@ -31,4 +31,4 @@ class ApiUsers(Resource):
                     'confirmed_at': user.confirmed_at
                 }
             )
-            return users_list, 200
+        return users_list, 200
