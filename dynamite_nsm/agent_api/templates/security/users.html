@@ -1,0 +1,30 @@
+{% extends "security/base.html" %}
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Username</th>
+            <th>Last Login</th>
+            <th>Current Login</th>
+            <th>Confirmed At</th>
+            <th>Login Count</th>
+            <th>Active</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>user.id</td>
+            <td>user.username</td>
+            <td>user.last_login_at</td>
+            <td>user.current_login_at</td>
+            <td>user.confirmed_at</td>
+            <td>user.login_count</td>
+            <td>user.active</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot></tfoot>
+</table>
+{% endblock %}
