@@ -20,16 +20,16 @@ api = Api(app, doc='/api/', title='Agent API', description='Configure and manage
 
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
-api.add_namespace(users_api, path='/users')
-api.add_namespace(system_api, path='/system')
-api.add_namespace(zeek_profile_api, path='/zeek')
-api.add_namespace(zeek_config_api, path='/zeek/config')
-api.add_namespace(zeek_process_api, path='/zeek/process')
-api.add_namespace(zeek_scripts_api, path='/zeek/scripts')
-api.add_namespace(suricata_profile_api, path='/suricata')
-api.add_namespace(suricata_rules_api, path='/suricata/rules')
-api.add_namespace(suricata_config_api, path='/suricata/config')
-api.add_namespace(suricata_process_api, path='/suricata/process')
+api.add_namespace(users_api, path='/api/users')
+api.add_namespace(system_api, path='/api/system')
+api.add_namespace(zeek_profile_api, path='/api/zeek')
+api.add_namespace(zeek_config_api, path='/api/zeek/config')
+api.add_namespace(zeek_process_api, path='/api/zeek/process')
+api.add_namespace(zeek_scripts_api, path='/api/zeek/scripts')
+api.add_namespace(suricata_profile_api, path='/api/suricata')
+api.add_namespace(suricata_rules_api, path='/api/suricata/rules')
+api.add_namespace(suricata_config_api, path='/api/suricata/config')
+api.add_namespace(suricata_process_api, path='/api/suricata/process')
 
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'super-secret'
