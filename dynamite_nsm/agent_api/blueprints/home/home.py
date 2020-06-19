@@ -6,4 +6,4 @@ home_blueprint = Blueprint('home', __name__, template_folder='templates')
 
 @home_blueprint.route('/')
 def index():
-    return render_template('launch/launch.html', current_user=current_user)
+    return render_template('home/home.html', current_user=current_user)
