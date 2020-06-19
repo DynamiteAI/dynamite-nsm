@@ -22,11 +22,6 @@ api = Api(app, doc='/api/', title='Agent API', description='Configure and manage
           contact='jamin@dynamite.ai')
 
 
-@app.route('/')
-def index():
-    return redirect("/home")
-
-
 app.register_blueprint(home_blueprint, url_prefix='/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
@@ -43,6 +38,7 @@ api.add_namespace(suricata_process_api, path='/api/suricata/process')
 
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'super-secret'
+app.config['APPLICATION_ROOT'] = "/"
 
 # Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt
 app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
@@ -51,9 +47,6 @@ app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
 @app.before_first_request
 def bootstrap_users_and_roles():
     bootstrap.create_default_user_and_roles(app)
-
-
-
 
 
 if __name__ == '__main__':
