@@ -7,7 +7,7 @@
        <div class="card-body">
           <h5 class="card-title">Create an admin account.</h5>
           <p class="card-text">Let's setup your admin and any additional user accounts.</p>
-          <a href="/users/create_initial_admin" class="btn btn-primary">Setup accounts</a>
+          <a href="/users/create_admin" class="btn btn-primary">Setup accounts</a>
        </div>
     </div>
     {% elif current_user.is_authenticated %}
@@ -17,7 +17,7 @@
           <h5 class="card-title">Welcome!</h5>
           <p class="card-text">Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI!</p>
           <a href="/users" class="btn btn-primary">Manage Users</a>
-          <a href="/api" class="btn btn-secondary">Explore the API</a>
+          <a href="/api" target='_blank' class="btn btn-secondary">Explore the API</a>
        </div>
     </div>
     {% else %}
