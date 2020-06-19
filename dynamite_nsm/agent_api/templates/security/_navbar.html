@@ -10,7 +10,7 @@
         <a href="/users" class="nav-link">Users<span class="sr-only"></span></a>
         {% if current_user.is_authenticated %}
         <a href="/api" class="nav-link">API<span class="sr-only"></span></a>
-      {% else %}
+        {% endif %}
       </li>
     </ul>
     <form class="form-inline my-2 my-lg-0">
