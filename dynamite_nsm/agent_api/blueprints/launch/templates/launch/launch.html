@@ -1,13 +1,13 @@
 {% extends "admin/base.html" %}
 {% block content %}
-      {% if current_user.is_authenticated and current_user.name == 'admin'%}
+      {% if current_user.is_authenticated and current_user.username == 'admin'%}
 		<h1 class="display-4">Create your account</h1>
 		<p>Welcome to the DynamiteNSM agent management UI!
 			Before you begin to use this API we suggest you create your own dedicated administrator account.
 		</p>
       {% elseif current_user.is_authenticated %}
 		<h1 class="display-4">DynamiteNSM</h1>
-		<p>Welcome({ current_user.name }}, to the DynamiteNSM agent management UI! </p>
+<p>Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI! </p>
         <a href="/api"><button class="btn btn-outline-info my-2 my-sm-0" type="button">API Documentation</button></a>
       {% else %}
 		<h1 class="display-4">Login</h1>
