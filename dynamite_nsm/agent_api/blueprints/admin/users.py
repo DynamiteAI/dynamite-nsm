@@ -43,7 +43,7 @@ def initial_admin_form_html():
 
 
 @users_blueprint.route('/create_new_user', methods=['POST'])
-@roles_accepted('admin')
+@roles_accepted('tempadmin')
 def create_new_user_form():
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
     email = request.form.email
