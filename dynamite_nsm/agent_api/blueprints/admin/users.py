@@ -4,7 +4,7 @@ from flask import render_template, Blueprint
 from flask_security import SQLAlchemySessionUserDatastore
 
 from dynamite_nsm.agent_api import models
-from dynamite_nsm.agent_api.database import db_session, init_db
+from dynamite_nsm.agent_api.database import db_session
 
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
@@ -46,9 +46,9 @@ def initial_admin_form_html():
 @roles_accepted('tempadmin')
 def create_new_user_form():
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
-    email = request.form.email
-    username = request.form.name
-    password = request.form.password
+    email = request.form['email']
+    username = request.form['username']
+    password = request.form['password']
     user_datastore.create_user(email=email, username=username, password=password)
     db_session.commit()
     return redirect('/users')
