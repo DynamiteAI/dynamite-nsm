@@ -2,6 +2,9 @@ from flask import Flask
 from flask_restplus import Api
 
 from dynamite_nsm.agent_api import bootstrap
+from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
+from dynamite_nsm.agent_api.blueprints.launch.launch import launch_blueprint
+
 from dynamite_nsm.agent_api.resources.api_users import api as users_api
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
@@ -12,12 +15,13 @@ from dynamite_nsm.agent_api.resources.suricata_rules import api as suricata_rule
 from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_config_api
 from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_profile_api
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
-from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
+
 
 app = Flask(__name__)
 api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
           contact='jamin@dynamite.ai')
 
+app.register_blueprint(launch_blueprint, url_prefix='/')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
 api.add_namespace(users_api, path='/api/users')
