@@ -48,8 +48,8 @@ def bootstrap_users_and_roles():
 
 
 @app.route('/')
-def hello():
-    return redirect("/home/")
+def index():
+    return redirect("/home")
 
 
 if __name__ == '__main__':
