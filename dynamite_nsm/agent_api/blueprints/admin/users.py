@@ -54,9 +54,13 @@ def create_new_user_form():
         role = request.form['role']
         if role not in ['admin', 'superuser', 'analyst']:
             redirect(url_for('/create_user_submit'))
-        elif username == 'admin':
-            redirect(url_for('/create_user_submit'))
         elif email == 'admin@dynamite.local':
+
+            user_obj = user_datastore.find_user(email=email)
+            user_datastore.deactivate_user(user_obj)
+            db_session.commit()
+            redirect(url_for('/create_user_submit'))
+        elif username == 'admin':
             redirect(url_for('/create_user_submit'))
         try:
             user_datastore.create_user(email=email, username=username, password=password)
