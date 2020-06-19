@@ -8,17 +8,17 @@
   <h5 class="card-header">Create New User</h5>
   <div class="card-body">
     <form action="/create_new_user" method="POST" name="register_user_form">
-        <label for="username">Username</label><br>
+        <label for="username_input">Username</label><br>
             <input class="form-control" type="text" id="username_input" name="username" placeholder="Enter username"><br>
-        <label for="email">Email</label><br>
+        <label for="email_input">Email</label><br>
             <input class="form-control" type="email" id="email_input" name="email" aria-describedby="emailHelp" placeholder="Enter email"><br>
-        <label for="password">Password</label><br>
+        <label for="password_input">Password</label><br>
             <input class="form-control" type="password" id="password_input" name="password" placeholder="Enter password"><br>
-        <label for="role">Role</label><br>
-        <select class="dropdown-menu" aria-labelledby="dropdownMenuLink" name="role">
-          <a class="dropdown-item" href="#">Administrator</a>
-          <a class="dropdown-item" href="#">Superuser</a>
-          <a class="dropdown-item" href="#">Analyst</a>
+        <label for="role_input">Role</label><br>
+        <select class="dropdown-menu" aria-labelledby="dropdownMenuLink" name="role" id="role_input">
+          <option>admin</option>
+          <option>superuser</option>
+          <option>analyst</option>
         </select>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
