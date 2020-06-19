@@ -1,17 +1,34 @@
 {% extends "admin/base.html" %}
 {% block content %}
+      <br>
       {% if current_user.is_authenticated and current_user.username == 'admin'%}
-		<h1 class="display-4">Create your account</h1>
-		<p>Welcome to the DynamiteNSM agent management UI!
-			Before you begin to use this API we suggest you create your own dedicated administrator account.
-		</p>
+      <div class="card">
+	  <h5 class="card-header">Setup your account</h5>
+	  <div class="card-body">
+	    <h5 class="card-title">Create an admin account.</h5>
+	    <p class="card-text">Let's setup your admin and any additional user accounts.</p>
+	    <a href="#" class="btn btn-primary">Setup accounts</a>
+	  </div>
+	</div>
       {% elif current_user.is_authenticated %}
-		<h1 class="display-4">DynamiteNSM</h1>
-<p>Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI! </p>
-        <a href="/api"><button class="btn btn-outline-info my-2 my-sm-0" type="button">API Documentation</button></a>
+      <div class="card">
+	  <h5 class="card-header">Setup your account</h5>
+	  <div class="card-body">
+	    <h5 class="card-title">Create an admin account.</h5>
+	    <p class="card-text">Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI!</p>
+	    <a href="/users" class="btn btn-primary">Manage Users</a>
+	    <a href="/api" class="btn btn-secondary">Explore the API</a>
+	  </div>
+	</div>
       {% else %}
-		<h1 class="display-4">Login to your account</h1>
-    <p>To continue, please <b style="color:green">login</b> to your account.</p>
+      <div class="card">
+	  <h5 class="card-header">Login</h5>
+	  <div class="card-body">
+	    <h5 class="card-title">Login to your account.</h5>
+	    <p class="card-text">To continue, you must login to your account.</p>
+	    <a href="/login" class="btn btn-success">Login</a>
+	  </div>
+	</div>
       {% endif %}
 {% endblock %}
 
