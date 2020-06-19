@@ -2,6 +2,7 @@ from flask import request, redirect
 from flask_security import roles_accepted
 from flask import render_template, Blueprint
 from flask_security import SQLAlchemySessionUserDatastore
+from sqlalchemy.exc import IntegrityError
 
 from dynamite_nsm.agent_api import models
 from dynamite_nsm.agent_api.database import db_session
@@ -46,9 +47,31 @@ def initial_admin_form_html():
 @roles_accepted('tempadmin')
 def create_new_user_form():
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
-    email = request.form['email']
-    username = request.form['username']
-    password = request.form['password']
-    user_datastore.create_user(email=email, username=username, password=password)
-    db_session.commit()
+    try:
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
+        role = request.form['role']
+        if role not in ['admin', 'superuser', 'analyst']:
+            redirect('/users/create_new_user')
+        elif username == 'admin':
+            redirect('/users/create_new_user')
+        elif email == 'admin@dynamite.local':
+            redirect('/users/create_new_user')
+        try:
+            user_datastore.create_user(email=email, username=username, password=password)
+            db_session.commit()
+        except IntegrityError:
+            redirect('/users/create_new_user')
+        try:
+            user_obj = user_datastore.find_user(email=email)
+            role_obj = user_datastore.find_role(username)
+            user_datastore.add_role_to_user(user_obj, role_obj)
+            db_session.commit()
+        except IntegrityError:
+            redirect('/users/create_new_user')
+    except KeyError:
+        redirect('/users/create_new_user')
+
+
     return redirect('/users')
