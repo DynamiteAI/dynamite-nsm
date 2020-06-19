@@ -3,7 +3,7 @@ from flask_restplus import Api
 
 from dynamite_nsm.agent_api import bootstrap
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
-from dynamite_nsm.agent_api.blueprints.launch.launch import launch_blueprint
+from dynamite_nsm.agent_api.blueprints.home.home import home_blueprint
 
 from dynamite_nsm.agent_api.resources.api_users import api as users_api
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
@@ -21,7 +21,7 @@ app = Flask(__name__)
 api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
           contact='jamin@dynamite.ai')
 
-app.register_blueprint(launch_blueprint)
+app.register_blueprint(home_blueprint, '/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
 api.add_namespace(users_api, path='/api/users')

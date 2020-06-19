@@ -10,8 +10,8 @@
 <p>Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI! </p>
         <a href="/api"><button class="btn btn-outline-info my-2 my-sm-0" type="button">API Documentation</button></a>
       {% else %}
-		<h1 class="display-4">Login</h1>
-        <a href="/login"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Login</button></a>
+		<h1 class="display-4">Login to your account</h1>
+    <p>To continue, please <b style="color:green">login</b> to your account.</p>
       {% endif %}
 {% endblock %}
 
