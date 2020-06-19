@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, redirect
 from flask_security import roles_accepted
 from flask import render_template, Blueprint
 from flask_security import SQLAlchemySessionUserDatastore
@@ -32,22 +32,23 @@ def list_users_html():
 
 @users_blueprint.route('/create')
 @roles_accepted('admin')
-def create_new_user_html():
+def new_user_form_html():
     return render_template('admin/create_new_user.html')
 
 
 @users_blueprint.route('/create_initial_admin')
 @roles_accepted('tempadmin')
-def create_initial_admin_html():
+def initial_admin_form_html():
     return render_template('admin/create_initial_admin.html')
 
 
 @users_blueprint.route('/create_new_user')
 @roles_accepted('admin')
-def create_new_user():
+def create_new_user_form():
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
     init_db()
     email = request.form.email
     username = request.form.name
     password = request.form.password
     user_datastore.create_user(email=email, username=username, password=password)
+    return redirect('/users')
