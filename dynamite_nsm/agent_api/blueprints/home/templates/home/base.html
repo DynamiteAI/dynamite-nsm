@@ -18,6 +18,16 @@
   <body{% block body_attribs %}{% endblock body_attribs %}>
     {% block body -%}
       <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <ul class=flashes>
+                    <div class="alert alert-warning .alert-dismissible .fade" role="alert">{{ message }} </div>
+                {% for category, message in messages %}
+                  <div class="{{ category }} alert-warning" role="alert">{{ message }} </div>
+                {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
           {% block navbar %}
           {%- endblock navbar %}
       </div>
