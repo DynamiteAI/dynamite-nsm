@@ -1,4 +1,4 @@
-from flask import request, redirect
+from flask import request, redirect, url_for
 from flask_security import roles_accepted
 from flask import render_template, Blueprint
 from flask_security import SQLAlchemySessionUserDatastore
@@ -37,14 +37,14 @@ def new_user_form_html():
     return render_template('admin/create_new_user.html')
 
 
-@users_blueprint.route('/create_initial_admin')
+@users_blueprint.route('/create_admin')
 @roles_accepted('tempadmin')
 def initial_admin_form_html():
     return render_template('admin/create_initial_admin.html')
 
 
-@users_blueprint.route('/create_new_user', methods=['POST'])
-@roles_accepted('tempadmin')
+@users_blueprint.route('/create_user_submit', methods=['POST'])
+@roles_accepted('tempadmin', 'admin')
 def create_new_user_form():
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
     try:
@@ -53,23 +53,23 @@ def create_new_user_form():
         password = request.form['password']
         role = request.form['role']
         if role not in ['admin', 'superuser', 'analyst']:
-            redirect('/users/create_new_user')
+            redirect(url_for('/create_user_submit'))
         elif username == 'admin':
-            redirect('/users/create_new_user')
+            redirect(url_for('/create_user_submit'))
         elif email == 'admin@dynamite.local':
             redirect('/users/create_new_user')
         try:
             user_datastore.create_user(email=email, username=username, password=password)
             db_session.commit()
         except IntegrityError:
-            redirect('/users/create_new_user')
+            redirect(url_for('/create_user_submit'))
         try:
             user_obj = user_datastore.find_user(email=email)
             role_obj = user_datastore.find_role(role)
             user_datastore.add_role_to_user(user_obj, role_obj)
             db_session.commit()
         except IntegrityError:
-            redirect('/users/create_new_user')
+            redirect(url_for('/create_user_submit'))
     except KeyError:
-        redirect('/users/create_new_user')
-    return redirect('/users')
+        redirect(url_for('/create_user_submit'))
+    return redirect(url_for('/'))
