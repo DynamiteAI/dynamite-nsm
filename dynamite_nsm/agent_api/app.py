@@ -21,7 +21,7 @@ app = Flask(__name__)
 api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
           contact='jamin@dynamite.ai')
 
-app.register_blueprint(home_blueprint, '/home')
+app.register_blueprint(home_blueprint, url_prefix='/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
 api.add_namespace(users_api, path='/api/users')
