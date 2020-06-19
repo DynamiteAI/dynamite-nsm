@@ -1,16 +1,16 @@
 {% extends "admin/base.html" %}
 {% block content %}
-<div class="table-responsive-sm">
 	<br>
-	<table class="table" style="width:100%">
+<div class="table-responsive-lg">
+	<table class="table" style="width:100%" class="table table-sm">
 	    <thead class='thead-light'>
 		<tr>
             <th></th>
 		    <th>Id</th>
 		    <th>Username</th>
+		    <th>Email</th>
 		    <th>Last Login</th>
 		    <th>Current Login</th>
-		    <th>Confirmed At</th>
 		    <th>Login Count</th>
 		    <th>Active</th>
 		</tr>
@@ -26,21 +26,31 @@
             </td>
 		    <td>{{ user.id }}</td>
 		    <td>{{ user.username }}</td>
+		    <td>{{ user.email }}</td>
 		    <td>{{ user.last_login_at }}</td>
 		    <td>{{ user.current_login_at }}</td>
-		    <td>{{ user.confirmed_at }}</td>
 		    <td>{{ user.login_count }}</td>
 		    <td>{{ user.active }}</td>
 		</tr>
 		{% endfor %}
 	    </tbody>
 	    <tfoot>
-			<tr>
-				<a href="#"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Create New User</button></a>
-			</tr>
-		</tfoot>
+		    <tr>
+			    <td></td>
+			    <td></td>
+			    <td></td>
+			    <td></td>
+			    <td></td>
+			    <td></td>
+			    <td></td>
+			    <td>
+	       <a href="#"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Create New User</button></a>
+			    </td>
+		    </tr>
+	    </tfoot>
 	</table>
 </div>
+
 {% endblock %}
 
 {% block navbar %}
