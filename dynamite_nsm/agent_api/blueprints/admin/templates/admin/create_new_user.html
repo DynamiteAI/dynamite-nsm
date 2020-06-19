@@ -8,12 +8,12 @@
   <h5 class="card-header">Create New User</h5>
   <div class="card-body">
     <form action="/create_new_user" method="POST" name="register_user_form">
-        <label for="username">Username</label><br>
-            <input style="width:100" type="text" id="username_input" name="username"><br>
+        <label class="form-control" for="username">Username</label><br>
+            <input class="form-control" type="text" id="username_input" name="username" placeholder="Enter username"><br>
         <label for="email">Email</label><br>
-            <input style="width:100" type="email" id="email_input" name="email"><br>
+            <input class="form-control" type="email" id="email_input" name="email" aria-describedby="emailHelp" placeholder="Enter email"><br>
         <label for="password">Password</label><br>
-            <input style="width:100" type="password" id="password_input" name="password"><br>
+            <input class="form-control" type="password" id="password_input" name="password" placeholder="Enter password"><br>
     </form>
   </div>
 </div>
