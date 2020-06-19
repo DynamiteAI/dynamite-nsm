@@ -13,9 +13,8 @@
           <input class="form-control" type="email" id="email_input" name="email" aria-describedby="emailHelp" placeholder="Enter email"><br>
       <label for="password">Password</label><br>
           <input class="form-control" type="password" id="password_input" name="password" placeholder="Enter password"><br>
-    </form>
       {{ render_field_with_errors(login_user_form.remember) }}
-      {{ render_field(login_user_form.submit) }}
+      <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>
 </div>
