@@ -1,5 +1,6 @@
 from flask import request, redirect, url_for
 from flask_security import roles_accepted
+from flask_login import logout_user
 from flask import render_template, Blueprint
 from flask_security import SQLAlchemySessionUserDatastore
 from sqlalchemy.exc import IntegrityError
@@ -57,8 +58,9 @@ def create_new_user_form():
         elif email == 'admin@dynamite.local':
 
             user_obj = user_datastore.find_user(email=email)
-            user_datastore.deactivate_user(user_obj)
+            user_datastore.delete_user(user_obj)
             db_session.commit()
+            logout_user()
             return redirect(url_for('users.create_user_form_html'))
         elif username == 'admin':
             return redirect(url_for('users.create_user_form_html'))
