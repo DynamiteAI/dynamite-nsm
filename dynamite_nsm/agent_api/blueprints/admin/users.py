@@ -42,7 +42,7 @@ def initial_admin_form_html():
     return render_template('admin/create_initial_admin.html')
 
 
-@users_blueprint.route('/create_new_user')
+@users_blueprint.route('/create_new_user', methods=['POST'])
 @roles_accepted('admin')
 def create_new_user_form():
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
