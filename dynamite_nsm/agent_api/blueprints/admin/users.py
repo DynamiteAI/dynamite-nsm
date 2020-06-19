@@ -33,7 +33,7 @@ def list_users_html():
 
 @users_blueprint.route('/create')
 @roles_accepted('admin')
-def new_user_form_html():
+def create_user_form_html():
     return render_template('admin/create_new_user.html')
 
 
@@ -53,27 +53,27 @@ def create_new_user_form():
         password = request.form['password']
         role = request.form['role']
         if role not in ['admin', 'superuser', 'analyst']:
-            redirect(url_for('/create_user_submit'))
+            redirect(url_for('users.create_user_form_html'))
         elif email == 'admin@dynamite.local':
 
             user_obj = user_datastore.find_user(email=email)
             user_datastore.deactivate_user(user_obj)
             db_session.commit()
-            redirect(url_for('/create_user_submit'))
+            return redirect(url_for('users.create_user_form_html'))
         elif username == 'admin':
-            redirect(url_for('/create_user_submit'))
+            return redirect(url_for('users.create_user_form_html'))
         try:
             user_datastore.create_user(email=email, username=username, password=password)
             db_session.commit()
         except IntegrityError:
-            redirect(url_for('/create_user_submit'))
+            return redirect(url_for('users.create_user_form_html'))
         try:
             user_obj = user_datastore.find_user(email=email)
             role_obj = user_datastore.find_role(role)
             user_datastore.add_role_to_user(user_obj, role_obj)
             db_session.commit()
         except IntegrityError:
-            redirect(url_for('/create_user_submit'))
+            return redirect(url_for('users.create_user_form_html'))
     except KeyError:
-        redirect(url_for('/create_user_submit'))
+        redirect(url_for('users.create_user_form_html'))
     return redirect('/users')
