@@ -4,15 +4,13 @@
 {% block content %}
 {% include "security/_messages.html" %}
 <h1>{{ _('Register') }}</h1>
-<form action="{{ url_for_security('register') }}" method="POST" name="register_user_form">
-  {{ register_user_form.hidden_tag() }}
-  {{ render_field_with_errors(register_user_form.username) }}
-  {{ render_field_with_errors(register_user_form.email) }}
-  {{ render_field_with_errors(register_user_form.password) }}
-  {% if register_user_form.password_confirm %}
-    {{ render_field_with_errors(register_user_form.password_confirm) }}
-  {% endif %}
-  {{ render_field(register_user_form.submit) }}
+<form action="/create_new_user" method="POST" name="register_user_form">
+	<label for="username">Username</label>
+        <input type="text" id="username_input" name="username"><br>
+	<label for="email">Email</label>
+        <input type="text" id="email_input" name="email"><br>
+	<label for="password">Password</label>
+        <input type="password" id="password_input" name="password"><br>
 </form>
 {% include "security/_menu.html" %}
 {% endblock %}

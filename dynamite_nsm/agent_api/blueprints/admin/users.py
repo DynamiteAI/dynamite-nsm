@@ -33,7 +33,7 @@ def list_users_html():
 @users_blueprint.route('/create')
 @roles_accepted('admin')
 def create_new_user_html():
-    render_template('admin/create_new_user.html')
+    return render_template('admin/create_new_user.html')
 
 
 @users_blueprint.route('/create_new_user')
