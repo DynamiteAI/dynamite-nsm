@@ -3,7 +3,8 @@
 
 {% block content %}
 {% include "security/_messages.html" %}
-<div class="card">
+<br>
+<div class="card border-success">
   <h5 class="card-header">Login</h5>
   <div class="card-body">
     <form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
