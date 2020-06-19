@@ -72,4 +72,4 @@ def create_new_user_form():
             redirect(url_for('/create_user_submit'))
     except KeyError:
         redirect(url_for('/create_user_submit'))
-    return redirect(url_for('/'))
+    return redirect('/users')
