@@ -38,7 +38,7 @@ def create_new_user_html():
 
 @users_blueprint.route('/create_initial_admin')
 @roles_accepted('tempadmin')
-def create_new_user_html():
+def create_initial_admin_html():
     return render_template('admin/create_initial_admin.html')
 
 
