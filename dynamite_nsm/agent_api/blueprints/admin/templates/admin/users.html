@@ -1,58 +1,53 @@
-{% extends "admin/base.html" %}
-{% block content %}
-	<br>
+{% extends "admin/base.html" %} {% block content %}
+<br />
 <div class="table-responsive-lg">
-	<table class="table" style="width:100%" class="table table-sm">
-	    <thead class='thead-light'>
-		<tr>
-            <th></th>
-		    <th>Id</th>
-		    <th>Username</th>
-		    <th>Email</th>
-		    <th>Last Login</th>
-		    <th>Current Login</th>
-		    <th>Login Count</th>
-		    <th>Active</th>
-		</tr>
-	    </thead>
-	    <tbody>
-		{% for user in users %}
-		<tr>
-            <td>
-                <div class="btn-group" role="group">
-                    <a href="#"><button class="btn btn-outline-warning my-2 my-sm-0" type="button">Edit Roles</button></a>
-                    <a href="#"><button class="btn btn-outline-danger my-2 my-sm-0" type="button">Delete</button></a>
-                </div>
-            </td>
-		    <td>{{ user.id }}</td>
-		    <td>{{ user.username }}</td>
-		    <td>{{ user.email }}</td>
-		    <td>{{ user.last_login_at }}</td>
-		    <td>{{ user.current_login_at }}</td>
-		    <td>{{ user.login_count }}</td>
-		    <td>{{ user.active }}</td>
-		</tr>
-		{% endfor %}
-	    </tbody>
-	    <tfoot>
-		    <tr>
-			    <td></td>
-			    <td></td>
-			    <td></td>
-			    <td></td>
-			    <td></td>
-			    <td></td>
-			    <td></td>
-			    <td>
-	       <a href="#"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Create New User</button></a>
-			    </td>
-		    </tr>
-	    </tfoot>
-	</table>
+    <table style="width: 100%;" class="table table-sm">
+        <thead class="thead-light">
+            <tr>
+                <th></th>
+                <th>Id</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Last Login</th>
+                <th>Current Login</th>
+                <th>Login Count</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="#"><button class="btn btn-outline-warning my-2 my-sm-0" type="button">Edit Roles</button></a>
+                        <a href="#"><button class="btn btn-outline-danger my-2 my-sm-0" type="button">Delete</button></a>
+                    </div>
+                </td>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.last_login_at }}</td>
+                <td>{{ user.current_login_at }}</td>
+                <td>{{ user.login_count }}</td>
+                <td>{{ user.active }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <a href="/create_user"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Create New User</button></a>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
 </div>
 
-{% endblock %}
-
-{% block navbar %}
-  {% include "security/_navbar.html" %}
-{% endblock %}
+{% endblock %} {% block navbar %} {% include "security/_navbar.html" %} {% endblock %}
