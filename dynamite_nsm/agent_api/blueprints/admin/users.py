@@ -46,9 +46,9 @@ def initial_admin_form_html():
 @roles_accepted('admin')
 def create_new_user_form():
     user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
-    init_db()
     email = request.form.email
     username = request.form.name
     password = request.form.password
     user_datastore.create_user(email=email, username=username, password=password)
+    db_session.commit()
     return redirect('/users')

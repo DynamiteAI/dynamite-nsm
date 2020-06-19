@@ -33,3 +33,4 @@ def create_default_user_and_roles(flask_app):
     if temp_admin_user and temp_admin_role:
         user_datastore.add_role_to_user(temp_admin_user, temp_admin_role)
         db_session.commit()
+
