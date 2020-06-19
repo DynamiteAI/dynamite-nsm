@@ -57,7 +57,7 @@ def create_new_user_form():
         elif username == 'admin':
             redirect(url_for('/create_user_submit'))
         elif email == 'admin@dynamite.local':
-            redirect('/users/create_new_user')
+            redirect(url_for('/create_user_submit'))
         try:
             user_datastore.create_user(email=email, username=username, password=password)
             db_session.commit()
