@@ -18,16 +18,22 @@ def list_users_html():
     users = models.User.query.all()
     users_list = []
     for user in users:
+        last_login_date, current_login_date = None, None
+        if user.last_login_at:
+            last_login_date = user.last_login_at.strftime("%d-%b-%Y (%H:%M:%S)")
+        if user.current_login_at:
+            current_login_date = user.current_login_at.strftime("%d-%b-%Y (%H:%M:%S)")
         users_list.append(
             {
                 'id': user.id,
                 'email': user.email,
                 'username': user.username,
-                'last_login_at': user.last_login_at,
-                'current_login_at': user.current_login_at,
+                'last_login_at': last_login_date,
+                'current_login_at': current_login_date,
                 'login_count': user.login_count,
                 'active': user.active,
-                'confirmed_at': user.confirmed_at
+                'confirmed_at': user.confirmed_at,
+                'last_login_ip': user.last_login_ip
             }
         )
     return render_template('admin/users.html', users=users_list)
