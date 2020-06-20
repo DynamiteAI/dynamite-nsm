@@ -1,4 +1,13 @@
-{% extends "admin/base.html" %}
+{% extends "home/base.html" %}
+{% block navbar %}
+  {% include "security/_navbar.html" %}
+{% endblock %}
+
+{% block alerts %}
+  {% include "home/_alerts.html" %}
+{% endblock %}
+
+
 {% block content %}
     {% if current_user.is_authenticated and current_user.username == 'admin'%}
     <div class="card">
@@ -31,6 +40,3 @@
     {% endif %}
 {% endblock %}
 
-{% block navbar %}
-{% include "security/_navbar.html" %}
-{% endblock %}

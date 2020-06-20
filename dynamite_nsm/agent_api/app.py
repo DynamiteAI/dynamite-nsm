@@ -17,7 +17,7 @@ from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_pr
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='ui/static', static_url_path='/static')
 api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
           contact='jamin@dynamite.ai')
 
