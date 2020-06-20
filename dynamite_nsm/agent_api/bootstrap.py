@@ -9,8 +9,11 @@ def create_default_user_and_roles(flask_app):
     init_db()
     temp_admin_user, temp_admin_role = None, None
     if not user_datastore.find_user(email='admin@dynamite.local'):
-        temp_admin_user = user_datastore.create_user(email='admin@dynamite.local', username='admin',
-                                                     password='changeme')
+
+        # We don't need to create a temporary admin except on the first initialization
+        if not user_datastore.find_role('admin'):
+            temp_admin_user = user_datastore.create_user(email='admin@dynamite.local', username='admin',
+                                                         password='changeme')
         db_session.commit()
     if not user_datastore.find_role('tempadmin'):
         temp_admin_role = user_datastore.find_or_create_role(name='tempadmin',
@@ -19,8 +22,8 @@ def create_default_user_and_roles(flask_app):
         db_session.commit()
     if not user_datastore.find_role('admin'):
         user_datastore.find_or_create_role(name='admin',
-                                                        description='User with read/write access to all API components'
-                                                                    ', and the ability to create new users')
+                                           description='User with read/write access to all API components'
+                                                       ', and the ability to create new users')
     if not user_datastore.find_role('superuser'):
         user_datastore.find_or_create_role(name='superuser',
                                            description='User with read/write access to all API components.')
@@ -33,4 +36,3 @@ def create_default_user_and_roles(flask_app):
     if temp_admin_user and temp_admin_role:
         user_datastore.add_role_to_user(temp_admin_user, temp_admin_role)
         db_session.commit()
-
