@@ -37,6 +37,7 @@ api.add_namespace(suricata_config_api, path='/api/suricata/config')
 api.add_namespace(suricata_process_api, path='/api/suricata/process')
 
 app.config['DEBUG'] = True
+app.config['SECURITY_TRACKABLE'] = True
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['APPLICATION_ROOT'] = "/"
 app.config['SECURITY_POST_LOGIN_VIEW'] = "/home"
