@@ -5,7 +5,7 @@ from dynamite_nsm.agent_api import models
 
 
 api = Namespace(
-    name='ApiUsers',
+    name='Users',
     description='Manage API Users.',
 )
 

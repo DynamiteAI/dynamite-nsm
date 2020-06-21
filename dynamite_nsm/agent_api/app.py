@@ -6,6 +6,7 @@ from dynamite_nsm.agent_api import bootstrap
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
 from dynamite_nsm.agent_api.blueprints.home.home import home_blueprint
 
+from dynamite_nsm.agent_api.resources.api_auth import api as auth_api
 from dynamite_nsm.agent_api.resources.api_users import api as users_api
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
