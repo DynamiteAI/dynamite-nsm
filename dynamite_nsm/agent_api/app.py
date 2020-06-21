@@ -1,7 +1,8 @@
-from flask_restplus import Api
-from flask_jwt import JWT
 from flask import Flask
-
+from flask_jwt import JWT
+from flask import request, redirect, url_for
+from flask_login import current_user
+from flask_restplus import Api
 
 from dynamite_nsm.agent_api import bootstrap
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
@@ -18,7 +19,6 @@ from dynamite_nsm.agent_api.resources.suricata_rules import api as suricata_rule
 from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_config_api
 from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_profile_api
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
-
 
 app = Flask(__name__, static_folder='ui/static', static_url_path='/static')
 api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
@@ -39,8 +39,6 @@ api.add_namespace(suricata_rules_api, path='/api/suricata/rules')
 api.add_namespace(suricata_config_api, path='/api/suricata/config')
 api.add_namespace(suricata_process_api, path='/api/suricata/process')
 
-
-
 app.config['DEBUG'] = True
 app.config['SECURITY_TRACKABLE'] = True
 app.config['SECRET_KEY'] = 'super-secret'
@@ -55,9 +53,18 @@ app.config['JWT_ALGORITHM'] = 'HS256'
 
 jwt = JWT(app, jwt_auth.auth_handler, jwt_auth.load_user)
 
+
 @app.before_first_request
 def bootstrap_users_and_roles():
     bootstrap.create_default_user_and_roles(app)
+
+
+@app.before_request
+def before_request():
+    endpoint = request.endpoint
+    if not current_user.is_authenticated and endpoint:  # sometimes None
+        if not endpoint.startswith('security.') and not endpoint.endswith('api'):
+            return redirect(url_for('security.login', next=request.path))
 
 
 if __name__ == '__main__':
