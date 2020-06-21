@@ -1,6 +1,4 @@
 from flask import Flask
-from flask_jwt import JWT
-from flask import request, redirect, url_for
 from flask_login import current_user
 from flask_restplus import Api
 
@@ -8,7 +6,6 @@ from dynamite_nsm.agent_api import bootstrap
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
 from dynamite_nsm.agent_api.blueprints.home.home import home_blueprint
 
-from dynamite_nsm.agent_api import jwt_auth
 from dynamite_nsm.agent_api.resources.api_users import api as users_api
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
@@ -49,23 +46,6 @@ app.config['WTF_CSRF_ENABLED'] = False
 
 # Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt
 app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
-app.config['JWT_ALGORITHM'] = 'HS256'
-
-jwt = JWT(app, jwt_auth.auth_handler, jwt_auth.load_user)
-
-
-@app.before_first_request
-def bootstrap_users_and_roles():
-    bootstrap.create_default_user_and_roles(app)
-
-
-@app.before_request
-def before_request():
-    endpoint = request.endpoint
-    if not current_user.is_authenticated and endpoint:  # sometimes None
-        if not endpoint.startswith('security.') and not endpoint.endswith('api'):
-            return redirect(url_for('security.login', next=request.path))
-
 
 if __name__ == '__main__':
     app.run()
