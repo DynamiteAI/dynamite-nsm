@@ -47,5 +47,11 @@ app.config['WTF_CSRF_ENABLED'] = False
 # Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt
 app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
 
+
+@app.before_first_request
+def bootstrap_users_and_roles():
+    bootstrap.create_default_user_and_roles(app)
+
+
 if __name__ == '__main__':
     app.run()
