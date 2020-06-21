@@ -1,6 +1,6 @@
-from flask_restplus import fields, Namespace, Resource
+from flask_jwt import JWT, jwt_required
 from flask_security import roles_accepted
-
+from flask_restplus import fields, Namespace, Resource
 from dynamite_nsm import utilities
 
 api = Namespace(
@@ -46,6 +46,7 @@ class SystemInfo(Resource):
     @api.doc('get_system_info')
     @api.response(200, 'System Information', model=model_response_system_info)
     @roles_accepted('admin', 'superuser', 'analyst')
+    @jwt_required
     def get(self):
         return dict(
             memory_bytes=utilities.get_memory_available_bytes(),

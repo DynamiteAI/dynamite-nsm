@@ -39,7 +39,7 @@ api.add_namespace(suricata_rules_api, path='/api/suricata/rules')
 api.add_namespace(suricata_config_api, path='/api/suricata/config')
 api.add_namespace(suricata_process_api, path='/api/suricata/process')
 
-jwt = JWT(app, jwt_auth.auth_handler, jwt_auth.load_user)
+
 
 app.config['DEBUG'] = True
 app.config['SECURITY_TRACKABLE'] = True
@@ -51,7 +51,9 @@ app.config['WTF_CSRF_ENABLED'] = False
 
 # Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt
 app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
+app.config['JWT_ALGORITHM'] = 'HS256'
 
+jwt = JWT(app, jwt_auth.auth_handler, jwt_auth.load_user)
 
 @app.before_first_request
 def bootstrap_users_and_roles():
