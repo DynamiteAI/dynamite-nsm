@@ -24,7 +24,7 @@ app = Flask(__name__, static_folder='ui/static', static_url_path='/static')
 api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
           contact='jamin@dynamite.ai')
 
-
+app.url_map.strict_slashes = False
 app.register_blueprint(home_blueprint, url_prefix='/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
