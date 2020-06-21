@@ -26,6 +26,7 @@ app.url_map.strict_slashes = False
 app.register_blueprint(home_blueprint, url_prefix='/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 
+api.add_namespace(auth_api, path='/api/auth')
 api.add_namespace(users_api, path='/api/users')
 api.add_namespace(system_api, path='/api/system')
 api.add_namespace(zeek_profile_api, path='/api/zeek')
