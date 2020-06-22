@@ -14,3 +14,8 @@ def index():
         flash('New user created.', category='success')
 
     return render_template('home/home.html', current_user=current_user)
+
+
+@home_blueprint.route('/api')
+def api():
+    return render_template('home/api_dashboard.html', current_user=current_user)
