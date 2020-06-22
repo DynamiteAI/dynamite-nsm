@@ -1,5 +1,5 @@
-from flask import Flask, request
 from flask_restplus import Api
+from flask import Flask, request, redirect
 
 from dynamite_nsm.agent_api import bootstrap
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
@@ -56,8 +56,8 @@ def bootstrap_users_and_roles():
 
 @app.before_request
 def redirect_to_home():
-    print('TEST')
-    print(request.path)
+    if request.path == '/':
+        return redirect('/home')
 
 
 if __name__ == '__main__':
