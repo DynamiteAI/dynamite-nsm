@@ -1,5 +1,4 @@
-from flask import Flask
-from flask_login import current_user
+from flask import Flask, request
 from flask_restplus import Api
 
 from dynamite_nsm.agent_api import bootstrap
@@ -53,6 +52,12 @@ app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-random-salt'
 @app.before_first_request
 def bootstrap_users_and_roles():
     bootstrap.create_default_user_and_roles(app)
+
+
+@app.before_request
+def redirect_to_home():
+    print('TEST')
+    print(request.path)
 
 
 if __name__ == '__main__':
