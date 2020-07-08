@@ -38,7 +38,7 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 @api.route('/', endpoint='suricata-status')
 class SuricataStatus(Resource):
 
-    @api.doc('get_suricata_process_status')
+    @api.doc('get_suricata_process_status', security='apikey')
     @api.response(200, 'Fetched Suricata process status.', model=model_response_suricata_process_status)
     @api.response(500, 'Failed to get Suricata process status.', model=model_response_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -57,7 +57,7 @@ class SuricataStatus(Resource):
 @api.route('/start', endpoint='suricata-start')
 class SuricataStart(Resource):
 
-    @api.doc('start_suricata_process')
+    @api.doc('start_suricata_process', security='apikey')
     @api.response(200, 'Started Suricata process.', model=model_response_generic_success)
     @api.response(500, 'Failed to start Suricata process.', model=model_response_error)
     @roles_accepted('admin', 'superuser')
@@ -73,7 +73,7 @@ class SuricataStart(Resource):
 
 @api.route('/stop', endpoint='suricata-stop')
 class SuricataStop(Resource):
-    @api.doc('stop_suricata_process')
+    @api.doc('stop_suricata_process', security='apikey')
     @api.response(200, 'Stopped Suricata process.', model=model_response_generic_success)
     @api.response(500, 'Failed to stop Suricata process.', model=model_response_error)
     @roles_accepted('admin', 'superuser')

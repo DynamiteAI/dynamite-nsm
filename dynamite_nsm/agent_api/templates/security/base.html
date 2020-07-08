@@ -14,17 +14,15 @@
     </head>
     <body {% block body_attribs %}{% endblock body_attribs %}>
         {% block body -%}
-        <div class="container">
+        <div class="container-fluid">
             {% block alerts %} {% endblock alerts %} {% block navbar %} {%- endblock navbar %}
         </div>
         <br />
         <div class="container">
             <div class="row">
-                <div class="col-sm-3"></div>
-                <div class="col-sm-6">
+                <div class="col-sm-12">
                     {% block content -%} {%- endblock content %}
                 </div>
-                <div class="col-sm-3"></div>
             </div>
         </div>
         <div class="footer" style="position: fixed; left: 0; bottom: 0; width: 100%; background-color: #f8f8f8;">

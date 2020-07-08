@@ -1,0 +1,13 @@
+.user_actions {
+    font-size: 15px;
+}
+#password {
+    width: 100%;
+}
+#new_password {
+    width: 100%;
+}
+
+#new_password_confirm {
+    width: 100%;
+}

@@ -84,7 +84,7 @@ class ZeekScriptConfig(Resource):
                              disabled_scripts], key=lambda i: i['id'])
         )
 
-    @api.doc('list_zeek_scripts')
+    @api.doc('list_zeek_scripts', security='apikey')
     @api.response(200, 'Listed Zeek scripts.', model=model_response_zeek_scripts)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -97,8 +97,8 @@ class ZeekScriptConfig(Resource):
 @api.route('/<script_id>', endpoint='script-manager')
 class ZeekScriptManager(Resource):
 
-    @api.doc('get_zeek_script')
-    @api.param('script_id', description='A numeric identifier representing a Zeek script.')
+    @api.doc('get_zeek_script', security='apikey')
+    @api.param('script_id', description='A numeric identifier representing a Zeek script.', _in='path')
     @api.response(200, 'Fetched Zeek Script.', model=model_response_zeek_script)
     @api.response(404, 'Could not find Zeek script.', model=model_response_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -120,8 +120,8 @@ class ZeekScriptManager(Resource):
         else:
             return dict(message='Could not find script {}'.format(script_id)), 404
 
-    @api.doc('update_zeek_script')
-    @api.param('script_id', description='A numeric identifier representing a Zeek script.')
+    @api.doc('update_zeek_script', security='apikey')
+    @api.param('script_id', description='A numeric identifier representing a Zeek script.', _in='path')
     @api.expect(model_request_zeek_update_script)
     @api.response(200, 'Updated Zeek Script.', model=model_response_generic_success)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_error)

@@ -25,7 +25,7 @@ model_response_suricata_installed = api.model('SuricataInstalled', model=dict(
 @api.route('/', endpoint='suricata-installed')
 class SuricataProfile(Resource):
 
-    @api.doc('get_suricata_installed')
+    @api.doc('get_suricata_installed', security='apikey')
     @api.response(200, 'Checked Suricata installed.', model=model_response_suricata_installed)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):

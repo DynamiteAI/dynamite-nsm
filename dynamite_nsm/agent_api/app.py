@@ -1,9 +1,12 @@
 from flask_restplus import Api
 from flask import Flask, request, redirect
+from flask_fontawesome import FontAwesome
 
 from dynamite_nsm.agent_api import bootstrap
-from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
+from dynamite_nsm.agent_api.blueprints.api.api import api_blueprint
 from dynamite_nsm.agent_api.blueprints.home.home import home_blueprint
+from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
+from dynamite_nsm.agent_api.blueprints.profile.profile import user_profile_blueprint
 
 from dynamite_nsm.agent_api.resources.api_auth import api as auth_api
 from dynamite_nsm.agent_api.resources.api_users import api as users_api
@@ -17,13 +20,24 @@ from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_con
 from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_profile_api
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
 
+authorizations = {
+    'apikey': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'Authorization-Token'
+    }
+}
+
 app = Flask(__name__, static_folder='ui/static', static_url_path='/static')
+FontAwesome(app)
 api = Api(app, doc='/api/', title='Agent API', description='Configure and manage the Dynamite agent.',
-          contact='jamin@dynamite.ai')
+          security='apikey', authorizations=authorizations, contact='jamin@dynamite.ai')
 
 app.url_map.strict_slashes = False
+app.register_blueprint(api_blueprint, url_prefix='/docs/')
 app.register_blueprint(home_blueprint, url_prefix='/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
+app.register_blueprint(user_profile_blueprint, url_prefix='/user')
 
 api.add_namespace(auth_api, path='/api/auth')
 api.add_namespace(users_api, path='/api/users')
@@ -41,8 +55,11 @@ app.config['DEBUG'] = True
 app.config['SECURITY_TRACKABLE'] = True
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['APPLICATION_ROOT'] = "/"
+app.config['SECURITY_CHANGEABLE'] = True
 app.config['SECURITY_POST_LOGIN_VIEW'] = "/home"
 app.config['SECURITY_POST_LOGOUT_VIEW'] = "/home"
+app.config['SECURITY_SEND_PASSWORD_CHANGE_EMAIL'] = False
+app.config['SECURITY_POST_CHANGE_VIEW'] = "/home"
 app.config['WTF_CSRF_ENABLED'] = False
 
 # Bcrypt is set as default SECURITY_PASSWORD_HASH, which requires a salt

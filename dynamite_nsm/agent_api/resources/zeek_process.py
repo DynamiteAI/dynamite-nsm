@@ -44,7 +44,7 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 @api.route('/', endpoint='zeek-status')
 class ZeekStatus(Resource):
 
-    @api.doc('get_zeek_process_status')
+    @api.doc('get_zeek_process_status', security='apikey')
     @api.response(200, 'Fetched Zeek process status.', model=model_response_zeek_process_status)
     @api.response(500, 'Failed to get Zeek process status.', model=model_response_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -62,7 +62,7 @@ class ZeekStatus(Resource):
 @api.route('/start', endpoint='zeek-start')
 class ZeekStart(Resource):
 
-    @api.doc('start_zeek_process')
+    @api.doc('start_zeek_process', security='apikey')
     @api.response(200, 'Started Zeek process.', model=model_response_generic_success)
     @api.response(500, 'Failed to start Zeek process.', model=model_response_error)
     @roles_accepted('admin', 'superuser')
@@ -78,7 +78,7 @@ class ZeekStart(Resource):
 
 @api.route('/stop', endpoint='zeek-stop')
 class ZeekStop(Resource):
-    @api.doc('stop_zeek_process')
+    @api.doc('stop_zeek_process', security='apikey')
     @api.response(200, 'Stopped Zeek process.', model=model_response_generic_success)
     @api.response(500, 'Failed to stop Zeek process.', model=model_response_error)
     @roles_accepted('admin', 'superuser', 'analyst')

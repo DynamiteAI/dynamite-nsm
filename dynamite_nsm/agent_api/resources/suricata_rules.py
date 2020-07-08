@@ -82,7 +82,7 @@ class SuricataRuleConfig(Resource):
                              disabled_rules], key=lambda i: i['id'])
         )
 
-    @api.doc('list_suricata_rules')
+    @api.doc('list_suricata_rules', security='apikey')
     @api.response(200, 'Listed Suricata rules.', model=model_response_suricata_rules)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -94,8 +94,8 @@ class SuricataRuleConfig(Resource):
 @api.route('/<rule_id>', endpoint='rule-manager')
 class SuricataRuleManager(Resource):
 
-    @api.doc('get_suricata_rule')
-    @api.param('rule_id', description='A numeric identifier representing a Suricata rule.')
+    @api.doc('get_suricata_rule', security='apikey')
+    @api.param('rule_id', description='A numeric identifier representing a Suricata rule.', _in='path')
     @api.response(200, 'Fetched Suricata rule.', model=model_response_suricata_rule)
     @api.response(404, 'Could not find Suricata rule.', model=model_response_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -117,8 +117,8 @@ class SuricataRuleManager(Resource):
         else:
             return dict(message='Could not find rule {}'.format(rule_id)), 404
 
-    @api.doc('update_suricata_rule')
-    @api.param('script_id', description='A numeric identifier representing a Suricata rule.')
+    @api.doc('update_suricata_rule', security='apikey')
+    @api.param('rule_id', description='A numeric identifier representing a Suricata rule.', _in='path')
     @api.expect(model_request_suricata_update_rule)
     @api.response(200, 'Updated Suricata Script.', model=model_response_generic_success)
     @api.response(404, 'Could not find Suricata rule.', model=model_response_error)

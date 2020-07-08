@@ -8,6 +8,7 @@
                 <th>Id</th>
                 <th>Username</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Last Login</th>
                 <th>Current Login</th>
                 <th>Login Count</th>
@@ -20,17 +21,33 @@
             <tr>
                 <td>
                     <div class="btn-group" role="group">
-                        <a href="#"><button style="font-size:15px;" class="btn btn-danger my-2 my-sm-0" type="button">ⓧ</button></a>
+                        {% if user.email != current_user.email %}
+                            <a href="/users/delete/{{ user.id }}">
+                                <button class="btn btn-danger my-2 my-sm-0  user_actions">
+                                    <i class="fa fa-user-minus" aria-hidden="true"></i>
+                                </button>
+                            </a>
+                        {% else %}
+                            <a href="#">
+                                <button disabled class="btn btn-secondary my-2 my-sm-0 user_actions" type="button">
+                                    <i class="fa fa-user-minus" aria-hidden="true"></i>
+                                </button>
+                            </a>
+                        {% endif %}
 			&nbsp
-                        <a href="#"><button style="font-size:15px;" class="btn btn-warning my-2 my-sm-0" type="button">✎</button></a>
+                        <a href="/user/{{ user.id }}">
+                            <button class="btn btn-warning my-2 my-sm-0 user_actions" type="button">
+                                 <i class="fa fa-user-edit" aria-hidden="true"></i>
+                            </button>
+                        </a>
                     </div>
                 </td>
                 <td>{{ user.id }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
-		<td><span class="badge badge-primary">{{ user.last_login_at }}</span></td>
-		<td><span class="badge badge-primary">{{ user.current_login_at }}</span></td>
-
+                <td>{{ user.role }}</td>
+                <td><span class="badge badge-primary">{{ user.last_login_at }}</span></td>
+                <td><span class="badge badge-primary">{{ user.current_login_at }}</span></td>
                 <td>{{ user.login_count }}</td>
 		<td><span class="badge badge-secondary">{{ user.last_login_ip }}</span></td>
 		{% if user.active %}
@@ -51,8 +68,11 @@
                 <td></td>
                 <td></td>
                 <td></td>
+                <td></td>
                 <td>
-                    <a href="/users/create"><button class="btn btn-success" type="button" style="font-size:11px">New User</button></a>
+                    <a href="/users/create"><button class="btn btn-success" type="button" style="font-size:11px">
+                        <i class="fa fa-user-plus" aria-hidden="true"></i></button>
+                    </a>
                 </td>
             </tr>
         </tfoot>

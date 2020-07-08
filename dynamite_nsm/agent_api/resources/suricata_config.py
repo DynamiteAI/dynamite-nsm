@@ -125,7 +125,7 @@ model_response_suricata_port_group = api.model('SuricataModelPortGroupResponse',
 @api.route('/address-groups', endpoint='suricata-address-groups-config')
 class SuricataAddressGroupsConfig(Resource):
 
-    @api.doc('list_suricata_address_groups')
+    @api.doc('list_suricata_address_groups', security='apikey')
     @api.response(200, 'Listed address groups.', model=model_response_suricata_address_groups)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -151,7 +151,7 @@ class SuricataAddressGroupsConfig(Resource):
 @api.route('/port-groups', endpoint='port-groups-config')
 class SuricataPortGroupsConfig(Resource):
 
-    @api.doc('list_suricata_port_groups')
+    @api.doc('list_suricata_port_groups', security='apikey')
     @api.response(200, 'Listed port groups.', model=model_response_suricata_port_groups)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -173,7 +173,7 @@ class SuricataPortGroupsConfig(Resource):
 @api.route('/interfaces', endpoint='suricata-network-interfaces-config')
 class SuricataInterfacesConfig(Resource):
 
-    @api.doc('list_suricata_interfaces')
+    @api.doc('list_suricata_interfaces', security='apikey')
     @api.response(200, 'Listed network interfaces', model=model_response_suricata_interfaces)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -285,8 +285,8 @@ class SuricataInterfaceManager(Resource):
         except suricata_config.suricata_exceptions.WriteSuricataConfigError as e:
             return dict(message=str(e)), 500
 
-    @api.doc('delete_suricata_network_interface')
-    @api.param('interface', description='A configured network interface.')
+    @api.doc('delete_suricata_network_interface', security='apikey')
+    @api.param('interface', description='A configured network interface.', _in='path')
     @api.response(200, 'Deleted network interface.', model=model_response_generic_success)
     @api.response(400, 'Invalid network interface (not configured in Suricata) or bad value(s).',
                   model=model_response_error)
@@ -303,8 +303,8 @@ class SuricataInterfaceManager(Resource):
         suricata_instance_config.write_config()
         return dict(message='Deleted network interface {}.'.format(interface)), 200
 
-    @api.doc('get_suricata_network_interface')
-    @api.param('interface', description='A configured network interface.')
+    @api.doc('get_suricata_network_interface', security='apikey')
+    @api.param('interface', description='A configured network interface.', _in='path')
     @api.response(200, 'Fetched network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (not configured in Suricata).', model=model_response_error)
     @api.response(404, 'Could not find network interface.', model=model_response_error)
@@ -320,8 +320,8 @@ class SuricataInterfaceManager(Resource):
                 return dict(interface=net_interface), 200
         return dict(message='Network interface not found.'), 404
 
-    @api.doc('create_suricata_network_interface')
-    @api.param('interface', description='A valid network interface.')
+    @api.doc('create_suricata_network_interface', security='apikey')
+    @api.param('interface', description='A valid network interface.', _in='path')
     @api.expect(model_request_create_suricata_interface)
     @api.response(201, 'Created network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (already exists) or bad value(s).', model=model_response_error)
@@ -334,8 +334,8 @@ class SuricataInterfaceManager(Resource):
             return dict(message='{} interface already exists. Use PUT to update.'.format(interface)), 400
         return self._create_update(interface, verb='POST')
 
-    @api.doc('update_suricata_network_interface')
-    @api.param('interface', description='A valid network interface.')
+    @api.doc('update_suricata_network_interface', security='apikey')
+    @api.param('interface', description='A valid network interface.', _in='path')
     @api.expect(model_request_update_suricata_interface)
     @api.response(201, 'Updated network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (does not exists) or bad value(s).', model=model_response_error)
@@ -356,8 +356,8 @@ class SuricataAddressGroupsManager(Resource):
                                  'enip_client', 'enip_server'
                                  ]
 
-    @api.doc('get_address_group')
-    @api.param('address_group', 'The name of the address group to get details about.')
+    @api.doc('get_address_group', security='apikey')
+    @api.param('address_group', 'The name of the address group to get details about.', _in='path')
     @api.response(200, 'Fetched Suricata address group.', model=model_response_suricata_address_group)
     @api.response(400, 'Invalid address group.', model=model_response_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -369,8 +369,8 @@ class SuricataAddressGroupsManager(Resource):
         return dict(
             address_group={'name': address_group, 'value': getattr(suricata_instance_config, address_group)}), 200
 
-    @api.doc('update_address_group')
-    @api.param('address_group', 'The name of the address group to update.')
+    @api.doc('update_address_group', security='apikey')
+    @api.param('address_group', 'The name of the address group to update.', _in='path')
     @api.expect(model_request_update_group)
     @api.response(200, 'Updated Suricata address group.', model=model_response_suricata_address_group)
     @api.response(400, 'Invalid address group; invalid group expression.', model=model_response_error)
@@ -415,8 +415,8 @@ class SuricataPortGroupsManager(Resource):
     VALID_PORT_GROUP_NAMES = ['http_ports', 'shellcode_ports', 'oracle_ports', 'ssh_ports', 'dnp3_ports',
                               'modbus_ports', 'ftp_ports', 'file_data_ports']
 
-    @api.doc('get_port_group')
-    @api.param('port_group', 'The name of the port group to get details about.')
+    @api.doc('get_port_group', security='apikey')
+    @api.param('port_group', 'The name of the port group to get details about.', _in='path')
     @api.response(200, 'Fetched Suricata port group.', model=model_response_suricata_port_group)
     @api.response(400, 'Invalid port group.', model=model_response_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -428,8 +428,8 @@ class SuricataPortGroupsManager(Resource):
         return dict(
             port_group={'name': port_group, 'value': getattr(suricata_instance_config, port_group)}), 200
 
-    @api.doc('update_port_group')
-    @api.param('port_group', 'The name of the port group to update.')
+    @api.doc('update_port_group', security='apikey')
+    @api.param('port_group', 'The name of the port group to update.', _in='path')
     @api.expect(model_request_update_group)
     @api.response(200, 'Updated Suricata port group.', model=model_response_suricata_port_group)
     @api.response(400, 'Invalid port group; invalid group expression.', model=model_response_error)

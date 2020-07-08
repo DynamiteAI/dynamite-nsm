@@ -19,6 +19,8 @@ class ApiUsers(Resource):
         users = models.User.query.all()
         users_list = []
         for user in users:
+            if user.email == 'managerd@dynamite.local':
+                continue
             users_list.append(
                 {
                     'id': user.id,

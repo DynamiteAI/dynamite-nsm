@@ -24,8 +24,10 @@
        <div class="card-body">
           <h5 class="card-title">Welcome!</h5>
           <p class="card-text">Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI!</p>
-          <a href="/users" class="btn btn-primary">Manage Users</a>
-          <a href="/home/api" class="btn btn-secondary">Explore the API</a>
+           {% if current_user.has_role('admin') %}
+            <a href="/users" class="btn btn-primary">Manage Users</a>
+           {% endif %}
+          <a href="/docs" class="btn btn-secondary">Explore the API</a>
        </div>
     </div>
     {% else %}

@@ -5,21 +5,36 @@
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
+    {% if current_user.has_role('admin') %}
       <li class="nav-item active">
-        <a href="/users" class="nav-link">Users<span class="sr-only"></span></a>
+          <a href="/users" class="nav-link">Users<span class="sr-only"></span></a>
       </li>
-        {% if current_user.is_authenticated %}
-        <li class="nav-item active">
-          <a href="/home/api" class="nav-link">API<span class="sr-only"></span></a>
-        </li>
-        {% endif %}
-    </ul>
-    <form class="form-inline my-2 my-lg-0">
-      {% if current_user.is_authenticated %}
-        <a href="/logout"><button class="btn btn-outline-danger my-2 my-sm-0" type="button">Logout</button></a>
-      {% else %}
-      <a href="/login"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Login</button></a>
+    {% endif %}
+    {% if current_user.is_authenticated %}
+      <li class="nav-item active">
+        <a href="/docs" class="nav-link">API<span class="sr-only"></span></a>
+      </li>
       {% endif %}
+    </ul>
+    {% if current_user.is_authenticated %}
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <img src="{{ url_for('static', filename='img/profile.svg') }}" width="40" height="40" class="rounded-circle">
+            </a>
+
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <a class="dropdown-item" href="/user"><b>Profile</b></a>
+              <a class="dropdown-item" href="/logout"><b style="color:red">Logout</b></a>
+            </div>
+          </li>
+      </ul>
+    </div>
+    {% else %}
+    <form class="form-inline my-2 my-lg-0">
+        <a href="/login"><button class="btn btn-outline-success my-2 my-sm-0" type="button">Login</button></a>
     </form>
+    {% endif %}
   </div>
 </nav>

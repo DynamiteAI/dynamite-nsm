@@ -23,11 +23,14 @@ def list_users_html():
             last_login_date = user.last_login_at.strftime("%d-%b-%Y (%H:%M:%S)")
         if user.current_login_at:
             current_login_date = user.current_login_at.strftime("%d-%b-%Y (%H:%M:%S)")
+        if user.email == 'managerd@dynamite.local':
+            continue
         users_list.append(
             {
                 'id': user.id,
                 'email': user.email,
                 'username': user.username,
+                'role': user.roles[0].name,
                 'last_login_at': last_login_date,
                 'current_login_at': current_login_date,
                 'login_count': user.login_count,
@@ -49,6 +52,18 @@ def create_user_form_html():
 @roles_accepted('tempadmin')
 def initial_admin_form_html():
     return render_template('admin/create_initial_admin.html')
+
+
+@users_blueprint.route('/delete/<userid>', methods=['GET', 'POST'])
+@roles_accepted('admin')
+def delete_user_form(userid):
+    if userid == current_user.id:
+        return redirect('/users')
+    user_datastore = SQLAlchemySessionUserDatastore(db_session, models.User, models.Role)
+    user_obj = user_datastore.find_user(id=userid)
+    user_datastore.delete_user(user_obj)
+    db_session.commit()
+    return redirect('/users')
 
 
 @users_blueprint.route('/create_user_submit', methods=['POST'])

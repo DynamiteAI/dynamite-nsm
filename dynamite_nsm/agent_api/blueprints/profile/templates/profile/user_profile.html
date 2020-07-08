@@ -1,0 +1,75 @@
+{% extends "profile/base.html" %}
+{% from "security/_macros.html" import render_field_with_errors, render_field %}
+
+{% block content %}
+{% include "security/_messages.html" %}
+<br>
+<div class="card border-primary">
+  <h5 class="card-header">Profile</h5>
+  <div class="card-body">
+    {% if userid %}
+    <form action="/user/{{ userid }}/update_user_submit" method="POST" name="update_user_form">
+    {% else %}
+    <form action="/user/update_current_user_submit" method="POST" name="update_user_form">
+    {% endif %}
+        <label for="username_input">Username</label><br>
+        <input class="form-control" type="text" id="username_input" name="username" value="{{ user.username }}">
+        <br>
+
+        <label for="email_input">Email</label><br>
+        <input class="form-control" type="email" id="email_input" name="email" aria-describedby="emailHelp" value="{{ user.email }}">
+        <br>
+        <label for="role_input">Role</label><br>
+        <select class="form-control" aria-labelledby="dropdownMenuLink" name="role" id="role_input">
+          <option>{{ user.roles[0].name  }}</option>
+          {% if userid and current_user.id != userid %}
+          <option>{{ available_roles[1] }}</option>
+          <option>{{ available_roles[0] }}</option>
+          {% endif %}
+        </select>
+        <br>
+      <button type="submit" class="btn btn-primary" style="position: absolute; right: 0; margin-right:20px">Submit</button>
+      <br><br>
+    </form>
+  </div>
+</div>
+
+{% if change_password_section_hidden == False %}
+    <br><br>
+    <div class="card border-warning">
+        <h5 class="card-header">Change Password</h5>
+        <div class="card-body">
+            <p>
+                Change the password used to authenticate to the API.
+            </p>
+              <a href="/change" class="btn btn-outline-warning"><i class="fa fa-key" aria-hidden="true"> Change Password</i></a>
+        </div>
+    </div>
+{% endif %}
+
+{% if api_section_hidden == False %}
+    <br><br>
+    <div class="card border-secondary">
+      <h5 class="card-header">API Key</h5>
+      <div class="card-body">
+        <p>
+            <i> When calling the API outside the web interface you must use: <code>Authentication-Token: &lt;token&gt;</code> in each request. </i>
+        </p>
+        <br>
+        <div class="input-group">
+            <input readonly class="form-control" type="text" id="token_input" name="token" value="{{ user.get_auth_token() }}">
+             <span class="input-group-btn">
+                <button class="btn btn-outline-secondary" data-clipboard-action="copy" data-clipboard-target="#token_input">
+                    <img src="{{ url_for('static', filename='img/clippy.svg') }}" alt="Copy to clipboard" style="width:13px;height:15px">
+                </button>
+            </span>
+        </div>
+      </div>
+    </div>
+{% endif %}
+{% include "security/_menu.html" %}
+{% endblock %}
+
+{% block navbar %}
+  {% include "security/_navbar.html" %}
+{% endblock %}

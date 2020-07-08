@@ -23,7 +23,7 @@ model_response_zeek_installed = api.model('ZeekInstalled', model=dict(
 @api.route('/', endpoint='zeek-installed')
 class ZeekProfile(Resource):
 
-    @api.doc('get_zeek_installed')
+    @api.doc('get_zeek_installed', security='apikey')
     @api.response(200, 'Checked Zeek installed.', model=model_response_zeek_installed)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):

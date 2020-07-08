@@ -42,7 +42,7 @@ model_response_system_info = api.model('SystemInfoResponse', model={
 
 @api.route('/')
 class SystemInfo(Resource):
-    @api.doc('get_system_info')
+    @api.doc('get_system_info', security='apikey')
     @api.response(200, 'System Information', model=model_response_system_info)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -56,7 +56,7 @@ class SystemInfo(Resource):
 
 @api.route('/cpu')
 class CPUCoreCount(Resource):
-    @api.doc('get_cpu_core_count')
+    @api.doc('get_cpu_core_count', security='apikey')
     @api.response(200, 'CPU Core Count', model=model_response_cpu_core_count)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -65,7 +65,7 @@ class CPUCoreCount(Resource):
 
 @api.route('/memory')
 class MemoryBytes(Resource):
-    @api.doc('get_memory_bytes')
+    @api.doc('get_memory_bytes', security='apikey')
     @api.response(200, 'Memory Bytes', model=model_response_memory_bytes)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -74,7 +74,7 @@ class MemoryBytes(Resource):
 
 @api.route('/ips')
 class NetworkAddresses(Resource):
-    @api.doc('get_network_addresses')
+    @api.doc('get_network_addresses', security='apikey')
     @api.response(200, 'Network Addresses', model=model_response_network_addresses)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -83,7 +83,7 @@ class NetworkAddresses(Resource):
 
 @api.route('/interfaces')
 class NetworkInterfaces(Resource):
-    @api.doc('get_network_interfaces')
+    @api.doc('get_network_interfaces', security='apikey')
     @api.response(200, 'Network Interfaces', model=model_response_network_interfaces)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):

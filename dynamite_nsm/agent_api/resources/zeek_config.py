@@ -114,7 +114,7 @@ model_response_zeek_get_worker_component = api.model('ZeekWorkerComponentRespons
 @api.route('/', endpoint='node-configs')
 class ZeekNodeComponentsList(Resource):
 
-    @api.doc('list_node_components')
+    @api.doc('list_node_components', security='apikey')
     @api.response(200, 'Listed components.', model=model_response_zeek_list_components_response)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -135,8 +135,8 @@ class ZeekNodeComponentsList(Resource):
 @api.route('/<component>', endpoint='node-config')
 class ZeekNodeConfig(Resource):
 
-    @api.doc('get_node_component')
-    @api.param('component', description='The type of the component: manager, loggers, proxies, workers')
+    @api.doc('get_node_component', security='apikey')
+    @api.param('component', description='The type of the component: manager, loggers, proxies, workers', _in='path')
     @api.response(200, 'Fetched Zeek node component.', model=model_response_zeek_get_component)
     @api.response(400, 'Invalid Zeek node component.', model=model_response_zeek_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -198,7 +198,7 @@ class ZeekNodeManagerManager(Resource):
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
-    @api.doc('get_manager')
+    @api.doc('get_manager', security='apikey')
     @api.response(200, 'Fetched Zeek manager.', model=model_response_zeek_get_manager_component)
     @roles_accepted('admin', 'superuser', 'analyst')
     def get(self):
@@ -211,8 +211,8 @@ class ZeekNodeManagerManager(Resource):
         )
         return dict(manager=manager), 200
 
-    @api.doc('update_manager')
-    @api.param('name', description='The name of the manager.')
+    @api.doc('update_manager', security='apikey')
+    @api.param('name', description='The name of the manager.', _in='path')
     @api.expect(model_request_zeek_simple_component_create_update)
     @api.response(200, 'Updated Zeek manager.', model=model_response_zeek_get_manager_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
@@ -267,8 +267,8 @@ class ZeekNodeLoggerManager(Resource):
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
-    @api.doc('delete_logger')
-    @api.param('name', description='The name of the logger.')
+    @api.doc('delete_logger', security='apikey')
+    @api.param('name', description='The name of the logger.', _in='path')
     @api.response(200, 'Deleted Zeek logger.', model=model_response_zeek_generic_success)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_zeek_error)
     @roles_accepted('admin', 'superuser')
@@ -286,8 +286,8 @@ class ZeekNodeLoggerManager(Resource):
             node_config.write_config()
             return dict(message='Deleted logger {}.'.format(name)), 200
 
-    @api.doc('get_logger')
-    @api.param('name', description='The name of the logger.')
+    @api.doc('get_logger', security='apikey')
+    @api.param('name', description='The name of the logger.', _in='path')
     @api.response(200, 'Fetched Zeek logger.', model=model_response_zeek_get_logger_component)
     @api.response(404, 'Could not find Zeek logger.', model=model_response_zeek_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -300,8 +300,8 @@ class ZeekNodeLoggerManager(Resource):
         except IndexError:
             return dict(message='Logger not found.'), 404
 
-    @api.doc('create_logger')
-    @api.param('name', description='The name of the logger.')
+    @api.doc('create_logger', security='apikey')
+    @api.param('name', description='The name of the logger.', _in='path')
     @api.expect(model_request_zeek_simple_component_create_update)
     @api.response(201, 'Created Zeek logger.', model=model_response_zeek_get_logger_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
@@ -314,8 +314,8 @@ class ZeekNodeLoggerManager(Resource):
             return dict(message='{} logger already exists. Use PUT to update.'.format(name)), 409
         return self._create_update(name, verb='POST')
 
-    @api.doc('update_logger')
-    @api.param('name', description='The name of the logger.')
+    @api.doc('update_logger', security='apikey')
+    @api.param('name', description='The name of the logger.', _in='path')
     @api.expect(model_request_zeek_simple_component_create_update)
     @api.response(200, 'Updated Zeek logger.', model=model_response_zeek_get_logger_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
@@ -373,8 +373,8 @@ class ZeekNodeProxyManager(Resource):
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
-    @api.doc('delete_proxy')
-    @api.param('name', description='The name of the proxy.')
+    @api.doc('delete_proxy', security='apikey')
+    @api.param('name', description='The name of the proxy.', _in='path')
     @api.response(200, 'Deleted Zeek proxy.', model=model_response_zeek_generic_success)
     @api.response(404, 'Could not find Zeek proxy.', model=model_response_zeek_error)
     @roles_accepted('admin', 'superuser')
@@ -392,8 +392,8 @@ class ZeekNodeProxyManager(Resource):
             node_config.write_config()
             return dict(message='Deleted proxy {}.'.format(name)), 200
 
-    @api.doc('get_proxy')
-    @api.param('name', description='The name of the proxy.')
+    @api.doc('get_proxy', security='apikey')
+    @api.param('name', description='The name of the proxy.', _in='path')
     @api.response(200, 'Fetched Zeek proxy.', model=model_response_zeek_get_proxy_component)
     @api.response(404, 'Could not find Zeek proxy.', model=model_response_zeek_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -406,8 +406,8 @@ class ZeekNodeProxyManager(Resource):
         except IndexError:
             return dict(message='Proxy not found.'), 404
 
-    @api.doc('create_proxy')
-    @api.param('name', description='The name of the proxy.')
+    @api.doc('create_proxy', security='apikey')
+    @api.param('name', description='The name of the proxy.', _in='path')
     @api.expect(model_request_zeek_simple_component_create_update)
     @api.response(201, 'Created Zeek proxy.', model=model_response_zeek_get_proxy_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
@@ -420,8 +420,8 @@ class ZeekNodeProxyManager(Resource):
             return dict(message='{} proxy already exists. Use PUT to update.'.format(name)), 409
         return self._create_update(name, verb='POST')
 
-    @api.doc('update_proxy')
-    @api.param('name', description='The name of the proxy.')
+    @api.doc('update_proxy', security='apikey')
+    @api.param('name', description='The name of the proxy.', _in='path')
     @api.expect(model_request_zeek_simple_component_create_update)
     @api.response(200, 'Updated Zeek proxy.', model=model_response_zeek_get_proxy_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
@@ -526,8 +526,8 @@ class ZeekNodeWorkerManager(Resource):
         except zeek_config.zeek_exceptions.WriteZeekConfigError as e:
             return dict(message=str(e)), 500
 
-    @api.doc('delete_worker')
-    @api.param('name', description='The name of the worker.')
+    @api.doc('delete_worker', security='apikey')
+    @api.param('name', description='The name of the worker.', _in='path')
     @api.response(200, 'Deleted Zeek worker.', model=model_response_zeek_generic_success)
     @api.response(404, 'Could not find Zeek worker.', model=model_response_zeek_error)
     @roles_accepted('admin', 'superuser')
@@ -545,8 +545,8 @@ class ZeekNodeWorkerManager(Resource):
             node_config.write_config()
             return dict(message='Deleted worker {}.'.format(name)), 200
 
-    @api.doc('get_worker')
-    @api.param('name', description='The name of the worker.')
+    @api.doc('get_worker', security='apikey')
+    @api.param('name', description='The name of the worker.', _in='path')
     @api.response(200, 'Fetched Zeek worker.', model=model_response_zeek_get_worker_component)
     @api.response(404, 'Could not find Zeek worker.', model=model_response_zeek_error)
     @roles_accepted('admin', 'superuser', 'analyst')
@@ -559,8 +559,8 @@ class ZeekNodeWorkerManager(Resource):
         except IndexError:
             return dict(message='Worker not found.'), 404
 
-    @api.doc('create_worker')
-    @api.param('name', description='The name of the worker.')
+    @api.doc('create_worker', security='apikey')
+    @api.param('name', description='The name of the worker.', _in='path')
     @api.expect(model_request_zeek_worker_component_create)
     @api.response(201, 'Created Zeek worker.', model=model_response_zeek_get_worker_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)
@@ -573,8 +573,8 @@ class ZeekNodeWorkerManager(Resource):
             return dict(message='{} worker already exists. Use PUT to update.'.format(name)), 409
         return self._create_update(name, verb='POST')
 
-    @api.doc('update_worker')
-    @api.param('name', description='The name of the worker.')
+    @api.doc('update_worker', security='apikey')
+    @api.param('name', description='The name of the worker.', _in='path')
     @api.expect(model_request_zeek_worker_component_update)
     @api.response(200, 'Updated Zeek worker.', model=model_response_zeek_get_worker_component)
     @api.response(400, 'One or more parameters are incorrect.', model=model_response_zeek_error)

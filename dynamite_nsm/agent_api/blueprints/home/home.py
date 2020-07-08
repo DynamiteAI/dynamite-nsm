@@ -9,13 +9,8 @@ def index():
     if not request.referrer:
         return render_template('home/home.html', current_user=current_user)
     if 'create_admin' in request.referrer:
-        flash('Login with your newly created admin account', category='success')
+        flash('Login with your newly created profile account', category='success')
     elif 'create' in request.referrer:
         flash('New user created.', category='success')
 
     return render_template('home/home.html', current_user=current_user)
-
-
-@home_blueprint.route('/api')
-def api():
-    return render_template('home/api_dashboard.html', current_user=current_user)

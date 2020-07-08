@@ -1,15 +1,15 @@
-{% extends "home/base.html" %}
+{% extends "api/base.html" %}
 {% block navbar %}
   {% include "security/_navbar.html" %}
 {% endblock %}
 
 {% block alerts %}
-  {% include "home/_alerts.html" %}
+  {% include "_security/_alerts.html" %}
 {% endblock %}
 
 
 {% block content %}
-    <div class="embed-responsive embed-responsive-1by1">
+    <div class="embed-responsive embed-responsive-21by9">
         <iframe class="embed-responsive-item" src="/api" allowfullscreen></iframe>
     </div>
 {% endblock %}
