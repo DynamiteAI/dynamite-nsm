@@ -36,6 +36,7 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 
 
 @api.route('/', endpoint='suricata-status')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataStatus(Resource):
 
     @api.doc('get_suricata_process_status', security='apikey')
@@ -55,6 +56,7 @@ class SuricataStatus(Resource):
 
 
 @api.route('/start', endpoint='suricata-start')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataStart(Resource):
 
     @api.doc('start_suricata_process', security='apikey')
@@ -72,6 +74,7 @@ class SuricataStart(Resource):
 
 
 @api.route('/stop', endpoint='suricata-stop')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataStop(Resource):
     @api.doc('stop_suricata_process', security='apikey')
     @api.response(200, 'Stopped Suricata process.', model=model_response_generic_success)

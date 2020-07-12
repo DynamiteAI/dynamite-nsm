@@ -123,6 +123,7 @@ model_response_suricata_port_group = api.model('SuricataModelPortGroupResponse',
 
 
 @api.route('/address-groups', endpoint='suricata-address-groups-config')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataAddressGroupsConfig(Resource):
 
     @api.doc('list_suricata_address_groups', security='apikey')
@@ -149,6 +150,7 @@ class SuricataAddressGroupsConfig(Resource):
 
 
 @api.route('/port-groups', endpoint='port-groups-config')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataPortGroupsConfig(Resource):
 
     @api.doc('list_suricata_port_groups', security='apikey')
@@ -171,6 +173,7 @@ class SuricataPortGroupsConfig(Resource):
 
 
 @api.route('/interfaces', endpoint='suricata-network-interfaces-config')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataInterfacesConfig(Resource):
 
     @api.doc('list_suricata_interfaces', security='apikey')
@@ -182,6 +185,7 @@ class SuricataInterfacesConfig(Resource):
 
 
 @api.route('/interfaces/<interface>', endpoint='suricata-network-interface-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataInterfaceManager(Resource):
 
     @staticmethod
@@ -332,12 +336,12 @@ class SuricataInterfaceManager(Resource):
             [af_packet_interface['interface'] for af_packet_interface in suricata_instance_config.af_packet_interfaces]
         if interface in interface_names:
             return dict(message='{} interface already exists. Use PUT to update.'.format(interface)), 400
-        return self._create_update(interface, verb='POST')
+        return self._create_update(interface, verb='POST'), 201
 
     @api.doc('update_suricata_network_interface', security='apikey')
     @api.param('interface', description='A valid network interface.', _in='path')
     @api.expect(model_request_update_suricata_interface)
-    @api.response(201, 'Updated network interface.', model=model_response_suricata_interface)
+    @api.response(200, 'Updated network interface.', model=model_response_suricata_interface)
     @api.response(400, 'Invalid network interface (does not exists) or bad value(s).', model=model_response_error)
     @roles_accepted('admin', 'superuser')
     def put(self, interface):
@@ -346,10 +350,11 @@ class SuricataInterfaceManager(Resource):
             [af_packet_interface['interface'] for af_packet_interface in suricata_instance_config.af_packet_interfaces]
         if interface not in interface_names:
             return dict(message='{} interface does not exists. Use POST to create.'.format(interface)), 400
-        return self._create_update(interface, verb='PUT')
+        return self._create_update(interface, verb='PUT'), 200
 
 
 @api.route('/address-groups/<address_group>', endpoint='suricata-address-group-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataAddressGroupsManager(Resource):
     VALID_ADDRESS_GROUP_NAMES = ['home_net', 'external_net', 'http_servers', 'sql_servers', 'dns_servers',
                                  'telnet_servers', 'aim_servers', 'dc_servers', 'modbus_server', 'modbus_client',
@@ -411,6 +416,7 @@ class SuricataAddressGroupsManager(Resource):
 
 
 @api.route('/port-groups/<port_group>', endpoint='suricata-port-group-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataPortGroupsManager(Resource):
     VALID_PORT_GROUP_NAMES = ['http_ports', 'shellcode_ports', 'oracle_ports', 'ssh_ports', 'dnp3_ports',
                               'modbus_ports', 'ftp_ports', 'file_data_ports']

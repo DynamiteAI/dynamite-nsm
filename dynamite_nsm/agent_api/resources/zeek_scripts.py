@@ -69,6 +69,7 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 
 
 @api.route('/', endpoint='scripts-config')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekScriptConfig(Resource):
 
     @staticmethod
@@ -95,6 +96,7 @@ class ZeekScriptConfig(Resource):
 
 
 @api.route('/<script_id>', endpoint='script-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekScriptManager(Resource):
 
     @api.doc('get_zeek_script', security='apikey')

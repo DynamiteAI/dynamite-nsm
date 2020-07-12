@@ -42,6 +42,7 @@ model_response_generic_success = api.model('GenericSuccessResponse', model={
 
 
 @api.route('/', endpoint='zeek-status')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekStatus(Resource):
 
     @api.doc('get_zeek_process_status', security='apikey')
@@ -60,6 +61,7 @@ class ZeekStatus(Resource):
 
 
 @api.route('/start', endpoint='zeek-start')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekStart(Resource):
 
     @api.doc('start_zeek_process', security='apikey')
@@ -77,6 +79,7 @@ class ZeekStart(Resource):
 
 
 @api.route('/stop', endpoint='zeek-stop')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekStop(Resource):
     @api.doc('stop_zeek_process', security='apikey')
     @api.response(200, 'Stopped Zeek process.', model=model_response_generic_success)

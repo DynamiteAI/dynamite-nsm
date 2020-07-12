@@ -1,4 +1,4 @@
-{% extends "home/base.html" %}
+{% extends "security/base.html" %}
 {% block navbar %}
   {% include "security/_navbar.html" %}
 {% endblock %}
@@ -9,116 +9,118 @@
 
 
 {% block content %}
-    {% if current_user.is_authenticated and current_user.username == 'admin'%}
-    <div class="card border-success">
-       <h5 class="card-header fa fa-user-shield"> Setup your account</h5>
-       <div class="card-body">
-          <h5 class="card-title">Create an admin account.</h5>
-          <p class="card-text">Let's setup your admin and any additional user accounts.</p>
-          <a href="/users/create_admin" class="btn btn-primary">Setup accounts</a>
-       </div>
-    </div>
-    {% elif current_user.is_authenticated %}
-    <div class="row">
-        <div class="card border-secondary col-lg-6">
-           <h5 class="card-header fa fa-cogs"> Process Status</h5>
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6">
+        {% if current_user.is_authenticated and current_user.username == 'admin'%}
+        <div class="card border-success">
+           <h5 class="card-header fa fa-user-shield"> Setup your account</h5>
            <div class="card-body">
-               <table class="table table-sm table-borderless" width="100%">
-                   <thead>
-                   <tr>
-                       <th></th>
-                       <th></th>
-                   </tr>
-                   </thead>
-                   <tbody>
-                   <tr>
-                       <td>
-                           Zeek
-                       </td>
-                      {% if analysis_engines_statuses['zeek'] %}
-                      <td>
-                          <i style="color:green"> Running</i>
-                       </td>
-                        {% else %}
-                       <td>
-                          <i style="color:red"> Stopped</i>
-                       </td>
-                        {% endif %}
-                   </tr>
-                   <tr>
-                      <td>
-                           Suricata
-                       </td>
-                      {% if analysis_engines_statuses['suricata'] %}
-                      <td>
-                          <i style="color:green"> Running</i>
-                       </td>
-                        {% else %}
-                       <td>
-                          <i style="color:red"> Stopped</i>
-                       </td>
-                        {% endif %}
-                   </tr>
-                   </tbody>
-               </table>
+              <h5 class="card-title">Create an admin account.</h5>
+              <p class="card-text">Let's setup your admin and any additional user accounts.</p>
+              <a href="/users/create_admin" class="btn btn-primary">Setup accounts</a>
            </div>
         </div>
-        <div class="card border-secondary col-lg-6">
-           <h5 class="card-header fa fa-server"> System Information</h5>
-           <div class="card-body">
-               <table class="table table-sm table-borderless" width="100%">
-                   <thead>
-                   <tr>
-                       <th></th>
-                       <th></th>
-                   </tr>
-                   </thead>
-                   <tbody>
-                   <tr>
-                       <td>
-                           Available CPU Cores
-                       </td>
+        {% elif current_user.is_authenticated %}
+        <div class="row">
+            <div class="card border-secondary col-lg-6">
+               <h5 class="card-header fa fa-cogs"> Process Status</h5>
+               <div class="card-body">
+                   <table class="table table-sm table-borderless" width="100%">
+                       <thead>
+                       <tr>
+                           <th></th>
+                           <th></th>
+                       </tr>
+                       </thead>
+                       <tbody>
+                       <tr>
+                           <td>
+                               Zeek
+                           </td>
+                          {% if analysis_engines_statuses['zeek'] %}
+                          <td>
+                              <i style="color:green"> Running</i>
+                           </td>
+                            {% else %}
+                           <td>
+                              <i style="color:red"> Stopped</i>
+                           </td>
+                            {% endif %}
+                       </tr>
+                       <tr>
+                          <td>
+                               Suricata
+                           </td>
+                          {% if analysis_engines_statuses['suricata'] %}
+                          <td>
+                              <i style="color:green"> Running</i>
+                           </td>
+                            {% else %}
+                           <td>
+                              <i style="color:red"> Stopped</i>
+                           </td>
+                            {% endif %}
+                       </tr>
+                       </tbody>
+                   </table>
+               </div>
+            </div>
+            <div class="card border-secondary col-lg-6">
+               <h5 class="card-header fa fa-server"> System Information</h5>
+               <div class="card-body">
+                   <table class="table table-sm table-borderless" width="100%">
+                       <thead>
+                       <tr>
+                           <th></th>
+                           <th></th>
+                       </tr>
+                       </thead>
+                       <tbody>
+                       <tr>
+                           <td>
+                               Available CPU Cores
+                           </td>
 
-                      <td>
-                          <i style="color:blue"> {{ system_info['cpu_cores'] }}</i>
-                       </td>
-                   </tr>
-                   <tr>
-                       <td>
-                           Available Memory
-                       </td>
+                          <td>
+                              <i style="color:blue"> {{ system_info['cpu_cores'] }}</i>
+                           </td>
+                       </tr>
+                       <tr>
+                           <td>
+                               Available Memory
+                           </td>
 
-                      <td>
-                          <i style="color:blue"> {{ (system_info['memory']/ (10**9)) | round | int}} GB </i>
-                       </td>
-                   </tr>
-                   </tbody>
-               </table>
-           </div>
+                          <td>
+                              <i style="color:blue"> {{ (system_info['memory']/ (10**9)) | round | int}} GB </i>
+                           </td>
+                       </tr>
+                       </tbody>
+                   </table>
+               </div>
+            </div>
+            <div class="col-lg-12"><br><br></div>
+            <div class="card border-primary col-lg-12">
+               <h5 class="card-header fa fa-door-open">Welcome</h5>
+               <div class="card-body">
+                  <p class="card-text">Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI!</p>
+                   {% if current_user.has_role('admin') %}
+                    <a href="/users" class="btn btn-primary">Manage Users</a>
+                   {% endif %}
+                  <a href="/docs" class="btn btn-secondary">Explore the API</a>
+               </div>
+            </div>
         </div>
-        <div class="col-lg-12"><br><br></div>
-        <div class="card border-primary col-lg-12">
-           <h5 class="card-header fa fa-door-open">Welcome</h5>
+        {% else %}
+          <div class="card">
+           <h5 class="card-header fa fa-sign-in-alt"> Login</h5>
            <div class="card-body">
-              <p class="card-text">Welcome <b>{{ current_user.username }}</b>, to the DynamiteNSM agent management UI!</p>
-               {% if current_user.has_role('admin') %}
-                <a href="/users" class="btn btn-primary">Manage Users</a>
-               {% endif %}
-              <a href="/docs" class="btn btn-secondary">Explore the API</a>
+              <h5 class="card-title">Login to your account.</h5>
+              <p class="card-text">To continue, you must login to your account.</p>
+              <a href="/login" class="btn btn-success">Login</a>
            </div>
         </div>
+        {% endif %}
     </div>
-    {% else %}
-      <div class="card">
-       <h5 class="card-header fa fa-sign-in-alt"> Login</h5>
-       <div class="card-body">
-          <h5 class="card-title">Login to your account.</h5>
-          <p class="card-text">To continue, you must login to your account.</p>
-          <a href="/login" class="btn btn-success">Login</a>
-       </div>
-    </div>
-    {% endif %}
-    <center>
-    </center>
+    <div class="col-lg-3"></div>
 {% endblock %}
 

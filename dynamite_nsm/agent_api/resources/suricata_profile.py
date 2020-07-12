@@ -23,6 +23,7 @@ model_response_suricata_installed = api.model('SuricataInstalled', model=dict(
 
 
 @api.route('/', endpoint='suricata-installed')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataProfile(Resource):
 
     @api.doc('get_suricata_installed', security='apikey')

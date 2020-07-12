@@ -70,6 +70,7 @@ SURICATA_CONFIG_DIRECTORY = env_vars.get('SURICATA_CONFIG')
 
 
 @api.route('/', endpoint='rules-config')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataRuleConfig(Resource):
 
     @staticmethod
@@ -92,6 +93,7 @@ class SuricataRuleConfig(Resource):
 
 
 @api.route('/<rule_id>', endpoint='rule-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class SuricataRuleManager(Resource):
 
     @api.doc('get_suricata_rule', security='apikey')

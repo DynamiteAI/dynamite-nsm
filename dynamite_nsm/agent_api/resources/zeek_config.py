@@ -112,6 +112,7 @@ model_response_zeek_get_worker_component = api.model('ZeekWorkerComponentRespons
 
 
 @api.route('/', endpoint='node-configs')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekNodeComponentsList(Resource):
 
     @api.doc('list_node_components', security='apikey')
@@ -133,6 +134,7 @@ class ZeekNodeComponentsList(Resource):
 
 
 @api.route('/<component>', endpoint='node-config')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekNodeConfig(Resource):
 
     @api.doc('get_node_component', security='apikey')
@@ -161,6 +163,7 @@ class ZeekNodeConfig(Resource):
 
 
 @api.route('/manager', endpoint='node-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekNodeManagerManager(Resource):
 
     @staticmethod
@@ -223,6 +226,7 @@ class ZeekNodeManagerManager(Resource):
 
 
 @api.route('/loggers/<name>', endpoint='logger-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekNodeLoggerManager(Resource):
 
     @staticmethod
@@ -329,6 +333,7 @@ class ZeekNodeLoggerManager(Resource):
 
 
 @api.route('/proxies/<name>', endpoint='proxy-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekNodeProxyManager(Resource):
 
     @staticmethod
@@ -436,6 +441,7 @@ class ZeekNodeProxyManager(Resource):
 
 
 @api.route('/workers/<name>', endpoint='worker-manager')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekNodeWorkerManager(Resource):
 
     @staticmethod

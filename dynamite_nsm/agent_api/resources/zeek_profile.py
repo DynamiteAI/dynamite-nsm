@@ -21,6 +21,7 @@ model_response_zeek_installed = api.model('ZeekInstalled', model=dict(
 
 
 @api.route('/', endpoint='zeek-installed')
+@api.header('Content-Type', 'application/json', required=True)
 class ZeekProfile(Resource):
 
     @api.doc('get_zeek_installed', security='apikey')

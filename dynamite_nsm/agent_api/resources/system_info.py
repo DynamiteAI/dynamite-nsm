@@ -41,6 +41,7 @@ model_response_system_info = api.model('SystemInfoResponse', model={
 
 
 @api.route('/')
+@api.header('Content-Type', 'application/json', required=True)
 class SystemInfo(Resource):
     @api.doc('get_system_info', security='apikey')
     @api.response(200, 'System Information', model=model_response_system_info)
@@ -55,6 +56,7 @@ class SystemInfo(Resource):
 
 
 @api.route('/cpu')
+@api.header('Content-Type', 'application/json', required=True)
 class CPUCoreCount(Resource):
     @api.doc('get_cpu_core_count', security='apikey')
     @api.response(200, 'CPU Core Count', model=model_response_cpu_core_count)
@@ -64,6 +66,7 @@ class CPUCoreCount(Resource):
 
 
 @api.route('/memory')
+@api.header('Content-Type', 'application/json', required=True)
 class MemoryBytes(Resource):
     @api.doc('get_memory_bytes', security='apikey')
     @api.response(200, 'Memory Bytes', model=model_response_memory_bytes)
@@ -73,6 +76,7 @@ class MemoryBytes(Resource):
 
 
 @api.route('/ips')
+@api.header('Content-Type', 'application/json', required=True)
 class NetworkAddresses(Resource):
     @api.doc('get_network_addresses', security='apikey')
     @api.response(200, 'Network Addresses', model=model_response_network_addresses)
@@ -82,6 +86,7 @@ class NetworkAddresses(Resource):
 
 
 @api.route('/interfaces')
+@api.header('Content-Type', 'application/json', required=True)
 class NetworkInterfaces(Resource):
     @api.doc('get_network_interfaces', security='apikey')
     @api.response(200, 'Network Interfaces', model=model_response_network_interfaces)
