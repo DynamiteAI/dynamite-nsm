@@ -18,6 +18,7 @@ INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 
 # TODO add to config
 BIN_DEPS_PATH = '/opt/dynamite/binaries/'
+UI_PLUGINS_DIRECTORY = '/home/jamin/PycharmProjects/dynamite-nsm/dynamite_nsm/agent_api/plugins'
 
 
 def bootstrap_constants_from_const_environment_file():
@@ -75,3 +76,4 @@ PF_RING_MIRRORS = extracted_constants.get('PF_RING_MIRRORS')
 SURICATA_MIRRORS = extracted_constants.get('SURICATA_MIRRORS')
 SYNESIS_MIRRORS = extracted_constants.get('SYNESIS_MIRRORS')
 ZEEK_MIRRORS = extracted_constants.get('ZEEK_MIRRORS')
+

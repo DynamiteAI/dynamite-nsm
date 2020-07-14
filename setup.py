@@ -20,6 +20,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'bcrypt',
+        'csscompressor',
         'coloredlogs',
         'flask',
         'email_validator',
@@ -27,6 +28,7 @@ setup(
         'flask-security',
         'flask-sqlalchemy',
         'flask-fontawesome',
+        'jsmin',
         'progressbar',
         'pyyaml',
         'npyscreen',

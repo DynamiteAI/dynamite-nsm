@@ -4,6 +4,7 @@ import json
 from subprocess import Popen, PIPE
 
 from dynamite_nsm import const
+from dynamite_nsm.services.filebeat.install import InstallManager as FileBeatInstaller
 
 
 ipv4_address_pattern = re.compile('^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}(?:[0-9]|[1-9][0-9]|1'
@@ -49,6 +50,11 @@ def validate_integer(s):
     except ValueError:
         return False
     return '.' not in s
+
+
+def validate_filebeat_targets(l):
+    l = list(l)
+    return FileBeatInstaller.validate_targets(l, stdout=False, verbose=False)
 
 
 def validate_name(s):

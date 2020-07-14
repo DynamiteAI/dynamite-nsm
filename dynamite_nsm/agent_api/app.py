@@ -6,6 +6,7 @@ from dynamite_nsm.agent_api import bootstrap
 from dynamite_nsm.agent_api.blueprints.api.api import api_blueprint
 from dynamite_nsm.agent_api.blueprints.home.home import home_blueprint
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
+from dynamite_nsm.agent_api.blueprints.plugin.plugin import plugin_blueprint
 from dynamite_nsm.agent_api.blueprints.profile.profile import user_profile_blueprint
 
 from dynamite_nsm.agent_api.resources.api_auth import api as auth_api
@@ -15,10 +16,12 @@ from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
 from dynamite_nsm.agent_api.resources.zeek_process import api as zeek_process_api
 from dynamite_nsm.agent_api.resources.zeek_scripts import api as zeek_scripts_api
 from dynamite_nsm.agent_api.resources.zeek_profile import api as zeek_profile_api
+from dynamite_nsm.agent_api.resources.filebeat_config import api as filebeat_config_api
 from dynamite_nsm.agent_api.resources.suricata_rules import api as suricata_rules_api
 from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_config_api
 from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_profile_api
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
+
 
 authorizations = {
     'apikey': {
@@ -38,6 +41,7 @@ app.register_blueprint(api_blueprint, url_prefix='/docs/')
 app.register_blueprint(home_blueprint, url_prefix='/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 app.register_blueprint(user_profile_blueprint, url_prefix='/user')
+app.register_blueprint(plugin_blueprint, url_prefix='/plugin')
 
 api.add_namespace(auth_api, path='/api/auth')
 api.add_namespace(users_api, path='/api/users')
@@ -46,6 +50,7 @@ api.add_namespace(zeek_profile_api, path='/api/zeek')
 api.add_namespace(zeek_config_api, path='/api/zeek/config')
 api.add_namespace(zeek_process_api, path='/api/zeek/process')
 api.add_namespace(zeek_scripts_api, path='/api/zeek/scripts')
+api.add_namespace(filebeat_config_api, path='/api/filebeat/config')
 api.add_namespace(suricata_profile_api, path='/api/suricata')
 api.add_namespace(suricata_rules_api, path='/api/suricata/rules')
 api.add_namespace(suricata_config_api, path='/api/suricata/config')
