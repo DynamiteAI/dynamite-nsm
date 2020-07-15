@@ -4,7 +4,7 @@ from flask_restplus import fields, reqparse, Namespace, Resource
 
 
 api = Namespace(
-    name='Auth',
+    name='Authentication',
     description='Authenticate to API.',
 )
 

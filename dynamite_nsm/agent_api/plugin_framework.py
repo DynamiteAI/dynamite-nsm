@@ -1,7 +1,9 @@
 import os
-from dynamite_nsm import const
+
 from jsmin import jsmin
 from csscompressor import compress as cssmin
+
+from dynamite_nsm import const
 
 PLUGIN_HTML = 'plugin.html'
 ICON_FILE = 'icon.png'
@@ -23,6 +25,9 @@ class PluginLoadError(Exception):
 
 
 class Plugin:
+    """
+    API Plugin
+    """
     def __init__(self, plugin_directory=None, plugin_archive=None):
         if plugin_directory:
             self.validate_plugin(plugin_directory)

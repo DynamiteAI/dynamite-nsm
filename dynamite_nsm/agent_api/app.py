@@ -12,15 +12,17 @@ from dynamite_nsm.agent_api.blueprints.profile.profile import user_profile_bluep
 from dynamite_nsm.agent_api.resources.api_auth import api as auth_api
 from dynamite_nsm.agent_api.resources.api_users import api as users_api
 from dynamite_nsm.agent_api.resources.system_info import api as system_api
+
 from dynamite_nsm.agent_api.resources.zeek_config import api as zeek_config_api
 from dynamite_nsm.agent_api.resources.zeek_process import api as zeek_process_api
 from dynamite_nsm.agent_api.resources.zeek_scripts import api as zeek_scripts_api
 from dynamite_nsm.agent_api.resources.zeek_profile import api as zeek_profile_api
-from dynamite_nsm.agent_api.resources.filebeat_config import api as filebeat_config_api
 from dynamite_nsm.agent_api.resources.suricata_rules import api as suricata_rules_api
 from dynamite_nsm.agent_api.resources.suricata_config import api as suricata_config_api
 from dynamite_nsm.agent_api.resources.suricata_profile import api as suricata_profile_api
 from dynamite_nsm.agent_api.resources.suricata_process import api as suricata_process_api
+from dynamite_nsm.agent_api.resources.filebeat_config import api as filebeat_config_api
+from dynamite_nsm.agent_api.resources.filebeat_process import api as filebeat_process_api
 
 
 authorizations = {
@@ -51,6 +53,7 @@ api.add_namespace(zeek_config_api, path='/api/zeek/config')
 api.add_namespace(zeek_process_api, path='/api/zeek/process')
 api.add_namespace(zeek_scripts_api, path='/api/zeek/scripts')
 api.add_namespace(filebeat_config_api, path='/api/filebeat/config')
+api.add_namespace(filebeat_process_api, path='/api/filebeat/process')
 api.add_namespace(suricata_profile_api, path='/api/suricata')
 api.add_namespace(suricata_rules_api, path='/api/suricata/rules')
 api.add_namespace(suricata_config_api, path='/api/suricata/config')
