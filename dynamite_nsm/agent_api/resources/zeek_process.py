@@ -67,7 +67,7 @@ class ZeekStart(Resource):
     @api.doc('start_zeek_process', security='apikey')
     @api.response(200, 'Started Zeek process.', model=model_response_generic_success)
     @api.response(500, 'Failed to start Zeek process.', model=model_response_error)
-    @roles_accepted('admin', 'superuser')
+    @roles_accepted('admin')
     def post(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)
@@ -84,7 +84,7 @@ class ZeekStop(Resource):
     @api.doc('stop_zeek_process', security='apikey')
     @api.response(200, 'Stopped Zeek process.', model=model_response_generic_success)
     @api.response(500, 'Failed to stop Zeek process.', model=model_response_error)
-    @roles_accepted('admin', 'superuser', 'analyst')
+    @roles_accepted('admin')
     def post(self):
         try:
             zeek_p = zeek_process.ProcessManager(stdout=False, verbose=True)

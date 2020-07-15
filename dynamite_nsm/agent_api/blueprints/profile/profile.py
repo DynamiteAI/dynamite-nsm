@@ -2,12 +2,13 @@ from flask_security import roles_accepted
 from sqlalchemy.exc import IntegrityError
 from flask import render_template, Blueprint
 from flask import request, redirect, url_for
-from flask_login import logout_user, current_user
+from flask_login import current_user
 
-from flask_security import SQLAlchemySessionUserDatastore, UserMixin
+from flask_security import SQLAlchemySessionUserDatastore
 
 from dynamite_nsm.agent_api import models
 from dynamite_nsm.agent_api.database import db_session
+from dynamite_nsm.agent_api.plugin_framework import load_plugins
 
 user_profile_blueprint = Blueprint('profile', __name__, template_folder='templates')
 
@@ -57,9 +58,12 @@ def _update_user_profile(userid=None):
 def render_current_user_profile_form_html():
     available_roles = ['admin', 'superuser', 'analyst']
     available_roles.remove(current_user.roles[0].name)
-    return render_template('profile/user_profile.html', user=current_user, available_roles=available_roles,
+    return render_template('profile/user_profile.html',
+                           user=current_user,
+                           available_roles=available_roles,
                            api_section_hidden=False,
-                           change_password_section_hidden=False)
+                           change_password_section_hidden=False,
+                           plugins=load_plugins(disable_load=True))
 
 
 @user_profile_blueprint.route('/<userid>')
@@ -74,7 +78,9 @@ def render_user_profile_form_html(userid):
                            userid=int(userid),
                            available_roles=available_roles,
                            api_section_hidden=True,
-                           change_password_section_hidden=int(userid) != current_user.id)
+                           change_password_section_hidden=int(userid) != current_user.id,
+                           plugins=load_plugins(disable_load=True)
+                           )
 
 
 @user_profile_blueprint.route('/update_current_user_submit', methods=['POST'])

@@ -7,6 +7,7 @@ from dynamite_nsm.agent_api.blueprints.api.api import api_blueprint
 from dynamite_nsm.agent_api.blueprints.home.home import home_blueprint
 from dynamite_nsm.agent_api.blueprints.admin.users import users_blueprint
 from dynamite_nsm.agent_api.blueprints.plugin.plugin import plugin_blueprint
+from dynamite_nsm.agent_api.blueprints.plugins.plugins import plugins_blueprint
 from dynamite_nsm.agent_api.blueprints.profile.profile import user_profile_blueprint
 
 from dynamite_nsm.agent_api.resources.api_auth import api as auth_api
@@ -44,6 +45,7 @@ app.register_blueprint(home_blueprint, url_prefix='/home')
 app.register_blueprint(users_blueprint, url_prefix='/users')
 app.register_blueprint(user_profile_blueprint, url_prefix='/user')
 app.register_blueprint(plugin_blueprint, url_prefix='/plugin')
+app.register_blueprint(plugins_blueprint, url_prefix='/plugins')
 
 api.add_namespace(auth_api, path='/api/auth')
 api.add_namespace(users_api, path='/api/users')

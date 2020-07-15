@@ -41,15 +41,18 @@
             </center>
         </div>
         {% block scripts %}
-       {{ fontawesome_js() }}
-        <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/bootstrap-toggle.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/clipboard.min.js') }}"></script>
-        <script>
-          new ClipboardJS('.btn');
-        </script>
+           {{ fontawesome_js() }}
+            <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/bootstrap-toggle.min.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/bootbox.all.min.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/clipboard.min.js') }}"></script>
+            <script>
+              new ClipboardJS('.btn');
+            </script>
+            {% block extra_scripts %}
+            {%- endblock extra_scripts %}
         <script>
             {%- block plugin_scripts %} {%- endblock plugin_scripts %}
         </script>

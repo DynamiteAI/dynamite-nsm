@@ -3,6 +3,7 @@ from dynamite_nsm.services.zeek import process as zeek_process
 from dynamite_nsm.services.suricata import process as suricata_process
 from dynamite_nsm import utilities
 from flask_login import current_user
+from dynamite_nsm.agent_api.plugin_framework import load_plugins
 
 home_blueprint = Blueprint('home', __name__, template_folder='templates')
 
@@ -23,5 +24,6 @@ def index():
                            system_info={
                                'cpu_cores': utilities.get_cpu_core_count(),
                                'memory': utilities.get_memory_available_bytes()
-                           }
+                           },
+                           plugins=load_plugins(disable_load=True)
                     )

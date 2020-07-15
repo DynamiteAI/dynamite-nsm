@@ -8,6 +8,7 @@ from flask_security import SQLAlchemySessionUserDatastore
 
 from dynamite_nsm.agent_api import models
 from dynamite_nsm.agent_api.database import db_session
+from dynamite_nsm.agent_api.plugin_framework import load_plugins
 
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
@@ -39,13 +40,14 @@ def list_users_html():
                 'last_login_ip': user.last_login_ip
             }
         )
-    return render_template('admin/users.html', users=users_list)
+    return render_template('admin/users.html', users=users_list, plugins=load_plugins(disable_load=True))
 
 
 @users_blueprint.route('/create')
 @roles_accepted('admin')
 def create_user_form_html():
-    return render_template('admin/create_new_user.html')
+    return render_template('admin/create_new_user.html',
+                           plugins=load_plugins(disable_load=True))
 
 
 @users_blueprint.route('/create_admin')

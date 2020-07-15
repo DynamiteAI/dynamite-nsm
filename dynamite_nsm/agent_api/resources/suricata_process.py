@@ -62,7 +62,7 @@ class SuricataStart(Resource):
     @api.doc('start_suricata_process', security='apikey')
     @api.response(200, 'Started Suricata process.', model=model_response_generic_success)
     @api.response(500, 'Failed to start Suricata process.', model=model_response_error)
-    @roles_accepted('admin', 'superuser')
+    @roles_accepted('admin')
     def post(self):
         try:
             suricata_p = suricata_process.ProcessManager(stdout=False, verbose=True)
@@ -79,7 +79,7 @@ class SuricataStop(Resource):
     @api.doc('stop_suricata_process', security='apikey')
     @api.response(200, 'Stopped Suricata process.', model=model_response_generic_success)
     @api.response(500, 'Failed to stop Suricata process.', model=model_response_error)
-    @roles_accepted('admin', 'superuser')
+    @roles_accepted('admin')
     def post(self):
         try:
             suricata_p = suricata_process.ProcessManager(stdout=False, verbose=True)

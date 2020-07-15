@@ -6,14 +6,27 @@
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
     {% if current_user.has_role('admin') %}
-      <li class="nav-item active">
+      <li class="nav-item">
           <a href="/users" class="nav-link">Users<span class="sr-only"></span></a>
       </li>
+        <li class="nav-item">
+          <a href="/plugins" class="nav-link">Plugins<span class="sr-only"></span></a>
+        </li>
     {% endif %}
     {% if current_user.is_authenticated %}
-      <li class="nav-item active">
+      <li class="nav-item">
         <a href="/docs" class="nav-link">API<span class="sr-only"></span></a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">|</a>
+      </li>
+      {% for plugin in plugins %}
+        {% if plugin.toolbar_show %}
+          <li class="nav-item">
+            <a href="/plugin/{{plugin.plugin_id}}" class="nav-link">{{plugin.meta_name}}<span class="sr-only"></span></a>
+        </li>
+        {% endif %}
+      {% endfor %}
       {% endif %}
     </ul>
     {% if current_user.is_authenticated %}
@@ -23,7 +36,6 @@
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <img src="{{ url_for('static', filename='img/profile.svg') }}" width="40" height="40" class="rounded-circle">
             </a>
-
             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
               <a class="dropdown-item" href="/user"><b>Profile</b></a>
               <a class="dropdown-item" href="/logout"><b style="color:red">Logout</b></a>

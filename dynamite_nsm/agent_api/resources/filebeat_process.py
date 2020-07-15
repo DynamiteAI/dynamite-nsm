@@ -62,7 +62,7 @@ class FilebeatStart(Resource):
     @api.doc('start_filebeat_process', security='apikey')
     @api.response(200, 'Started Filebeat process.', model=model_response_generic_success)
     @api.response(500, 'Failed to start Filebeat process.', model=model_response_error)
-    @roles_accepted('admin', 'superuser')
+    @roles_accepted('admin')
     def post(self):
         try:
             filebeat_p = filebeat_process.ProcessManager(stdout=False, verbose=True)
@@ -79,7 +79,7 @@ class FilebeatStop(Resource):
     @api.doc('stop_filebeat_process', security='apikey')
     @api.response(200, 'Stopped Filebeat process.', model=model_response_generic_success)
     @api.response(500, 'Failed to stop Filebeat process.', model=model_response_error)
-    @roles_accepted('admin', 'superuser')
+    @roles_accepted('admin')
     def post(self):
         try:
             filebeat_p = filebeat_process.ProcessManager(stdout=False, verbose=True)
