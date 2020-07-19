@@ -1,8 +1,7 @@
-from flask_security import roles_accepted
-from sqlalchemy.exc import IntegrityError
 from flask import render_template, Blueprint
-from flask import request, redirect, url_for
-from flask_login import logout_user, current_user
+from flask import redirect
+from flask_security import roles_accepted
+
 
 from dynamite_nsm.agent_api.plugin_framework import load_plugin, load_plugins
 
@@ -10,6 +9,7 @@ plugin_blueprint = Blueprint('plugin', __name__, template_folder='templates')
 
 
 @plugin_blueprint.route('/<plugin_id>')
+@roles_accepted('admin', 'superuser', 'analyst')
 def render_plugin_ui_html(plugin_id):
     plugins = load_plugins(disable_load=True)
     for plugin in plugins:

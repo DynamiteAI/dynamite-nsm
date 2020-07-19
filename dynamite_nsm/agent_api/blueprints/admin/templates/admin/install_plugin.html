@@ -1,0 +1,21 @@
+{% extends "security/base.html" %} {% block content %}
+<br />
+<div class="col-lg-4"></div>
+<div class="col-lg-4">
+    <div class="card border-success">
+        <h5 class="card-header">Install Plugin</h5>
+        <div class="card-body">
+            <p>
+                Install a plugin from a <code>.zip</code> file.
+            </p>
+            <div id="plugin-uploader"></div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4"></div>
+
+{%- block extra_scripts %}
+    <script src="{{ url_for('static', filename='js/plugins.js') }}"></script>
+{%- endblock extra_scripts %}
+
+{% endblock %} {% block navbar %} {% include "security/_navbar.html" %} {% endblock %}

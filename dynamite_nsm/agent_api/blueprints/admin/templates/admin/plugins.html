@@ -1,0 +1,49 @@
+{% extends "security/base.html" %}
+{% block content %}
+    <div class="col-lg-3"></div>
+        <div class="col-lg-6">
+            {% if  not plugins %}
+            <div class="card border-primary">
+               <h5 class="card-header fa fa-times-circle"> No Plugins Installed Yet</h5>
+               <div class="card-body">
+                   <p>
+                       Plugins make use of Dynamite APIs and can be used for configuration, management, and monitoring
+                       of various components.
+                   </p>
+                   <div class="btn-group" role="group">
+                       <a href="/plugins/install" class="btn btn-success fa fa-plus-circle"> Install Your First Plugin.</a>
+                       <a target="_blank" href="https://github.com/DynamiteAI/dynamite-simple-agent-process-manager-plugin/tree/master/tutorial" class="btn btn-secondary fa fa-link">
+                           Build Your Own
+                       </a>
+
+                   </div>
+               </div>
+            </div>
+            {% endif %}
+            <div>
+                <ul class="list-group">
+                    {% for plugin in plugins %}
+                        <li class="list-group-item">
+                        <h5>
+                            <a href="/plugin/{{plugin.plugin_id}}">
+                                <img style="width:30px;height:30px" src="data:image/png;base64, {{plugin.icon_base64}}">
+                                {{ plugin.meta_name }} <span class="badge badge-info badge-sm">{{plugin.meta_version}}</span>
+                            </a>
+                        </h5>
+                        <p>{{ plugin.meta_description }}</p>
+                            <a href="/plugins/uninstall_plugin_submit/{{plugin.plugin_id}}"><button class="btn btn-danger pull-right" type="button" style="font-size:11px; float:right">
+                                <i class="fa fa-minus-circle" aria-hidden="true"> Remove Plugin</i></button>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <br>
+            <a href="/plugins/install"><button class="btn btn-success pull-right" type="button" style="font-size:11px; float:right">
+                <i class="fa fa-plus-circle" aria-hidden="true"> Install Plugin</i></button>
+            </a>
+        </div>
+    <div class="col-lg-3"></div>
+{% endblock %}
+
+{% block navbar %} {% include "security/_navbar.html" %} {% endblock %}

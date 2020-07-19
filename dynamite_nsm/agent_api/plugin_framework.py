@@ -1,10 +1,13 @@
 import os
 import json
 import base64
+import shutil
 import hashlib
 
 from jsmin import jsmin
+from zipfile import ZipFile
 from csscompressor import compress as cssmin
+from htmlmin import minify as html_minify
 
 from dynamite_nsm import const
 
@@ -12,6 +15,27 @@ MANIFEST_FILE = 'manifest.json'
 PLUGIN_HTML = 'plugin.html'
 JS_DIRECTORY = "js/"
 CSS_DIRECTORY = "css/"
+
+UNKNOWN_ICON = "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AcxV9TpSKVIlYQcchQn" \
+               "ayIijhqFYpQIdQKrTqYXPoFTRqSFhdHwbXg4Mdi1cHFWVcHV0EQ/ABxcnRSdJES/5cUWsR4cNyPd/ced+8AoV5imtUxDmh6xUzGY2" \
+               "I6syoGXhFAL0IYQ7/MLGNOkhLwHF/38PH1LsqzvM/9OXrUrMUAn0g8ywyzQrxBPL1ZMTjvE4dZQVaJz4lHTbog8SPXFZffOOcdFnh" \
+               "m2Ewl54nDxGK+jZU2ZgVTI54ijqiaTvlC2mWV8xZnrVRlzXvyFwaz+soy12kOIY5FLEGCCAVVFFFCBVFadVIsJGk/5uEfdPwSuRRy" \
+               "FcHIsYAyNMiOH/wPfndr5SYn3KRgDOh8se2PYSCwCzRqtv19bNuNE8D/DFzpLX+5Dsx8kl5raZEjILQNXFy3NGUPuNwBBp4M2ZQdy" \
+               "U9TyOWA9zP6pgzQdwt0r7m9Nfdx+gCkqKvEDXBwCIzkKXvd491d7b39e6bZ3w9zF3KnwWHhSgAAAAlwSFlzAAAuIwAALiMBeKU/dg" \
+               "AAAAd0SU1FB+QHEhElEZaWiWIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAD0ElEQVRo3uWaz0vUQRTAP7s" \
+               "aK9ghrMwFzUuXXAzKVWnDjIL8EyQIvJXnDhmE0K2rdLJAuoRKJw8FWhh5UTGKSvSQl1alcsWlxEJS1w6+hWGYXf3Od77fzB68ZXa+" \
+               "M+/Hd973zXtvJoIbKAPKgTogBdQCJwVrgQiQBuYF08A4MAP8BNb9ChDxOb8ROAdcAi4DlR7nLwOjwBjwFnhDyFAHDAEZYNsRZoRmX" \
+               "RgKlAE9YgrbAeG68CgLyrSuAgNAheHZFvANWABGgGlpLwBfZUwcqBGsB9qkXQWUGGhmgWvAC1erUAJ0A7kCb3AQ6AASFrQTMnewAO" \
+               "2c8C5xoUh/ASZTQDMQc8AjJrSmCvDq98tg0kA0C7QH+B22Cw+d76StOZlW4h2QDMGpJIWXaWU8mVl3ASLxEF18vMDL7PbinXIGJWK" \
+               "EDzGDMjmRcdd9YsVgTnH+HsQNZray2z7TY/iwkz4EaAVuCLb6eCFJgwPoKRZ26Du2rXfqBb4I8w3BrPT1+vBmegRgDGeGDPuEVzgN" \
+               "zO0hDJmTsV5B32eGTFGsHgA2e2RSCcx6iKlmLaLlZkOg2agO6DSEHV69VJ9B2DHgruCY4XmfhRfTw5mbqqcaUB5sSvzjBRoMQt4GS" \
+               "oGoYKn06eMaPPLqEBnz8wfyHuyoZlaLFgFglybccJGxw9rYLotAc1GZvyQ6cFEjPGHxEb708JbPamNtwvQJjUZLVHJsFUYsCB9T2r" \
+               "+B90XGftb+n7Lgp8uYikpxQIVpC8L3lfYDSbQKwQUH/PQ5tQDPtWVqsixgxPfgsg+JECq/OxaKNGk0nmEgHFRc1SQMVV4bwAnL8Ee" \
+               "l8xFgVet0CdXAQ/GKqwbXe8sHbZXOD+QnCEUiwNMiO/uIFPVcKLKKLEsQplUNfDAosAE8AY74DO1VmtNRKWGqUONwRaKaW34MtEhY" \
+               "/90HbV3G+SAV0eETcE+KCL980jIqktY66wPM9lx9g7qM6Sg7VXEV2hyaVqTIfz+gyzgelbwgoy1bwgGzrFIuRdpZB3QTmmktAzNRd" \
+               "s4nXikPqhzVrtaARxKdLkl7zVHNq0r5Pyo6gCQnfhOrsMpDemLV6TrVLVSxvC7oohC9a6rrqvigQoUs+5bgKOYjCafFB9flIIDzWk" \
+               "q6KX22sOdykOsCXcqgSCqMAp3rkulhragxIH2hlEzBfRH7jKCtl7IqYufhQBwr5N3mgTjoycM/f/SmwoE4DM2b2b4/nv6vLgzo+8y" \
+               "+vMJhC/vuUo2La04N7JwPXgGOe5yfkVzotbhb62tOEYcmVy4fr+ni2Tbmi2ezOLp49gcyJmZPmH3E4AAAAABJRU5ErkJggg=="
 
 
 class PluginLoadError(Exception):
@@ -61,10 +85,16 @@ class Plugin:
                 [os.path.join(plugin_directory, JS_DIRECTORY, f) for f in self.files_javascript])
         if self.toolbar_icon:
             self.icon_base64 = self.encode_icon(os.path.join(plugin_directory, self.toolbar_icon))
+        else:
+            self.icon_base64 = UNKNOWN_ICON
 
     def _load_manifest(self):
+        manifest_json = {}
         with open(os.path.join(self.plugin_directory, 'manifest.json')) as manifest_f:
-            manifest_json = json.loads(manifest_f.read())
+            try:
+                manifest_json = json.loads(manifest_f.read())
+            except ValueError:
+                raise PluginLoadError("'manifest.json' must be valid .json.")
         if "meta" not in manifest_json:
             raise PluginLoadError("manifest.json must include 'meta' section.")
         if "permissions" not in manifest_json:
@@ -80,7 +110,7 @@ class Plugin:
         self.meta_website = manifest_json['meta'].get('website')
         self.meta_code_repo_url = manifest_json['meta'].get('code_repo_url')
 
-        self.files_javascript = manifest_json['files'].get('javascript', [])     # REQUIRED
+        self.files_javascript = manifest_json['files'].get('javascript', [])
         self.files_css = manifest_json['files'].get('css', [])
 
         self.permissions_require = manifest_json['permissions'].get('requires')  # REQUIRED
@@ -110,8 +140,6 @@ class Plugin:
                 "manifest.json permissions.require required; either: 'admin', 'superuser', 'analyst'.")
         elif self.permissions_require not in ['admin', 'superuser', 'analyst']:
             raise PluginLoadError("manifest.json permissions.require invalid; either: 'admin', 'superuser', 'analyst.")
-        elif not self.files_javascript:
-            raise PluginLoadError("manifest.json files.javascript required.")
 
         # Optional fields validation
         if self.meta_author:
@@ -129,6 +157,8 @@ class Plugin:
 
         # File validation
         _import_bytes = b""
+        with open(os.path.join(self.plugin_directory, PLUGIN_HTML), 'rb') as f:
+            _import_bytes += f.read()
         for js_file in self.files_javascript:
             js_path = os.path.join(self.plugin_directory, 'js', js_file)
             if not os.path.exists(js_path):
@@ -152,10 +182,6 @@ class Plugin:
             raise PluginLoadError('Plugin root must contain a {} file.'.format(MANIFEST_FILE))
         if not os.path.exists(os.path.join(plugin_directory, PLUGIN_HTML)):
             raise PluginLoadError('Plugin root must contain {} directory'.format(PLUGIN_HTML))
-        if not os.path.join(plugin_directory, JS_DIRECTORY):
-            raise PluginLoadError('Plugin root must contain {} directory'.format(JS_DIRECTORY))
-        if not os.path.join(plugin_directory, CSS_DIRECTORY):
-            raise PluginLoadError('Plugin root must contain {} directory'.format(CSS_DIRECTORY))
 
     @staticmethod
     def optimize_javascript(file_paths):
@@ -180,7 +206,7 @@ class Plugin:
     @staticmethod
     def optimize_html(file_path):
         with open(file_path) as html_file:
-            return html_file.read()
+            return html_minify(html_file.read())
 
     @staticmethod
     def encode_icon(file_path):
@@ -196,3 +222,13 @@ def load_plugin(plugin_root_directory, disable_load=False):
 def load_plugins(disable_load=False):
     return [load_plugin(f, disable_load=disable_load) for f in os.listdir(const.UI_PLUGINS_DIRECTORY)]
 
+
+def install_plugin(plugin_path):
+    with ZipFile(plugin_path, "r") as zip_obj:
+        zip_obj.extractall(const.UI_PLUGINS_DIRECTORY)
+
+
+def uninstall_plugin(plugin_id):
+    for plugin in load_plugins(disable_load=True):
+        if plugin.plugin_id == plugin_id:
+            shutil.rmtree(plugin.plugin_directory)

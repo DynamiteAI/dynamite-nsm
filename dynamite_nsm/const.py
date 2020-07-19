@@ -18,7 +18,8 @@ INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 
 # TODO add to config
 BIN_DEPS_PATH = '/opt/dynamite/binaries/'
-UI_PLUGINS_DIRECTORY = '/home/jamin/PycharmProjects/dynamite-nsm/dynamite_nsm/agent_api/plugins'
+UI_PLUGINS_DIRECTORY = '/opt/dynamite/plugins/'
+# UI_PLUGINS_DIRECTORY = '/home/jamin/PycharmProjects/dynamite-nsm/dynamite_nsm/agent_api/plugins'
 
 
 def bootstrap_constants_from_const_environment_file():

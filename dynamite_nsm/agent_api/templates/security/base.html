@@ -13,6 +13,7 @@
             <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
             <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-toggle.min.css') }}" />
             <link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}" />
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/uploadfile.css') }}" />
             <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
             <style>
             {%- block plugin_style %} {%- endblock plugin_style %}
@@ -48,6 +49,7 @@
             <script src="{{ url_for('static', filename='js/bootbox.all.min.js') }}"></script>
             <script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
             <script src="{{ url_for('static', filename='js/clipboard.min.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/jquery.uploadfile.min.js') }}"></script>
             <script>
               new ClipboardJS('.btn');
             </script>

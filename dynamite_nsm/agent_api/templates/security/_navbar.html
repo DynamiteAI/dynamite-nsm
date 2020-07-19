@@ -9,21 +9,23 @@
       <li class="nav-item">
           <a href="/users" class="nav-link">Users<span class="sr-only"></span></a>
       </li>
-        <li class="nav-item">
-          <a href="/plugins" class="nav-link">Plugins<span class="sr-only"></span></a>
-        </li>
     {% endif %}
     {% if current_user.is_authenticated %}
       <li class="nav-item">
         <a href="/docs" class="nav-link">API<span class="sr-only"></span></a>
       </li>
+      {% if current_user.has_role('admin') %}
+        <li class="nav-item">
+            <a href="/plugins" class="nav-link">Plugin Manager<span class="sr-only"></span></a>
+          </li>
+      {% endif %}
       <li class="nav-item">
         <a class="nav-link disabled" href="#">|</a>
       </li>
       {% for plugin in plugins %}
         {% if plugin.toolbar_show %}
           <li class="nav-item">
-            <a href="/plugin/{{plugin.plugin_id}}" class="nav-link">{{plugin.meta_name}}<span class="sr-only"></span></a>
+            <a href="/plugin/{{plugin.plugin_id}}" class="nav-link"><img style="width:15px;height:15px" src="data:image/png;base64, {{plugin.icon_base64}}"> {{plugin.meta_name}}<span class="sr-only"></span></a>
         </li>
         {% endif %}
       {% endfor %}
