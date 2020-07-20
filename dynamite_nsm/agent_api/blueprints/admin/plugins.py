@@ -1,9 +1,9 @@
 import os
+import traceback
 
 from werkzeug import secure_filename
 from flask_security import roles_accepted
-from flask import request, redirect, flash
-from flask import render_template, Blueprint
+from flask import request, redirect, flash, jsonify, render_template, Blueprint
 
 
 from dynamite_nsm import const
@@ -21,13 +21,24 @@ def render_plugins_ui_html():
 
 
 @roles_accepted('admin')
+@plugins_blueprint.route('/error',  methods=['POST'])
+def render_install_plugin_error():
+    error = {
+        'type': request.form['error_type'],
+        'message': request.form['error_message'],
+        'traceback': request.form['error_traceback']
+    }
+    return render_template('admin/install_plugin_error.html', plugins=load_plugins(disable_load=True), error=error)
+
+
+@roles_accepted('admin')
 @plugins_blueprint.route('/install')
 def render_plugin_install_ui_html():
     return render_template('admin/install_plugin.html', plugins=load_plugins(disable_load=True))
 
 
 @roles_accepted('admin')
-@plugins_blueprint.route('/install_plugin_submit', methods=['POST'])
+@plugins_blueprint.route('/install_plugin_ajax', methods=['POST'])
 def install_ui_plugin():
     def allowed_file(filename):
         return '.' in filename and \
@@ -47,8 +58,17 @@ def install_ui_plugin():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(const.INSTALL_CACHE, filename))
-            install_plugin(os.path.join(const.INSTALL_CACHE, filename))
-            return redirect('/plugins')
+            try:
+                install_plugin(os.path.join(const.INSTALL_CACHE, filename))
+                return jsonify(
+                    {"message": "Success. Plugin installed successfully."}
+                ), 200
+            except Exception as e:
+                return jsonify(
+                    {"error_type": e.__class__.__name__,
+                     "error_message": str(e),
+                     "error_traceback": traceback.format_exc(limit=3)}
+                ), 200
 
 
 @roles_accepted('admin')
@@ -56,3 +76,6 @@ def install_ui_plugin():
 def uninstall_ui_plugin(plugin_id):
     uninstall_plugin(plugin_id)
     return redirect('/plugins')
+
+
+

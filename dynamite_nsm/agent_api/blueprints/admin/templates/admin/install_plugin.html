@@ -8,6 +8,11 @@
             <p>
                 Install a plugin from a <code>.zip</code> file.
             </p>
+            <form id="error_form" method="POST" action="/plugins/error">
+                <input hidden id="error_type" name="error_type">
+                <input hidden id="error_message" name="error_message">
+                <input hidden id="error_traceback" name="error_traceback">
+            </form>
             <div id="plugin-uploader"></div>
         </div>
     </div>

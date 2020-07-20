@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+import os
+import zipfile
+import argparse
+
+from dynamite_nsm.agent_api import plugin_framework
+
+
+def parse_cmd_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('plugin_directory', help='The directory where the plugin resides.')
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_cmd_args()
+    plugin = plugin_framework.Plugin(args.plugin_directory, disable_load=True)
+    with zipfile.ZipFile(os.path.join(plugin.plugin_id + '.zip'), 'w') as zip_obj:
+        for root, _, files in os.walk(args.plugin_directory):
+            len_dir_path = len(args.plugin_directory)
+            for fname in files:
+                file_path = os.path.join(root, fname)
+                zip_obj.write(file_path, plugin.plugin_id + '\\' + file_path[len_dir_path:])
+        print(zip_obj.filename + ' written to {}'.format(os.getcwd()))

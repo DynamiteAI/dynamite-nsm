@@ -6,8 +6,8 @@ import hashlib
 
 from jsmin import jsmin
 from zipfile import ZipFile
-from csscompressor import compress as cssmin
 from htmlmin import minify as html_minify
+from csscompressor import compress as cssmin
 
 from dynamite_nsm import const
 
@@ -56,7 +56,7 @@ class Plugin:
     API Plugin
     """
 
-    def __init__(self, plugin_directory=None, disable_load=False):
+    def __init__(self, plugin_directory, disable_load=False):
         if plugin_directory:
             self.validate_plugin(plugin_directory)
         self.plugin_directory = plugin_directory
@@ -102,10 +102,10 @@ class Plugin:
         if "files" not in manifest_json:
             raise PluginLoadError("manifest.json must include 'files' section.")
 
-        self.meta_name = manifest_json['meta'].get('name')                       # REQUIRED
-        self.meta_description = manifest_json['meta'].get('description')         # REQUIRED
-        self.meta_version = manifest_json['meta'].get('version')                 # REQUIRED
-        self.meta_role = manifest_json['meta'].get('role')                       # REQUIRED
+        self.meta_name = manifest_json['meta'].get('name')  # REQUIRED
+        self.meta_description = manifest_json['meta'].get('description')  # REQUIRED
+        self.meta_version = manifest_json['meta'].get('version')  # REQUIRED
+        self.meta_role = manifest_json['meta'].get('role')  # REQUIRED
         self.meta_author = manifest_json['meta'].get('author')
         self.meta_website = manifest_json['meta'].get('website')
         self.meta_code_repo_url = manifest_json['meta'].get('code_repo_url')
@@ -178,6 +178,11 @@ class Plugin:
 
     @staticmethod
     def validate_plugin(plugin_directory):
+        """
+        Determine whether the required files are found within plugin.
+
+        :param plugin_directory: TThe root of the plugin directory
+        """
         if not os.path.exists(os.path.join(plugin_directory, MANIFEST_FILE)):
             raise PluginLoadError('Plugin root must contain a {} file.'.format(MANIFEST_FILE))
         if not os.path.exists(os.path.join(plugin_directory, PLUGIN_HTML)):
@@ -185,6 +190,12 @@ class Plugin:
 
     @staticmethod
     def optimize_javascript(file_paths):
+        """
+        Minimize and return a concatenated version of all JS scripts passed in.
+
+        :param file_paths: A list of file paths (relative to plugin root directory)
+        :return: A concatenated and minimized JS string
+        """
         js_string = ''
         for f in file_paths:
             if f.endswith('.js'):
@@ -195,6 +206,12 @@ class Plugin:
 
     @staticmethod
     def optimize_css(file_paths):
+        """
+        Minimize and return a concatenated version of all CSS styles passed in.
+
+        :param file_paths: A list of file paths (relative to plugin root directory)
+        :return: A concatenated and minimized CSS string
+        """
         css_string = ''
         for f in file_paths:
             if f.endswith('.css'):
@@ -205,30 +222,84 @@ class Plugin:
 
     @staticmethod
     def optimize_html(file_path):
+        """
+        Minimize HTML (plugin.html) and return as a string
+
+        :param file_path: A file path (relative to plugin root directory) to plugin.html file
+        :return: A minimized plugin.html string
+        """
         with open(file_path) as html_file:
             return html_minify(html_file.read())
 
     @staticmethod
     def encode_icon(file_path):
+        """
+        Encode icon file as base64 string.
+
+        :param file_path: A file path (relative to plugin root directory) to icon.png file
+        :return: The base64 string equivalent to the icon.png
+        """
         with open(file_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())
         return encoded_string.decode('utf-8')
 
 
 def load_plugin(plugin_root_directory, disable_load=False):
+    """
+    Convenience function for loading plugin into Plugin class
+
+    :param plugin_root_directory: The top-level containing plugin code/configs.
+    :param disable_load: If True, will not attempt to optimize JS/CSS/HTML, only parse the manifest.json and derive a
+                         plugin_id
+    :return: A Plugin instance
+    """
     return Plugin(os.path.join(const.UI_PLUGINS_DIRECTORY, plugin_root_directory), disable_load=disable_load)
 
 
 def load_plugins(disable_load=False):
+    """
+    Convenience function for loading all available plugin into a list of Plugin classes
+
+    :param disable_load: If True, will not attempt to optimize JS/CSS/HTML, only parse the manifest.json and derive a
+                         plugin_id
+    :return: A list of Plugin instances
+    """
     return [load_plugin(f, disable_load=disable_load) for f in os.listdir(const.UI_PLUGINS_DIRECTORY)]
 
 
 def install_plugin(plugin_path):
+    """
+    Convenience function for installing a plugin from a .zip file.
+
+    :param plugin_path: The path to the zip file
+    """
+    found_manifest = False
     with ZipFile(plugin_path, "r") as zip_obj:
-        zip_obj.extractall(const.UI_PLUGINS_DIRECTORY)
+        top_directories = list({item.split('/')[0] for item in zip_obj.namelist()})
+        if len(top_directories) != 1:
+            raise PluginLoadError("This archive contains more than one root-directory.")
+        for f in zip_obj.infolist():
+            if f.filename == os.path.join(top_directories[0], 'manifest.json'):
+                found_manifest = True
+                break
+        if not found_manifest:
+            raise PluginLoadError('Could not locate manifest.json in expected location. Should be in plugin root.')
+        zip_obj.extractall(const.INSTALL_CACHE)
+        temp_plugin_path = os.path.join(const.INSTALL_CACHE, top_directories[0])
+        try:
+            loaded_plugin = load_plugin(temp_plugin_path)
+            shutil.move(temp_plugin_path, os.path.join(const.UI_PLUGINS_DIRECTORY, loaded_plugin.plugin_id))
+        except PluginLoadError as e:
+            shutil.rmtree(temp_plugin_path)
+            raise e
 
 
 def uninstall_plugin(plugin_id):
+    """
+    Convenience function for uninstalling a plugin.
+
+    :param plugin_id: The unique identifier associated with a plugin (E.G Plugin.plugin_id)
+    """
     for plugin in load_plugins(disable_load=True):
         if plugin.plugin_id == plugin_id:
             shutil.rmtree(plugin.plugin_directory)
