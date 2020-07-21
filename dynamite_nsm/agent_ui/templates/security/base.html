@@ -1,0 +1,68 @@
+{% block doc -%}
+<!DOCTYPE html>
+<html{% block html_attribs %}{% endblock html_attribs %}>
+{%- block html %}
+<head>
+    {%- block head %}
+    <title>{% block title %}{{ title|default }}{% endblock title %}</title>
+    {%- block metas %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {%- endblock metas %}
+    {%- block styles %}
+    {{ fontawesome_css() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-toggle.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/uploadfile.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <style>
+        {%- block plugin_style %} {%- endblock plugin_style %}
+    </style>
+    {%- endblock styles %}
+    {%- endblock head %}
+</head>
+<body {% block body_attribs %}{% endblock body_attribs %}>
+{% block body -%}
+<div class="container-fluid" style="width: 80%">
+    {% block alerts %} {% endblock alerts %}
+    {% block navbar %} {%- endblock navbar %}
+</div>
+<hr>
+<br />
+<div class="container-fluid">
+    <div class="row">
+        {% block content -%}
+        {%- endblock content %}
+    </div>
+    <div class="footer" style="position: fixed; left: 0; bottom: 0; width: 100%; background-color: #172858;">
+        <center>
+            <a href="https://github.com/DynamiteAI/dynamite-nsm" target="_blank"><strong style="color:#ffffff">Github</strong></a> |
+            <a href="https://dynamite-nsm.readthedocs.io/en/latest/" target="_blank"><strong style="color:#ffffff">ReadTheDocs</strong></a> |
+            <a href="https://twitter.com/aidynamite" target="_blank"><strong style="color:#ffffff">Twitter</strong></a> |
+            <a href="https://dynamite.ai" target="_blank"><strong style="color:#ffffff">Website</strong></a>
+        </center>
+    </div>
+</div>
+{% block scripts %}
+{{ fontawesome_js() }}
+<script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap-toggle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootbox.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/clipboard.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.uploadfile.min.js') }}"></script>
+<script>
+    new ClipboardJS('.btn');
+</script>
+{% block extra_scripts %}
+{%- endblock extra_scripts %}
+<script>
+    {%- block plugin_scripts %} {%- endblock plugin_scripts %}
+</script>
+{%- endblock scripts %}
+{%- endblock body %}
+</body>
+{%- endblock html %}
+</html>
+{% endblock doc -%}

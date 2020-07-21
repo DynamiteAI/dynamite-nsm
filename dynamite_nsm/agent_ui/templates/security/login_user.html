@@ -1,0 +1,30 @@
+{% extends "security/base.html" %}
+{% from "security/_macros.html" import render_field_with_errors, render_field %}
+{% block alerts %}
+{% include "security/_messages.html" %}
+{% endblock %}
+{% block content %}
+<br>
+<div class="col-lg-4"></div>
+<div class="col-lg-4">
+    <div class="card border-success">
+        <h5 class="card-header">Login</h5>
+        <div class="card-body">
+            <form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
+                {{ login_user_form.hidden_tag() }}
+                <label for="email">Email</label><br>
+                <input class="form-control" type="email" id="email_input" name="email" aria-describedby="emailHelp" placeholder="Enter email"><br>
+                <label for="password">Password</label><br>
+                <input class="form-control" type="password" id="password_input" name="password" placeholder="Enter password"><br>
+                {{ render_field_with_errors(login_user_form.remember) }}
+                <button type="submit" class="btn btn-primary" style="position: absolute; right: 0; margin-right:20px">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4"></div>
+{% include "security/_menu.html" %}
+{% endblock %}
+{% block navbar %}
+{% include "security/_navbar.html" %}
+{% endblock %}

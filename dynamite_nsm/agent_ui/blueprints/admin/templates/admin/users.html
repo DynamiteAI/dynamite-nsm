@@ -1,0 +1,85 @@
+{% extends "security/base.html" %} {% block content %}
+<br />
+<div class="col-lg-3"></div>
+<div class="col-lg-6">
+    <div class="table-responsive-sm">
+        <table style="width: 100%;" class="table table-sm table-borderless">
+            <thead class="thead-light">
+                <tr>
+                    <th></th>
+                    <th>Id</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Last Login</th>
+                    <th>Current Login</th>
+                    <th>Login Count</th>
+                    <th>Last Login IP</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <div class="btn-group" role="group">
+                            {% if user.email != current_user.email %}
+                            <a href="/users/delete/{{ user.id }}">
+                            <button class="btn btn-danger my-2 my-sm-0  user_actions">
+                            <i class="fa fa-user-minus" aria-hidden="true"></i>
+                            </button>
+                            </a>
+                            {% else %}
+                            <a href="#">
+                            <button disabled class="btn btn-secondary my-2 my-sm-0 user_actions" type="button">
+                            <i class="fa fa-user-minus" aria-hidden="true"></i>
+                            </button>
+                            </a>
+                            {% endif %}
+                            &nbsp
+                            <a href="/user/{{ user.id }}">
+                            <button class="btn btn-warning my-2 my-sm-0 user_actions" type="button">
+                            <i class="fa fa-user-edit" aria-hidden="true"></i>
+                            </button>
+                            </a>
+                        </div>
+                    </td>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td><span class="badge badge-primary">{{ user.last_login_at }}</span></td>
+                    <td><span class="badge badge-primary">{{ user.current_login_at }}</span></td>
+                    <td>{{ user.login_count }}</td>
+                    <td><span class="badge badge-secondary">{{ user.last_login_ip }}</span></td>
+                    {% if user.active %}
+                    <td>✅</td>
+                    {% else %}
+                    <td>❌</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <a href="/users/create"><button class="btn btn-success" type="button" style="font-size:11px">
+                        <i class="fa fa-user-plus" aria-hidden="true"></i></button>
+                        </a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+<div class="col-lg-3"></div>
+{% endblock %} {% block navbar %} {% include "security/_navbar.html" %} {% endblock %}

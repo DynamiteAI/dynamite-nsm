@@ -1,0 +1,9 @@
+{% extends "security/base.html" %}
+{% block navbar %}
+{% include "security/_navbar.html" %}
+{% endblock %}
+{% block content %}
+<div class="col-xs-12 embed-responsive embed-responsive-21by9">
+    <iframe class="embed-responsive-item" src="/api" allowfullscreen></iframe>
+</div>
+{% endblock %}

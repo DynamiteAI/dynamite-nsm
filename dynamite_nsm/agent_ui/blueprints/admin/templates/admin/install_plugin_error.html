@@ -1,0 +1,21 @@
+{% extends "security/base.html" %} {% block content %}
+<br />
+<div class="col-lg-4"></div>
+<div class="col-lg-4">
+    <div class="card border-danger">
+        <h4 class="card-header">Error!</h4>
+        <div class="card-body">
+            <h5 style="color:red">
+                <code>
+                This plugin failed to install!
+                </code>
+            </h5>
+            <img align="right" src="{{ url_for('static', filename='img/error_install_plugin.png') }}" style="height:346px;width:300px">
+            <h5><code>{{error.type}}</code></h5>
+            <p><code>{{error.message}}</code></p>
+            <p><code>{{error.traceback}}</code></p>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4"></div>
+{% endblock %} {% block navbar %} {% include "security/_navbar.html" %} {% endblock %}
