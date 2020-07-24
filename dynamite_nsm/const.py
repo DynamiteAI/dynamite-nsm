@@ -12,13 +12,10 @@ DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
+INSTALL_PATH = "/opt/dynamite"
 CONFIG_PATH = "/etc/dynamite"
 LOG_PATH = '/var/log/dynamite/'
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
-
-# TODO add to config
-BIN_DEPS_PATH = '/opt/dynamite/binaries/'
-UI_PLUGINS_DIRECTORY = '/opt/dynamite/plugins/'
 
 
 def bootstrap_constants_from_const_environment_file():
