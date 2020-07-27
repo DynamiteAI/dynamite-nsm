@@ -19,6 +19,7 @@ setup(
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
     install_requires=[
+        'coloredlogs',
         'progressbar',
         'pyyaml',
         'npyscreen',
