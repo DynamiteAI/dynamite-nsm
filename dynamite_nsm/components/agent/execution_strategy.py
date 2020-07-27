@@ -189,6 +189,15 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                                   'verbose': bool(verbose)
                               },
                               return_format=None)
+        self.add_function(func=zeek_install.install_zeek, argument_dict={
+            'configuration_directory': '/etc/dynamite/zeek/',
+            'install_directory': '/opt/dynamite/zeek',
+            'capture_network_interfaces': list(capture_network_interfaces),
+            'download_zeek_archive': True,
+            'stdout': bool(stdout),
+            'verbose': bool(verbose)
+        })
+        """
         if not zeek_profile.ProcessProfiler().is_installed and 'zeek' in agent_analyzers:
             self.add_function(func=zeek_install.install_zeek, argument_dict={
                 'configuration_directory': '/etc/dynamite/zeek/',
@@ -205,6 +214,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             },
                               return_format=None)
+          """
         if not suricata_profile.ProcessProfiler().is_installed and 'suricata' in agent_analyzers:
             self.add_function(func=suricata_install.install_suricata, argument_dict={
                 'configuration_directory': '/etc/dynamite/suricata/',
