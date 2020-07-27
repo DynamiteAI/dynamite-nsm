@@ -47,6 +47,8 @@ pip install dynamite-nsm
 - [DynamiteLab <sub>Experimental</sub>](https://dynamite-nsm.readthedocs.io/en/latest/dynamite_lab/)
 
 
+
+***
 <i style="color:grey">This material is based upon work supported by the U.S. Department of Energy, Office of Science.</i>
 
 
