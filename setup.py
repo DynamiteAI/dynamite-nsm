@@ -8,7 +8,6 @@ setup(
     name='dynamite-nsm',
     version='0.7.1',
     packages=find_packages(),
-    package_data={'': ['*.html', '*.js', '*.json', '*.css']},
     scripts=['scripts/dynamite'],
     url='http://dynamite.ai',
     long_description=long_description,
