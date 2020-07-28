@@ -621,7 +621,7 @@ class InstallManager:
                                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 compile_zeek_return_code = utilities.run_subprocess_with_status(compile_zeek_process,
-                                                                                expected_lines=6596)
+                                                                                expected_lines=6779)
             except Exception as e:
                 self.logger.error("General error occurred while compiling Zeek.")
                 self.logger.debug("General error occurred while compiling Zeek; {}".format(e))
@@ -714,17 +714,15 @@ def install_zeek(configuration_directory, install_directory, capture_network_int
     if verbose:
         log_level = logging.DEBUG
     logger = get_logger('ZEEK', level=log_level, stdout=stdout)
-    """
     zeek_profiler = zeek_profile.ProcessProfiler()
     if zeek_profiler.is_installed:
         logger.error("Zeek is already installed.")
         raise zeek_exceptions.AlreadyInstalledZeekError()
-    """
     zeek_installer = InstallManager(configuration_directory, install_directory,
                                     capture_network_interfaces=capture_network_interfaces,
                                     download_zeek_archive=download_zeek_archive, stdout=stdout, verbose=verbose)
 
-    # zeek_installer.setup_zeek()
+    zeek_installer.setup_zeek()
     zeek_installer.setup_dynamite_zeek_scripts()
 
 

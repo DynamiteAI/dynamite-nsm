@@ -488,7 +488,7 @@ def run_subprocess_with_status(process, expected_lines=None):
                 if not over_max_value:
                     pb.finish()
                     over_max_value = True
-        print(i, process.poll(), output)
+        # print(i, process.poll(), output)
     if not over_max_value:
         pb.finish()
     return process.poll()
