@@ -306,7 +306,7 @@ class InstallManager:
                     compile_zeek_af_packet_process.returncode))
         try:
             shutil.copytree(os.path.join(self.configuration_directory, 'Zeek_AF_Packet'),
-                            os.path.join(self.install_directory, 'lib', 'bro', 'plugins', 'Zeek_AF_Packet'))
+                            os.path.join(self.install_directory, 'lib', 'zeek', 'plugins', 'Zeek_AF_Packet'))
         except Exception as e:
             if 'FileExist' not in str(e):
                 self.logger.error("General error occurred while installing Zeek_AF_Packet plugin.")
