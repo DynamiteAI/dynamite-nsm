@@ -278,8 +278,10 @@ class SystemCtl:
 
         :param svc: The name of the service or target
         """
-
-        svc = self._format_svc_string(svc)
+        try:
+            svc = self._format_svc_string(svc)
+        except FileNotFoundError:
+            return True
         os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
 
     def uninstall_and_disable(self, svc):
@@ -291,5 +293,8 @@ class SystemCtl:
 
         svc = self._format_svc_string(svc)
         res = self.disable(svc)
-        os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+        try:
+            os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+        except FileNotFoundError:
+            return True
         return res

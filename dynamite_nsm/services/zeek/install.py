@@ -713,7 +713,7 @@ def install_zeek(configuration_directory, install_directory, capture_network_int
         log_level = logging.DEBUG
     logger = get_logger('ZEEK', level=log_level, stdout=stdout)
     zeek_profiler = zeek_profile.ProcessProfiler()
-    if zeek_profiler.is_installed:
+    if zeek_profiler.is_installed():
         logger.error("Zeek is already installed.")
         raise zeek_exceptions.AlreadyInstalledZeekError()
     zeek_installer = InstallManager(configuration_directory, install_directory,
@@ -741,7 +741,7 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     zeek_profiler = zeek_profile.ProcessProfiler()
-    if not zeek_profiler.is_installed:
+    if not zeek_profiler.is_installed():
         logger.error("Zeek is not installed. Cannot uninstall.")
         raise zeek_exceptions.UninstallZeekError("Zeek is not installed.")
     if prompt_user:
@@ -753,7 +753,7 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if zeek_profiler.is_running:
+    if zeek_profiler.is_running():
         try:
             zeek_process.ProcessManager().stop()
         except zeek_exceptions.CallZeekProcessError as e:
@@ -777,7 +777,7 @@ def uninstall_zeek(prompt_user=True, stdout=True, verbose=False):
                 env_lines += line.strip() + '\n'
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if zeek_profiler.is_installed:
+        if zeek_profiler.is_installed():
             shutil.rmtree(install_directory, ignore_errors=True)
             shutil.rmtree(config_directory, ignore_errors=True)
     except Exception as e:

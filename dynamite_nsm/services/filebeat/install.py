@@ -258,7 +258,7 @@ def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=
     logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
     filebeat_profiler = filebeat_profile.ProcessProfiler()
-    if filebeat_profiler.is_installed:
+    if filebeat_profiler.is_installed():
         logger.error('FileBeat is already installed.')
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
     filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
@@ -295,7 +295,7 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if filebeat_profiler.is_running:
+    if filebeat_profiler.is_running():
         try:
             filebeat_process.ProcessManager().stop()
         except filebeat_exceptions.CallFilebeatProcessError as e:
@@ -314,7 +314,7 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
                 env_lines += line.strip() + '\n'
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if filebeat_profiler.is_installed:
+        if filebeat_profiler.is_installed():
             shutil.rmtree(install_directory, ignore_errors=True)
     except Exception as e:
         logger.error("General error occurred while attempting to uninstall Filebeat.")

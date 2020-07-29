@@ -42,7 +42,7 @@ def get_agent_status(include_subprocesses=False):
     filebeat_profiler = filebeat_profile.ProcessProfiler()
 
     agent_status = {}
-    if zeek_profiler.is_installed:
+    if zeek_profiler.is_installed():
         zeek_status = zeek_process.ProcessManager().status()
         if not include_subprocesses:
             subprocess_count = len(zeek_status['SUBPROCESSES'])
@@ -53,11 +53,11 @@ def get_agent_status(include_subprocesses=False):
         agent_status.update({
             'ZEEK': zeek_status
         })
-    if suricata_profiler.is_installed:
+    if suricata_profiler.is_installed():
         agent_status.update({
             'SURICATA': suricata_process.ProcessManager().status()
         })
-    if filebeat_profiler.is_installed:
+    if filebeat_profiler.is_installed():
         agent_status.update({
             'FILEBEAT': filebeat_process.ProcessManager().status()
         })
@@ -70,11 +70,11 @@ def get_installed_agent_analyzers():
     filebeat_profiler = filebeat_profile.ProcessProfiler()
 
     agent_analyzers = []
-    if zeek_profiler.is_installed:
+    if zeek_profiler.is_installed():
         agent_analyzers.append('Zeek')
-    if suricata_profiler.is_installed:
+    if suricata_profiler.is_installed():
         agent_analyzers.append('Suricata')
-    if filebeat_profiler.is_installed:
+    if filebeat_profiler.is_installed():
         agent_analyzers.append('Filebeat')
     return agent_analyzers
 
@@ -161,7 +161,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
             )
         )
-        if not filebeat_profile.ProcessProfiler().is_installed:
+        if not filebeat_profile.ProcessProfiler().is_installed():
             filebeat_args = {
                 'targets': list(targets),
                 'kafka_topic': kafka_topic,
@@ -189,7 +189,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                                   'verbose': bool(verbose)
                               },
                               return_format=None)
-        if not zeek_profile.ProcessProfiler().is_installed and 'zeek' in agent_analyzers:
+        if not zeek_profile.ProcessProfiler().is_installed() and 'zeek' in agent_analyzers:
             self.add_function(func=zeek_install.install_zeek, argument_dict={
                 'configuration_directory': '/etc/dynamite/zeek/',
                 'install_directory': '/opt/dynamite/zeek',
@@ -205,7 +205,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             },
                               return_format=None)
-        if not suricata_profile.ProcessProfiler().is_installed and 'suricata' in agent_analyzers:
+        if not suricata_profile.ProcessProfiler().is_installed() and 'suricata' in agent_analyzers:
             self.add_function(func=suricata_install.install_suricata, argument_dict={
                 'configuration_directory': '/etc/dynamite/suricata/',
                 'install_directory': '/opt/dynamite/suricata',
@@ -261,19 +261,19 @@ class AgentUninstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
             )
         )
-        if filebeat_profile.ProcessProfiler().is_installed:
+        if filebeat_profile.ProcessProfiler().is_installed():
             self.add_function(func=filebeat_install.uninstall_filebeat, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if zeek_profile.ProcessProfiler().is_installed:
+        if zeek_profile.ProcessProfiler().is_installed():
             self.add_function(func=zeek_install.uninstall_zeek, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if suricata_profile.ProcessProfiler().is_installed:
+        if suricata_profile.ProcessProfiler().is_installed():
             self.add_function(func=suricata_install.uninstall_suricata, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
@@ -322,12 +322,12 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
             )
 
         )
-        if zeek_profile.ProcessProfiler().is_installed:
+        if zeek_profile.ProcessProfiler().is_installed():
             self.add_function(func=zeek_process.start, argument_dict={
                 "stdout": bool(stdout),
                 "verbose": bool(verbose)
             })
-        if suricata_profile.ProcessProfiler().is_installed:
+        if suricata_profile.ProcessProfiler().is_installed():
             self.add_function(func=suricata_process.start, argument_dict={
                 "stdout": bool(stdout),
                 "verbose": bool(verbose)
@@ -365,12 +365,12 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
             )
 
         )
-        if zeek_profile.ProcessProfiler().is_installed:
+        if zeek_profile.ProcessProfiler().is_installed():
             self.add_function(func=zeek_process.stop, argument_dict={
                 "stdout": bool(stdout),
                 "verbose": bool(verbose)
             })
-        if suricata_profile.ProcessProfiler().is_installed:
+        if suricata_profile.ProcessProfiler().is_installed():
             self.add_function(func=suricata_process.stop, argument_dict={
                 "stdout": bool(stdout),
                 "verbose": bool(verbose)
@@ -396,14 +396,14 @@ class AgentProcessRestartStrategy(execution_strategy.BaseExecStrategy):
         self.add_function(func=filebeat_process.start, argument_dict={
             'stdout': bool(stdout)
         })
-        if zeek_profile.ProcessProfiler().is_installed:
+        if zeek_profile.ProcessProfiler().is_installed():
             self.add_function(func=zeek_process.stop, argument_dict={
                 'stdout': bool(stdout), 'verbose': bool(verbose)
             })
             self.add_function(func=zeek_process.start, argument_dict={
                 'stdout': bool(stdout), 'verbose': bool(verbose)
             })
-        if suricata_profile.ProcessProfiler().is_installed:
+        if suricata_profile.ProcessProfiler().is_installed():
             self.add_function(func=suricata_process.stop, argument_dict={
                 'stdout': bool(stdout), 'verbose': bool(verbose)
             })

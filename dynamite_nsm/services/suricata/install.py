@@ -417,7 +417,7 @@ def install_suricata(configuration_directory, install_directory, log_directory, 
         log_level = logging.DEBUG
     logger = get_logger('SURICATA', level=log_level, stdout=stdout)
     suricata_profiler = suricata_profile.ProcessProfiler()
-    if suricata_profiler.is_installed:
+    if suricata_profiler.is_installed():
         logger.error("Suricata is already installed.")
         raise suricata_exceptions.AlreadyInstalledSuricataError()
     suricata_installer = InstallManager(configuration_directory, install_directory, log_directory,
@@ -445,7 +445,7 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     suricata_profiler = suricata_profile.ProcessProfiler()
-    if not suricata_profiler.is_installed:
+    if not suricata_profiler.is_installed():
         logger.error("Suricata is not installed. Cannot uninstall.")
         raise suricata_exceptions.UninstallSuricataError("Suricata is not installed.")
     if prompt_user:
@@ -458,7 +458,7 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if suricata_profiler.is_running:
+    if suricata_profiler.is_running():
         try:
             suricata_process.stop()
         except suricata_exceptions.CallSuricataProcessError as e:
@@ -480,7 +480,7 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
                 env_lines += line.strip() + '\n'
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if suricata_profiler.is_installed:
+        if suricata_profiler.is_installed():
             shutil.rmtree(environment_variables.get('SURICATA_HOME'), ignore_errors=True)
             shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
             shutil.rmtree(environment_variables.get('OINKMASTER_HOME'), ignore_errors=True)
