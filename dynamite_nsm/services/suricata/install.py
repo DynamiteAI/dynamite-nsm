@@ -353,7 +353,7 @@ class InstallManager:
 
     def setup_suricata(self):
         """
-        Setup Suricata IDS with PF_RING support
+        Setup Suricata IDS with AF_PACKET support
         """
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self._copy_suricata_files_and_directories()
