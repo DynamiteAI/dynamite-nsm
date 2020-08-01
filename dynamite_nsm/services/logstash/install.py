@@ -53,7 +53,7 @@ class InstallManager:
 
         self.host = host
         if not elasticsearch_host:
-            if elastic_profile.ProcessProfiler().is_installed:
+            if elastic_profile.ProcessProfiler().is_installed():
                 self.elasticsearch_host = 'localhost'
                 self.logger.info(
                     "Assuming LogStash will connect to local ElasticSearch instance, "
@@ -403,7 +403,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
 
     ls_profiler = logstash_profile.ProcessProfiler()
-    if ls_profiler.is_installed:
+    if ls_profiler.is_installed():
         logger.error('LogStash is already installed.')
         raise logstash_exceptions.AlreadyInstalledLogstashError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
@@ -416,7 +416,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     ls_installer = InstallManager(configuration_directory, install_directory, log_directory, host=host,
                                   elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port,
                                   elasticsearch_password=elasticsearch_password, heap_size_gigs=heap_size_gigs,
-                                  download_logstash_archive=not ls_profiler.is_downloaded, stdout=stdout,
+                                  download_logstash_archive=not ls_profiler.is_downloaded(), stdout=stdout,
                                   verbose=verbose
                                   )
     if install_jdk:
@@ -453,7 +453,7 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
     configuration_directory = environment_variables.get('LS_PATH_CONF')
     ls_profiler = logstash_profile.ProcessProfiler()
     ls_config = logstash_config.ConfigManager(configuration_directory=configuration_directory)
-    if not ls_profiler.is_installed:
+    if not ls_profiler.is_installed():
         logger.error('LogStash is not installed.')
         raise logstash_exceptions.UninstallLogstashError("LogStash is not installed.")
     if prompt_user:
@@ -466,7 +466,7 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if ls_profiler.is_running:
+    if ls_profiler.is_running():
         logstash_process.ProcessManager().stop()
     try:
         shutil.rmtree(ls_config.ls_path_conf)

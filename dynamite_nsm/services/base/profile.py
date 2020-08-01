@@ -22,7 +22,7 @@ class BaseProcessProfiler:
         return True
 
     def is_downloaded(self):
-        return not os.path.exists(self.install_archive_path)
+        return os.path.exists(self.install_archive_path)
 
     def is_installed(self):
         if not self.install_directory:

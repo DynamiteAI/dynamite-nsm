@@ -138,10 +138,10 @@ class ProcessManager:
         log_path = os.path.join(self.config.path_logs, 'logstash-plain.log')
 
         return {
-            'PID': self.pid,
-            'RUNNING': utilities.check_pid(self.pid),
-            'USER': 'dynamite',
-            'LOGS': log_path
+            'pid': self.pid,
+            'running': utilities.check_pid(self.pid),
+            'user': 'dynamite',
+            'logs': log_path
         }
 
 

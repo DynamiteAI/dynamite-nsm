@@ -323,10 +323,10 @@ class InstallManager:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error occurred while attempting to set permissions for {}; {}".format(keystore_config_path, e)
             )
-        if not elastic_profile.ProcessProfiler().is_running:
+        if not elastic_profile.ProcessProfiler().is_running():
             elastic_process.ProcessManager().start()
             attempts = 0
-            while not elastic_profile.ProcessProfiler().is_listening:
+            while not elastic_profile.ProcessProfiler().is_listening():
                 self.logger.info('Waiting for ElasticSearch API to become accessible.')
                 time.sleep(5)
                 attempts += 1
@@ -385,7 +385,7 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
     logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
 
     es_profiler = elastic_profile.ProcessProfiler()
-    if es_profiler.is_installed:
+    if es_profiler.is_installed():
         logger.error('ElasticSearch is already installed.')
         raise elastic_exceptions.AlreadyInstalledElasticsearchError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
@@ -398,7 +398,7 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
     es_installer = InstallManager(configuration_directory=configuration_directory,
                                   install_directory=install_directory, log_directory=log_directory,
                                   password=password, heap_size_gigs=heap_size_gigs,
-                                  download_elasticsearch_archive=not es_profiler.is_downloaded,
+                                  download_elasticsearch_archive=not es_profiler.is_downloaded(),
                                   stdout=stdout, verbose=verbose)
     if install_jdk:
         try:
@@ -432,7 +432,7 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     es_profiler = elastic_profile.ProcessProfiler()
-    if not es_profiler.is_installed:
+    if not es_profiler.is_installed():
         logger.error('ElasticSearch is not installed.')
         raise elastic_exceptions.UninstallElasticsearchError("ElasticSearch is not installed.")
     configuration_directory = environment_variables.get('ES_PATH_CONF')
@@ -448,7 +448,7 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if es_profiler.is_running:
+    if es_profiler.is_running():
         elastic_process.ProcessManager().stop()
     try:
         shutil.rmtree(es_config.configuration_directory)

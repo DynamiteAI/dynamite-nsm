@@ -94,7 +94,7 @@ class MonitorChangePasswordStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="monitor_change_password",
             strategy_description="Change the password for all monitor components.",
         )
-        if es_profile.ProcessProfiler().is_installed:
+        if es_profile.ProcessProfiler().is_installed():
             self.add_function(func=es_config.change_elasticsearch_password, argument_dict={
                 'old_password': str(old_password),
                 'password': str(new_password),
@@ -102,14 +102,14 @@ class MonitorChangePasswordStrategy(execution_strategy.BaseExecStrategy):
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if ls_profile.ProcessProfiler().is_installed:
+        if ls_profile.ProcessProfiler().is_installed():
             self.add_function(func=ls_config.change_logstash_elasticsearch_password, argument_dict={
                 'password': str(new_password),
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if kb_profile.ProcessProfiler().is_installed:
+        if kb_profile.ProcessProfiler().is_installed():
             self.add_function(func=kb_config.change_kibana_elasticsearch_password, argument_dict={
                 'password': str(new_password),
                 'prompt_user': False,
@@ -151,7 +151,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
 
         self.add_function(func=remove_kibana_tar_archive, argument_dict={}, return_format=None)
 
-        if not es_profile.ProcessProfiler().is_installed:
+        if not es_profile.ProcessProfiler().is_installed():
             self.add_function(func=es_install.install_elasticsearch, argument_dict={
                 "configuration_directory": "/etc/dynamite/elasticsearch/",
                 "install_directory": "/opt/dynamite/elasticsearch/",
@@ -174,7 +174,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             "stdout": False
         }, return_format=None)
 
-        if not ls_profile.ProcessProfiler().is_installed:
+        if not ls_profile.ProcessProfiler().is_installed():
             self.add_function(func=ls_install.install_logstash, argument_dict={
                 "configuration_directory": "/etc/dynamite/logstash/",
                 "install_directory": "/opt/dynamite/logstash/",
@@ -196,7 +196,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             }, return_format=None)
 
-        if not kb_profile.ProcessProfiler().is_installed:
+        if not kb_profile.ProcessProfiler().is_installed():
             self.add_function(func=kb_install.install_kibana, argument_dict={
                 "configuration_directory": "/etc/dynamite/kibana/",
                 "install_directory": "/opt/dynamite/kibana/",
@@ -268,19 +268,19 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                 None
             )
         )
-        if kb_profile.ProcessProfiler().is_installed:
+        if kb_profile.ProcessProfiler().is_installed():
             self.add_function(func=kb_install.uninstall_kibana, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if ls_profile.ProcessProfiler().is_installed:
+        if ls_profile.ProcessProfiler().is_installed():
             self.add_function(func=ls_install.uninstall_logstash, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if es_profile.ProcessProfiler().is_installed:
+        if es_profile.ProcessProfiler().is_installed():
             self.add_function(func=es_install.uninstall_elasticsearch, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),

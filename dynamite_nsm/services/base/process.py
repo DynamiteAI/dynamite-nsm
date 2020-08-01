@@ -14,11 +14,7 @@ class BaseProcessManager:
             log_level = logging.DEBUG
         self.logger = get_logger('BASESVC', level=log_level, stdout=stdout)
 
-        try:
-            with open(pid_file) as pid_f:
-                self.pid = int(pid_f.read())
-        except (IOError, ValueError):
-            self.pid = -1
+        self.pid = None
 
         self.systemd_service = systemd_service
         self.log_path = log_path
@@ -27,8 +23,19 @@ class BaseProcessManager:
         self.verbose = verbose
         self.sysctl = systemctl.SystemCtl()
         if pid_file:
-            h, t = os.path.split(pid_file)
-            utilities.makedirs(h, exist_ok=True)
+            self.pid = self._get_pid(pid_file)
+
+    @staticmethod
+    def _get_pid(pid_file):
+        pid = None
+        h, t = os.path.split(pid_file)
+        utilities.makedirs(h, exist_ok=True)
+        try:
+            with open(pid_file) as pid_f:
+                pid = int(pid_f.read())
+        except (IOError, ValueError):
+            pass
+        return pid
 
     def start(self):
         self.logger.info('Attempting to start {}'.format(self.systemd_service))
@@ -39,6 +46,8 @@ class BaseProcessManager:
         return self.sysctl.stop(self.systemd_service)
 
     def status(self):
+        if self.pid_file:
+            self.pid = self._get_pid(self.pid_file)
         return {
             'pid': self.pid,
             'running': utilities.check_pid(self.pid),

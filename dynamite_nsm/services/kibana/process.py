@@ -128,10 +128,10 @@ class ProcessManager:
         log_path = os.path.join(self.config.kibana_logs, 'kibana.log')
 
         return {
-            'PID': self.pid,
-            'RUNNING': utilities.check_pid(self.pid),
-            'USER': 'dynamite',
-            'LOGS': log_path
+            'pid': self.pid,
+            'running': utilities.check_pid(self.pid),
+            'user': 'dynamite',
+            'logs': log_path
         }
 
     def optimize(self):
@@ -150,6 +150,7 @@ class ProcessManager:
         ), shell=True, env=utilities.get_environment_file_dict(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         # Pass permissions back to dynamite user
         utilities.set_ownership_of_file(self.config.kibana_logs, user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file(self.config.kibana_home, user='dynamite', group='dynamite')
 
 
 def start(stdout=True, verbose=False):

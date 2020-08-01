@@ -15,27 +15,26 @@ class ProcessManager(process.BaseProcessManager):
         self.install_directory = self.environment_variables.get('ZEEK_HOME')
 
         try:
-            process.BaseProcessManager.__init__(self, 'suricata.service', log_path=None,
+            process.BaseProcessManager.__init__(self, 'zeek.service', log_path=None,
                                                 pid_file=None, stdout=stdout, verbose=verbose)
         except general_exceptions.CallProcessError:
             raise zeek_exceptions.CallZeekProcessError("Could not find systemctl.")
 
     def status(self):
-        p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'broctl')), shell=True,
+        p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'zeekctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
         raw_output = out.decode('utf-8')
 
         zeek_status = {
-            'running': False,
-            'subprocesses': []
+            'running': False
         }
         zeek_subprocesses = []
         for line in raw_output.split('\n')[1:]:
             tokenized_line = re.findall(r'\S+', line)
             if len(tokenized_line) == 8:
                 name, _type, host, status, pid, _, _, _ = tokenized_line
-                zeek_status['RUNNING'] = True
+                zeek_status['running'] = True
             elif len(tokenized_line) == 4:
                 name, _type, host, status = tokenized_line
                 pid = None
@@ -50,7 +49,7 @@ class ProcessManager(process.BaseProcessManager):
                     'pid': pid
                 }
             )
-        zeek_status['SUBPROCESSES'] = zeek_subprocesses
+        zeek_status['subprocesses'] = zeek_subprocesses
         return zeek_status
 
 

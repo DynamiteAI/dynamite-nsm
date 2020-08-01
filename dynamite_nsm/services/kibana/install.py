@@ -57,7 +57,7 @@ class InstallManager:
         self.elasticsearch_port = elasticsearch_port
         self.elasticsearch_password = elasticsearch_password
         if not elasticsearch_host:
-            if elastic_profile.ProcessProfiler().is_installed:
+            if elastic_profile.ProcessProfiler().is_installed():
                 self.elasticsearch_host = 'localhost'
             else:
                 raise kibana_exceptions.InstallKibanaError(
@@ -169,7 +169,7 @@ class InstallManager:
         if self.elasticsearch_host in ['localhost', '127.0.0.1', '0.0.0.0', '::1', '::/128']:
             self.logger.info('Starting ElasticSearch.')
             elastic_process.ProcessManager().start()
-            while not elastic_profile.ProcessProfiler().is_listening:
+            while not elastic_profile.ProcessProfiler().is_listening():
                 self.logger.info('Waiting for ElasticSearch API to become accessible.')
                 time.sleep(5)
             self.logger.info('ElasticSearch API is up.')
@@ -186,7 +186,7 @@ class InstallManager:
         except Exception as e:
             raise kibana_exceptions.InstallKibanaError("General error while starting Kibana process; {}".format(e))
         kibana_api_start_attempts = 0
-        while not kibana_profile.ProcessProfiler().is_listening and kibana_api_start_attempts != 5:
+        while not kibana_profile.ProcessProfiler().is_listening() and kibana_api_start_attempts != 5:
             self.logger.info('Waiting for Kibana API to become accessible.')
             kibana_api_start_attempts += 1
             time.sleep(5)
@@ -334,7 +334,7 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
     logger = get_logger('KIBANA', level=log_level, stdout=stdout)
 
     kb_profiler = kibana_profile.ProcessProfiler()
-    if kb_profiler.is_installed:
+    if kb_profiler.is_installed():
         logger.error('Kibana is already installed. If you wish to re-install, first uninstall.')
         raise kibana_exceptions.AlreadyInstalledKibanaError()
     if utilities.get_memory_available_bytes() < 2 * (1000 ** 3):
@@ -350,7 +350,7 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
                                   elasticsearch_host=elasticsearch_host,
                                   elasticsearch_port=elasticsearch_port,
                                   elasticsearch_password=elasticsearch_password,
-                                  download_kibana_archive=not kb_profiler.is_downloaded, stdout=stdout,
+                                  download_kibana_archive=not kb_profiler.is_downloaded(), stdout=stdout,
                                   verbose=verbose)
     if create_dynamite_user:
         utilities.create_dynamite_user(utilities.generate_random_password(50))
@@ -374,7 +374,7 @@ def uninstall_kibana(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     kb_profiler = kibana_profile.ProcessProfiler()
-    if not kb_profiler.is_installed:
+    if not kb_profiler.is_installed():
         raise kibana_exceptions.UninstallKibanaError("Kibana is not installed.")
     configuration_directory = environment_variables.get('KIBANA_PATH_CONF')
     kb_config = kibana_configs.ConfigManager(configuration_directory)
@@ -389,7 +389,7 @@ def uninstall_kibana(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if kb_profiler.is_running:
+    if kb_profiler.is_running():
         kibana_process.ProcessManager().stop()
     try:
         shutil.rmtree(kb_config.kibana_path_conf)

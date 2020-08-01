@@ -45,10 +45,10 @@ def get_agent_status(include_subprocesses=False):
     if zeek_profiler.is_installed():
         zeek_status = zeek_process.ProcessManager().status()
         if not include_subprocesses:
-            subprocess_count = len(zeek_status['SUBPROCESSES'])
-            del zeek_status['SUBPROCESSES']
+            subprocess_count = len(zeek_status.get('subprocesses', []))
+            del zeek_status['subprocesses']
             zeek_status.update({
-                "SUBPROCESS_COUNT": subprocess_count
+                "subprocess_count": subprocess_count
             })
         agent_status.update({
             'ZEEK': zeek_status
