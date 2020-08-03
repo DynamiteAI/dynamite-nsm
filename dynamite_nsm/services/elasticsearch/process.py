@@ -26,7 +26,7 @@ def start(stdout=True, verbose=False):
 
     # Let's block for a few seconds to allow elasticsearch time to create a PID
     i = 0
-    while not p.status()['running']:
+    while not p.pid:
         # If after 10 seconds we don't detect a PID we return status of potentially dead process
         if i > 10:
             break

@@ -266,7 +266,7 @@ class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of elasticsearch
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="elasticsearch_status",
             strategy_description="Get the status of the ElasticSearch process.",
@@ -275,7 +275,10 @@ class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             ),
             arguments=(
                 # process.status
-                {},
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
+                },
             ),
             return_formats=(
                 'json',

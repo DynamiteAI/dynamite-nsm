@@ -49,7 +49,7 @@ class AgentComponent(component.BaseComponent):
                 status=True
             ),
             process_status_strategy=execution_strategy.AgentProcessStatusStrategy(
-                include_subprocesses=verbose
+                verbose=verbose
             )
         )
 
@@ -132,7 +132,7 @@ class AgentCommandlineComponent(component.BaseComponent):
         elif args.action_name == "status":
             self.register_process_status_strategy(
                 execution_strategy.AgentProcessStatusStrategy(
-                    include_subprocesses=args.verbose
+                    verbose=args.verbose
                 )
             )
             self.execute_process_status_strategy()

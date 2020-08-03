@@ -270,7 +270,7 @@ class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get status of kibana
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="kibana_status",
             strategy_description="Get the status of the Kibana process.",
@@ -279,7 +279,10 @@ class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             ),
             arguments=(
                 # process.status
-                {},
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                },
             ),
             return_formats=(
                 'json',

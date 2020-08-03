@@ -12,7 +12,7 @@ class BaseProcessManager:
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        self.logger = get_logger('BASESVC', level=log_level, stdout=stdout)
+        self.logger = get_logger('BASE_SVC', level=log_level, stdout=stdout)
 
         self.pid = None
 
@@ -48,11 +48,26 @@ class BaseProcessManager:
     def status(self):
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)
-        return {
-            'pid': self.pid,
-            'running': utilities.check_pid(self.pid),
-            'logs': self.log_path
+        systemd_info = self.sysctl.status(self.systemd_service)
+        info_dict = {
+            'command': systemd_info.cmd,
+            'exit_code': systemd_info.exit,
         }
+        if self.verbose:
+            info_dict.update({
+                'stdout': systemd_info.out.replace('\n', '; ').replace('\t', ' '),
+                'stderr': systemd_info.err.replace('\n', '; ').replace('\t', ' '),
+            })
+        status = {
+            'running': systemd_info.exit == 0
+        }
+        if self.pid:
+            status.update({'pid': self.pid})
+        if self.log_path:
+            status.update({'logs': self.log_path})
+
+        status.update({'info': info_dict})
+        return status
 
     def restart(self):
         self.logger.info('Attempting to restart {}'.format(self.systemd_service))

@@ -36,15 +36,15 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
         logger.error(msg)
 
 
-def get_agent_status(include_subprocesses=False):
+def get_agent_status(verbose=False):
     zeek_profiler = zeek_profile.ProcessProfiler()
     suricata_profiler = suricata_profile.ProcessProfiler()
     filebeat_profiler = filebeat_profile.ProcessProfiler()
 
     agent_status = {}
     if zeek_profiler.is_installed():
-        zeek_status = zeek_process.ProcessManager().status()
-        if not include_subprocesses:
+        zeek_status = zeek_process.ProcessManager(verbose=verbose).status()
+        if not verbose:
             subprocess_count = len(zeek_status.get('subprocesses', []))
             del zeek_status['subprocesses']
             zeek_status.update({
@@ -55,11 +55,11 @@ def get_agent_status(include_subprocesses=False):
         })
     if suricata_profiler.is_installed():
         agent_status.update({
-            'SURICATA': suricata_process.ProcessManager().status()
+            'SURICATA': suricata_process.ProcessManager(verbose=verbose).status()
         })
     if filebeat_profiler.is_installed():
         agent_status.update({
-            'FILEBEAT': filebeat_process.ProcessManager().status()
+            'FILEBEAT': filebeat_process.ProcessManager(verbose=verbose).status()
         })
     return agent_status
 
@@ -419,7 +419,7 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of the agent
     """
 
-    def __init__(self, include_subprocesses):
+    def __init__(self, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="agent_status",
             strategy_description="Get the status of the Agent processes.",
@@ -432,7 +432,7 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 {},
                 # get_agent_status
                 {
-                    'include_subprocesses': bool(include_subprocesses)
+                    'verbose': bool(verbose)
                 },
             ),
             return_formats=(
@@ -519,7 +519,7 @@ def run_process_restart_strategy():
 
 def run_process_status_strategy():
     agt_status_strategy = AgentProcessStatusStrategy(
-        include_subprocesses=False
+        verbose=False
     )
     agt_status_strategy.execute_strategy()
 
