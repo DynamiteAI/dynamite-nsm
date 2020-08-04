@@ -199,7 +199,7 @@ class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -227,7 +227,7 @@ class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -262,7 +262,7 @@ class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -285,7 +285,7 @@ class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 },
             ),
             return_formats=(
-                'json',
+                'text',
             )
         )
 

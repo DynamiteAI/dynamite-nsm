@@ -20,7 +20,7 @@ class ProcessManager(process.BaseProcessManager):
         except general_exceptions.CallProcessError:
             raise zeek_exceptions.CallZeekProcessError("Could not find systemctl.")
 
-    def status(self):
+    def status(self, pretty=True):
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'zeekctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()

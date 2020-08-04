@@ -195,7 +195,7 @@ class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -223,7 +223,7 @@ class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -258,7 +258,7 @@ class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -281,7 +281,7 @@ class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 },
             ),
             return_formats=(
-                'json',
+                'text',
             )
         )
 

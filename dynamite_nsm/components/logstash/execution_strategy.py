@@ -190,7 +190,7 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -218,7 +218,7 @@ class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -253,7 +253,7 @@ class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {}, return_format="text")
 
 
 class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -261,7 +261,7 @@ class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of logstash
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="logstash_status",
             strategy_description="Get the status of the LogStash process.",
@@ -270,10 +270,13 @@ class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             ),
             arguments=(
                 # process.status
-                {},
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose)
+                },
             ),
             return_formats=(
-                'json',
+                'text',
             )
         )
 

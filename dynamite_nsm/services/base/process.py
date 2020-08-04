@@ -1,5 +1,8 @@
 import os
 import logging
+import textwrap
+
+import tabulate
 
 from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
@@ -45,7 +48,7 @@ class BaseProcessManager:
         self.logger.info('Attempting to stop {}'.format(self.systemd_service))
         return self.sysctl.stop(self.systemd_service)
 
-    def status(self):
+    def status(self, pretty=True):
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)
         systemd_info = self.sysctl.status(self.systemd_service)
@@ -55,8 +58,8 @@ class BaseProcessManager:
         }
         if self.verbose:
             info_dict.update({
-                'stdout': systemd_info.out.replace('\n', '; ').replace('\t', ' '),
-                'stderr': systemd_info.err.replace('\n', '; ').replace('\t', ' '),
+                'stdout': '\n'.join(textwrap.wrap(systemd_info.out, 150, fix_sentence_endings=True)),
+                'stderr': '\n'.join(textwrap.wrap(systemd_info.err, 150, fix_sentence_endings=True))
             })
         status = {
             'running': systemd_info.exit == 0
@@ -67,6 +70,42 @@ class BaseProcessManager:
             status.update({'logs': self.log_path})
 
         status.update({'info': info_dict})
+        if pretty:
+            status_tbl = []
+            if status['running']:
+                status_tbl.append([
+                    'Running', '✅'
+                ])
+            else:
+                status_tbl.append([
+                    'Running', '❌'
+                ])
+            if status.get('pid'):
+                status_tbl.append([
+                    'PID', status['pid']
+                ])
+            if status.get('logs'):
+                status_tbl.append([
+                    'Logs', status['logs']
+                ])
+            if status['info'].get('command'):
+                status_tbl.append([
+                    'Command', status['info'].get('command')
+                ])
+            if status['info'].get('exit_code'):
+                status_tbl.append([
+                    'Exit Code', status['info'].get('exit_code')
+                ])
+            if status['info'].get('stdout'):
+                status_tbl.append([
+                    'Stdout', status['info'].get('stdout')
+                ])
+            if status['info'].get('stderr'):
+                status_tbl.append([
+                    'Stderr', status['info'].get('stderr')
+                ])
+        if pretty:
+            return tabulate.tabulate(status_tbl, tablefmt='fancy_grid')
         return status
 
     def restart(self):

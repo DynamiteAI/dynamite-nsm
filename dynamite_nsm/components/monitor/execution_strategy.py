@@ -73,12 +73,19 @@ def prompt_monitor_uninstall(prompt_user=True, stdout=True):
             exit(0)
 
 
-def get_monitor_status():
+def get_monitor_status(stdout=True, verbose=False, pretty=True):
+    if pretty:
+        tables = "\n"
+        tables += es_process.status(stdout=stdout, verbose=verbose) + '\n\n'
+        tables += ls_process.status(stdout=stdout, verbose=verbose) + '\n\n'
+        tables += kb_process.status(stdout=stdout, verbose=verbose)
+        return tables
+
     return (
         dict(
-            elasticsearch=es_process.status(),
-            logstash=ls_process.status(),
-            kibana=kb_process.status()
+            elasticsearch=es_process.status(stdout=stdout, verbose=verbose),
+            logstash=ls_process.status(stdout=stdout, verbose=verbose),
+            kibana=kb_process.status(stdout=stdout, verbose=verbose)
         )
     )
 
@@ -337,7 +344,7 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {}, return_format="json")
+            self.add_function(get_monitor_status, {'pretty': True}, return_format="text")
 
 
 class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -383,7 +390,7 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {}, return_format="json")
+            self.add_function(get_monitor_status, {'pretty': True}, return_format="text")
 
 
 class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -450,7 +457,7 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {}, return_format="json")
+            self.add_function(get_monitor_status, {'pretty': True}, return_format="text")
 
 
 class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -458,7 +465,7 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of the monitor
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="monitor_status",
             strategy_description="Get the status of the Monitor processes.",
@@ -470,11 +477,15 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 # utilities.create_dynamite_environment_file
                 {},
                 # get_monitor_status
-                {},
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    'pretty': True
+                }
             ),
             return_formats=(
                 None,
-                'json',
+                'text',
             )
         )
 

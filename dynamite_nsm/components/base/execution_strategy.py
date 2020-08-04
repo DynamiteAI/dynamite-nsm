@@ -6,6 +6,10 @@ def print_json_message(msg_obj):
     print(json.dumps(msg_obj, indent=1))
 
 
+def print_text_message(msg_obj):
+    print(msg_obj)
+
+
 class BaseExecStrategy:
     """Register a set of functions to be executed in defined order"""
 
@@ -51,6 +55,8 @@ class BaseExecStrategy:
                 func(**args)
             elif str(ret_fmt).lower() == "json":
                 print_json_message(func(**args))
+            elif str(ret_fmt).lower() == "text":
+                print_text_message(func(**args))
 
 
 if __name__ == '__main__':

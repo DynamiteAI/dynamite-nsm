@@ -19,6 +19,7 @@ except Exception:
     from urllib.parse import urlencode
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
@@ -262,6 +263,13 @@ class InstallManager:
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise elastic_exceptions.InstallElasticsearchError("Could not find systemctl.")
+        self.logger.info("Installing ElasticSearch systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'elasticsearch.service')):
+            raise elastic_exceptions.InstallElasticsearchError("Failed to install ElasticSearch systemd service.")
         self.setup_passwords()
 
     def setup_passwords(self):
@@ -472,3 +480,8 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall ElasticSearch; {}".format(e))
         raise elastic_exceptions.UninstallElasticsearchError(
             "General error occurred while attempting to uninstall ElasticSearch; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise elastic_exceptions.UninstallElasticsearchError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('elasticsearch')

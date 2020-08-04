@@ -12,6 +12,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
@@ -295,7 +296,6 @@ class InstallManager:
         self._copy_kibana_files_and_directories()
         self._create_kibana_environment_variables()
         self._setup_default_kibana_configs()
-        self._install_kibana_objects()
         try:
             utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
             utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
@@ -306,6 +306,14 @@ class InstallManager:
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
             raise kibana_exceptions.InstallKibanaError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise kibana_exceptions.InstallKibanaError("Could not find systemctl.")
+        self.logger.info("Installing Kibana systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'kibana.service')):
+            raise kibana_exceptions.InstallKibanaError("Failed to install Kibana systemd service.")
+        self._install_kibana_objects()
 
 
 def install_kibana(install_directory, configuration_directory, log_directory, host='0.0.0.0', port=5601,
@@ -415,3 +423,8 @@ def uninstall_kibana(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall Kibana; {}".format(e))
         raise kibana_exceptions.UninstallKibanaError(
             "General error occurred while attempting to uninstall kibana; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise kibana_exceptions.UninstallKibanaError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('kibana')

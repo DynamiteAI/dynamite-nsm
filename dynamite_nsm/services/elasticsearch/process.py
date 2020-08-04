@@ -14,8 +14,8 @@ class ProcessManager(process.BaseProcessManager):
     def __init__(self, stdout=True, verbose=False):
         try:
             process.BaseProcessManager.__init__(self, 'elasticsearch.service', log_path=None,
-                                                pid_file=os.path.join(PID_DIRECTORY, 'elasticsearch.pid'), stdout=stdout,
-                                                verbose=verbose)
+                                                pid_file=os.path.join(PID_DIRECTORY, 'elasticsearch.pid'),
+                                                stdout=stdout, verbose=verbose)
         except general_exceptions.CallProcessError:
             raise elasticsearch_exceptions.CallElasticProcessError("Could not find systemctl.")
 

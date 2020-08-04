@@ -40,7 +40,7 @@ def get_agent_status(verbose=False):
     zeek_profiler = zeek_profile.ProcessProfiler()
     suricata_profiler = suricata_profile.ProcessProfiler()
     filebeat_profiler = filebeat_profile.ProcessProfiler()
-
+    tables = "\n"
     agent_status = {}
     if zeek_profiler.is_installed():
         zeek_status = zeek_process.ProcessManager(verbose=verbose).status()
@@ -51,15 +51,15 @@ def get_agent_status(verbose=False):
                 "subprocess_count": subprocess_count
             })
         agent_status.update({
-            'ZEEK': zeek_status
+            'zeek': zeek_status
         })
     if suricata_profiler.is_installed():
         agent_status.update({
-            'SURICATA': suricata_process.ProcessManager(verbose=verbose).status()
+            'suricata': suricata_process.ProcessManager(verbose=verbose).status()
         })
     if filebeat_profiler.is_installed():
         agent_status.update({
-            'FILEBEAT': filebeat_process.ProcessManager(verbose=verbose).status()
+            'suricata': filebeat_process.ProcessManager(verbose=verbose).status()
         })
     return agent_status
 
