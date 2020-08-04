@@ -11,19 +11,21 @@ from dynamite_nsm.logger import get_logger
 
 class BaseProcessManager:
 
-    def __init__(self, systemd_service, log_path=None, pid_file=None, stdout=True, verbose=False):
+    def __init__(self, systemd_service, name, log_path=None, pid_file=None, stdout=True, verbose=False,
+                 pretty_print_status=False):
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        self.logger = get_logger('BASE_SVC', level=log_level, stdout=stdout)
+        self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
 
         self.pid = None
-
         self.systemd_service = systemd_service
+        self.name = name
         self.log_path = log_path
         self.pid_file = pid_file
         self.stdout = stdout
         self.verbose = verbose
+        self.pretty_print_status = pretty_print_status
         self.sysctl = systemctl.SystemCtl()
         if pid_file:
             self.pid = self._get_pid(pid_file)
@@ -48,7 +50,7 @@ class BaseProcessManager:
         self.logger.info('Attempting to stop {}'.format(self.systemd_service))
         return self.sysctl.stop(self.systemd_service)
 
-    def status(self, pretty=True):
+    def status(self):
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)
         systemd_info = self.sysctl.status(self.systemd_service)
@@ -70,8 +72,12 @@ class BaseProcessManager:
             status.update({'logs': self.log_path})
 
         status.update({'info': info_dict})
-        if pretty:
-            status_tbl = []
+        if self.pretty_print_status:
+            status_tbl = [
+                [
+                    'Service', self.name,
+                ]
+            ]
             if status['running']:
                 status_tbl.append([
                     'Running', '✅'
@@ -104,7 +110,6 @@ class BaseProcessManager:
                 status_tbl.append([
                     'Stderr', status['info'].get('stderr')
                 ])
-        if pretty:
             return tabulate.tabulate(status_tbl, tablefmt='fancy_grid')
         return status
 

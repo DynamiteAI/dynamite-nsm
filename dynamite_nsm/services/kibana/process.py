@@ -13,11 +13,12 @@ PID_DIRECTORY = '/var/run/dynamite/kibana/'
 
 class ProcessManager(process.BaseProcessManager):
 
-    def __init__(self, stdout=True, verbose=False):
+    def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+        environ = utilities.get_environment_file_dict()
         try:
-            process.BaseProcessManager.__init__(self, 'kibana.service', log_path=None,
+            process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana', log_path=environ.get('KIBANA_LOGS'),
                                                 pid_file=os.path.join(PID_DIRECTORY, 'kibana.pid'), stdout=stdout,
-                                                verbose=verbose)
+                                                verbose=verbose, pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
             raise kibana_exceptions.CallKibanaProcessError("Could not find systemctl.")
 
@@ -40,8 +41,8 @@ class ProcessManager(process.BaseProcessManager):
         utilities.set_ownership_of_file(environ['KIBANA_HOME'], user='dynamite', group='dynamite')
 
 
-def start(stdout=True, verbose=False):
-    p = ProcessManager(stdout=stdout, verbose=verbose)
+def start(stdout=True, verbose=False, pretty_print_status=False):
+    p = ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
     p.start()
 
     # Let's block for a few seconds to allow kibana time to create a PID
@@ -55,13 +56,13 @@ def start(stdout=True, verbose=False):
     return p.status()
 
 
-def stop(stdout=True, verbose=False):
-    return ProcessManager(stdout, verbose).stop()
+def stop(stdout=True, verbose=False, pretty_print_status=False):
+    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
 
 
-def restart(stdout=True, verbose=False):
-    ProcessManager(stdout, verbose).restart()
+def restart(stdout=True, verbose=False, pretty_print_status=False):
+    ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
 
 
-def status(stdout=True, verbose=False):
-    return ProcessManager(stdout, verbose).status()
+def status(stdout=True, verbose=False, pretty_print_status=False):
+    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

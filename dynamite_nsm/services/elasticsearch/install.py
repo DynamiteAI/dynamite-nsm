@@ -154,6 +154,10 @@ class InstallManager:
                     self.logger.info('Updating ElasticSearch default home path [{}]'.format(self.install_directory))
                     subprocess.call('echo ES_HOME="{}" >> {}'.format(self.install_directory, env_file),
                                     shell=True)
+                if 'ES_LOGS' not in env_str:
+                    self.logger.info('Updating ElasticSearch default log path [{}]'.format(self.log_directory))
+                    subprocess.call('echo ES_LOGS="{}" >> {}'.format(self.log_directory, env_file),
+                                    shell=True)
         except IOError:
             self.logger.error("Failed to open {} for reading.".format(env_file))
             raise elastic_exceptions.InstallElasticsearchError("Failed to open {} for reading.".format(env_file))
@@ -469,6 +473,8 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
                 if 'ES_PATH_CONF' in line:
                     continue
                 elif 'ES_HOME' in line:
+                    continue
+                elif 'ES_LOGS' in line:
                     continue
                 elif line.strip() == '':
                     continue

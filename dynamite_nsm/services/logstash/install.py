@@ -169,6 +169,10 @@ class InstallManager:
                 if 'LS_HOME' not in env_str:
                     self.logger.info('Updating LogStash default home path [{}]'.format(self.install_directory))
                     subprocess.call('echo LS_HOME="{}" >> {}'.format(self.install_directory, env_file), shell=True)
+                if 'LS_LOGS' not in env_str:
+                    self.logger.info('Updating LogStash default log path [{}]'.format(self.log_directory))
+                    subprocess.call('echo LS_LOGS="{}" >> {}'.format(self.log_directory, env_file), shell=True)
+
         except IOError:
             self.logger.error("Failed to open {} for reading.".format(env_file))
             raise logstash_exceptions.InstallLogstashError(
@@ -487,6 +491,8 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
                 if 'LS_PATH_CONF' in line:
                     continue
                 elif 'LS_HOME' in line:
+                    continue
+                elif 'LS_LOGS' in line:
                     continue
                 elif 'ELASTIFLOW_' in line:
                     continue
