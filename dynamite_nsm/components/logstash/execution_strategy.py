@@ -190,7 +190,7 @@ class LogstashProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -218,7 +218,7 @@ class LogstashProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -253,7 +253,7 @@ class LogstashProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -272,7 +272,8 @@ class LogstashProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 # process.status
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose)
+                    "verbose": bool(verbose),
+                    "pretty_print_status": True
                 },
             ),
             return_formats=(

@@ -36,31 +36,34 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
         logger.error(msg)
 
 
-def get_agent_status(verbose=False):
+def get_agent_status(verbose=False, pretty_print_status=True):
     zeek_profiler = zeek_profile.ProcessProfiler()
     suricata_profiler = suricata_profile.ProcessProfiler()
     filebeat_profiler = filebeat_profile.ProcessProfiler()
-    tables = "\n"
+    status_tables = "\n"
     agent_status = {}
     if zeek_profiler.is_installed():
-        zeek_status = zeek_process.ProcessManager(verbose=verbose).status()
-        if not verbose:
-            subprocess_count = len(zeek_status.get('subprocesses', []))
-            del zeek_status['subprocesses']
-            zeek_status.update({
-                "subprocess_count": subprocess_count
-            })
+        zeek_status = zeek_process.ProcessManager(verbose=verbose, pretty_print_status=pretty_print_status).status()
+        status_tables += zeek_status + '\n\n'
         agent_status.update({
             'zeek': zeek_status
         })
     if suricata_profiler.is_installed():
+        suricata_status = suricata_process.ProcessManager(verbose=verbose,
+                                                          pretty_print_status=pretty_print_status).status()
+        status_tables += suricata_status + '\n\n'
         agent_status.update({
-            'suricata': suricata_process.ProcessManager(verbose=verbose).status()
+            'suricata': suricata_status
         })
     if filebeat_profiler.is_installed():
+        filebeat_status = filebeat_process.ProcessManager(verbose=verbose,
+                                                          pretty_print_status=pretty_print_status).status()
+        status_tables += filebeat_status + '\n\n'
         agent_status.update({
-            'suricata': filebeat_process.ProcessManager(verbose=verbose).status()
+            'filebeat': filebeat_status
         })
+    if pretty_print_status:
+        return status_tables
     return agent_status
 
 
@@ -333,7 +336,7 @@ class AgentProcessStartStrategy(execution_strategy.BaseExecStrategy):
                 "verbose": bool(verbose)
             })
         if status:
-            self.add_function(get_agent_status, {}, return_format="json")
+            self.add_function(get_agent_status, {"pretty_print_status": True}, return_format="text")
 
 
 class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -376,7 +379,7 @@ class AgentProcessStopStrategy(execution_strategy.BaseExecStrategy):
                 "verbose": bool(verbose)
             })
         if status:
-            self.add_function(get_agent_status, {}, return_format="json")
+            self.add_function(get_agent_status, {"pretty_print_status": True}, return_format="text")
 
 
 class AgentProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -411,7 +414,7 @@ class AgentProcessRestartStrategy(execution_strategy.BaseExecStrategy):
                 'stdout': bool(stdout), 'verbose': bool(verbose)
             })
         if status:
-            self.add_function(get_agent_status, {}, return_format="json")
+            self.add_function(get_agent_status, {"pretty_print_status": True}, return_format="text")
 
 
 class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -432,12 +435,13 @@ class AgentProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 {},
                 # get_agent_status
                 {
-                    'verbose': bool(verbose)
+                    'verbose': bool(verbose),
+                    "pretty_print_status": True
                 },
             ),
             return_formats=(
                 None,
-                'json',
+                'text',
             )
         )
 

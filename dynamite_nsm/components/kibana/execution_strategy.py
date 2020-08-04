@@ -199,7 +199,7 @@ class KibanaProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -227,7 +227,7 @@ class KibanaProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -262,7 +262,7 @@ class KibanaProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -282,6 +282,7 @@ class KibanaProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 {
                     "stdout": bool(stdout),
                     "verbose": bool(verbose),
+                    "pretty_print_status": True
                 },
             ),
             return_formats=(

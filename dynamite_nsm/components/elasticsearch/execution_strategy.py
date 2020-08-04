@@ -195,7 +195,7 @@ class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -223,7 +223,7 @@ class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -258,7 +258,7 @@ class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="text")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -277,7 +277,8 @@ class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 # process.status
                 {
                     "stdout": bool(stdout),
-                    "verbose": bool(verbose)
+                    "verbose": bool(verbose),
+                    "pretty_print_status": True
                 },
             ),
             return_formats=(

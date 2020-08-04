@@ -73,12 +73,12 @@ def prompt_monitor_uninstall(prompt_user=True, stdout=True):
             exit(0)
 
 
-def get_monitor_status(stdout=True, verbose=False, pretty=True):
-    if pretty:
+def get_monitor_status(stdout=True, verbose=False, pretty_print_status=True):
+    if pretty_print_status:
         tables = "\n"
-        tables += es_process.status(stdout=stdout, verbose=verbose) + '\n\n'
-        tables += ls_process.status(stdout=stdout, verbose=verbose) + '\n\n'
-        tables += kb_process.status(stdout=stdout, verbose=verbose)
+        tables += es_process.status(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status) + '\n\n'
+        tables += ls_process.status(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status) + '\n\n'
+        tables += kb_process.status(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         return tables
 
     return (
@@ -344,7 +344,7 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {'pretty': True}, return_format="text")
+            self.add_function(get_monitor_status, {"pretty_print_status": True}, return_format="text")
 
 
 class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -390,7 +390,7 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {'pretty': True}, return_format="text")
+            self.add_function(get_monitor_status, {"pretty_print_status": True}, return_format="text")
 
 
 class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -457,7 +457,7 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {'pretty': True}, return_format="text")
+            self.add_function(get_monitor_status, {"pretty_print_status": True}, return_format="text")
 
 
 class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -480,7 +480,7 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 {
                     "stdout": bool(stdout),
                     "verbose": bool(verbose),
-                    'pretty': True
+                    "pretty_print_status": True
                 }
             ),
             return_formats=(
