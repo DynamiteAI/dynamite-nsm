@@ -349,7 +349,7 @@ def register_logstash_component_args(ls_component_parser, parent_parsers):
         "restart", help="Restart LogStash.", parents=parent_parsers)
     ls_restart_parser.set_defaults(action_name="restart")
 
-    # === Setup ElasticSearch Component Status Arguments === #
+    # === Setup LogStash Component Status Arguments === #
     ls_status_parser = logstash_component_args_subparsers.add_parser(
         "status", help="Status LogStash.", parents=parent_parsers)
     ls_status_parser.set_defaults(action_name="status")
@@ -427,6 +427,45 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
         "status", help="Status Kibana.",
         parents=parent_parsers)
     kb_status_parser.set_defaults(action_name="status")
+    
+
+def register_managerd_component_args(managerd_component_parser, parent_parsers):
+    managerd_component_args_subparsers = managerd_component_parser.add_subparsers()
+    
+    # === Setup managerd Component Install Arguments === #
+    managerd_install_parser = managerd_component_args_subparsers.add_parser(
+        "install", help="Install Manager Daemon.", parents=parent_parsers)
+
+    managerd_install_parser.set_defaults(action_name="install")
+
+    # === Setup managerd Component Uninstall Arguments === #
+    managerd_uninstall_parser = managerd_component_args_subparsers.add_parser(
+        "uninstall",
+        help="Uninstall Manager Daemon.",
+        parents=parent_parsers)
+    managerd_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_managerd_uninstall_prompt", default=False,
+                                     action="store_true", help="Skip uninstall warning prompt.")
+    managerd_uninstall_parser.set_defaults(action_name="uninstall")
+
+    # === Setup managerd Component Start Arguments === #
+    managerd_start_parser = managerd_component_args_subparsers.add_parser(
+        "start", help="Start LogStash.", parents=parent_parsers)
+    managerd_start_parser.set_defaults(action_name="start")
+
+    # === Setup managerd Component Stop Arguments === #
+    managerd_stop_parser = managerd_component_args_subparsers.add_parser(
+        "stop", help="Stop Manager Daemon.", parents=parent_parsers)
+    managerd_stop_parser.set_defaults(action_name="stop")
+
+    # === Setup LogStash Component Restart Arguments === #
+    managerd_restart_parser = managerd_component_args_subparsers.add_parser(
+        "restart", help="Restart Manager Daemon.", parents=parent_parsers)
+    managerd_restart_parser.set_defaults(action_name="restart")
+
+    # === Setup LogStash Component Status Arguments === #
+    managerd_status_parser = managerd_component_args_subparsers.add_parser(
+        "status", help="Status Manger Daemon.", parents=parent_parsers)
+    managerd_status_parser.set_defaults(action_name="status")
 
 
 def register_updates_component_args(upd_component_parser, parent_parsers):

@@ -18,6 +18,7 @@ from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
 from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
 from dynamite_nsm.components.updates.component import UpdatesCommandlineComponent
 from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
+from dynamite_nsm.components.managerd.component import ManagerdCommandlineComponent
 from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
 
 component_args.register_agent_component_args(
@@ -37,6 +38,9 @@ component_args.register_monitor_component_args(
 )
 component_args.register_lab_component_args(
     component_parsers.lab_component_parser, parent_parsers=[component_parsers.base_parser]
+)
+component_args.register_managerd_component_args(
+    component_parsers.managerd_component_parser, parent_parsers=[component_parsers.base_parser]
 )
 component_args.register_updates_component_args(
     component_parsers.update_component_parser, parent_parsers=[component_parsers.base_parser]
@@ -94,6 +98,8 @@ if __name__ == '__main__':
             MonitorCommandlineComponent(args)
         elif args.component_name == "lab":
             LabCommandlineComponent(args)
+        elif args.component_name == "managerd":
+            ManagerdCommandlineComponent(args)
         elif args.component_name == "updates":
             UpdatesCommandlineComponent(args)
     except KeyboardInterrupt:

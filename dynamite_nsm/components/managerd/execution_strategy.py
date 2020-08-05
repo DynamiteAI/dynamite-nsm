@@ -63,6 +63,41 @@ class ManagerdInstallStrategy(execution_strategy.BaseExecStrategy):
             ))
 
 
+class ManagerdUninstallStrategy(execution_strategy.BaseExecStrategy):
+    """
+    Steps to uninstall managerd
+    """
+
+    def __init__(self, prompt_user, stdout, verbose):
+        execution_strategy.BaseExecStrategy.__init__(
+            self, strategy_name="managerd_uninstall",
+            strategy_description="Uninstall Manager Daemon.",
+            functions=(
+                install.uninstall_managerd,
+                log_message
+            ),
+            arguments=(
+                # install.uninstall_managerd
+                {
+                    "prompt_user": bool(prompt_user),
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                },
+
+                # log_message
+                {
+                    "msg": '*** Manager Daemon uninstalled successfully. ***',
+                    'stdout': bool(stdout),
+                    'verbose': bool(verbose)
+                },
+            ),
+            return_formats=(
+                None,
+                None
+            )
+        )
+
+
 class ManagerdProcessStartStrategy(execution_strategy.BaseExecStrategy):
     """
     Steps to start managerd
@@ -88,7 +123,7 @@ class ManagerdProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {'pretty_print_status': True}, return_format="text")
 
 
 class ManagerdProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -116,7 +151,7 @@ class ManagerdProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {'pretty_print_status': True}, return_format="text")
 
 
 class ManagerdProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -151,7 +186,7 @@ class ManagerdProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {'pretty_print_status': True}, return_format="text")
 
 
 class ManagerdProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -159,7 +194,7 @@ class ManagerdProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of managerd
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="managerd_status",
             strategy_description="Get the status of the managerd process.",
@@ -168,10 +203,14 @@ class ManagerdProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             ),
             arguments=(
                 # process.status
-                {},
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "pretty_print_status": True
+                },
             ),
             return_formats=(
-                'json',
+                'text',
             )
         )
 
