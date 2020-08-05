@@ -5,7 +5,9 @@ from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
 
 
 class ProcessManager(process.BaseProcessManager):
-
+    """
+    LogStash Process Manager
+    """
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
         try:

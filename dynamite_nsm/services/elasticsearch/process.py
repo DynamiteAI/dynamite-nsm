@@ -10,7 +10,9 @@ PID_DIRECTORY = '/var/run/dynamite/elasticsearch/'
 
 
 class ProcessManager(process.BaseProcessManager):
-
+    """
+    ElasticSearch Process Manager
+    """
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
         try:

@@ -8,7 +8,9 @@ PID_DIRECTORY = '/var/run/dynamite/filebeat/'
 
 
 class ProcessManager(process.BaseProcessManager):
-
+    """
+    FileBeat Process Manager
+    """
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         try:
             process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None,

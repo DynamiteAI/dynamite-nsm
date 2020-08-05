@@ -12,7 +12,9 @@ PID_DIRECTORY = '/var/run/dynamite/kibana/'
 
 
 class ProcessManager(process.BaseProcessManager):
-
+    """
+    Kibana Process Manager
+    """
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
         try:

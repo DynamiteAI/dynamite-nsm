@@ -12,6 +12,9 @@ from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
 class ProcessManager(process.BaseProcessManager):
+    """
+    Zeek Process Manager
+    """
 
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         self.environment_variables = utilities.get_environment_file_dict()
