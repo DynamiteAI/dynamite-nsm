@@ -36,7 +36,7 @@ class BaseProcessManager:
         h, t = os.path.split(pid_file)
         utilities.makedirs(h, exist_ok=True)
         try:
-            utilities.set_ownership_of_file(pid_file)
+            utilities.set_ownership_of_file(h)
         except FileNotFoundError:
             pass
         try:
