@@ -14,6 +14,7 @@ from dynamite_nsm import const
 from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.logstash import config as logstash_config
 from dynamite_nsm.services.logstash import profile as logstash_profile
@@ -26,7 +27,7 @@ from dynamite_nsm.services.logstash.elastiflow import config as elastiflow_confi
 from dynamite_nsm.services.logstash.elastiflow import install as elastiflow_install
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
     """
     Provides a simple interface for installing a new Logstash collector with ElastiFlow pipelines
     """
@@ -47,10 +48,6 @@ class InstallManager:
         :param stdout: Print output to console
         :param verbose: Include output from system utilities
         """
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
 
         self.host = host
         if not elasticsearch_host:
@@ -76,15 +73,17 @@ class InstallManager:
         utilities.create_dynamite_environment_file()
         if download_logstash_archive:
             try:
-                self.download_logstash(stdout=stdout)
+                self.download_from_mirror(const.LOGSTASH_MIRRORS, const.LOGSTASH_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 self.logger.error("Failed to download LogStash archive.")
                 raise logstash_exceptions.InstallLogstashError("Failed to download LogStash archive.")
         try:
-            self.extract_logstash()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME))
         except general_exceptions.ArchiveExtractionError:
             self.logger.error("Failed to extract LogStash archive.")
             raise logstash_exceptions.InstallLogstashError("Failed to extract LogStash archive.")
+        install.BaseInstallManager.__init__(self, 'logstash', verbose=self.verbose, stdout=stdout)
 
     def _copy_logstash_files_and_directories(self):
         self.logger.info('Copying required LogStash files and directories.')
@@ -307,39 +306,6 @@ class InstallManager:
             self.logger.debug("General error while setting VM Max Map Count; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error while setting VM Max Map Count; {}".format(e))
-
-    @staticmethod
-    def download_logstash(stdout=False):
-        """
-        Download Logstash archive
-
-        :param stdout: Print output to console
-        """
-        url = None
-        try:
-            with open(const.LOGSTASH_MIRRORS, 'r') as ls_archive:
-                for url in ls_archive.readlines():
-                    if utilities.download_file(url, const.LOGSTASH_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading logstash from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_logstash():
-        """
-        Extract Logstash to local install_cache
-        """
-
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract logstash archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract logstash archive; {}".format(e))
 
     def setup_logstash(self):
         """

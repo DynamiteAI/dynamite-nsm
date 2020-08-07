@@ -3,7 +3,6 @@ import sys
 import time
 import shutil
 import logging
-import tarfile
 import subprocess
 
 from dynamite_nsm import const
@@ -11,6 +10,7 @@ from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.suricata import config as suricata_configs
 from dynamite_nsm.services.suricata import process as suricata_process
@@ -20,7 +20,7 @@ from dynamite_nsm.services.suricata.oinkmaster import install as rules_install
 from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
 
     def __init__(self, configuration_directory, install_directory, log_directory, capture_network_interfaces,
                  download_suricata_archive=True, stdout=True, verbose=False):
@@ -36,11 +36,6 @@ class InstallManager:
         :param verbose: Include detailed debug messages
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('SURICATA', level=log_level, stdout=stdout)
-
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
@@ -48,18 +43,21 @@ class InstallManager:
         self.download_suricata_archive = download_suricata_archive
         self.stdout = stdout
         self.verbose = verbose
+        install.BaseInstallManager.__init__(self, 'suricata', verbose=self.verbose, stdout=stdout)
+
         utilities.create_dynamite_environment_file()
         if download_suricata_archive:
             try:
                 self.logger.info("Attempting to download Suricata archive.")
-                self.download_suricata(stdout=stdout)
+                self.download_from_mirror(const.SURICATA_MIRRORS, const.SURICATA_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except general_exceptions.DownloadError as e:
                 self.logger.error("Failed to download Suricata archive.")
                 self.logger.debug("Failed to download Suricata archive, threw: {}.".format(e))
                 raise suricata_exceptions.InstallSuricataError("Failed to download Suricata archive.")
         try:
             self.logger.info("Attempting to extract Suricata archive ({}).".format(const.SURICATA_ARCHIVE_NAME))
-            self.extract_suricata()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME))
             self.logger.info("Extraction completed.")
         except general_exceptions.ArchiveExtractionError as e:
             self.logger.error("Failed to extract Suricata archive.")
@@ -194,39 +192,6 @@ class InstallManager:
                 "General error while attempting to copy {} to {}; {}".format(
                     os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
                     os.path.join(self.configuration_directory, 'rules'), e))
-
-    @staticmethod
-    def download_suricata(stdout=False):
-        """
-        Download Suricata archive
-
-        :param stdout: Print output to console
-        """
-        url = None
-        try:
-            with open(const.SURICATA_MIRRORS, 'r') as suricata_archive:
-                for url in suricata_archive.readlines():
-                    if utilities.download_file(url, const.SURICATA_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading Suricata from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_suricata():
-        """
-        Extract Suricata to local install_cache
-        """
-
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract Suricata archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract Suricata archive; {}".format(e))
 
     @staticmethod
     def install_dependencies(stdout=False, verbose=False):

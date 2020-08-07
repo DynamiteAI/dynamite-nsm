@@ -16,6 +16,7 @@ from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.kibana import config as kibana_configs
 from dynamite_nsm.services.kibana import process as kibana_process
@@ -25,7 +26,7 @@ from dynamite_nsm.services.elasticsearch import process as elastic_process
 from dynamite_nsm.services.elasticsearch import profile as elastic_profile
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
     """
     Provides a simple interface for installing a new Kibana interface with ElastiFlow/Synesis dashboards
     """
@@ -47,11 +48,6 @@ class InstallManager:
         :param verbose: Include detailed debug messages
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('KIBANA', level=log_level, stdout=stdout)
-
         self.host = host
         self.port = port
         self.elasticsearch_host = elasticsearch_host
@@ -71,15 +67,17 @@ class InstallManager:
         utilities.create_dynamite_environment_file()
         if download_kibana_archive:
             try:
-                self.download_kibana(stdout=stdout)
+                self.download_from_mirror(const.KIBANA_MIRRORS, const.KIBANA_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 self.logger.error("Failed to download Kibana archive.")
                 raise kibana_exceptions.InstallKibanaError("Failed to download Kibana archive.")
         try:
-            self.extract_kibana()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME))
         except general_exceptions.ArchiveExtractionError:
             self.logger.error("Failed to extract Kibana archive.")
             raise kibana_exceptions.InstallKibanaError("Failed to extract Kibana archive.")
+        install.BaseInstallManager.__init__(self, 'kibana', verbose=self.verbose, stdout=self.stdout)
 
     def _copy_kibana_files_and_directories(self):
         config_paths = [
@@ -244,38 +242,6 @@ class InstallManager:
             self.logger.debug('General error occurred while writing kibana configs; {}'.format(e))
             raise kibana_exceptions.InstallKibanaError(
                 "General error occurred while writing kibana configs; {}".format(e))
-
-    @staticmethod
-    def download_kibana(stdout=False):
-        """
-        Download Kibana archive
-
-        :param stdout: Print output to console
-        """
-        url = None
-        try:
-            with open(const.KIBANA_MIRRORS, 'r') as kb_archive:
-                for url in kb_archive.readlines():
-                    if utilities.download_file(url, const.KIBANA_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading kibana from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_kibana():
-        """
-        Extract Kibana to local install_cache
-        """
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract kibana archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract kibana archive; {}".format(e))
 
     def setup_kibana(self):
         """

@@ -8,20 +8,16 @@ from dynamite_nsm import const
 from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.managerd import profile as managerd_profile
 from dynamite_nsm.services.managerd import process as managerd_process
 from dynamite_nsm.services.managerd import exceptions as managerd_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
 
     def __init__(self, configuration_directory, install_directory, log_directory, stdout=True, verbose=False):
-
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('MANAGERD', level=log_level, stdout=stdout)
 
         self.install_directory = install_directory
         self.configuration_directory = configuration_directory
@@ -29,6 +25,7 @@ class InstallManager:
 
         self.stdout = stdout
         self.verbose = verbose
+        install.BaseInstallManager.__init__(self, 'managerd', verbose=self.verbose, stdout=stdout)
 
     def setup_managerd(self):
         env_file = os.path.join(const.CONFIG_PATH, 'environment')

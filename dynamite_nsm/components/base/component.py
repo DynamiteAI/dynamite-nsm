@@ -10,7 +10,7 @@ class BaseComponent:
     def __init__(self, component_name, component_description, **strategies):
         """
 
-        The Base Component works by dynamically generating a set of methods at runtime via reflection based on the
+        The Base Component works by dynamically generating a set of methods at runtime via setattr based on the
         **strategies kwargs.
 
         The user can provide of **strategies either pre-registered

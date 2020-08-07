@@ -21,6 +21,7 @@ except Exception:
 from dynamite_nsm import const
 from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
+from dynamite_nsm.services.base import install
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.elasticsearch import config as elastic_configs
@@ -29,7 +30,7 @@ from dynamite_nsm.services.elasticsearch import profile as elastic_profile
 from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
     """
     Provides a simple interface for installing an ElasticSearch node
     """
@@ -50,11 +51,6 @@ class InstallManager:
         :param verbose: Include detailed debug messages
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
-
         self.host = host
         self.port = port
         self.password = password
@@ -67,15 +63,17 @@ class InstallManager:
         utilities.create_dynamite_environment_file()
         if download_elasticsearch_archive:
             try:
-                self.download_elasticsearch(stdout=stdout)
+                self.download_from_mirror(const.ELASTICSEARCH_MIRRORS, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 self.logger.error("Failed to download ElasticSearch archive.")
                 raise elastic_exceptions.InstallElasticsearchError("Failed to download ElasticSearch archive.")
         try:
-            self.extract_elasticsearch()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
         except general_exceptions.ArchiveExtractionError:
             self.logger.error("Failed to extract ElasticSearch archive.")
             raise elastic_exceptions.InstallElasticsearchError("Failed to extract ElasticSearch archive.")
+        install.BaseInstallManager.__init__(self, 'elasticsearch', verbose=self.verbose, stdout=stdout)
 
     def _copy_elasticsearch_files_and_directories(self):
         config_paths = [
@@ -213,39 +211,6 @@ class InstallManager:
             self.logger.debug("General error while setting VM Max Map Count; {}".format(e))
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error while setting VM Max Map Count; {}".format(e))
-
-    @staticmethod
-    def download_elasticsearch(stdout=False):
-        """
-        Download ElasticSearch archive
-
-        :param stdout: Print output to console
-        """
-
-        url = None
-        try:
-            with open(const.ELASTICSEARCH_MIRRORS, 'r') as es_archive:
-                for url in es_archive.readlines():
-                    if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading elasticsearch from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_elasticsearch():
-        """
-        Extract ElasticSearch to local install_cache
-        """
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract elasticsearch archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract elasticsearch archive; {}".format(e))
 
     def setup_elasticsearch(self):
         """
@@ -402,8 +367,8 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
         raise elastic_exceptions.AlreadyInstalledElasticsearchError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('\n\033[93m[-] WARNING! ElasticSearch should have at-least 6GB to run '
-                         'currently available [{} GB]\033[0m\n'.format(
-            utilities.get_memory_available_bytes() / (1000 ** 3)))
+                         'currently available [{} GB]\033[0m\n'.format(utilities.get_memory_available_bytes() /
+                                                                       (1000 ** 3)))
         if str(utilities.prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
             sys.stdout.write('\n[+] Exiting\n')
             exit(0)

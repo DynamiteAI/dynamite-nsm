@@ -19,6 +19,7 @@ from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek import config as zeek_configs
 from dynamite_nsm.services.zeek import profile as zeek_profile
@@ -26,7 +27,7 @@ from dynamite_nsm.services.zeek import process as zeek_process
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
 
     def __init__(self, configuration_directory, install_directory, capture_network_interfaces,
                  download_zeek_archive=True, stdout=True, verbose=False):
@@ -51,18 +52,19 @@ class InstallManager:
         self.capture_network_interfaces = capture_network_interfaces
         self.stdout = stdout
         self.verbose = verbose
+        install.BaseInstallManager.__init__(self, 'zeek', verbose=self.verbose, stdout=stdout)
         utilities.create_dynamite_environment_file()
         if download_zeek_archive:
             try:
                 self.logger.info("Attempting to download Zeek archive.")
-                self.download_zeek(stdout=stdout)
+                self.download_from_mirror(const.ZEEK_MIRRORS, const.ZEEK_ARCHIVE_NAME, stdout=stdout, verbose=verbose)
             except general_exceptions.DownloadError as e:
                 self.logger.error("Failed to download Zeek archive.")
                 self.logger.debug("Failed to download Zeek archive, threw: {}.".format(e))
                 raise zeek_exceptions.InstallZeekError("Failed to download Zeek archive.")
         try:
             self.logger.info("Attempting to extract Zeek archive ({}).".format(const.ZEEK_ARCHIVE_NAME))
-            self.extract_zeek()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.ZEEK_ARCHIVE_NAME))
             self.logger.info("Extraction completed.")
         except general_exceptions.ArchiveExtractionError as e:
             self.logger.error("Failed to extract Zeek archive.")
@@ -70,8 +72,8 @@ class InstallManager:
             raise zeek_exceptions.InstallZeekError("Failed to extract Zeek archive.")
         try:
             self.install_dependencies(stdout=stdout, verbose=verbose)
-        except (
-            general_exceptions.InvalidOsPackageManagerDetectedError, general_exceptions.OsPackageManagerRefreshError):
+        except (general_exceptions.InvalidOsPackageManagerDetectedError,
+                general_exceptions.OsPackageManagerRefreshError):
             raise zeek_exceptions.InstallZeekError("One or more OS dependencies failed to install.")
         if not self.validate_capture_network_interfaces(self.capture_network_interfaces):
             self.logger.error(
@@ -162,40 +164,6 @@ class InstallManager:
         logger.info('Zeek Worker Count: {}'.format(len(zeek_workers)))
         logger.debug('Zeek Workers: {}'.format(zeek_workers))
         return zeek_workers
-
-    @staticmethod
-    def download_zeek(stdout=False):
-        """
-        Download Zeek archive
-
-        :param stdout: Print output to console
-        """
-
-        url = None
-        try:
-            with open(const.ZEEK_MIRRORS, 'r') as zeek_archive:
-                for url in zeek_archive.readlines():
-                    if utilities.download_file(url, const.ZEEK_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading Zeek from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_zeek():
-        """
-        Extract Zeek to local install_cache
-        """
-
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.ZEEK_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract Zeek archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract Zeek archive; {}".format(e))
 
     @staticmethod
     def install_dependencies(stdout=False, verbose=False):

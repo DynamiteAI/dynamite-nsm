@@ -1,23 +1,18 @@
 import os
 import sys
 import logging
-import tarfile
 import subprocess
 
 from dynamite_nsm.logger import get_logger
 
-try:
-    from ConfigParser import ConfigParser
-except Exception:
-    from configparser import ConfigParser
-
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
     """
     An interface for installing OinkMaster Suricata update script
     """
@@ -30,64 +25,28 @@ class InstallManager:
         :param verbose: Include output from system utilities
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('OINKMASTER', level=log_level, stdout=stdout)
-
         self.install_directory = install_directory
         self.stdout = stdout
         self.verbose = verbose
+        install.BaseInstallManager.__init__(self, 'oinkmaster', stdout=self.stdout, verbose=self.verbose)
+
         if download_oinkmaster_archive:
             try:
                 self.logger.info("Attempting to download Oinkmaster archive.")
-                self.download_oinkmaster(stdout=stdout)
+                self.download_from_mirror(const.OINKMASTER_MIRRORS, const.OINKMASTER_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except general_exceptions.DownloadError as e:
                 self.logger.error("Failed to download Oinkmaster archive.")
                 self.logger.debug("Failed to download Oinkmaster archive, threw: {}.".format(e))
                 raise oinkmaster_exceptions.InstallOinkmasterError("Failed to download Oinkmaster archive.")
         try:
             self.logger.info("Attempting to extract Oinkmaster archive ({}).".format(const.OINKMASTER_ARCHIVE_NAME))
-            self.extract_oinkmaster()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.OINKMASTER_ARCHIVE_NAME))
             self.logger.info("Extraction completed.")
         except general_exceptions.ArchiveExtractionError as e:
             self.logger.error("Failed to extract Oinkmaster archive.")
             self.logger.debug("Failed to extract Oinkmaster archive, threw: {}.".format(e))
             raise oinkmaster_exceptions.InstallOinkmasterError("Failed to extract Oinkmaster archive.")
-
-    @staticmethod
-    def download_oinkmaster(stdout=False):
-        """
-        Download Oinkmaster archive
-
-        :param stdout: Print output to console
-        """
-
-        url = None
-        try:
-            with open(const.OINKMASTER_MIRRORS, 'r') as oinkmaster_archive:
-                for url in oinkmaster_archive.readlines():
-                    if utilities.download_file(url, const.OINKMASTER_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading Oinkmaster from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_oinkmaster():
-        """
-        Extract Oinkmaster to local install_cache
-        """
-
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.OINKMASTER_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract Oinkmaster archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract Oinkmaster archive; {}".format(e))
 
     def setup_oinkmaster(self):
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
