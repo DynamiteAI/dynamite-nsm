@@ -19,7 +19,9 @@ except Exception:
     from urllib.parse import urlencode
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
+from dynamite_nsm.services.base import install
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.elasticsearch import config as elastic_configs
@@ -28,7 +30,7 @@ from dynamite_nsm.services.elasticsearch import profile as elastic_profile
 from dynamite_nsm.services.elasticsearch import exceptions as elastic_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
     """
     Provides a simple interface for installing an ElasticSearch node
     """
@@ -49,11 +51,6 @@ class InstallManager:
         :param verbose: Include detailed debug messages
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
-
         self.host = host
         self.port = port
         self.password = password
@@ -66,15 +63,17 @@ class InstallManager:
         utilities.create_dynamite_environment_file()
         if download_elasticsearch_archive:
             try:
-                self.download_elasticsearch(stdout=stdout)
+                self.download_from_mirror(const.ELASTICSEARCH_MIRRORS, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 self.logger.error("Failed to download ElasticSearch archive.")
                 raise elastic_exceptions.InstallElasticsearchError("Failed to download ElasticSearch archive.")
         try:
-            self.extract_elasticsearch()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
         except general_exceptions.ArchiveExtractionError:
             self.logger.error("Failed to extract ElasticSearch archive.")
             raise elastic_exceptions.InstallElasticsearchError("Failed to extract ElasticSearch archive.")
+        install.BaseInstallManager.__init__(self, 'elasticsearch', verbose=self.verbose, stdout=stdout)
 
     def _copy_elasticsearch_files_and_directories(self):
         config_paths = [
@@ -153,6 +152,10 @@ class InstallManager:
                     self.logger.info('Updating ElasticSearch default home path [{}]'.format(self.install_directory))
                     subprocess.call('echo ES_HOME="{}" >> {}'.format(self.install_directory, env_file),
                                     shell=True)
+                if 'ES_LOGS' not in env_str:
+                    self.logger.info('Updating ElasticSearch default log path [{}]'.format(self.log_directory))
+                    subprocess.call('echo ES_LOGS="{}" >> {}'.format(self.log_directory, env_file),
+                                    shell=True)
         except IOError:
             self.logger.error("Failed to open {} for reading.".format(env_file))
             raise elastic_exceptions.InstallElasticsearchError("Failed to open {} for reading.".format(env_file))
@@ -209,39 +212,6 @@ class InstallManager:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error while setting VM Max Map Count; {}".format(e))
 
-    @staticmethod
-    def download_elasticsearch(stdout=False):
-        """
-        Download ElasticSearch archive
-
-        :param stdout: Print output to console
-        """
-
-        url = None
-        try:
-            with open(const.ELASTICSEARCH_MIRRORS, 'r') as es_archive:
-                for url in es_archive.readlines():
-                    if utilities.download_file(url, const.ELASTICSEARCH_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading elasticsearch from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_elasticsearch():
-        """
-        Extract ElasticSearch to local install_cache
-        """
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.ELASTICSEARCH_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract elasticsearch archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract elasticsearch archive; {}".format(e))
-
     def setup_elasticsearch(self):
         """
         Create required directories, files, and variables to run ElasticSearch successfully;
@@ -262,6 +232,13 @@ class InstallManager:
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise elastic_exceptions.InstallElasticsearchError("Could not find systemctl.")
+        self.logger.info("Installing ElasticSearch systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'elasticsearch.service')):
+            raise elastic_exceptions.InstallElasticsearchError("Failed to install ElasticSearch systemd service.")
         self.setup_passwords()
 
     def setup_passwords(self):
@@ -323,10 +300,10 @@ class InstallManager:
             raise elastic_exceptions.InstallElasticsearchError(
                 "General error occurred while attempting to set permissions for {}; {}".format(keystore_config_path, e)
             )
-        if not elastic_profile.ProcessProfiler().is_running:
+        if not elastic_profile.ProcessProfiler().is_running():
             elastic_process.ProcessManager().start()
             attempts = 0
-            while not elastic_profile.ProcessProfiler().is_listening:
+            while not elastic_profile.ProcessProfiler().is_listening():
                 self.logger.info('Waiting for ElasticSearch API to become accessible.')
                 time.sleep(5)
                 attempts += 1
@@ -385,20 +362,20 @@ def install_elasticsearch(configuration_directory, install_directory, log_direct
     logger = get_logger('ELASTICSEARCH', level=log_level, stdout=stdout)
 
     es_profiler = elastic_profile.ProcessProfiler()
-    if es_profiler.is_installed:
+    if es_profiler.is_installed():
         logger.error('ElasticSearch is already installed.')
         raise elastic_exceptions.AlreadyInstalledElasticsearchError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
         sys.stderr.write('\n\033[93m[-] WARNING! ElasticSearch should have at-least 6GB to run '
-                         'currently available [{} GB]\033[0m\n'.format(
-            utilities.get_memory_available_bytes() / (1000 ** 3)))
+                         'currently available [{} GB]\033[0m\n'.format(utilities.get_memory_available_bytes() /
+                                                                       (1000 ** 3)))
         if str(utilities.prompt_input('\033[93m[?] Continue? [y|N]:\033[0m ')).lower() != 'y':
             sys.stdout.write('\n[+] Exiting\n')
             exit(0)
     es_installer = InstallManager(configuration_directory=configuration_directory,
                                   install_directory=install_directory, log_directory=log_directory,
                                   password=password, heap_size_gigs=heap_size_gigs,
-                                  download_elasticsearch_archive=not es_profiler.is_downloaded,
+                                  download_elasticsearch_archive=not es_profiler.is_downloaded(),
                                   stdout=stdout, verbose=verbose)
     if install_jdk:
         try:
@@ -432,7 +409,7 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     es_profiler = elastic_profile.ProcessProfiler()
-    if not es_profiler.is_installed:
+    if not es_profiler.is_installed():
         logger.error('ElasticSearch is not installed.')
         raise elastic_exceptions.UninstallElasticsearchError("ElasticSearch is not installed.")
     configuration_directory = environment_variables.get('ES_PATH_CONF')
@@ -448,7 +425,7 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if es_profiler.is_running:
+    if es_profiler.is_running():
         elastic_process.ProcessManager().stop()
     try:
         shutil.rmtree(es_config.configuration_directory)
@@ -462,6 +439,8 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
                     continue
                 elif 'ES_HOME' in line:
                     continue
+                elif 'ES_LOGS' in line:
+                    continue
                 elif line.strip() == '':
                     continue
                 env_lines += line.strip() + '\n'
@@ -472,3 +451,8 @@ def uninstall_elasticsearch(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall ElasticSearch; {}".format(e))
         raise elastic_exceptions.UninstallElasticsearchError(
             "General error occurred while attempting to uninstall ElasticSearch; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise elastic_exceptions.UninstallElasticsearchError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('elasticsearch')

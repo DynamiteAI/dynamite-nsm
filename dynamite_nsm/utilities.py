@@ -40,6 +40,8 @@ def check_pid(pid):
 
     :return: True, if the process is running
     """
+    if not pid:
+        return False
     if pid == -1:
         return False
     try:

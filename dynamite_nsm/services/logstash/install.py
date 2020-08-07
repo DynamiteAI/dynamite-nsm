@@ -11,8 +11,10 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.logstash import config as logstash_config
 from dynamite_nsm.services.logstash import profile as logstash_profile
@@ -25,7 +27,7 @@ from dynamite_nsm.services.logstash.elastiflow import config as elastiflow_confi
 from dynamite_nsm.services.logstash.elastiflow import install as elastiflow_install
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
     """
     Provides a simple interface for installing a new Logstash collector with ElastiFlow pipelines
     """
@@ -46,14 +48,10 @@ class InstallManager:
         :param stdout: Print output to console
         :param verbose: Include output from system utilities
         """
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
 
         self.host = host
         if not elasticsearch_host:
-            if elastic_profile.ProcessProfiler().is_installed:
+            if elastic_profile.ProcessProfiler().is_installed():
                 self.elasticsearch_host = 'localhost'
                 self.logger.info(
                     "Assuming LogStash will connect to local ElasticSearch instance, "
@@ -75,15 +73,17 @@ class InstallManager:
         utilities.create_dynamite_environment_file()
         if download_logstash_archive:
             try:
-                self.download_logstash(stdout=stdout)
+                self.download_from_mirror(const.LOGSTASH_MIRRORS, const.LOGSTASH_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 self.logger.error("Failed to download LogStash archive.")
                 raise logstash_exceptions.InstallLogstashError("Failed to download LogStash archive.")
         try:
-            self.extract_logstash()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME))
         except general_exceptions.ArchiveExtractionError:
             self.logger.error("Failed to extract LogStash archive.")
             raise logstash_exceptions.InstallLogstashError("Failed to extract LogStash archive.")
+        install.BaseInstallManager.__init__(self, 'logstash', verbose=self.verbose, stdout=stdout)
 
     def _copy_logstash_files_and_directories(self):
         self.logger.info('Copying required LogStash files and directories.')
@@ -168,6 +168,10 @@ class InstallManager:
                 if 'LS_HOME' not in env_str:
                     self.logger.info('Updating LogStash default home path [{}]'.format(self.install_directory))
                     subprocess.call('echo LS_HOME="{}" >> {}'.format(self.install_directory, env_file), shell=True)
+                if 'LS_LOGS' not in env_str:
+                    self.logger.info('Updating LogStash default log path [{}]'.format(self.log_directory))
+                    subprocess.call('echo LS_LOGS="{}" >> {}'.format(self.log_directory, env_file), shell=True)
+
         except IOError:
             self.logger.error("Failed to open {} for reading.".format(env_file))
             raise logstash_exceptions.InstallLogstashError(
@@ -303,39 +307,6 @@ class InstallManager:
             raise logstash_exceptions.InstallLogstashError(
                 "General error while setting VM Max Map Count; {}".format(e))
 
-    @staticmethod
-    def download_logstash(stdout=False):
-        """
-        Download Logstash archive
-
-        :param stdout: Print output to console
-        """
-        url = None
-        try:
-            with open(const.LOGSTASH_MIRRORS, 'r') as ls_archive:
-                for url in ls_archive.readlines():
-                    if utilities.download_file(url, const.LOGSTASH_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading logstash from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_logstash():
-        """
-        Extract Logstash to local install_cache
-        """
-
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.LOGSTASH_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract logstash archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract logstash archive; {}".format(e))
-
     def setup_logstash(self):
         """
         Create required directories, files, and variables to run LogStash successfully;
@@ -374,6 +345,13 @@ class InstallManager:
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
             raise logstash_exceptions.InstallLogstashError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise logstash_exceptions.InstallLogstashError("Could not find systemctl.")
+        self.logger.info("Installing LogStash systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'logstash.service')):
+            raise logstash_exceptions.InstallLogstashError("Failed to install LogStash systemd service.")
 
 
 def install_logstash(configuration_directory, install_directory, log_directory, host='0.0.0.0',
@@ -403,7 +381,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
 
     ls_profiler = logstash_profile.ProcessProfiler()
-    if ls_profiler.is_installed:
+    if ls_profiler.is_installed():
         logger.error('LogStash is already installed.')
         raise logstash_exceptions.AlreadyInstalledLogstashError()
     if utilities.get_memory_available_bytes() < 6 * (1000 ** 3):
@@ -416,7 +394,7 @@ def install_logstash(configuration_directory, install_directory, log_directory, 
     ls_installer = InstallManager(configuration_directory, install_directory, log_directory, host=host,
                                   elasticsearch_host=elasticsearch_host, elasticsearch_port=elasticsearch_port,
                                   elasticsearch_password=elasticsearch_password, heap_size_gigs=heap_size_gigs,
-                                  download_logstash_archive=not ls_profiler.is_downloaded, stdout=stdout,
+                                  download_logstash_archive=not ls_profiler.is_downloaded(), stdout=stdout,
                                   verbose=verbose
                                   )
     if install_jdk:
@@ -453,7 +431,7 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
     configuration_directory = environment_variables.get('LS_PATH_CONF')
     ls_profiler = logstash_profile.ProcessProfiler()
     ls_config = logstash_config.ConfigManager(configuration_directory=configuration_directory)
-    if not ls_profiler.is_installed:
+    if not ls_profiler.is_installed():
         logger.error('LogStash is not installed.')
         raise logstash_exceptions.UninstallLogstashError("LogStash is not installed.")
     if prompt_user:
@@ -466,7 +444,7 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if ls_profiler.is_running:
+    if ls_profiler.is_running():
         logstash_process.ProcessManager().stop()
     try:
         shutil.rmtree(ls_config.ls_path_conf)
@@ -479,6 +457,8 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
                 if 'LS_PATH_CONF' in line:
                     continue
                 elif 'LS_HOME' in line:
+                    continue
+                elif 'LS_LOGS' in line:
                     continue
                 elif 'ELASTIFLOW_' in line:
                     continue
@@ -496,3 +476,8 @@ def uninstall_logstash(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall LogStash; {}".format(e))
         raise logstash_exceptions.UninstallLogstashError(
             "General error occurred while attempting to uninstall LogStash; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise logstash_exceptions.UninstallLogstashError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('logstash')

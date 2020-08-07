@@ -46,7 +46,7 @@ class LogstashComponent(component.BaseComponent):
                 stdout=stdout,
                 verbose=verbose
             ),
-            process_status_strategy=execution_strategy.LogstashProcessStatusStrategy()
+            process_status_strategy=execution_strategy.LogstashProcessStatusStrategy(stdout=stdout, verbose=verbose)
         )
 
 
@@ -140,7 +140,8 @@ class LogstashCommandlineComponent(component.BaseComponent):
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
-                execution_strategy.LogstashProcessStatusStrategy()
+                execution_strategy.LogstashProcessStatusStrategy(stdout=not args.no_stdout,
+                                                                 verbose=args.verbose and not args.no_stdout)
             )
             self.execute_process_status_strategy()
 

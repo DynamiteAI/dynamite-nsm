@@ -3,7 +3,6 @@ import sys
 import time
 import shutil
 import logging
-import tarfile
 import subprocess
 
 from dynamite_nsm import const
@@ -11,6 +10,7 @@ from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.suricata import config as suricata_configs
 from dynamite_nsm.services.suricata import process as suricata_process
@@ -20,7 +20,7 @@ from dynamite_nsm.services.suricata.oinkmaster import install as rules_install
 from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
 
     def __init__(self, configuration_directory, install_directory, log_directory, capture_network_interfaces,
                  download_suricata_archive=True, stdout=True, verbose=False):
@@ -36,11 +36,6 @@ class InstallManager:
         :param verbose: Include detailed debug messages
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('SURICATA', level=log_level, stdout=stdout)
-
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
@@ -48,18 +43,21 @@ class InstallManager:
         self.download_suricata_archive = download_suricata_archive
         self.stdout = stdout
         self.verbose = verbose
+        install.BaseInstallManager.__init__(self, 'suricata', verbose=self.verbose, stdout=stdout)
+
         utilities.create_dynamite_environment_file()
         if download_suricata_archive:
             try:
                 self.logger.info("Attempting to download Suricata archive.")
-                self.download_suricata(stdout=stdout)
+                self.download_from_mirror(const.SURICATA_MIRRORS, const.SURICATA_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except general_exceptions.DownloadError as e:
                 self.logger.error("Failed to download Suricata archive.")
                 self.logger.debug("Failed to download Suricata archive, threw: {}.".format(e))
                 raise suricata_exceptions.InstallSuricataError("Failed to download Suricata archive.")
         try:
             self.logger.info("Attempting to extract Suricata archive ({}).".format(const.SURICATA_ARCHIVE_NAME))
-            self.extract_suricata()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME))
             self.logger.info("Extraction completed.")
         except general_exceptions.ArchiveExtractionError as e:
             self.logger.error("Failed to extract Suricata archive.")
@@ -196,39 +194,6 @@ class InstallManager:
                     os.path.join(self.configuration_directory, 'rules'), e))
 
     @staticmethod
-    def download_suricata(stdout=False):
-        """
-        Download Suricata archive
-
-        :param stdout: Print output to console
-        """
-        url = None
-        try:
-            with open(const.SURICATA_MIRRORS, 'r') as suricata_archive:
-                for url in suricata_archive.readlines():
-                    if utilities.download_file(url, const.SURICATA_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading Suricata from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_suricata():
-        """
-        Extract Suricata to local install_cache
-        """
-
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract Suricata archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract Suricata archive; {}".format(e))
-
-    @staticmethod
     def install_dependencies(stdout=False, verbose=False):
         """
         Install the required dependencies required by Suricata
@@ -353,7 +318,7 @@ class InstallManager:
 
     def setup_suricata(self):
         """
-        Setup Suricata IDS with PF_RING support
+        Setup Suricata IDS with AF_PACKET support
         """
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self._copy_suricata_files_and_directories()
@@ -417,7 +382,7 @@ def install_suricata(configuration_directory, install_directory, log_directory, 
         log_level = logging.DEBUG
     logger = get_logger('SURICATA', level=log_level, stdout=stdout)
     suricata_profiler = suricata_profile.ProcessProfiler()
-    if suricata_profiler.is_installed:
+    if suricata_profiler.is_installed():
         logger.error("Suricata is already installed.")
         raise suricata_exceptions.AlreadyInstalledSuricataError()
     suricata_installer = InstallManager(configuration_directory, install_directory, log_directory,
@@ -445,7 +410,7 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     suricata_profiler = suricata_profile.ProcessProfiler()
-    if not suricata_profiler.is_installed:
+    if not suricata_profiler.is_installed():
         logger.error("Suricata is not installed. Cannot uninstall.")
         raise suricata_exceptions.UninstallSuricataError("Suricata is not installed.")
     if prompt_user:
@@ -458,7 +423,7 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if suricata_profiler.is_running:
+    if suricata_profiler.is_running():
         try:
             suricata_process.stop()
         except suricata_exceptions.CallSuricataProcessError as e:
@@ -480,7 +445,7 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
                 env_lines += line.strip() + '\n'
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if suricata_profiler.is_installed:
+        if suricata_profiler.is_installed():
             shutil.rmtree(environment_variables.get('SURICATA_HOME'), ignore_errors=True)
             shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
             shutil.rmtree(environment_variables.get('OINKMASTER_HOME'), ignore_errors=True)

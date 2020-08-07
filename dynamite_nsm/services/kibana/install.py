@@ -12,9 +12,11 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import const
+from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.kibana import config as kibana_configs
 from dynamite_nsm.services.kibana import process as kibana_process
@@ -24,7 +26,7 @@ from dynamite_nsm.services.elasticsearch import process as elastic_process
 from dynamite_nsm.services.elasticsearch import profile as elastic_profile
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
     """
     Provides a simple interface for installing a new Kibana interface with ElastiFlow/Synesis dashboards
     """
@@ -46,18 +48,13 @@ class InstallManager:
         :param verbose: Include detailed debug messages
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('KIBANA', level=log_level, stdout=stdout)
-
         self.host = host
         self.port = port
         self.elasticsearch_host = elasticsearch_host
         self.elasticsearch_port = elasticsearch_port
         self.elasticsearch_password = elasticsearch_password
         if not elasticsearch_host:
-            if elastic_profile.ProcessProfiler().is_installed:
+            if elastic_profile.ProcessProfiler().is_installed():
                 self.elasticsearch_host = 'localhost'
             else:
                 raise kibana_exceptions.InstallKibanaError(
@@ -70,15 +67,17 @@ class InstallManager:
         utilities.create_dynamite_environment_file()
         if download_kibana_archive:
             try:
-                self.download_kibana(stdout=stdout)
+                self.download_from_mirror(const.KIBANA_MIRRORS, const.KIBANA_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
                 self.logger.error("Failed to download Kibana archive.")
                 raise kibana_exceptions.InstallKibanaError("Failed to download Kibana archive.")
         try:
-            self.extract_kibana()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME))
         except general_exceptions.ArchiveExtractionError:
             self.logger.error("Failed to extract Kibana archive.")
             raise kibana_exceptions.InstallKibanaError("Failed to extract Kibana archive.")
+        install.BaseInstallManager.__init__(self, 'kibana', verbose=self.verbose, stdout=self.stdout)
 
     def _copy_kibana_files_and_directories(self):
         config_paths = [
@@ -169,7 +168,7 @@ class InstallManager:
         if self.elasticsearch_host in ['localhost', '127.0.0.1', '0.0.0.0', '::1', '::/128']:
             self.logger.info('Starting ElasticSearch.')
             elastic_process.ProcessManager().start()
-            while not elastic_profile.ProcessProfiler().is_listening:
+            while not elastic_profile.ProcessProfiler().is_listening():
                 self.logger.info('Waiting for ElasticSearch API to become accessible.')
                 time.sleep(5)
             self.logger.info('ElasticSearch API is up.')
@@ -186,7 +185,7 @@ class InstallManager:
         except Exception as e:
             raise kibana_exceptions.InstallKibanaError("General error while starting Kibana process; {}".format(e))
         kibana_api_start_attempts = 0
-        while not kibana_profile.ProcessProfiler().is_listening and kibana_api_start_attempts != 5:
+        while not kibana_profile.ProcessProfiler().is_listening() and kibana_api_start_attempts != 5:
             self.logger.info('Waiting for Kibana API to become accessible.')
             kibana_api_start_attempts += 1
             time.sleep(5)
@@ -244,38 +243,6 @@ class InstallManager:
             raise kibana_exceptions.InstallKibanaError(
                 "General error occurred while writing kibana configs; {}".format(e))
 
-    @staticmethod
-    def download_kibana(stdout=False):
-        """
-        Download Kibana archive
-
-        :param stdout: Print output to console
-        """
-        url = None
-        try:
-            with open(const.KIBANA_MIRRORS, 'r') as kb_archive:
-                for url in kb_archive.readlines():
-                    if utilities.download_file(url, const.KIBANA_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading kibana from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_kibana():
-        """
-        Extract Kibana to local install_cache
-        """
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.KIBANA_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract kibana archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract kibana archive; {}".format(e))
-
     def setup_kibana(self):
         """
         Create required directories, files, and variables to run ElasticSearch successfully;
@@ -295,7 +262,6 @@ class InstallManager:
         self._copy_kibana_files_and_directories()
         self._create_kibana_environment_variables()
         self._setup_default_kibana_configs()
-        self._install_kibana_objects()
         try:
             utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
             utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
@@ -306,6 +272,14 @@ class InstallManager:
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
             raise kibana_exceptions.InstallKibanaError(
                 "General error occurred while attempting to set permissions on root directories; {}".format(e))
+        try:
+            sysctl = systemctl.SystemCtl()
+        except general_exceptions.CallProcessError:
+            raise kibana_exceptions.InstallKibanaError("Could not find systemctl.")
+        self.logger.info("Installing Kibana systemd Service.")
+        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'kibana.service')):
+            raise kibana_exceptions.InstallKibanaError("Failed to install Kibana systemd service.")
+        self._install_kibana_objects()
 
 
 def install_kibana(install_directory, configuration_directory, log_directory, host='0.0.0.0', port=5601,
@@ -334,7 +308,7 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
     logger = get_logger('KIBANA', level=log_level, stdout=stdout)
 
     kb_profiler = kibana_profile.ProcessProfiler()
-    if kb_profiler.is_installed:
+    if kb_profiler.is_installed():
         logger.error('Kibana is already installed. If you wish to re-install, first uninstall.')
         raise kibana_exceptions.AlreadyInstalledKibanaError()
     if utilities.get_memory_available_bytes() < 2 * (1000 ** 3):
@@ -350,7 +324,7 @@ def install_kibana(install_directory, configuration_directory, log_directory, ho
                                   elasticsearch_host=elasticsearch_host,
                                   elasticsearch_port=elasticsearch_port,
                                   elasticsearch_password=elasticsearch_password,
-                                  download_kibana_archive=not kb_profiler.is_downloaded, stdout=stdout,
+                                  download_kibana_archive=not kb_profiler.is_downloaded(), stdout=stdout,
                                   verbose=verbose)
     if create_dynamite_user:
         utilities.create_dynamite_user(utilities.generate_random_password(50))
@@ -374,7 +348,7 @@ def uninstall_kibana(prompt_user=True, stdout=True, verbose=False):
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
     kb_profiler = kibana_profile.ProcessProfiler()
-    if not kb_profiler.is_installed:
+    if not kb_profiler.is_installed():
         raise kibana_exceptions.UninstallKibanaError("Kibana is not installed.")
     configuration_directory = environment_variables.get('KIBANA_PATH_CONF')
     kb_config = kibana_configs.ConfigManager(configuration_directory)
@@ -389,7 +363,7 @@ def uninstall_kibana(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if kb_profiler.is_running:
+    if kb_profiler.is_running():
         kibana_process.ProcessManager().stop()
     try:
         shutil.rmtree(kb_config.kibana_path_conf)
@@ -415,3 +389,8 @@ def uninstall_kibana(prompt_user=True, stdout=True, verbose=False):
         logger.debug("General error occurred while attempting to uninstall Kibana; {}".format(e))
         raise kibana_exceptions.UninstallKibanaError(
             "General error occurred while attempting to uninstall kibana; {}".format(e))
+    try:
+        sysctl = systemctl.SystemCtl()
+    except general_exceptions.CallProcessError:
+        raise kibana_exceptions.UninstallKibanaError("Could not find systemctl.")
+    sysctl.uninstall_and_disable('kibana')

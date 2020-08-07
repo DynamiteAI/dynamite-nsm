@@ -46,6 +46,12 @@ lab_component_parser = component_subparsers.add_parser(
     help="Install, configure, manage the Dynamite Lab.")
 lab_component_parser.set_defaults(component_name="lab")
 
+managerd_component_parser = component_subparsers.add_parser(
+    "managerd",
+    help="Install, configure, manage Dynamite's managerd service for improved management metrics."
+)
+managerd_component_parser.set_defaults(component_name="managerd")
+
 update_component_parser = component_subparsers.add_parser(
     "updates",
     help="Update to the latest default configurations and mirrors."

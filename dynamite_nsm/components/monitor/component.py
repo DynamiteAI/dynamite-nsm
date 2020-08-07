@@ -52,7 +52,10 @@ class MonitorComponent(component.BaseComponent):
                 verbose=verbose,
                 status=True
             ),
-            process_status_strategy=execution_strategy.MonitorProcessStatusStrategy()
+            process_status_strategy=execution_strategy.MonitorProcessStatusStrategy(
+                stdout=stdout,
+                verbose=verbose
+            )
         )
 
 
@@ -151,7 +154,10 @@ class MonitorCommandlineComponent(component.BaseComponent):
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
-                execution_strategy.MonitorProcessStatusStrategy()
+                execution_strategy.MonitorProcessStatusStrategy(
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
+                )
             )
             self.execute_process_status_strategy()
 

@@ -44,7 +44,10 @@ class ElasticsearchComponent(component.BaseComponent):
                 stdout=stdout,
                 verbose=verbose
             ),
-            process_status_strategy=execution_strategy.ElasticsearchProcessStatusStrategy()
+            process_status_strategy=execution_strategy.ElasticsearchProcessStatusStrategy(
+                stdout=stdout,
+                verbose=verbose,
+            )
         )
 
 
@@ -140,7 +143,10 @@ class ElasticsearchCommandlineComponent(component.BaseComponent):
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
-                execution_strategy.ElasticsearchProcessStatusStrategy()
+                execution_strategy.ElasticsearchProcessStatusStrategy(
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
+                )
             )
             self.execute_process_status_strategy()
 

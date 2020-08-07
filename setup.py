@@ -21,6 +21,7 @@ setup(
     install_requires=[
         'coloredlogs',
         'progressbar',
+        'tabulate',
         'pyyaml',
         'npyscreen'
     ],
