@@ -1,4 +1,4 @@
-#!/Users/jaminbecker/PycharmProjects/dynamite-nsm/bin/python
+#!/usr/bin/python
 
 import os
 import logging

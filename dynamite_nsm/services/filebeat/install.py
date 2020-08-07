@@ -90,7 +90,7 @@ class InstallManager(install.BaseInstallManager):
     @staticmethod
     def validate_targets(targets, stdout=True, verbose=False):
         """
-        Ensures that Logstash targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
+        Ensures that targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
 
         :param targets: A list of IP/host port pair
         :param stdout: Print the output to console

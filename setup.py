@@ -23,7 +23,8 @@ setup(
         'progressbar',
         'tabulate',
         'pyyaml',
-        'npyscreen'
+        'npyscreen',
+        'psutil'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

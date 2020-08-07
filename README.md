@@ -48,6 +48,8 @@ pip install dynamite-nsm
 
 
 
+***
+<i style="color:grey">This material is based upon work supported by the U.S. Department of Energy, Office of Science.</i>
 
 
 

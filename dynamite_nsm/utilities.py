@@ -29,7 +29,9 @@ except Exception:
     from urllib.request import Request
     from urllib.parse import urlencode
 
+import psutil
 import progressbar
+
 
 from dynamite_nsm import const
 
@@ -278,7 +280,18 @@ def get_network_interface_names():
 
     :return: A list of network interfaces
     """
-    return os.listdir('/sys/class/net')
+    addresses = psutil.net_if_addrs()
+    stats = psutil.net_if_stats()
+
+    available_networks = []
+    for intface, addr_list in addresses.items():
+        if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
+            continue
+        elif intface.startswith('lo'):
+            continue
+        elif intface in stats and getattr(stats[intface], "isup"):
+            available_networks.append(intface)
+    return available_networks
 
 
 def get_network_addresses():
