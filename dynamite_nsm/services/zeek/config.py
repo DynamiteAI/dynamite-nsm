@@ -13,7 +13,7 @@ from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 class ScriptConfigManager:
     """
-    Wrapper for configuring broctl sites/local.bro
+    Wrapper for configuring broctl sites/local.zeek
     """
     def __init__(self, configuration_directory):
         """
@@ -28,9 +28,9 @@ class ScriptConfigManager:
 
     def _parse_zeek_scripts(self):
         """
-        Parse the local.bro configuration file, and determine which scripts are enabled/disabled
+        Parse the local.zeek configuration file, and determine which scripts are enabled/disabled
         """
-        zeeklocalsite_path = os.path.join(self.configuration_directory, 'site', 'local.bro')
+        zeeklocalsite_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
         try:
             with open(zeeklocalsite_path) as config_f:
                 for line in config_f.readlines():
@@ -107,12 +107,12 @@ class ScriptConfigManager:
 
     def write_config(self):
         """
-        Overwrite the existing local.bro config with changed values
+        Overwrite the existing local.zeek config with changed values
         """
         timestamp = int(time.time())
         output_str = ''
         backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        zeek_config_backup = os.path.join(backup_configurations, 'local.bro.backup.{}'.format(timestamp))
+        zeek_config_backup = os.path.join(backup_configurations, 'local.zeek.backup.{}'.format(timestamp))
         try:
             utilities.makedirs(backup_configurations, exist_ok=True)
         except Exception as e:
@@ -129,19 +129,19 @@ class ScriptConfigManager:
         for rdef, val in self.list_redefinitions():
             output_str += 'redef {} = {}\n'.format(rdef, val)
         try:
-            shutil.copy(os.path.join(self.configuration_directory, 'site', 'local.bro'), zeek_config_backup)
+            shutil.copy(os.path.join(self.configuration_directory, 'site', 'local.zeek'), zeek_config_backup)
         except Exception as e:
             raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to copy old local.bro file to {}; {}".format(
+                "General error while attempting to copy old local.zeek file to {}; {}".format(
                     backup_configurations, e))
         try:
-            with open(os.path.join(self.configuration_directory, 'site', 'local.bro'), 'w') as f:
+            with open(os.path.join(self.configuration_directory, 'site', 'local.zeek'), 'w') as f:
                 f.write(output_str)
         except IOError:
             raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
         except Exception as e:
             raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to write new local.bro file to {}; {}".format(
+                "General error while attempting to write new local.zeek file to {}; {}".format(
                     backup_configurations, e))
 
 

@@ -205,6 +205,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             },
                               return_format=None)
+
         if not suricata_profile.ProcessProfiler().is_installed and 'suricata' in agent_analyzers:
             self.add_function(func=suricata_install.install_suricata, argument_dict={
                 'configuration_directory': '/etc/dynamite/suricata/',
