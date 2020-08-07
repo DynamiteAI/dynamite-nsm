@@ -22,7 +22,8 @@ setup(
         'coloredlogs',
         'progressbar',
         'pyyaml',
-        'npyscreen'
+        'npyscreen',
+        'psutil'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

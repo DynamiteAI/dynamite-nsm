@@ -56,7 +56,7 @@ class ProcessManager:
         if not utilities.check_pid(self.pid):
             Process(target=start_shell_out).start()
         else:
-            self.logger.info('Kibana is already running on PID [{}]\n'.format(self.pid))
+            self.logger.info('Kibana is already running on PID [{}]'.format(self.pid))
             return True
         retry = 0
         self.pid = -1

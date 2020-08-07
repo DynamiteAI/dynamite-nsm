@@ -63,6 +63,22 @@ class ConfigManager:
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
+    def disable_kafka_output(self):
+        """
+        Disable Kafka; Enable Logstash
+        """
+
+        self.kafka_targets['enabled'] = False
+        self.logstash_targets['enabled'] = True
+
+    def disable_logstash_output(self):
+        """
+        Disable Logstash; Enable Kafka
+        """
+
+        self.logstash_targets['enabled'] = False
+        self.kafka_targets['enabled'] = True
+
     def enable_kafka_output(self):
         """
         Enable Kafka; Disable Logstash

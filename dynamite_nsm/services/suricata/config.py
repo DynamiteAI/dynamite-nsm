@@ -40,7 +40,7 @@ class ConfigManager:
     tokens = {
         'home_net': ('vars', 'address-groups', 'HOME_NET'),
         'external_net': ('vars', 'address-groups', 'EXTERNAL_NET'),
-        'http_net': ('vars', 'address-groups', 'HTTP_SERVERS'),
+        'http_servers': ('vars', 'address-groups', 'HTTP_SERVERS'),
         'sql_servers': ('vars', 'address-groups', 'SQL_SERVERS'),
         'dns_servers': ('vars', 'address-groups', 'DNS_SERVERS'),
         'telnet_servers': ('vars', 'address-groups', 'TELNET_SERVERS'),
@@ -78,7 +78,7 @@ class ConfigManager:
 
         self.home_net = None
         self.external_net = None
-        self.http_net = None
+        self.http_servers = None
         self.sql_servers = None
         self.dns_servers = None
         self.telnet_servers = None
@@ -94,6 +94,8 @@ class ConfigManager:
         self.ssh_ports = None
         self.dnp3_ports = None
         self.modbus_ports = None
+        self.ftp_ports = None
+        self.file_data_ports = None
         self.default_log_directory = None
         self.default_rules_directory = None
         self.classification_file = None
@@ -167,15 +169,18 @@ class ConfigManager:
 
         :param interface: The name of the interface to remove (eth0, mon0)
         """
+        if interface not in self.list_af_packet_interfaces():
+            raise suricata_exceptions.SuricataInterfaceNotFoundError(interface)
         new_interface_config = []
         for interface_config in self.af_packet_interfaces:
             if interface_config['interface'] == interface:
                 continue
             else:
                 new_interface_config.append(interface_config)
-        if not new_interface_config:
-            raise suricata_exceptions.SuricataInterfaceNotFoundError(interface)
         self.af_packet_interfaces = new_interface_config
+
+    def list_af_packet_interfaces(self):
+        return [interface['interface'] for interface in self.af_packet_interfaces]
 
     def list_enabled_rules(self):
         """
