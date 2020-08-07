@@ -35,7 +35,10 @@ class BaseProcessManager:
         pid = None
         h, t = os.path.split(pid_file)
         utilities.makedirs(h, exist_ok=True)
-        utilities.set_ownership_of_file(pid_file)
+        try:
+            utilities.set_ownership_of_file(pid_file)
+        except FileNotFoundError:
+            pass
         try:
             with open(pid_file) as pid_f:
                 pid = int(pid_f.read())
