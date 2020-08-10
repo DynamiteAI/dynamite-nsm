@@ -182,11 +182,11 @@ class InstallManager(install.BaseInstallManager):
         pkt_mng = package_manager.OSPackageManager(stdout=stdout, verbose=verbose)
         packages = None
         if pkt_mng.package_manager == 'apt-get':
-            packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
+            packages = ['cmake3', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
                         'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-$(uname -r)', 'linux-headers-generic', 'tar']
         elif pkt_mng.package_manager == 'yum':
 
-            packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
+            packages = ['cmake3', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
                         'openssl-devel', 'python-devel', 'python2-devel', 'swig', 'zlib-devel',
                         'kernel-devel-$(uname -r)', 'kernel-devel', 'tar']
 

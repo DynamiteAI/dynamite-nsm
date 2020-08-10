@@ -37,7 +37,11 @@ class BaseProcessManager:
         utilities.makedirs(h, exist_ok=True)
         try:
             utilities.set_ownership_of_file(h)
+        # PID file does not exist
         except FileNotFoundError:
+            pass
+        # dynamite user does not exist
+        except KeyError:
             pass
         try:
             with open(pid_file) as pid_f:

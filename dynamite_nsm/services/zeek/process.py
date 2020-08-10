@@ -64,8 +64,8 @@ class ProcessManager(process.BaseProcessManager):
         if self.verbose:
             zeek_status['subprocesses'] = zeek_subprocesses
             systemd_info_dict.update({
-                'stdout': '\n'.join(textwrap.wrap(systemd_info.out, 150, fix_sentence_endings=True)),
-                'stderr': '\n'.join(textwrap.wrap(systemd_info.err, 150, fix_sentence_endings=True))
+                'stdout': utilities.wrap_text(systemd_info.out),
+                'stderr': utilities.wrap_text(systemd_info.err)
             })
         else:
             zeek_status['subprocess_count'] = len(zeek_subprocesses)
