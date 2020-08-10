@@ -1,21 +1,27 @@
 # -*- coding: utf-8 -*-
-
 import os
 import re
 import pwd
 import grp
 import sys
 import crypt
+import fcntl
 import socket
+import struct
 import shutil
 import string
 import random
+import termios
 import getpass
+import textwrap
 import tarfile
 import subprocess
 import multiprocessing
-from contextlib import closing
 from datetime import datetime
+from contextlib import closing
+
+
+
 
 try:
     from urllib2 import urlopen
@@ -228,6 +234,20 @@ def extract_java():
 
 def get_default_agent_tag():
     return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_agt'
+
+
+def get_terminal_size():
+    """
+    Returns the width and height of the current terminal
+    :return: (width, height) of the current terminal
+    """
+    try:
+        h, w, hp, wp = struct.unpack('HHHH',
+                                     fcntl.ioctl(0, termios.TIOCGWINSZ,
+                                                 struct.pack('HHHH', 0, 0, 0, 0)))
+    except Exception:
+        return None
+    return w, h
 
 
 def generate_random_password(length=30):
@@ -640,3 +660,20 @@ def tail_file(path, n=1, bs=1024):
     lines = f.readlines()[-l:]
     f.close()
     return lines
+
+
+def wrap_text(s):
+    term_dim = get_terminal_size()
+    if not term_dim:
+        w, h = 150, 90
+    else:
+        w, h = term_dim
+    try:
+        wrapped_s = textwrap.wrap(s, w - 30, fix_sentence_endings=True)
+    except AttributeError:
+        wrapped_s = ""
+        for i in range(0, len(s)):
+            wrapped_s += s[i]
+            if i % w == 0 and i != 0:
+                wrapped_s += '\n'
+    return wrapped_s
