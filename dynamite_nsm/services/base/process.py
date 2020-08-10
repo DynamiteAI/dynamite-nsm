@@ -84,11 +84,11 @@ class BaseProcessManager:
             ]
             if status['running']:
                 status_tbl.append([
-                    'Running', '✅'
+                    'Running', '\033[92myes\033[0m'
                 ])
             else:
                 status_tbl.append([
-                    'Running', '❌'
+                    'Running', '\033[91mno\033[0m'
                 ])
             if status.get('pid'):
                 status_tbl.append([
