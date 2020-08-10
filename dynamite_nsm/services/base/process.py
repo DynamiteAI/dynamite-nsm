@@ -38,7 +38,7 @@ class BaseProcessManager:
         try:
             utilities.set_ownership_of_file(h)
         # PID file does not exist
-        except FileNotFoundError:
+        except IOError:
             pass
         # dynamite user does not exist
         except KeyError:

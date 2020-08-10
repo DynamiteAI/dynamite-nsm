@@ -280,7 +280,7 @@ class SystemCtl:
         """
         try:
             svc = self._format_svc_string(svc)
-        except FileNotFoundError:
+        except IOError:
             return True
         os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
 
