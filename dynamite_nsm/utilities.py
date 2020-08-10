@@ -663,6 +663,8 @@ def tail_file(path, n=1, bs=1024):
 
 
 def wrap_text(s):
+    if not s:
+        return ""
     term_dim = get_terminal_size()
     if not term_dim:
         w, h = 150, 90
