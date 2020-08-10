@@ -663,6 +663,11 @@ def tail_file(path, n=1, bs=1024):
 
 
 def wrap_text(s):
+    """
+    Given a string adds newlines based on the current size of the terminal window (if one is found)
+    :param s: A string
+    :return: A new line deliminated string
+    """
     if not s:
         return ""
     term_dim = get_terminal_size()
@@ -670,12 +675,5 @@ def wrap_text(s):
         w, h = 150, 90
     else:
         w, h = term_dim
-    try:
-        wrapped_s = textwrap.wrap(s, w - 30, fix_sentence_endings=True)
-    except AttributeError:
-        wrapped_s = ""
-        for i in range(0, len(s)):
-            wrapped_s += s[i]
-            if i % w == 0 and i != 0:
-                wrapped_s += '\n'
+    wrapped_s = '\n'.join(textwrap.wrap(s, w - 30, fix_sentence_endings=True))
     return wrapped_s
