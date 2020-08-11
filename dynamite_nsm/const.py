@@ -47,7 +47,7 @@ PF_RING_ARCHIVE_NAME = extracted_constants.get('PF_RING_ARCHIVE_NAME', 'PF_RING-
 SYNESIS_ARCHIVE_NAME = extracted_constants.get('SYNESIS_ARCHIVE_NAME', 'synesis_lite_suricata-vlabs-0.1.0-1.1.0.tar.gz')
 SURICATA_ARCHIVE_NAME = extracted_constants.get('SURICATA_ARCHIVE_NAME', 'suricata-4.1.8.tar.gz')
 ZEEK_ARCHIVE_NAME = extracted_constants.get('ZEEK_ARCHIVE_NAME', 'zeek-3.0.3.tar.gz')
-
+MANAGERD_ARCHIVE_NAME = extracted_constants.get('MANAGERD_ARCHIVE_NAME', 'managerd-0.1.0.tar.gz')
 DYNAMITE_SDK_DIRECTORY_NAME = extracted_constants.get('DYNAMITE_SDK_DIRECTORY_NAME', 'dynamite-sdk-lite-0.1.2')
 ELASTIFLOW_DIRECTORY_NAME = extracted_constants.get('ELASTIFLOW_DIRECTORY_NAME', 'elastiflow-vlabs-0.5.3-3.5.0')
 ELASTICSEARCH_DIRECTORY_NAME = extracted_constants.get('ELASTICSEARCH_DIRECTORY_NAME', 'elasticsearch-7.2.0')
@@ -73,4 +73,5 @@ PF_RING_MIRRORS = extracted_constants.get('PF_RING_MIRRORS', '/etc/dynamite/mirr
 SURICATA_MIRRORS = extracted_constants.get('SURICATA_MIRRORS', '/etc/dynamite/mirrors/pf_ring')
 SYNESIS_MIRRORS = extracted_constants.get('SYNESIS_MIRRORS', '/etc/dynamite/mirrors/pf_ring')
 ZEEK_MIRRORS = extracted_constants.get('ZEEK_MIRRORS', '/etc/dynamite/mirrors/zeek')
+MANAGERD_MIRRORS = extracted_constants.get('MANAGERD_MIRRORS', '/etc/dynamite/mirrors/managerd')
 

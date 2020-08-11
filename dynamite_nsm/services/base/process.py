@@ -1,7 +1,5 @@
 import os
 import logging
-import textwrap
-
 import tabulate
 
 from dynamite_nsm import systemctl

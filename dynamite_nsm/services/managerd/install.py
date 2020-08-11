@@ -17,7 +17,7 @@ from dynamite_nsm.services.managerd import exceptions as managerd_exceptions
 
 class InstallManager(install.BaseInstallManager):
 
-    def __init__(self, configuration_directory, install_directory, log_directory, stdout=True, verbose=False):
+    def __init__(self, configuration_directory, install_directory, log_directory, download_managerd_archive=True, stdout=True, verbose=False):
 
         self.install_directory = install_directory
         self.configuration_directory = configuration_directory
@@ -26,10 +26,27 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
         install.BaseInstallManager.__init__(self, 'managerd', verbose=self.verbose, stdout=stdout)
+        if download_managerd_archive:
+            try:
+                self.logger.info("Attempting to download Manager Daemon archive.")
+                self.download_from_mirror(const.MANAGERD_MIRRORS, const.MANAGERD_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
+            except general_exceptions.DownloadError as e:
+                self.logger.error("Failed to download managerd archive.")
+                self.logger.debug("Failed to download managerd archive, threw: {}.".format(e))
+                raise managerd_exceptions.InstallManagerDaemonError("Failed to download managerd archive.")
+        try:
+            self.logger.info("Attempting to extract managerd archive ({}).".format(const.MANAGERD_ARCHIVE_NAME))
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.MANAGERD_ARCHIVE_NAME))
+            self.logger.info("Extraction completed.")
+        except general_exceptions.ArchiveExtractionError as e:
+            self.logger.error("Failed to extract managerd archive.")
+            self.logger.debug("Failed to extract managerd archive, threw: {}.".format(e))
+            raise managerd_exceptions.InstallManagerDaemonError("Failed to extract managerd archive")
 
     def setup_managerd(self):
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
-        self.logger.info('Creating Managerd installation, configuration, and logging directories.')
+        self.logger.info('Creating managerd installation, configuration, and logging directories.')
         try:
             utilities.makedirs(os.path.join(self.install_directory, 'bin'), exist_ok=True)
             utilities.makedirs(self.configuration_directory, exist_ok=True)
@@ -40,7 +57,7 @@ class InstallManager(install.BaseInstallManager):
             raise managerd_exceptions.InstallManagerDaemonError(
                 "Failed to create required directory structure; {}".format(e))
         try:
-            managerd_bin_path = os.path.join(const.DEFAULT_CONFIGS, 'managerd', 'managerd')
+            managerd_bin_path = os.path.join(const.INSTALL_CACHE, 'managerd')
             shutil.copy(managerd_bin_path, os.path.join(self.install_directory, 'bin', 'managerd'))
         except Exception as e:
             self.logger.error('Failed to install managerd.')

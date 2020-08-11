@@ -131,5 +131,3 @@ def restart(stdout=True, verbose=False, pretty_print_status=False):
 
 def status(stdout=True, verbose=False, pretty_print_status=False):
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()
-
-
