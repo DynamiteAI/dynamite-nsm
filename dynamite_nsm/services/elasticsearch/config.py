@@ -432,17 +432,16 @@ def change_elasticsearch_password(old_password, password='changeme', remote_host
         logger.info("Resetting ElasticSearch password on remote host: {}:{}".format(remote_host, remote_port))
     else:
         logger.info("Resetting ElasticSearch password on localhost.")
-        if elastic_profile.ProcessProfiler().is_installed:
+        if elastic_profile.ProcessProfiler().is_installed():
             # If ElasticSearch is installed Locally.
             # Start the process, in order to perform a reset.
             if not elastic_process.ProcessManager().start():
                 logger.error('Could not start ElasticSearch Process. Password reset failed.')
                 raise general_exceptions.ResetPasswordError(
                     "ElasticSearch process was not able to start, check your ElasticSearch logs.")
-            while not elastic_profile.ProcessProfiler().is_listening:
-                if stdout:
-                    logger.info('Waiting for ElasticSearch API to become accessible.')
-                time.sleep(1)
+            while not elastic_profile.ProcessProfiler().is_listening():
+                logger.info('Waiting for ElasticSearch API to become accessible.')
+                time.sleep(5)
 
             logger.info('ElasticSearch API is up.')
             logger.debug('Sleeping for 5 seconds, while ElasticSearch API finishes booting.')

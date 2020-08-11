@@ -218,7 +218,7 @@ def change_kibana_elasticsearch_password(password='changeme', prompt_user=True, 
     logger = get_logger('KIBANA', level=log_level, stdout=stdout)
 
     environment_variables = utilities.get_environment_file_dict()
-    if not kibana_profile.ProcessProfiler().is_installed:
+    if not kibana_profile.ProcessProfiler().is_installed():
         logger.error("Password reset failed. Kibana is not installed on this host.")
     if prompt_user:
         resp = utilities.prompt_input(
