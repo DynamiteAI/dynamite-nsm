@@ -305,7 +305,7 @@ class InstallManager(install.BaseInstallManager):
             attempts = 0
             while not elastic_profile.ProcessProfiler().is_listening():
                 self.logger.info('Waiting for ElasticSearch API to become accessible.')
-                time.sleep(5)
+                time.sleep(10)
                 attempts += 1
                 if attempts == 10:
                     self.logger.error("Failed to start ElasticSearch API after 10 attempts.")
