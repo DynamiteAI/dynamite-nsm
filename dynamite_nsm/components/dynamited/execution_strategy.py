@@ -2,8 +2,8 @@ import logging
 
 
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.managerd import install
-from dynamite_nsm.services.managerd import process
+from dynamite_nsm.services.dynamited import install
+from dynamite_nsm.services.dynamited import process
 from dynamite_nsm.components.base import execution_strategy
 
 
@@ -11,7 +11,7 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
     log_level = logging.INFO
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('MANAGERD_CMP', level=log_level, stdout=stdout)
+    logger = get_logger('DYNAMITED_CMP', level=log_level, stdout=stdout)
     if level == logging.DEBUG:
         logger.debug(msg)
     elif level == logging.INFO:
@@ -26,33 +26,33 @@ def print_message(msg):
     print(msg)
 
 
-class ManagerdInstallStrategy(execution_strategy.BaseExecStrategy):
+class DynamitedInstallStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to install managerd
+    Steps to install dynamited
     """
 
     def __init__(self, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
             self,
-            strategy_name="managerd_install",
-            strategy_description="Install Manager Daemon",
+            strategy_name="dynamited_install",
+            strategy_description="Install Dynamite Daemon",
             functions=(
-                install.install_managerd,
+                install.install_dynamited,
                 log_message,
             ),
             arguments=(
-                # install.install_managerd
+                # install.install_dynamited
                 {
-                    "configuration_directory": "/etc/dynamite/managerd/",
-                    "install_directory": "/opt/dynamite/managerd/",
-                    "log_directory": "/var/log/dynamite/managerd/",
+                    "configuration_directory": "/etc/dynamite/dynamited/",
+                    "install_directory": "/opt/dynamite/dynamited/",
+                    "log_directory": "/var/log/dynamite/dynamited/",
                     "stdout": bool(stdout),
                     "verbose": bool(verbose)
                 },
 
                 # log_message
                 {
-                    "msg": 'Managerd service installed successfully',
+                    "msg": 'Dynamited service installed successfully',
                     'stdout': bool(stdout),
                     'verbose': bool(verbose)
                 }
@@ -63,21 +63,21 @@ class ManagerdInstallStrategy(execution_strategy.BaseExecStrategy):
             ))
 
 
-class ManagerdUninstallStrategy(execution_strategy.BaseExecStrategy):
+class DynamitedUninstallStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to uninstall managerd
+    Steps to uninstall dynamited
     """
 
     def __init__(self, prompt_user, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="managerd_uninstall",
-            strategy_description="Uninstall Manager Daemon.",
+            self, strategy_name="dynamited_uninstall",
+            strategy_description="Uninstall Dynamite Daemon.",
             functions=(
-                install.uninstall_managerd,
+                install.uninstall_dynamited,
                 log_message
             ),
             arguments=(
-                # install.uninstall_managerd
+                # install.uninstall_dynamited
                 {
                     "prompt_user": bool(prompt_user),
                     "stdout": bool(stdout),
@@ -86,7 +86,7 @@ class ManagerdUninstallStrategy(execution_strategy.BaseExecStrategy):
 
                 # log_message
                 {
-                    "msg": '*** Manager Daemon uninstalled successfully. ***',
+                    "msg": '*** Dynamite Daemon uninstalled successfully. ***',
                     'stdout': bool(stdout),
                     'verbose': bool(verbose)
                 },
@@ -98,15 +98,15 @@ class ManagerdUninstallStrategy(execution_strategy.BaseExecStrategy):
         )
 
 
-class ManagerdProcessStartStrategy(execution_strategy.BaseExecStrategy):
+class DynamitedProcessStartStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to start managerd
+    Steps to start dynamited
     """
 
     def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="managerd_start",
-            strategy_description="Start Managerd process.",
+            self, strategy_name="dynamited_start",
+            strategy_description="Start dynamited process.",
             functions=(
                 process.start,
             ),
@@ -126,15 +126,15 @@ class ManagerdProcessStartStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {'pretty_print_status': True}, return_format="text")
 
 
-class ManagerdProcessStopStrategy(execution_strategy.BaseExecStrategy):
+class DynamitedProcessStopStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to stop managerd
+    Steps to stop dynamited
     """
 
     def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="managerd_stop",
-            strategy_description="Stop managerd process.",
+            self, strategy_name="dynamited_stop",
+            strategy_description="Stop dynamited process.",
             functions=(
                 process.stop,
             ),
@@ -154,15 +154,15 @@ class ManagerdProcessStopStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {'pretty_print_status': True}, return_format="text")
 
 
-class ManagerdProcessRestartStrategy(execution_strategy.BaseExecStrategy):
+class DynamitedProcessRestartStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to restart managerd
+    Steps to restart dynamited
     """
 
     def __init__(self, status, stdout, verbose):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="managerd_restart",
-            strategy_description="Restart managerd process.",
+            self, strategy_name="dynamited_restart",
+            strategy_description="Restart dynamited process.",
             functions=(
                 process.stop,
                 process.start,
@@ -189,15 +189,15 @@ class ManagerdProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             self.add_function(process.status, {'pretty_print_status': True}, return_format="text")
 
 
-class ManagerdProcessStatusStrategy(execution_strategy.BaseExecStrategy):
+class DynamitedProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     """
-    Steps to get the status of managerd
+    Steps to get the status of dynamited
     """
 
     def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
-            self, strategy_name="managerd_status",
-            strategy_description="Get the status of the managerd process.",
+            self, strategy_name="dynamited_status",
+            strategy_description="Get the status of the dynamited process.",
             functions=(
                 process.status,
             ),
@@ -218,43 +218,43 @@ class ManagerdProcessStatusStrategy(execution_strategy.BaseExecStrategy):
 # Test Functions
 
 def run_install_strategy():
-    managerd_install_strategy = ManagerdInstallStrategy(
+    dynamited_install_strategy = DynamitedInstallStrategy(
         stdout=True,
         verbose=True
     )
-    managerd_install_strategy.execute_strategy()
+    dynamited_install_strategy.execute_strategy()
 
 
 def run_process_start_strategy():
-    managerd_start_strategy = ManagerdProcessStartStrategy(
+    dynamited_start_strategy = DynamitedProcessStartStrategy(
         status=True,
         stdout=True,
         verbose=True
     )
-    managerd_start_strategy.execute_strategy()
+    dynamited_start_strategy.execute_strategy()
 
 
 def run_process_stop_strategy():
-    managerd_stop_strategy = ManagerdProcessStopStrategy(
+    dynamited_stop_strategy = DynamitedProcessStopStrategy(
         status=True,
         stdout=True,
         verbose=True
     )
-    managerd_stop_strategy.execute_strategy()
+    dynamited_stop_strategy.execute_strategy()
 
 
 def run_process_restart_strategy():
-    managerd_restart_strategy = ManagerdProcessRestartStrategy(
+    dynamited_restart_strategy = DynamitedProcessRestartStrategy(
         status=True,
         stdout=True,
         verbose=True
     )
-    managerd_restart_strategy.execute_strategy()
+    dynamited_restart_strategy.execute_strategy()
 
 
 def run_process_status_strategy():
-    managerd_status_strategy = ManagerdProcessStatusStrategy()
-    managerd_status_strategy.execute_strategy()
+    dynamited_status_strategy = DynamitedProcessStatusStrategy()
+    dynamited_status_strategy.execute_strategy()
 
 
 if __name__ == '__main__':

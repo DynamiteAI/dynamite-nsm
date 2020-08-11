@@ -427,45 +427,46 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
         "status", help="Status Kibana.",
         parents=parent_parsers)
     kb_status_parser.set_defaults(action_name="status")
-    
 
-def register_managerd_component_args(managerd_component_parser, parent_parsers):
-    managerd_component_args_subparsers = managerd_component_parser.add_subparsers()
-    
-    # === Setup managerd Component Install Arguments === #
-    managerd_install_parser = managerd_component_args_subparsers.add_parser(
-        "install", help="Install Manager Daemon.", parents=parent_parsers)
 
-    managerd_install_parser.set_defaults(action_name="install")
+def register_dynamited_component_args(dynamited_component_parser, parent_parsers):
+    dynamited_component_args_subparsers = dynamited_component_parser.add_subparsers()
 
-    # === Setup managerd Component Uninstall Arguments === #
-    managerd_uninstall_parser = managerd_component_args_subparsers.add_parser(
+    # === Setup Dynamite Daemon Component Install Arguments === #
+    dynamited_install_parser = dynamited_component_args_subparsers.add_parser(
+        "install", help="Install Dynamite Daemon.", parents=parent_parsers)
+
+    dynamited_install_parser.set_defaults(action_name="install")
+
+    # === Setup Dynamite DaemonDynamite Daemon Component Uninstall Arguments === #
+    dynamited_uninstall_parser = dynamited_component_args_subparsers.add_parser(
         "uninstall",
-        help="Uninstall Manager Daemon.",
+        help="Uninstall Dynamite Daemon.",
         parents=parent_parsers)
-    managerd_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_managerd_uninstall_prompt", default=False,
-                                     action="store_true", help="Skip uninstall warning prompt.")
-    managerd_uninstall_parser.set_defaults(action_name="uninstall")
+    dynamited_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_dynamited_uninstall_prompt",
+                                            default=False,
+                                            action="store_true", help="Skip uninstall warning prompt.")
+    dynamited_uninstall_parser.set_defaults(action_name="uninstall")
 
-    # === Setup managerd Component Start Arguments === #
-    managerd_start_parser = managerd_component_args_subparsers.add_parser(
+    # === Setup Dynamite Daemon Component Start Arguments === #
+    dynamited_start_parser = dynamited_component_args_subparsers.add_parser(
         "start", help="Start LogStash.", parents=parent_parsers)
-    managerd_start_parser.set_defaults(action_name="start")
+    dynamited_start_parser.set_defaults(action_name="start")
 
-    # === Setup managerd Component Stop Arguments === #
-    managerd_stop_parser = managerd_component_args_subparsers.add_parser(
-        "stop", help="Stop Manager Daemon.", parents=parent_parsers)
-    managerd_stop_parser.set_defaults(action_name="stop")
+    # === Setup Dynamite Daemon Component Stop Arguments === #
+    dynamited_stop_parser = dynamited_component_args_subparsers.add_parser(
+        "stop", help="Stop Dynamite Daemon.", parents=parent_parsers)
+    dynamited_stop_parser.set_defaults(action_name="stop")
 
-    # === Setup LogStash Component Restart Arguments === #
-    managerd_restart_parser = managerd_component_args_subparsers.add_parser(
-        "restart", help="Restart Manager Daemon.", parents=parent_parsers)
-    managerd_restart_parser.set_defaults(action_name="restart")
+    # === Setup Dynamite Daemon Component Restart Arguments === #
+    dynamited_restart_parser = dynamited_component_args_subparsers.add_parser(
+        "restart", help="Restart Dynamite Daemon.", parents=parent_parsers)
+    dynamited_restart_parser.set_defaults(action_name="restart")
 
-    # === Setup LogStash Component Status Arguments === #
-    managerd_status_parser = managerd_component_args_subparsers.add_parser(
-        "status", help="Status Manger Daemon.", parents=parent_parsers)
-    managerd_status_parser.set_defaults(action_name="status")
+    # === Setup Dynamite Daemon Component Status Arguments === #
+    dynamited_status_parser = dynamited_component_args_subparsers.add_parser(
+        "status", help="Status Dynamite Daemon.", parents=parent_parsers)
+    dynamited_status_parser.set_defaults(action_name="status")
 
 
 def register_updates_component_args(upd_component_parser, parent_parsers):

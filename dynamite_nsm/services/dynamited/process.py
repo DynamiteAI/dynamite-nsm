@@ -3,24 +3,24 @@ import os
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
 from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm.services.managerd import exceptions as managerd_exceptions
+from dynamite_nsm.services.dynamited import exceptions as dynamited_exceptions
 
-PID_DIRECTORY = '/var/run/dynamite/managerd/'
+PID_DIRECTORY = '/var/run/dynamite/dynamited/'
 
 
 class ProcessManager(process.BaseProcessManager):
     """
-    Managerd Process Manager
+    dynamited Process Manager
     """
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
         try:
-            process.BaseProcessManager.__init__(self, 'managerd.service', 'managerd',
-                                                log_path=environ.get('MANAGERD_LOGS'),
-                                                pid_file=os.path.join(PID_DIRECTORY, 'managerd.pid'),
+            process.BaseProcessManager.__init__(self, 'dynamited.service', 'dynamited',
+                                                log_path=environ.get('DYNAMITED_LOGS'),
+                                                pid_file=os.path.join(PID_DIRECTORY, 'dynamited.pid'),
                                                 stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
-            raise managerd_exceptions.CallManagerDaemonProcessError("Could not find systemctl.")
+            raise dynamited_exceptions.CallDynamiteDaemonProcessError("Could not find systemctl.")
 
 
 def start(stdout=True, verbose=False, pretty_print_status=False):
@@ -37,5 +37,3 @@ def restart(stdout=True, verbose=False, pretty_print_status=False):
 
 def status(stdout=True, verbose=False, pretty_print_status=False):
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()
-
-

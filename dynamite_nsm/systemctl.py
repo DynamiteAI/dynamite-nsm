@@ -57,7 +57,7 @@ class SystemCtl:
 
     @staticmethod
     def _format_svc_string(svc):
-        if str(svc).startswith('dynamite') and not str(svc).endswith('.target'):
+        if str(svc).startswith('dynamite-') and not str(svc).endswith('.target'):
             svc = svc + '.target'
         elif not str(svc).endswith('.service'):
             svc = svc + '.service'
