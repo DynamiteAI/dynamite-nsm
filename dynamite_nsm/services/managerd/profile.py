@@ -17,10 +17,10 @@ class ProcessProfiler(profile.BaseProcessProfiler):
 
         profile.BaseProcessProfiler.__init__(self,
                                              install_archive_path=os.path.join(const.INSTALL_CACHE,
-                                                                               const.LOGSTASH_ARCHIVE_NAME),
+                                                                               const.MANAGERD_ARCHIVE_NAME),
                                              install_directory=self.managerd_install,
                                              config_directory=self.managerd_config,
-                                             required_install_files=['managerd'],
+                                             required_install_files=['bin'],
                                              required_config_files=['config.yml']
                                              )
 

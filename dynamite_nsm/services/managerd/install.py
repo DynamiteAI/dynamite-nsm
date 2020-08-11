@@ -179,7 +179,7 @@ def uninstall_managerd(prompt_user=True, stdout=True, verbose=False):
         logger.error("General error occurred while attempting to uninstall managerd.".format(e))
         logger.debug("General error occurred while attempting to uninstall managerd; {}".format(e))
         raise managerd_exceptions.UninstallManagerDaemonError(
-            "General error occurred while attempting to uninstall kibana; {}".format(e))
+            "General error occurred while attempting to uninstall managerd; {}".format(e))
     try:
         sysctl = systemctl.SystemCtl()
     except general_exceptions.CallProcessError:
