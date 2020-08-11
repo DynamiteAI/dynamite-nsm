@@ -106,11 +106,11 @@ class ProcessManager(process.BaseProcessManager):
                 ])
             if zeek_status['info'].get('stdout'):
                 status_tbl.append([
-                    'Stdout', zeek_status['info'].get('stdout')
+                    'STDOUT', zeek_status['info'].get('stdout')
                 ])
             if zeek_status['info'].get('stderr'):
                 status_tbl.append([
-                    'Stderr', zeek_status['info'].get('stderr')
+                    'STDERR', zeek_status['info'].get('stderr')
                 ])
             return tabulate.tabulate(status_tbl, tablefmt='fancy_grid')
 

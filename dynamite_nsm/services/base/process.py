@@ -110,11 +110,11 @@ class BaseProcessManager:
                 ])
             if status['info'].get('stdout'):
                 status_tbl.append([
-                    'Stdout', status['info'].get('stdout')
+                    'STDOUT', status['info'].get('stdout')
                 ])
             if status['info'].get('stderr'):
                 status_tbl.append([
-                    'Stderr', status['info'].get('stderr')
+                    'STDERR', status['info'].get('stderr')
                 ])
             return tabulate.tabulate(status_tbl, tablefmt='fancy_grid')
         return status
