@@ -260,7 +260,7 @@ class InstallManager(install.BaseInstallManager):
             )
             es_pass_config.set_all_passwords(new_password=self.password)
 
-        if not elastic_profile.ProcessProfiler().is_installed:
+        if not elastic_profile.ProcessProfiler().is_installed():
             self.logger.error('ElasticSearch must be installed and running to bootstrap passwords.')
             raise elastic_exceptions.InstallElasticsearchError(
                 "ElasticSearch must be installed and running to bootstrap passwords.")
