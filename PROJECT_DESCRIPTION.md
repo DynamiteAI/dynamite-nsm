@@ -1,6 +1,6 @@
 ## Dynamite Network Security Monitor
 
-#### [Dynamite NSM](http://dynamite.ai) is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
+#### [DynamiteNSM](http://dynamite.ai) is an network security monitor with an emphasis on *very* fast deployment, minimal configuration, and intuitive management.
 
 Dynamite NSM can be installed and managed through a standalone commandline utility implemented in pure Python.
 

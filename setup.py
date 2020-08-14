@@ -6,7 +6,7 @@ with open("PROJECT_DESCRIPTION.md", "r") as fh:
 
 setup(
     name='dynamite-nsm',
-    version='0.7.1',
+    version='0.7.2',
     packages=find_packages(),
     scripts=['scripts/dynamite'],
     url='http://dynamite.ai',
@@ -15,7 +15,7 @@ setup(
     license='GPL 3',
     author='Jamin Becker',
     author_email='jamin@dynamite.ai',
-    description='Dynamite-NSM is an network security monitor with an emphasis on very fast deployment, '
+    description='DynamiteNSM is an network security monitor with an emphasis on very fast deployment, '
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
     install_requires=[
