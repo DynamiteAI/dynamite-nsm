@@ -47,10 +47,10 @@ lab_component_parser = component_subparsers.add_parser(
 lab_component_parser.set_defaults(component_name="lab")
 
 dynamited_component_parser = component_subparsers.add_parser(
-    "dynamited",
+    "daemon",
     help="Install, configure, manage Dynamite's dynamited service for improved management metrics."
 )
-dynamited_component_parser.set_defaults(component_name="dynamited")
+dynamited_component_parser.set_defaults(component_name="daemon")
 
 update_component_parser = component_subparsers.add_parser(
     "updates",

@@ -98,7 +98,7 @@ if __name__ == '__main__':
             MonitorCommandlineComponent(args)
         elif args.component_name == "lab":
             LabCommandlineComponent(args)
-        elif args.component_name == "dynamited":
+        elif args.component_name == "daemon":
             DynamitedCommandlineComponent(args)
         elif args.component_name == "updates":
             UpdatesCommandlineComponent(args)
