@@ -1,6 +1,7 @@
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
 from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.logstash import profile as logstash_profile
 from dynamite_nsm.services.logstash import exceptions as logstash_exceptions
 
 
@@ -14,7 +15,11 @@ class ProcessManager(process.BaseProcessManager):
             process.BaseProcessManager.__init__(self, 'logstash.service', 'logstash', log_path=environ.get('LS_LOGS'),
                                                 stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
+            self.logger.error("Could not find systemctl on this system.")
             raise logstash_exceptions.CallLogstashProcessError("Could not find systemctl.")
+        if not logstash_profile.ProcessProfiler().is_installed():
+            self.logger.error("LogStash is not installed. Install it with 'dynamite logstash install -h'")
+            raise logstash_exceptions.CallLogstashProcessError("LogStash is not installed.")
 
 
 def start(stdout=True, verbose=False, pretty_print_status=False):

@@ -39,9 +39,14 @@ def log_message(msg, level=logging.INFO, stdout=True, verbose=False):
 def get_agent_status(verbose=False, pretty_print_status=True):
     zeek_profiler = zeek_profile.ProcessProfiler()
     suricata_profiler = suricata_profile.ProcessProfiler()
-    filebeat_profiler = filebeat_profile.ProcessProfiler()
     status_tables = "\n"
     agent_status = {}
+    filebeat_status = filebeat_process.ProcessManager(verbose=verbose,
+                                                      pretty_print_status=pretty_print_status).status()
+    status_tables += filebeat_status + '\n\n'
+    agent_status.update({
+        'filebeat': filebeat_status
+    })
     if zeek_profiler.is_installed():
         zeek_status = zeek_process.ProcessManager(verbose=verbose, pretty_print_status=pretty_print_status).status()
         status_tables += zeek_status + '\n\n'
@@ -55,13 +60,7 @@ def get_agent_status(verbose=False, pretty_print_status=True):
         agent_status.update({
             'suricata': suricata_status
         })
-    if filebeat_profiler.is_installed():
-        filebeat_status = filebeat_process.ProcessManager(verbose=verbose,
-                                                          pretty_print_status=pretty_print_status).status()
-        status_tables += filebeat_status + '\n\n'
-        agent_status.update({
-            'filebeat': filebeat_status
-        })
+
     if pretty_print_status:
         return status_tables
     return agent_status

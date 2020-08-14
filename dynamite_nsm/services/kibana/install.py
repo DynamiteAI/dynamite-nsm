@@ -3,7 +3,6 @@ import sys
 import time
 import shutil
 import logging
-import tarfile
 import subprocess
 
 try:

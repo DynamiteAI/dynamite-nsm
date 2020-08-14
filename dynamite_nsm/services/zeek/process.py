@@ -1,6 +1,5 @@
 import os
 import re
-import textwrap
 import subprocess
 
 import tabulate
@@ -8,6 +7,7 @@ import tabulate
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
 from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.zeek import profile as zeek_profile
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
@@ -26,6 +26,9 @@ class ProcessManager(process.BaseProcessManager):
                                                 pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
             raise zeek_exceptions.CallZeekProcessError("Could not find systemctl.")
+        if not zeek_profile.ProcessProfiler().is_installed():
+            self.logger.error("Zeek is not installed. Install it with 'dynamite agent install -h'")
+            raise zeek_exceptions.CallZeekProcessError("Zzeek is not installed.")
 
     def status(self):
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'zeekctl')), shell=True,

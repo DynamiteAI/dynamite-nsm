@@ -37,9 +37,9 @@ class AgentConfigMultiSelect(npyscreen.MultiLineAction):
     """
 
     def actionHighlighted(self, act_on_this, keypress):
-        zeek_installed, suricata_installed, filebeat_installed = zeek_profile.ProcessProfiler().is_installed, \
-                                                                 suricata_profile.ProcessProfiler().is_installed, \
-                                                                 filebeat_profile.ProcessProfiler().is_installed
+        zeek_installed, suricata_installed, filebeat_installed = zeek_profile.ProcessProfiler().is_installed(), \
+                                                                 suricata_profile.ProcessProfiler().is_installed(), \
+                                                                 filebeat_profile.ProcessProfiler().is_installed()
         app_mapping = {}
         if filebeat_installed:
             if zeek_installed and suricata_installed:
@@ -60,9 +60,9 @@ class AgentConfigForm(npyscreen.ActionForm):
 
     def create(self):
 
-        zeek_installed, suricata_installed, filebeat_installed = zeek_profile.ProcessProfiler().is_installed, \
-                                                                 suricata_profile.ProcessProfiler().is_installed, \
-                                                                 filebeat_profile.ProcessProfiler().is_installed
+        zeek_installed, suricata_installed, filebeat_installed = zeek_profile.ProcessProfiler().is_installed(), \
+                                                                 suricata_profile.ProcessProfiler().is_installed(), \
+                                                                 filebeat_profile.ProcessProfiler().is_installed()
         app_mapping = {}
         if filebeat_installed:
             if zeek_installed and suricata_installed:

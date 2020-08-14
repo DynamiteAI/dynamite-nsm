@@ -2,6 +2,7 @@ import os
 
 from dynamite_nsm.services.base import process
 from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.suricata import profile as suricata_profile
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
 
@@ -20,6 +21,9 @@ class ProcessManager(process.BaseProcessManager):
                                                 verbose=verbose, pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
             raise suricata_exceptions.CallSuricataProcessError("Could not find systemctl.")
+        if not suricata_profile.ProcessProfiler().is_installed():
+            self.logger.error("Suricata is not installed. Install it with 'dynamite agent install -h'")
+            raise suricata_exceptions.CallSuricataProcessError("Suricata is not installed.")
 
 
 def start(stdout=True, verbose=False, pretty_print_status=False):
