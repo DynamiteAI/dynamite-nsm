@@ -73,12 +73,19 @@ def prompt_monitor_uninstall(prompt_user=True, stdout=True):
             exit(0)
 
 
-def get_monitor_status():
+def get_monitor_status(stdout=True, verbose=False, pretty_print_status=True):
+    if pretty_print_status:
+        tables = "\n"
+        tables += es_process.status(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status) + '\n\n'
+        tables += ls_process.status(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status) + '\n\n'
+        tables += kb_process.status(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
+        return tables
+
     return (
         dict(
-            elasticsearch=es_process.status(),
-            logstash=ls_process.status(),
-            kibana=kb_process.status()
+            elasticsearch=es_process.status(stdout=stdout, verbose=verbose),
+            logstash=ls_process.status(stdout=stdout, verbose=verbose),
+            kibana=kb_process.status(stdout=stdout, verbose=verbose)
         )
     )
 
@@ -94,7 +101,7 @@ class MonitorChangePasswordStrategy(execution_strategy.BaseExecStrategy):
             strategy_name="monitor_change_password",
             strategy_description="Change the password for all monitor components.",
         )
-        if es_profile.ProcessProfiler().is_installed:
+        if es_profile.ProcessProfiler().is_installed():
             self.add_function(func=es_config.change_elasticsearch_password, argument_dict={
                 'old_password': str(old_password),
                 'password': str(new_password),
@@ -102,14 +109,14 @@ class MonitorChangePasswordStrategy(execution_strategy.BaseExecStrategy):
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if ls_profile.ProcessProfiler().is_installed:
+        if ls_profile.ProcessProfiler().is_installed():
             self.add_function(func=ls_config.change_logstash_elasticsearch_password, argument_dict={
                 'password': str(new_password),
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if kb_profile.ProcessProfiler().is_installed:
+        if kb_profile.ProcessProfiler().is_installed():
             self.add_function(func=kb_config.change_kibana_elasticsearch_password, argument_dict={
                 'password': str(new_password),
                 'prompt_user': False,
@@ -151,7 +158,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
 
         self.add_function(func=remove_kibana_tar_archive, argument_dict={}, return_format=None)
 
-        if not es_profile.ProcessProfiler().is_installed:
+        if not es_profile.ProcessProfiler().is_installed():
             self.add_function(func=es_install.install_elasticsearch, argument_dict={
                 "configuration_directory": "/etc/dynamite/elasticsearch/",
                 "install_directory": "/opt/dynamite/elasticsearch/",
@@ -174,7 +181,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
             "stdout": False
         }, return_format=None)
 
-        if not ls_profile.ProcessProfiler().is_installed:
+        if not ls_profile.ProcessProfiler().is_installed():
             self.add_function(func=ls_install.install_logstash, argument_dict={
                 "configuration_directory": "/etc/dynamite/logstash/",
                 "install_directory": "/opt/dynamite/logstash/",
@@ -196,7 +203,7 @@ class MonitorInstallStrategy(execution_strategy.BaseExecStrategy):
                 'verbose': bool(verbose)
             }, return_format=None)
 
-        if not kb_profile.ProcessProfiler().is_installed:
+        if not kb_profile.ProcessProfiler().is_installed():
             self.add_function(func=kb_install.install_kibana, argument_dict={
                 "configuration_directory": "/etc/dynamite/kibana/",
                 "install_directory": "/opt/dynamite/kibana/",
@@ -268,19 +275,19 @@ class MonitorUninstallStrategy(execution_strategy.BaseExecStrategy):
                 None
             )
         )
-        if kb_profile.ProcessProfiler().is_installed:
+        if kb_profile.ProcessProfiler().is_installed():
             self.add_function(func=kb_install.uninstall_kibana, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if ls_profile.ProcessProfiler().is_installed:
+        if ls_profile.ProcessProfiler().is_installed():
             self.add_function(func=ls_install.uninstall_logstash, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
                 'verbose': bool(verbose)
             })
-        if es_profile.ProcessProfiler().is_installed:
+        if es_profile.ProcessProfiler().is_installed():
             self.add_function(func=es_install.uninstall_elasticsearch, argument_dict={
                 'prompt_user': False,
                 'stdout': bool(stdout),
@@ -337,7 +344,7 @@ class MonitorProcessStartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {}, return_format="json")
+            self.add_function(get_monitor_status, {"pretty_print_status": True}, return_format="text")
 
 
 class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -383,7 +390,7 @@ class MonitorProcessStopStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {}, return_format="json")
+            self.add_function(get_monitor_status, {"pretty_print_status": True}, return_format="text")
 
 
 class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -450,7 +457,7 @@ class MonitorProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(get_monitor_status, {}, return_format="json")
+            self.add_function(get_monitor_status, {"pretty_print_status": True}, return_format="text")
 
 
 class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -458,7 +465,7 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of the monitor
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="monitor_status",
             strategy_description="Get the status of the Monitor processes.",
@@ -470,11 +477,15 @@ class MonitorProcessStatusStrategy(execution_strategy.BaseExecStrategy):
                 # utilities.create_dynamite_environment_file
                 {},
                 # get_monitor_status
-                {},
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "pretty_print_status": True
+                }
             ),
             return_formats=(
                 None,
-                'json',
+                'text',
             )
         )
 

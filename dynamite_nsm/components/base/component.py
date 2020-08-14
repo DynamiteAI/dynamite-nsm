@@ -10,7 +10,7 @@ class BaseComponent:
     def __init__(self, component_name, component_description, **strategies):
         """
 
-        The Base Component works by dynamically generating a set of methods at runtime via reflection based on the
+        The Base Component works by dynamically generating a set of methods at runtime via setattr based on the
         **strategies kwargs.
 
         The user can provide of **strategies either pre-registered
@@ -85,3 +85,47 @@ class BaseComponent:
     def validate_strategy(strategy):
         if not strategy or not issubclass(strategy.__class__, execution_strategy.BaseExecStrategy):
             raise TypeError("Invalid strategy, must be {}.".format(execution_strategy.BaseExecStrategy))
+
+    """
+    Placeholder for common methods, here simply so your IDE doesn't populate visual errors for functions generated at 
+    runtime.
+    
+    Note you can create strategies for any conceivable function your component may need to perform, and invoke these
+    strategies via the execute_your_strategy_name.
+    """
+
+    def register_install_strategy(self, strategy):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_install")
+
+    def register_uninstall_strategy(self, strategy):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_uninstall")
+
+    def register_process_start_strategy(self, strategy):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_start")
+
+    def register_process_stop_strategy(self, strategy):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_stop")
+
+    def register_process_restart_strategy(self, strategy):
+        raise exceptions.StrategyNotImplemented(self.component_name, "restart_strategy")
+
+    def register_process_status_strategy(self, strategy):
+        raise exceptions.StrategyNotImplemented(self.component_name, "status_strategy")
+
+    def execute_install_strategy(self):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_install")
+
+    def execute_uninstall_strategy(self):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_uninstall")
+
+    def execute_process_start_strategy(self):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_start")
+
+    def execute_process_stop_strategy(self):
+        raise exceptions.StrategyNotImplemented(self.component_name, "base_stop")
+
+    def execute_process_restart_strategy(self):
+        raise exceptions.StrategyNotImplemented(self.component_name, "restart_strategy")
+
+    def execute_process_status_strategy(self):
+        raise exceptions.StrategyNotImplemented(self.component_name, "status_strategy")

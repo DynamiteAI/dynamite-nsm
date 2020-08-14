@@ -45,7 +45,10 @@ class KibanaComponent(component.BaseComponent):
                 verbose=verbose,
                 status=True
             ),
-            process_status_strategy=execution_strategy.KibanaProcessStatusStrategy()
+            process_status_strategy=execution_strategy.KibanaProcessStatusStrategy(
+                stdout=stdout,
+                verbose=verbose,
+            )
         )
 
 
@@ -140,7 +143,10 @@ class KibanaCommandlineComponent(component.BaseComponent):
 
         elif args.action_name == "status":
             self.register_process_status_strategy(
-                execution_strategy.KibanaProcessStatusStrategy()
+                execution_strategy.KibanaProcessStatusStrategy(
+                    stdout=not args.no_stdout,
+                    verbose=args.verbose and not args.no_stdout
+                )
             )
             self.execute_process_status_strategy()
 

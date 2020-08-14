@@ -6,4 +6,5 @@ nav:
     - Getting Started: getting_started.md
     - Kibana Dashboards: kibana_dashboards.md
     - DynamiteLab: dynamite_lab.md
+    - Dynamite Daemon: dynamite_daemon.md
 theme: readthedocs

@@ -1,28 +1,26 @@
 import os
 
+from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
 from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm.services.filebeat import profile as filebeat_profile
-from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
+from dynamite_nsm.services.dynamited import exceptions as dynamited_exceptions
 
-PID_DIRECTORY = '/var/run/dynamite/filebeat/'
+PID_DIRECTORY = '/var/run/dynamite/dynamited/'
 
 
 class ProcessManager(process.BaseProcessManager):
     """
-    FileBeat Process Manager
+    dynamited Process Manager
     """
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+        environ = utilities.get_environment_file_dict()
         try:
-            process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None,
-                                                pid_file=os.path.join(PID_DIRECTORY, 'filebeat.pid'), stdout=stdout,
-                                                verbose=verbose, pretty_print_status=pretty_print_status)
+            process.BaseProcessManager.__init__(self, 'dynamited.service', 'dynamited',
+                                                log_path=environ.get('DYNAMITED_LOGS'),
+                                                pid_file=os.path.join(PID_DIRECTORY, 'dynamited.pid'),
+                                                stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
-            self.logger.error("Could not find systemctl on this system.")
-            raise filebeat_exceptions.CallFilebeatProcessError("Could not find systemctl.")
-        if not filebeat_profile.ProcessProfiler().is_installed():
-            self.logger.error("FileBeat is not installed. Install it with 'dynamite agent install -h'")
-            raise filebeat_exceptions.CallFilebeatProcessError("FileBeat is not installed.")
+            raise dynamited_exceptions.CallDynamiteDaemonProcessError("Could not find systemctl.")
 
 
 def start(stdout=True, verbose=False, pretty_print_status=False):

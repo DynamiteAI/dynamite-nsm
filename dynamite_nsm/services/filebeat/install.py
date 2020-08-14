@@ -4,7 +4,6 @@ import sys
 import time
 import shutil
 import logging
-import tarfile
 import subprocess
 
 try:
@@ -16,6 +15,7 @@ from dynamite_nsm import const
 from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.filebeat import config as filebeat_configs
 from dynamite_nsm.services.filebeat import profile as filebeat_profile
@@ -23,7 +23,7 @@ from dynamite_nsm.services.filebeat import process as filebeat_process
 from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
-class InstallManager:
+class InstallManager(install.BaseInstallManager):
 
     def __init__(self, install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
                  kafka_password=None, agent_tag=None, download_filebeat_archive=True, stdout=True, verbose=False):
@@ -42,11 +42,6 @@ class InstallManager:
         :param verbose: Include detailed debug messages
         """
 
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        self.logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
-
         self.monitor_paths = list(monitor_log_paths)
         self.targets = list(targets)
         self.kafka_topic = kafka_topic
@@ -54,14 +49,17 @@ class InstallManager:
         self.kafka_password = kafka_password
         self.install_directory = install_directory
         self.stdout = stdout
+        self.verbose = verbose
         self.agent_tag = agent_tag
+        install.BaseInstallManager.__init__(self, 'filebeat', verbose=self.verbose, stdout=stdout)
         if download_filebeat_archive:
             try:
                 self.logger.info("Attempting to download Filebeat archive.")
-                self.download_filebeat(stdout=stdout)
+                self.download_from_mirror(const.FILE_BEAT_MIRRORS, const.FILE_BEAT_ARCHIVE_NAME, stdout=stdout,
+                                          verbose=verbose)
             except (general_exceptions.ArchiveExtractionError, general_exceptions.DownloadError):
-                self.logger.error("Failed to download Zeek archive.")
-                raise filebeat_exceptions.InstallFilebeatError("Failed to download Filebeat archive.")
+                self.logger.error("Failed to download FileBeat archive.")
+                raise filebeat_exceptions.InstallFilebeatError("Failed to download FileBeat archive.")
 
         if not agent_tag:
             self.agent_tag = utilities.get_default_agent_tag()
@@ -77,7 +75,7 @@ class InstallManager:
             self.logger.info("Setting Agent Tag to {}.".format(self.agent_tag))
         try:
             self.logger.info("Attempting to extract FileBeat archive ({}).".format(const.FILE_BEAT_ARCHIVE_NAME))
-            self.extract_filebeat()
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_ARCHIVE_NAME))
             self.logger.info("Extraction completed.")
         except general_exceptions.ArchiveExtractionError as e:
             self.logger.error("Failed to extract FileBeat archive.")
@@ -88,41 +86,6 @@ class InstallManager:
             self.logger.error("Invalid Targets specified: {}.".format(targets))
             raise filebeat_exceptions.InstallFilebeatError(
                 "Invalid Targets specified: {}.".format(targets))
-
-    @staticmethod
-    def download_filebeat(stdout=False):
-        """
-        Download Filebeat archive
-
-        :param stdout: Print output to console
-        """
-
-        url = None
-        try:
-            with open(const.FILE_BEAT_MIRRORS, 'r') as filebeat_archive:
-                for url in filebeat_archive.readlines():
-                    if utilities.download_file(url, const.FILE_BEAT_ARCHIVE_NAME, stdout=stdout):
-                        break
-        except Exception as e:
-            raise general_exceptions.DownloadError(
-                "General error while downloading FileBeat from {}; {}".format(url, e))
-
-    @staticmethod
-    def extract_filebeat():
-        """
-        Extract Filebeat to local install_cache
-        """
-
-        try:
-            tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_ARCHIVE_NAME))
-            tf.extractall(path=const.INSTALL_CACHE)
-        except IOError as e:
-            sys.stderr.write('[-] An error occurred while attempting to extract file. [{}]\n'.format(e))
-            raise general_exceptions.ArchiveExtractionError(
-                "Could not extract FileBeat archive to {}; {}".format(const.INSTALL_CACHE, e))
-        except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
-                "General error while attempting to extract FileBeat archive; {}".format(e))
 
     @staticmethod
     def validate_targets(targets, stdout=True, verbose=False):
@@ -258,7 +221,7 @@ def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=
     logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
     filebeat_profiler = filebeat_profile.ProcessProfiler()
-    if filebeat_profiler.is_installed:
+    if filebeat_profiler.is_installed():
         logger.error('FileBeat is already installed.')
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
     filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
@@ -295,7 +258,7 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if filebeat_profiler.is_running:
+    if filebeat_profiler.is_running():
         try:
             filebeat_process.ProcessManager().stop()
         except filebeat_exceptions.CallFilebeatProcessError as e:
@@ -314,7 +277,7 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
                 env_lines += line.strip() + '\n'
         with open(env_file, 'w') as env_fw:
             env_fw.write(env_lines)
-        if filebeat_profiler.is_installed:
+        if filebeat_profiler.is_installed():
             shutil.rmtree(install_directory, ignore_errors=True)
     except Exception as e:
         logger.error("General error occurred while attempting to uninstall Filebeat.")

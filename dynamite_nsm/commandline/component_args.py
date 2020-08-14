@@ -99,7 +99,7 @@ def register_monitor_component_args(mon_component_parser, parent_parsers):
     mon_install_parser.set_defaults(action_name="install")
 
     mon_install_parser.add_argument("--ls-listen-addr", dest="ls_addr", type=str, default='0.0.0.0',
-                                    help="The address upon which Monitor input plugins listen."
+                                    help="The address upon which LogStash input plugins listen."
                                     )
     mon_install_parser.add_argument("--kb-listen-addr", dest="kb_addr", type=str, default='0.0.0.0',
                                     help="The address upon which Kibana web interface listens."
@@ -117,7 +117,7 @@ def register_monitor_component_args(mon_component_parser, parent_parsers):
                                     help="The port that ElasticSearch is listening on."
                                     )
     mon_install_parser.add_argument("--ls-heap-size", dest="ls_heap_size", type=int, default=4,
-                                    help="The amount of memory to designate to Monitor's Java Heap [Gi]"
+                                    help="The amount of memory to designate to LogStash's Java Heap [Gi]"
                                     )
     mon_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
                                     help="The password used for logging into ElasticSearch."
@@ -349,7 +349,7 @@ def register_logstash_component_args(ls_component_parser, parent_parsers):
         "restart", help="Restart LogStash.", parents=parent_parsers)
     ls_restart_parser.set_defaults(action_name="restart")
 
-    # === Setup ElasticSearch Component Status Arguments === #
+    # === Setup LogStash Component Status Arguments === #
     ls_status_parser = logstash_component_args_subparsers.add_parser(
         "status", help="Status LogStash.", parents=parent_parsers)
     ls_status_parser.set_defaults(action_name="status")
@@ -427,6 +427,46 @@ def register_kibana_component_args(kb_component_parser, parent_parsers):
         "status", help="Status Kibana.",
         parents=parent_parsers)
     kb_status_parser.set_defaults(action_name="status")
+
+
+def register_dynamited_component_args(dynamited_component_parser, parent_parsers):
+    dynamited_component_args_subparsers = dynamited_component_parser.add_subparsers()
+
+    # === Setup Dynamite Daemon Component Install Arguments === #
+    dynamited_install_parser = dynamited_component_args_subparsers.add_parser(
+        "install", help="Install Dynamite Daemon.", parents=parent_parsers)
+
+    dynamited_install_parser.set_defaults(action_name="install")
+
+    # === Setup Dynamite DaemonDynamite Daemon Component Uninstall Arguments === #
+    dynamited_uninstall_parser = dynamited_component_args_subparsers.add_parser(
+        "uninstall",
+        help="Uninstall Dynamite Daemon.",
+        parents=parent_parsers)
+    dynamited_uninstall_parser.add_argument('--skip-uninstall-prompt', dest="skip_dynamited_uninstall_prompt",
+                                            default=False,
+                                            action="store_true", help="Skip uninstall warning prompt.")
+    dynamited_uninstall_parser.set_defaults(action_name="uninstall")
+
+    # === Setup Dynamite Daemon Component Start Arguments === #
+    dynamited_start_parser = dynamited_component_args_subparsers.add_parser(
+        "start", help="Start LogStash.", parents=parent_parsers)
+    dynamited_start_parser.set_defaults(action_name="start")
+
+    # === Setup Dynamite Daemon Component Stop Arguments === #
+    dynamited_stop_parser = dynamited_component_args_subparsers.add_parser(
+        "stop", help="Stop Dynamite Daemon.", parents=parent_parsers)
+    dynamited_stop_parser.set_defaults(action_name="stop")
+
+    # === Setup Dynamite Daemon Component Restart Arguments === #
+    dynamited_restart_parser = dynamited_component_args_subparsers.add_parser(
+        "restart", help="Restart Dynamite Daemon.", parents=parent_parsers)
+    dynamited_restart_parser.set_defaults(action_name="restart")
+
+    # === Setup Dynamite Daemon Component Status Arguments === #
+    dynamited_status_parser = dynamited_component_args_subparsers.add_parser(
+        "status", help="Status Dynamite Daemon.", parents=parent_parsers)
+    dynamited_status_parser.set_defaults(action_name="status")
 
 
 def register_updates_component_args(upd_component_parser, parent_parsers):

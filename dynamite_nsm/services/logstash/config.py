@@ -275,7 +275,7 @@ def change_logstash_elasticsearch_password(password='changeme', prompt_user=True
     logger = get_logger('LOGSTASH', level=log_level, stdout=stdout)
 
     environment_variables = utilities.get_environment_file_dict()
-    if not logstash_profile.ProcessProfiler().is_installed:
+    if not logstash_profile.ProcessProfiler().is_installed():
         logger.error("Password reset failed. LogStash is not installed on this host.")
         raise general_exceptions.ResetPasswordError("Password reset failed. LogStash is not installed on this host.")
     if prompt_user:

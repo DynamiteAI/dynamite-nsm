@@ -94,7 +94,7 @@ class InstallManager:
         self.verbose = verbose
 
         if not elasticsearch_host:
-            if elastic_profile.ProcessProfiler().is_installed:
+            if elastic_profile.ProcessProfiler().is_installed():
                 self.elasticsearch_host = 'localhost'
             else:
                 raise lab_exceptions.InstallLabError(

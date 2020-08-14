@@ -195,7 +195,7 @@ class ElasticsearchProcessStartStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
@@ -223,7 +223,7 @@ class ElasticsearchProcessStopStrategy(execution_strategy.BaseExecStrategy):
 
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
@@ -258,7 +258,7 @@ class ElasticsearchProcessRestartStrategy(execution_strategy.BaseExecStrategy):
             )
         )
         if status:
-            self.add_function(process.status, {}, return_format="json")
+            self.add_function(process.status, {"pretty_print_status": True}, return_format="text")
 
 
 class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
@@ -266,7 +266,7 @@ class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
     Steps to get the status of elasticsearch
     """
 
-    def __init__(self):
+    def __init__(self, stdout=True, verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self, strategy_name="elasticsearch_status",
             strategy_description="Get the status of the ElasticSearch process.",
@@ -275,10 +275,14 @@ class ElasticsearchProcessStatusStrategy(execution_strategy.BaseExecStrategy):
             ),
             arguments=(
                 # process.status
-                {},
+                {
+                    "stdout": bool(stdout),
+                    "verbose": bool(verbose),
+                    "pretty_print_status": True
+                },
             ),
             return_formats=(
-                'json',
+                'text',
             )
         )
 

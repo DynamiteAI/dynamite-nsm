@@ -57,7 +57,7 @@ class SystemCtl:
 
     @staticmethod
     def _format_svc_string(svc):
-        if str(svc).startswith('dynamite') and not str(svc).endswith('.target'):
+        if str(svc).startswith('dynamite-') and not str(svc).endswith('.target'):
             svc = svc + '.target'
         elif not str(svc).endswith('.service'):
             svc = svc + '.service'
@@ -278,8 +278,10 @@ class SystemCtl:
 
         :param svc: The name of the service or target
         """
-
-        svc = self._format_svc_string(svc)
+        try:
+            svc = self._format_svc_string(svc)
+        except IOError:
+            return True
         os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
 
     def uninstall_and_disable(self, svc):
@@ -291,5 +293,8 @@ class SystemCtl:
 
         svc = self._format_svc_string(svc)
         res = self.disable(svc)
-        os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+        try:
+            os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+        except FileNotFoundError:
+            return True
         return res

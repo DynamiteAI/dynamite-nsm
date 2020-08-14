@@ -52,6 +52,12 @@ class InvalidOsPackageManagerDetectedError(Exception):
         super(InvalidOsPackageManagerDetectedError, self).__init__(msg)
 
 
+class MethodNotImplementedError(Exception):
+    def __init__(self):
+        msg = "This method is currently not implemented by this component."
+        super(MethodNotImplementedError, self).__init__(msg)
+
+
 class OsPackageManagerInstallError(Exception):
 
     def __init__(self, message):
