@@ -9,7 +9,7 @@ The agent (sensor) is responsible for generating JSON events from raw network pa
 
 | Component   | Description                                                                                                                                                                                                                                                      |
 |-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Zeek [2.6.1]](https://github.com/zeek/zeek)           | Previously Bro, Zeek is a powerful network analysis framework that is differs from your typical IDS. It is capable of enumerating detailed information surrounding network connections and their underlying protocols.|
+| [Zeek [3.0.3]](https://github.com/zeek/zeek)           | Previously Bro, Zeek is a powerful network analysis framework that is differs from your typical IDS. It is capable of enumerating detailed information surrounding network connections and their underlying protocols.|
 | [Suricata [4.1.4]](https://github.com/OISF/suricata)   | Suricata is an Intrusion Detection System (IDS), powered by the latest open [EmergingThreat](https://doc.emergingthreats.net/) rule-sets.
 | [Oinkmaster [2.0]](http://oinkmaster.sourceforge.net/download.shtml)| A script to automate management of Suricata rule-sets, and keep rules up-to-date.
 | [PF_RING [7.4.0]](https://github.com/ntop/PF_RING)     | A new type of network socket that dramatically improves the packet capture speed. It is used in conjunction with the Zeek to improve packet analysis.                                                                 |
@@ -27,6 +27,13 @@ The monitor is responsible for collecting these events, enriching and normalizin
 | [ElastiFlow™ [3.5.0]](https://github.com/robcowart/elastiflow) | Provides network flow (**and now Zeek!**) data collection and visualization.                                            |
 | [Synesis [1.1.0]](https://github.com/robcowart/synesis_lite_suricata)| Provides Suricata data normalization and visualization.|
 
+### The Dynamite Daemon
+
+The Dynamite Daemon is a new addition toe the DynamiteNSM stack and currently provides some low-level metrics around running agent analyzers.
+
+| Component                                                               | Description                             |
+|-------------------------------------------------------------------------|-----------------------------------------|
+| [Dynamite Daemon [0.1.0]](https://github.com/DynamiteAI/dynamited_pub) | Reports low-level Zeek/Suricata metrics |
 
 ### The Lab <sub>[Experimental]</sub>
 

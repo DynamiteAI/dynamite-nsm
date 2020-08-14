@@ -18,6 +18,9 @@
     <i style="color:grey">Installation examples are accelerated for the sake of demo.</i>
 </p>
 
+### Documentation
+Want to learn how to install DynamiteNSM in your own environment?
+Check out the [ReadTheDocs](https://dynamite-nsm.readthedocs.io/en/stable/).
 
 ### Installation
 
@@ -28,9 +31,16 @@ Packages are available for `Python2.7+.`
 pip install dynamite-nsm
 ```
 
-### Documentation
-Want to learn how to install DynamiteNSM in your own environment?
-Check out the [ReadTheDocs](https://dynamite-nsm.readthedocs.io/en/stable/).
+### External Configurations
+
+DynamiteNSM depends heavily on a set of default configurations that are updated in parallel with every release.
+
+Dynamite hosts these configurations iin a publically accessible S3 bucket, and the utility will check this location to retrieve the latest configs and mirrors.
+
+***Optionally***, you can host your own configurations/mirrors for custom deployments.
+
+- https://github.com/DynamiteAI/dynamite-nsm-configurations
+
 
 ### Feedback
 Let us know what you think! We're constantly looking to improve our software.

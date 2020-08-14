@@ -99,7 +99,7 @@ def register_monitor_component_args(mon_component_parser, parent_parsers):
     mon_install_parser.set_defaults(action_name="install")
 
     mon_install_parser.add_argument("--ls-listen-addr", dest="ls_addr", type=str, default='0.0.0.0',
-                                    help="The address upon which Monitor input plugins listen."
+                                    help="The address upon which LogStash input plugins listen."
                                     )
     mon_install_parser.add_argument("--kb-listen-addr", dest="kb_addr", type=str, default='0.0.0.0',
                                     help="The address upon which Kibana web interface listens."
@@ -117,7 +117,7 @@ def register_monitor_component_args(mon_component_parser, parent_parsers):
                                     help="The port that ElasticSearch is listening on."
                                     )
     mon_install_parser.add_argument("--ls-heap-size", dest="ls_heap_size", type=int, default=4,
-                                    help="The amount of memory to designate to Monitor's Java Heap [Gi]"
+                                    help="The amount of memory to designate to LogStash's Java Heap [Gi]"
                                     )
     mon_install_parser.add_argument("--es-password", dest="elastic_password", type=str,
                                     help="The password used for logging into ElasticSearch."
