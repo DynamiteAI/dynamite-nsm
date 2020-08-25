@@ -314,6 +314,35 @@ def get_network_interface_names():
     return available_networks
 
 
+def get_network_interface_configurations():
+    """
+    Returns a list of network interface configurations available on the system
+
+    :return: A list of network interface configurations
+    """
+    addresses = psutil.net_if_addrs()
+    stats = psutil.net_if_stats()
+
+    available_networks = []
+    for intface, addr_list in addresses.items():
+        if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
+            continue
+        elif intface.startswith('lo'):
+            continue
+        elif intface in stats and getattr(stats[intface], "isup"):
+            name = intface
+            speed = stats[intface].speed
+            duplex = str(stats[intface].duplex)
+            mtu = stats[intface].mtu
+            available_networks.append({
+                'name': name,
+                'speed': speed,
+                'duplex': duplex,
+                'mtu': mtu
+            })
+    return available_networks
+
+
 def get_network_addresses():
     """
     Returns a list of valid IP addresses for the host
