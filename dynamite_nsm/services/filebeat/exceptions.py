@@ -24,6 +24,18 @@ class InstallFilebeatError(exceptions.InstallError):
         super(InstallFilebeatError, self).__init__(msg)
 
 
+class InvalidFilebeatStatusLogEntry(Exception):
+    """
+    Thrown when a Filebeat log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "FileBeat log entry is invalid: {}".format(message)
+        super(InvalidFilebeatStatusLogEntry, self).__init__(msg)
+
+
 class AlreadyInstalledFilebeatError(InstallFilebeatError):
     """
     Thrown when filebeat is already installed
