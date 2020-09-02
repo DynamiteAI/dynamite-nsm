@@ -1,5 +1,6 @@
 import os
 import time
+import random
 import shutil
 
 from yaml import load, dump
@@ -136,6 +137,23 @@ class ConfigManager:
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
+
+    @staticmethod
+    def get_optimal_suricata_interface_config(network_capture_interfaces):
+
+        def create_suricata_interfaces(net_interfaces):
+            suricata_interface_configs = []
+            for net_interface in net_interfaces:
+                suricata_interface_configs.append(
+                    {
+                        'interface': net_interface,
+                        'cluster-id': random.randint(32769, 65535),
+                        'cluster-type': 'cluster_flow',
+                        'threads': 'auto',
+                    }
+                )
+            return suricata_interface_configs
+        return create_suricata_interfaces(network_capture_interfaces)
 
     def add_afpacket_interface(self, interface, threads=None, cluster_id=None, cluster_type='cluster_flow',
                                bpf_filter=None):

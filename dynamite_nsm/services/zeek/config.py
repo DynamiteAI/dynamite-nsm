@@ -1,6 +1,16 @@
 import os
+import math
 import time
 import shutil
+import random
+import logging
+
+try:
+    # Python 3
+    from itertools import zip_longest
+except ImportError:
+    # Python 2
+    from itertools import izip_longest as zip_longest
 
 try:
     from ConfigParser import ConfigParser
@@ -8,6 +18,7 @@ except Exception:
     from configparser import ConfigParser
 
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
@@ -15,6 +26,7 @@ class ScriptConfigManager:
     """
     Wrapper for configuring broctl sites/local.zeek
     """
+
     def __init__(self, configuration_directory):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
@@ -149,6 +161,7 @@ class NodeConfigManager:
     """
     Wrapper for configuring broctl node.cfg
     """
+
     def __init__(self, install_directory):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
@@ -169,6 +182,95 @@ class NodeConfigManager:
                 key, value = item
                 node_config[section][key] = value
         return node_config
+
+    @staticmethod
+    def get_optimal_zeek_worker_config(network_capture_interfaces, strategy="aggressive", cpus=None, stdout=True,
+                                       verbose=False):
+        """
+        Algorithm for determining the assignment of CPUs for Zeek workers
+
+        :param network_capture_interfaces: A list of network interface names
+        :param strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources
+                         'conservative', results in less CPUs pinned per interface, but never overshoots resources
+        :param cpus: If None, we'll derive this by looking at the cpu core count,
+                     otherwise a list of cpu cores (E.G [0, 1, 2])
+        :param stdout: Print the output to console
+        :param verbose: Include detailed debug messages
+        :return: A dictionary containing Zeek worker configuration
+        """
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('ZEEK', level=log_level, stdout=stdout)
+        if not cpus:
+            cpus = [c for c in range(0, utilities.get_cpu_core_count())]
+        logger.info("Calculating optimal Zeek worker strategy [strategy: {}].".format(strategy))
+        logger.debug("Detected CPU Cores: {}".format(cpus))
+
+        # Reserve 0 for KERNEL/Userland opts
+        available_cpus = cpus[1:]
+
+        def grouper(n, iterable):
+            args = [iter(iterable)] * n
+            return zip_longest(*args)
+
+        def create_workers(net_interfaces, avail_cpus):
+            idx = 0
+            zeek_worker_configs = []
+            for net_interface in net_interfaces:
+                if idx >= len(avail_cpus):
+                    idx = 0
+                if isinstance(avail_cpus[idx], int):
+                    avail_cpus[idx] = [avail_cpus[idx]]
+                zeek_worker_configs.append(
+                    dict(
+                        name='dynamite-worker-' + net_interface,
+                        host='localhost',
+                        interface=net_interface,
+                        lb_procs=len(avail_cpus[idx]),
+                        pinned_cpus=avail_cpus[idx],
+                        af_packet_fanout_id=random.randint(1, 32768),
+                        af_packet_fanout_mode='AF_Packet::FANOUT_HASH'
+                    )
+                )
+                idx += 1
+            return zeek_worker_configs
+
+        if len(available_cpus) <= len(network_capture_interfaces):
+            # Wrap the number of CPUs around the number of network interfaces;
+            # Since there are more network interfaces than CPUs; CPUs will be assigned more than once
+            # lb_procs will always be 1
+
+            zeek_workers = create_workers(network_capture_interfaces, available_cpus)
+
+        else:
+            # In this scenario we choose from one of two strategies
+            #  1. Aggressive:
+            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND UP **.
+            #     - Group the available CPUs by this integer
+            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
+            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
+            #  2. Conservative:
+            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND DOWN **.
+            #     - Group the available CPUs by this integer
+            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
+            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
+            aggressive_ratio = int(math.ceil(len(available_cpus) / float(len(network_capture_interfaces))))
+            conservative_ratio = int(math.floor(len(available_cpus) / len(network_capture_interfaces)))
+            if strategy == 'aggressive':
+                cpu_groups = grouper(aggressive_ratio, available_cpus)
+            else:
+                cpu_groups = grouper(conservative_ratio, available_cpus)
+
+            temp_cpu_groups = []
+            for cpu_group in cpu_groups:
+                cpu_group = [c for c in cpu_group if c]
+                temp_cpu_groups.append(cpu_group)
+            cpu_groups = temp_cpu_groups
+            zeek_workers = create_workers(network_capture_interfaces, cpu_groups)
+        logger.info('Zeek Worker Count: {}'.format(len(zeek_workers)))
+        logger.debug('Zeek Workers: {}'.format(zeek_workers))
+        return zeek_workers
 
     def add_logger(self, name, host):
         """
@@ -200,16 +302,46 @@ class NodeConfigManager:
             'host': host
         }
 
-    def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0, 1)):
+    def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0, 1), af_packet_fanout_id=None,
+                   af_packet_fanout_mode=None):
         """
         :param name: The name of the worker
         :param interface: The interface that the worker should be monitoring
         :param host: The host on which the worker is running
         :param lb_procs: The number of Zeek processes associated with a given worker
-        :param pin_cpus: Core affinity for the processes (iterable)
+        :param pin_cpus: Core affinity for the processes (iterable),
+        :param af_packet_fanout_id: To scale processing across threads, packet sockets can form a
+                                    fanout group.  In this mode, each matching packet is enqueued
+                                    onto only one socket in the group.  A socket joins a fanout
+                                    group by calling setsockopt(2) with level SOL_PACKET and
+                                    option PACKET_FANOUT.  Each network namespace can have up to
+                                    65536 independent groups.
+        :param af_packet_fanout_mode: The algorithm used to spread traffic between sockets.
         """
+        valid_fanout_modes = [
+            'FANOUT_HASH',  # The default mode, PACKET_FANOUT_HASH, sends packets from
+            # the same flow to the same socket to maintain per-flow
+            # ordering.  For each packet, it chooses a socket by taking
+            # the packet flow hash modulo the number of sockets in the
+            # group, where a flow hash is a hash over network-layer
+            # address and optional transport-layer port fields.
+
+            'FANOUT_CPU',  # selects the socket based on the CPU that the packet arrived on
+
+            'FANOUT_QM'  # (available since Linux 3.14) selects the socket using the recorded
+            # queue_mapping of the received skb.
+        ]
         if not str(interface).startswith('af_packet::'):
             interface = 'af_packet::' + interface
+        if not af_packet_fanout_id:
+            af_packet_fanout_id = random.randint(1, 32768)
+        if not af_packet_fanout_mode:
+            af_packet_fanout_mode = 'AF_Packet::FANOUT_HASH'
+        else:
+            if str(af_packet_fanout_mode).upper() in valid_fanout_modes:
+                af_packet_fanout_mode = 'AF_Packet::' + str(af_packet_fanout_mode).upper()
+            else:
+                af_packet_fanout_mode = 'AF_Packet::FANOUT_HASH'
         if max(pin_cpus) < utilities.get_cpu_core_count() and min(pin_cpus) >= 0:
             pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
             self.node_config[name] = {
@@ -218,7 +350,9 @@ class NodeConfigManager:
                 'lb_method': 'custom',
                 'lb_procs': lb_procs,
                 'pin_cpus': ','.join(pin_cpus),
-                'host': host
+                'host': host,
+                'af_packet_fanout_id': af_packet_fanout_id,
+                'af_packet_fanout_mode': af_packet_fanout_mode
             }
 
     def remove_logger(self, name):

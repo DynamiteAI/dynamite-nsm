@@ -163,7 +163,7 @@ class StatusLog:
                     if s < en.time < e:
                         yield en
                 else:
-                    yield entry
+                    yield en
         for log_entry in filter_entries(start, end):
 
             if log_level:
@@ -181,5 +181,5 @@ class StatusLog:
 
 
 log = StatusLog()
-for entry in log.iter_entries(start=datetime.utcnow() - timedelta(minutes=60, days=1), log_level='INFO'):
+for entry in log.iter_metrics(start=datetime.utcnow() - timedelta(minutes=60, days=1)):
     print(entry)

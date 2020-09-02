@@ -82,90 +82,6 @@ class InstallManager(install.BaseInstallManager):
                 "One or more defined network interfaces is invalid: {}".format(capture_network_interfaces))
 
     @staticmethod
-    def get_zeek_workers(network_capture_interfaces, strategy="aggressive", stdout=True, verbose=False):
-        """
-        Algorithm for determining the assignment of CPUs for Zeek workers
-
-        :param network_capture_interfaces: A list of network interface names
-        :param strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources
-                         'conservative', results in less CPUs pinned per interface, but never overshoots resources
-        :param stdout: Print the output to console
-        :param verbose: Include detailed debug messages
-        :return: A dictionary containing Zeek worker configuration
-        """
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        logger = get_logger('ZEEK', level=log_level, stdout=stdout)
-
-        cpus = [c for c in range(0, utilities.get_cpu_core_count())]
-        logger.info("Calculating optimal Zeek worker strategy [strategy: {}].".format(strategy))
-        logger.debug("Detected CPU Cores: {}".format(cpus))
-
-        # Reserve 0 for KERNEL/Userland opts
-        available_cpus = cpus[1:]
-
-        def grouper(n, iterable):
-            args = [iter(iterable)] * n
-            return zip_longest(*args)
-
-        def create_workers(net_interfaces, avail_cpus):
-            idx = 0
-            zeek_worker_configs = []
-            for net_interface in net_interfaces:
-                if idx >= len(avail_cpus):
-                    idx = 0
-                if isinstance(avail_cpus[idx], int):
-                    avail_cpus[idx] = [avail_cpus[idx]]
-                zeek_worker_configs.append(
-                    dict(
-                        name='dynamite-worker-' + net_interface,
-                        host='localhost',
-                        interface=net_interface,
-                        lb_procs=len(avail_cpus[idx]),
-                        pinned_cpus=avail_cpus[idx]
-                    )
-                )
-                idx += 1
-            return zeek_worker_configs
-
-        if len(available_cpus) <= len(network_capture_interfaces):
-            # Wrap the number of CPUs around the number of network interfaces;
-            # Since there are more network interfaces than CPUs; CPUs will be assigned more than once
-            # lb_procs will always be 1
-
-            zeek_workers = create_workers(network_capture_interfaces, available_cpus)
-
-        else:
-            # In this scenario we choose from one of two strategies
-            #  1. Aggressive:
-            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND UP **.
-            #     - Group the available CPUs by this integer
-            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
-            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
-            #  2. Conservative:
-            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND DOWN **.
-            #     - Group the available CPUs by this integer
-            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
-            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
-            aggressive_ratio = int(math.ceil(len(available_cpus) / float(len(network_capture_interfaces))))
-            conservative_ratio = int(math.floor(len(available_cpus) / len(network_capture_interfaces)))
-            if strategy == 'aggressive':
-                cpu_groups = grouper(aggressive_ratio, available_cpus)
-            else:
-                cpu_groups = grouper(conservative_ratio, available_cpus)
-
-            temp_cpu_groups = []
-            for cpu_group in cpu_groups:
-                cpu_group = [c for c in cpu_group if c]
-                temp_cpu_groups.append(cpu_group)
-            cpu_groups = temp_cpu_groups
-            zeek_workers = create_workers(network_capture_interfaces, cpu_groups)
-        logger.info('Zeek Worker Count: {}'.format(len(zeek_workers)))
-        logger.debug('Zeek Workers: {}'.format(zeek_workers))
-        return zeek_workers
-
-    @staticmethod
     def install_dependencies(stdout=False, verbose=False):
         """
         Install the required dependencies required by Zeek
@@ -227,7 +143,7 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Configuring Zeek Zeek_AF_Packet plugin.')
         if self.verbose:
             print('./configure --zeek-dist={} --install-root={} --with-latest-kernel'.format(
-                    os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory))
+                os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory))
             config_zeek_af_packet_process = subprocess.Popen(
                 './configure --zeek-dist={} --install-root={} --with-latest-kernel'.format(
                     os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), self.configuration_directory),
@@ -644,8 +560,8 @@ class InstallManager(install.BaseInstallManager):
                 del node_config.node_config[key]
 
         # Calculate new workers.
-        for worker in self.get_zeek_workers(self.capture_network_interfaces, stdout=self.stdout,
-                                            verbose=self.verbose):
+        for worker in node_config.get_optimal_zeek_worker_config(self.capture_network_interfaces, stdout=self.stdout,
+                                                   verbose=self.verbose):
             node_config.add_worker(name=worker['name'],
                                    host=worker['host'],
                                    interface=worker['interface'],
