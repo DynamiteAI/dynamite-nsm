@@ -4,6 +4,7 @@ from datetime import datetime
 from datetime import timedelta
 from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.services.base import logs
 from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
@@ -98,74 +99,34 @@ class StatusEntry:
         )
 
 
-class StatusLog:
+class StatusLog(logs.LogFile):
 
-    def __init__(self, log_sample_size=500, process_entire_log=False):
+    def __init__(self, log_sample_size=500):
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.filebeat_home = self.env_dict.get('FILEBEAT_HOME')
         self.log_path = os.path.join(self.filebeat_home, 'logs', 'filebeat')
 
-        self.exists = False
-        self.entries = []
-        self.latest_offset = 0
-        self.refresh_latest_offset()
-        if process_entire_log:
-            self.build_recent_entries(1000000)
-        else:
-            self.build_recent_entries(log_sample_size)
-
-    def __len__(self):
-        return self.latest_offset
-
-    def refresh_latest_offset(self):
-        """
-        Sets the latest line number offset in the current file.
-        """
-        try:
-            with open(self.log_path) as f:
-                for i, l in enumerate(f):
-                    pass
-                self.latest_offset = i + 1
-                self.exists = True
-        except IOError:
-            self.latest_offset = 0
-
-    def build_recent_entries(self, n):
-        if not self.exists:
-            raise FileNotFoundError(self.log_path)
-        if n > self.latest_offset:
-            start_line_offset = 0
-        else:
-            start_line_offset = self.latest_offset - n
-        entries = []
-        with open(self.log_path) as f:
-            current_offset = 0
-            while True:
-                entry = f.readline()
-                if not entry:
-                    break
-                if current_offset > start_line_offset:
-                    entry = StatusEntry(entry)
-                    entries.append(entry)
-                current_offset += 1
-        self.entries = entries
+        logs.LogFile.__init__(self,
+                              log_path=self.log_path,
+                              log_sample_size=log_sample_size)
 
     def iter_entries(self, start=None, end=None, log_level=None, category=None):
 
         def filter_entries(s=None, e=None):
-            if s and not e:
+            if not e:
                 e = datetime.utcnow()
-            elif e and not s:
+            if not s:
                 s = datetime.utcnow() - timedelta(minutes=60)
             for en in self.entries:
+                en = StatusEntry(en)
                 if s or e:
                     if s < en.time < e:
                         yield en
                 else:
                     yield en
-        for log_entry in filter_entries(start, end):
 
+        for log_entry in filter_entries(start, end):
             if log_level:
                 if log_entry.log_level.lower() != log_level.lower():
                     continue
@@ -178,8 +139,3 @@ class StatusLog:
         for entry in self.iter_entries(start, end):
             if entry.metrics:
                 yield entry.metrics
-
-
-log = StatusLog()
-for entry in log.iter_metrics(start=datetime.utcnow() - timedelta(minutes=60, days=1)):
-    print(entry)
