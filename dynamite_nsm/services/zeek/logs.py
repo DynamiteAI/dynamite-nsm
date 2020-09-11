@@ -43,8 +43,11 @@ class MetricsEntry:
         self.reassembly_file_size = entry_raw.get('reassem_file_size', 0)
         self.reassembly_fragment_size = entry_raw.get('reassem_frag_size', 0)
         self.reassembly_unknown_size = entry_raw.get('reassem_unknown_size', 0)
+        self.packets_dropped_percentage = 0
+        if self.packets_processed > 0:
+            self.packets_dropped_percentage = round(self.packets_dropped / self.packets_processed, 2)
 
-    def append_metric_entry(self, metric_entry):
+    def merge_metric_entry(self, metric_entry):
         if not isinstance(metric_entry, MetricsEntry):
             return
         self.peer = None
@@ -72,6 +75,8 @@ class MetricsEntry:
         self.reassembly_file_size = self.reassembly_file_size + metric_entry.reassembly_file_size
         self.reassembly_fragment_size = self.reassembly_fragment_size + metric_entry.reassembly_fragment_size
         self.reassembly_unknown_size = self.reassembly_unknown_size + metric_entry.reassembly_unknown_size
+        if self.packets_processed > 0:
+            self.packets_dropped_percentage = round(self.packets_dropped/self.packets_processed, 6)
 
     def __str__(self):
         return json.dumps(dict(
@@ -83,6 +88,7 @@ class MetricsEntry:
             packets_processed=self.packets_processed,
             bytes_received=self.bytes_received,
             packets_dropped=self.packets_dropped,
+            packets_dropped_percentage=self.packets_dropped_percentage,
             packets_link=self.packets_link,
             packet_lag=self.packet_lag,
             events_processed=self.events_processed,
@@ -125,11 +131,8 @@ class StatusLog(logs.LogFile):
                 s = datetime.utcnow() - timedelta(minutes=60)
             for en in self.entries:
                 en = MetricsEntry(json.loads(en))
-                if s or e:
-                    if s < en.time < e:
-                        yield en
-                else:
-                    yield e
+                if s < en.time < e:
+                    yield en
         for log_entry in filter_metrics(start, end):
             yield log_entry
 
@@ -147,6 +150,8 @@ class StatusLog(logs.LogFile):
         """
 
         sorted_by_time = [metric for metric in self.iter_metrics(start, end)]
+        if not sorted_by_time:
+            return
         sorted_by_time = sorted(sorted_by_time, key=lambda x: x.timestamp)
         start = sorted_by_time[0].time
         for name, group in itertools.groupby(
@@ -156,5 +161,5 @@ class StatusLog(logs.LogFile):
                 if not aggregated_entry:
                     aggregated_entry = entry
                 else:
-                    aggregated_entry.append_metric_entry(entry)
+                    aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
