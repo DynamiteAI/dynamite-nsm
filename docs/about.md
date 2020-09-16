@@ -1,5 +1,4 @@
 # About
-### *DISCOVER YOUR NETWORK*
 
 DynamiteNSM is a free Network Security Monitor developed by Dynamite Analytics to enable network visibility and advanced cyber threat detection. The tool provides network and cybersecurity operators with holistic insights into their networks while giving them the ability to deep-dive into lower-level activities.
 The solution presents powerful dashboards, giving comprehensive view into performance and threat-based metrics. Dynamite-NSM can be easily deployed in different environments including high-speed data centers, small-to-large enterprises, IoT & industrial networks, and even at home.
