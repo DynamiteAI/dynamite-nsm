@@ -6,7 +6,7 @@ The solution presents powerful dashboards, giving comprehensive view into perfor
 
 DynamiteNSM handles massive volumes of network traffic through scalable ingestion and optimized network sensors. The solution includes two key components: the agent and the monitor. The agent analyzes and forwards network events, while the monitor processes incoming events and displays analytic information.
 
-The monitor component builds upon the ELK stack (ElasticSearch, LogStash, Kibana) and is coupled with the fine-tuned Zeek sensor (aka Bro), flow data inputs (NetFlow, sFlow, IPFIX), and Suricata IDS security alerts. Dynamite-NSM now includes the DynamiteLab component made of the python API for easy data access and integrated JupyterHub hosted notebooks as the data science environment.
+The monitor component builds upon the ELK stack (ElasticSearch, LogStash, Kibana) and is coupled with the fine-tuned Zeek sensor (aka Bro), flow data inputs (NetFlow, sFlow, IPFIX), and Suricata IDS security alerts. DynamiteNSM now includes the DynamiteLab component made of the python API for easy data access and integrated JupyterHub hosted notebooks as the data science environment.
 
 DynamiteNSM is designed to be deployed very quickly with minimal configuration. Unlike many other tools, it can be installed and managed with a standalone command-line utility. The system is inherently passive without disruption to the network. There is no need to install agents on every computer, perform network scans, or directly interact with network assets. To start receiving analytics, we just connect agents and optional flow sources to the monitor.
 
