@@ -1,4 +1,5 @@
-<a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-discover-2000x140.png" width="800" height="auto"></a>
+***Discover your network***
+<a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite-logo.png" width="350" height="auto"></a>
 ## Dynamite Network Security Monitor
 <!--- ### ***Discover your network*** --->
 [DynamiteNSM](http://dynamite.ai) is a free Network Security Monitor (NSM), built on top of several leading, enterprise-grade technologies. The tool provides network and cybersecurity operators with holistic insights into their networks while giving them the ability to deep-dive into lower-level activities.
