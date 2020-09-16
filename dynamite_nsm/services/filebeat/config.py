@@ -15,8 +15,8 @@ from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 class ConfigManager:
     tokens = {
         'inputs': ('filebeat.inputs',),
-        'logstash_targets': ('output.logstash', ),
-        'kafka_targets': ('output.kafka', ),
+        'logstash_targets': ('output.logstash',),
+        'kafka_targets': ('output.kafka',),
         'processors': ('processors',)
     }
 
@@ -200,14 +200,31 @@ class ConfigManager:
         }
         self.logstash_targets['enabled'] = False
 
-    def set_logstash_targets(self, target_hosts):
+    def set_logstash_targets(self, target_hosts, loadbalance=False, index=None, proxy_url=None, pipelining=2,
+                             bulk_max_size=2048):
         """
         Define LogStash endpoints where events should be sent
 
         :param target_hosts: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"])
+        :param loadbalance: If set to true and multiple Logstash hosts are configured, the output plugin load balances
+                            published events onto all Logstash hosts.
+        :param index: The name of the index to include in the %{[@metadata][beat]} field
+        :param proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
+        :param pipelining: Configures the number of batches to be sent asynchronously to Logstash
+        :param bulk_max_size: The maximum number of events to bulk in a single Logstash request.
         """
 
-        self.logstash_targets = {'hosts': target_hosts, 'enabled': True}
+        self.logstash_targets = {
+            'hosts': target_hosts,
+            'enabled': True,
+            'loadbalance': loadbalance,
+            'pipelining': pipelining,
+            'bulk_max_size': bulk_max_size
+        }
+        if index and isinstance(index, str):
+            self.logstash_targets['index'] = index
+        if proxy_url and isinstance(proxy_url, str):
+            self.logstash_targets['proxy_url'] = proxy_url
 
     def set_monitor_target_paths(self, monitor_log_paths):
         """
