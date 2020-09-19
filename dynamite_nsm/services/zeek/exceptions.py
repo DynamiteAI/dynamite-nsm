@@ -36,6 +36,18 @@ class CallZeekProcessError(exceptions.CallProcessError):
         super(CallZeekProcessError, self).__init__(msg)
 
 
+class InvalidZeekStatusLogEntry(Exception):
+    """
+    Thrown when a Zeek zeek.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "FileBeat log entry is invalid: {}".format(message)
+        super(InvalidZeekStatusLogEntry, self).__init__(msg)
+    
+        
 class ReadsZeekConfigError(exceptions.ReadConfigError):
     """
     Thrown when an Zeek.yaml config option fails to read
@@ -56,7 +68,7 @@ class ZeekScriptNotFoundError(Exception):
 
     def __init__(self, rule):
         """
-        :param rule: A suricata rule
+        :param rule: A zeek script
         """
         msg = "Zeek script does not exist: {}".format(rule)
         super(ZeekScriptNotFoundError, self).__init__(msg)

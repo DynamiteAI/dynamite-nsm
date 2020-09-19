@@ -7,6 +7,7 @@ from datetime import datetime
 from datetime import timedelta
 from dynamite_nsm import const
 from dynamite_nsm.services.base import logs
+from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
 
 def parse_suricata_datetime(t):
@@ -16,6 +17,60 @@ def parse_suricata_datetime(t):
     elif t[26] == '-':
         ret += timedelta(hours=int(t[27:29]), minutes=int(t[30:]))
     return ret
+
+
+class MainEntry:
+
+    LOG_LEVEL_MAP = dict(
+        Debug="DEBUG",
+        Info="INFO",
+        Notice="NOTICE",
+        Warning="WARN",
+        Error="ERROR",
+        Critical="CRITICAL"
+    )
+
+    def __init__(self, entry_raw):
+        self.entry_raw = entry_raw
+        self.time = None
+        self.timestamp = None
+        self.log_level = None
+        self.category = None
+        self.error_code = None
+        self.error = None
+        self.message = None
+        self._parse_entry()
+
+    def _parse_entry(self):
+        log_entry = self.entry_raw.replace("\n", "")
+        try:
+            entry = json.loads(log_entry)
+        except ValueError:
+            raise suricata_exceptions.InvalidSuricataStatusLogEntry(
+                'suricata.log entry is not JSON formatted. '
+                'Make sure to enable logging.file.type="json" in suricata.yaml.')
+        self.timestamp = entry.get('timestamp')
+        self.log_level = entry.get('log_level')
+        self.category = entry.get('event_type')
+        self.error_code = entry.get('engine', {}).get('error_code', 0)
+        self.error = entry.get('engine', {}).get('error', None)
+        self.message = entry.get('engine', {}).get('message', None)
+        if not self.timestamp:
+            raise suricata_exceptions.InvalidSuricataStatusLogEntry('Missing timestamp field')
+        if self.log_level:
+            self.log_level = self.LOG_LEVEL_MAP.get(self.log_level)
+        self.time = parse_suricata_datetime(self.timestamp)
+
+    def __str__(self):
+        log_entry = dict(
+            time=str(self.time),
+            log_level=self.log_level,
+            category=self.category,
+            error_code=self.error_code,
+            error=self.error,
+            message=self.message,
+        )
+        return json.dumps(log_entry)
 
 
 class MetricsEntry:
@@ -135,7 +190,38 @@ class MetricsEntry:
         self.krb5_udp_events += metric_entry.krb5_udp_events
         self.failed_udp_events += metric_entry.failed_udp_events
         if self.capture_kernel_packets > 0:
-            self.capture_kernel_drops_percentage = round(self.capture_kernel_drops/self.capture_kernel_packets, 6)
+            self.capture_kernel_drops_percentage = round(self.capture_kernel_drops / self.capture_kernel_packets, 6)
+
+
+class MainLog(logs.LogFile):
+
+    def __init__(self, log_sample_size=10000):
+        self.log_path = os.path.join(const.LOG_PATH, 'suricata', 'suricata.log')
+
+        logs.LogFile.__init__(self,
+                              log_path=self.log_path,
+                              log_sample_size=log_sample_size)
+
+    def iter_entries(self, start=None, end=None, log_level=None, category=None):
+
+        def filter_entries(s=None, e=None):
+            if not e:
+                e = datetime.utcnow()
+            if not s:
+                s = datetime.utcnow() - timedelta(minutes=60)
+            for en in self.entries:
+                en = MainEntry(en)
+                if s < en.time < e:
+                    yield en
+
+        for log_entry in filter_entries(start, end):
+            if log_level:
+                if log_entry.log_level.lower() != log_level.lower():
+                    continue
+            if category:
+                if log_entry.category.lower() != category.lower():
+                    continue
+            yield log_entry
 
 
 class StatusLog(logs.LogFile):

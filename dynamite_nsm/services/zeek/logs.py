@@ -6,10 +6,44 @@ from datetime import timedelta
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import logs
+from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
 def parse_zeek_datetime(t):
     return datetime.utcfromtimestamp(int(str(t).split('.')[0]))
+
+
+class ClusterEntry:
+
+    def __init__(self, entry_raw):
+        self.entry_raw = entry_raw
+        self.time = None
+        self.timestamp = None
+        self.message = None
+        self._parse_entry()
+
+    def _parse_entry(self):
+        log_entry = self.entry_raw.replace("\n", "")
+        try:
+            entry = json.loads(log_entry)
+        except ValueError:
+            raise zeek_exceptions.InvalidZeekStatusLogEntry(
+                'cluster.log entry is not JSON formatted. '
+                'Make sure to enable policy/tuning/json-logs is loaded.')
+        self.timestamp = entry.get('ts')
+        self.node = entry.get('node')
+        self.message = entry.get('message')
+        if not self.timestamp:
+            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+        self.time = parse_zeek_datetime(self.timestamp)
+
+    def __str__(self):
+        log_entry = dict(
+            time=str(self.time),
+            node=self.node,
+            message=self.message
+        )
+        return json.dumps(log_entry)
 
 
 class MetricsEntry:
@@ -76,7 +110,7 @@ class MetricsEntry:
         self.reassembly_fragment_size = self.reassembly_fragment_size + metric_entry.reassembly_fragment_size
         self.reassembly_unknown_size = self.reassembly_unknown_size + metric_entry.reassembly_unknown_size
         if self.packets_processed > 0:
-            self.packets_dropped_percentage = round(self.packets_dropped/self.packets_processed, 6)
+            self.packets_dropped_percentage = round(self.packets_dropped / self.packets_processed, 6)
 
     def __str__(self):
         return json.dumps(dict(
@@ -111,9 +145,95 @@ class MetricsEntry:
         ))
 
 
+class ZeekLogsProxy:
+    """
+    This class makes it easy to access a Zeek log and all subsequent archived logs related to it
+    """
+
+    def __init__(self, log_name, log_sample_size=10000):
+        self.entries = []
+        self.log_name = log_name
+        self.log_sample_size = log_sample_size
+        self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        self.env_dict = utilities.get_environment_file_dict()
+        self.zeek_home = self.env_dict.get('ZEEK_HOME')
+        self.current_log_path = os.path.join(self.zeek_home, 'logs', 'current', log_name)
+        self.log_archive_directory = os.path.join(self.zeek_home, 'logs')
+        self.load_all_logs()
+
+    def load_all_logs(self):
+        archive_directories = []
+        sorted_log_paths = []
+        for log_archive_directory in os.listdir(self.log_archive_directory):
+            try:
+                archive_directories.append(
+                    (log_archive_directory, datetime.strptime(log_archive_directory, '%Y-%m-%d')))
+            except ValueError:
+                pass
+        sorted_archive_directories = sorted(archive_directories, key=lambda x: x[1])
+
+        for archive_dir_name, _ in sorted_archive_directories:
+            relevant_log_names = [fname
+                                  for fname in os.listdir(os.path.join(self.log_archive_directory, archive_dir_name))
+                                  if fname.startswith(self.log_name.replace('.log', '')) and fname.endswith('.gz')
+                                  ]
+            for log_archive_file_name in relevant_log_names:
+                log_rotate_time = log_archive_file_name.split('.')[1].split('-')[0]
+                sorted_log_paths.append(
+                    (os.path.join(self.log_archive_directory, archive_dir_name, log_archive_file_name),
+                     datetime.strptime(archive_dir_name + ' ' + log_rotate_time, '%Y-%m-%d %H:%M:%S'))
+                )
+            sorted_log_paths = sorted(sorted_log_paths, key=lambda x: x[1], reverse=True)
+
+        current_log_file = logs.LogFile(log_path=self.current_log_path, log_sample_size=self.log_sample_size,
+                                        gzip_decode=False)
+        self.entries.extend(current_log_file.entries)
+        for log_path, log_rotate_date in sorted_log_paths:
+            archived_log_file = logs.LogFile(log_path, log_sample_size=self.log_sample_size, gzip_decode=True)
+            remaining_entries_available = self.log_sample_size - len(self.entries)
+            if remaining_entries_available > 0:
+                self.entries.extend(archived_log_file.entries[0: remaining_entries_available])
+            else:
+                break
+
+    def iter_entries(self):
+        for log_entry in self.entries:
+            yield log_entry
+
+
+class ClusterLog(logs.LogFile):
+
+    def __init__(self, log_sample_size=10000, include_archived_logs=False):
+        self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        self.env_dict = utilities.get_environment_file_dict()
+        self.zeek_home = self.env_dict.get('ZEEK_HOME')
+        self.log_path = os.path.join(self.zeek_home, 'logs', 'current', 'cluster.log')
+
+        logs.LogFile.__init__(self,
+                              log_path=self.log_path,
+                              log_sample_size=log_sample_size)
+        if include_archived_logs:
+            self.entries = ZeekLogsProxy('cluster.log', log_sample_size=log_sample_size).entries
+
+    def iter_entries(self, start=None, end=None):
+
+        def filter_entries(s=None, e=None):
+            if not e:
+                e = datetime.utcnow()
+            if not s:
+                s = datetime.utcnow() - timedelta(days=365)
+            for en in self.entries:
+                en = ClusterEntry(en)
+                if s < en.time < e:
+                    yield en
+
+        for log_entry in filter_entries(start, end):
+            yield log_entry
+
+
 class StatusLog(logs.LogFile):
 
-    def __init__(self, log_sample_size=500):
+    def __init__(self, log_sample_size=500, include_archived_logs=False):
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -122,6 +242,8 @@ class StatusLog(logs.LogFile):
         logs.LogFile.__init__(self,
                               log_path=self.log_path,
                               log_sample_size=log_sample_size)
+        if include_archived_logs:
+            self.entries = ZeekLogsProxy('stats.log', log_sample_size=log_sample_size).entries
 
     def iter_metrics(self, start=None, end=None):
         def filter_metrics(s=None, e=None):
@@ -133,6 +255,7 @@ class StatusLog(logs.LogFile):
                 en = MetricsEntry(json.loads(en))
                 if s < en.time < e:
                     yield en
+
         for log_entry in filter_metrics(start, end):
             yield log_entry
 
