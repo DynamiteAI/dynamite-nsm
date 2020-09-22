@@ -17,6 +17,7 @@ import textwrap
 import tarfile
 import subprocess
 import multiprocessing
+from hashlib import md5
 from datetime import datetime
 from contextlib import closing
 
@@ -234,6 +235,30 @@ def extract_java():
 
 def get_default_agent_tag():
     return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_agt'
+
+
+def get_file_md5_hash(fh):
+    """
+    :param fh: file handle
+    :return: the md5 hash of the file
+    """
+    block_size = 65536
+    md5_hasher = md5()
+    buf = fh.read(block_size)
+    while len(buf) > 0:
+        md5_hasher.update(buf)
+        buf = fh.read(block_size)
+    return md5_hasher.hexdigest()
+
+
+def get_filepath_md5_hash(file_path):
+    """
+    :param file_path: path to the file being hashed
+    :return: the md5 hash of a file
+    """
+    with open(file_path, 'rb') as afile:
+       return get_file_md5_hash(afile)
+
 
 
 def get_terminal_size():
