@@ -133,6 +133,7 @@ class ZeekReplay:
     def get_pcap(self):
         """
         Returns a fileobj in rb mode for the pcap analyzed pcap file, if the keep_pcap flag was set during analysis.
+        Be sure to close this handle!
 
         :return: A fileobj to the pcap file
         """
