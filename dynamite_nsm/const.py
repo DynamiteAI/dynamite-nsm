@@ -16,6 +16,7 @@ INSTALL_PATH = "/opt/dynamite"
 CONFIG_PATH = "/etc/dynamite"
 LOG_PATH = '/var/log/dynamite/'
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
+PCAP_PATH = "/etc/dynamite/pcaps/"
 
 
 def bootstrap_constants_from_const_environment_file():

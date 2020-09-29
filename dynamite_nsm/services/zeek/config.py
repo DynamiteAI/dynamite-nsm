@@ -1,9 +1,11 @@
 import os
+import re
 import math
 import time
 import shutil
 import random
 import logging
+from datetime import datetime
 
 try:
     # Python 3
@@ -171,7 +173,7 @@ class NodeConfigManager:
 
     def _parse_node_config(self):
         """
-        :return: A dictionary representing the configurations storred within node.cfg
+        :return: A dictionary representing the configurations stored within node.cfg
         """
         node_config = {}
         config_parser = ConfigParser()
@@ -454,4 +456,111 @@ class NodeConfigManager:
         except Exception as e:
             raise zeek_exceptions.WriteZeekConfigError(
                 "General error while attempting to write new node.cfg file to {}; {}".format(
+                    self.install_directory, e))
+
+
+class LocalNetworkConfigManager:
+    """
+    Wrapper for configuring zeek networks.cfg (local network space)
+    """
+
+    IPV4_AND_CIDR_PATTERN = r'(?<!\d\.)(?<!\d)(?:\d{1,3}\.){3}\d{1,3}/\d{1,2}(?!\d|(?:\.\d))'
+    IPV6_AND_CIDR_PATTERN = r'^(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|::(?:[0-9A-Fa-f]{1,4}:){5}' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4})?::' \
+                            r'(?:[0-9A-Fa-f]{1,4}:){3}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(?:' \
+                            r'(?:[0-9A-Fa-f]{1,4}:){,2}[0-9A-Fa-f]{1,4})?::' \
+                            r'(?:[0-9A-Fa-f]{1,4}:)' \
+                            r'{2}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,4}[0-9A-Fa-f]{1,4})?::' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,6}[0-9A-Fa-f]{1,4})?::/\d{1,2}(?!\d|(?:\.\d)))'
+
+    def __init__(self, install_directory):
+        """
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+        """
+        self.install_directory = install_directory
+        self.network_config = self._parse_network_config()
+
+    def _parse_network_config(self):
+        """
+        :return: A dictionary representing the configurations stored within networks.cfg
+        """
+        with open(os.path.join(self.install_directory, 'etc', 'networks.cfg')) as net_config:
+            local_networks = {}
+            for line in net_config.readlines():
+                ip_and_cidr = None
+                if not line.strip():
+                    continue
+                elif line.startswith('#'):
+                    continue
+                ipv4_match = re.findall(self.IPV4_AND_CIDR_PATTERN, line)
+                ipv6_match = re.findall(self.IPV6_AND_CIDR_PATTERN, line)
+                if ipv4_match:
+                    ip_and_cidr = ipv4_match[0]
+                elif ipv6_match:
+                    ip_and_cidr = ipv6_match[0]
+                if ip_and_cidr:
+                    if len(ip_and_cidr) != len(line.strip()):
+                        description = line.replace(ip_and_cidr, '').strip()
+                local_networks[ip_and_cidr] = description
+        return local_networks
+
+    def add_local_network(self, ip_and_cidr, description=None):
+        """
+        Add a new local network definition
+
+        :param ip_and_cidr: The IP and CIDR address for private (likely internal) network (IPv4/IPv6 notation accepted)
+        :param description: An optional description of that site
+        """
+        if re.match(self.IPV4_AND_CIDR_PATTERN, ip_and_cidr) or re.match(self.IPV4_AND_CIDR_PATTERN, ip_and_cidr):
+            if isinstance(description, str):
+                self.network_config[ip_and_cidr] = description
+            else:
+                self.network_config[ip_and_cidr] = "Added {}.".format(datetime.utcnow())
+
+    def remove_local_network(self, ip_and_cidr):
+        """
+        Remove a network definition
+
+        :param ip_and_cidr: The IP and CIDR address for private (likely internal) network (IPv4/IPv6 notation accepted)
+        """
+        try:
+            del self.network_config[ip_and_cidr]
+        except KeyError:
+            raise zeek_exceptions.ZeekLocalNetworkNotFoundError(ip_and_cidr)
+
+    def write_config(self):
+        try:
+            with open(os.path.join(self.install_directory, 'etc', 'networks.cfg'), 'w') as net_config:
+                lines = []
+                for k, v in self.network_config.items():
+                    if v:
+                        line = '{0: <64} {1}\n'.format(k, v)
+                    else:
+                        line = '{0: <64} {1}\n'.format(k, 'Undocumented network')
+                    lines.append(line)
+                net_config.writelines(lines)
+        except IOError as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to write new networks.cfg file to {}; {}".format(
                     self.install_directory, e))

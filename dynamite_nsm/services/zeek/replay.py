@@ -4,7 +4,10 @@ import time
 import json
 import shutil
 import multiprocessing
-from subprocess import PIPE, Popen
+try:
+    from gevent.subprocess import Popen, PIPE
+except ImportError:
+    from subprocess import PIPE, Popen
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -21,6 +24,14 @@ def list_zeek_replay_ids():
     :return: A list o replay_ids
     """
     return [f for f in os.listdir(REPLAY_ROOT) if f.isalnum() and len(f) == 32]
+
+
+def check_replay_exists(pcap_replay_id):
+    """
+    :param pcap_replay_id: The MD5 hash of the pcap to lookup
+    :return: True, if the pcap has already been analyzed.
+    """
+    return pcap_replay_id in list_zeek_replay_ids()
 
 
 class ZeekReplay:
@@ -105,19 +116,22 @@ class ZeekReplay:
         return cls(pcap_replay_id)
 
     @staticmethod
-    def analyze_in_background(pcap_path):
+    def analyze_in_background(pcap_path, name=None, description=None, keep_pcap=True):
         """
         Same as analysis but run as a non-blocking process
 
         :param pcap_path: The path to the pcap file on disk
+        :param name: The name of the pcap (short descriptor)
+        :param description: A long description for the pcap
+        :param keep_pcap: If True, we'll save a copy of the pcap to disk after analysis
         :return: The replay_id of the pcap being analyzed
         """
 
         pcap_replay_id = utilities.get_filepath_md5_hash(pcap_path)
-        multiprocessing.Process(target=ZeekReplay.analyze, args=(pcap_path,)).start()
+        multiprocessing.Process(target=ZeekReplay.analyze, args=(pcap_path, name, description, keep_pcap)).start()
         return pcap_replay_id
 
-    def iter_log(self, log_name='conn.log'):
+    def iter_log(self, log_name='conn'):
         """
         Provides a generator interface for iterating through Zeek logs
 

@@ -61,6 +61,19 @@ class ReadsZeekConfigError(exceptions.ReadConfigError):
         super(ReadsZeekConfigError, self).__init__(msg)
 
 
+class ZeekLocalNetworkNotFoundError(Exception):
+    """
+    Thrown when attempting to remove a non-existent local network definition
+    """
+
+    def __init__(self, ip_and_cidr):
+        """
+        :param ip_and_cidr: The IP and CIDR of the attempted removal
+        """
+        msg = "Zeek local network does not exist: {}".format(ip_and_cidr)
+        super(ZeekLocalNetworkNotFoundError, self).__init__(msg)
+
+
 class ZeekScriptNotFoundError(Exception):
     """
     Thrown when attempting to disable a non-existent script
