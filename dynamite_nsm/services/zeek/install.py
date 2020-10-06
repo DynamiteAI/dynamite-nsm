@@ -561,7 +561,7 @@ class InstallManager(install.BaseInstallManager):
 
         # Calculate new workers.
         for worker in node_config.get_optimal_zeek_worker_config(self.capture_network_interfaces, stdout=self.stdout,
-                                                   verbose=self.verbose):
+                                                                 verbose=self.verbose):
             node_config.add_worker(name=worker['name'],
                                    host=worker['host'],
                                    interface=worker['interface'],
