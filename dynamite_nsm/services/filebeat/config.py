@@ -76,7 +76,6 @@ class ConfigManager:
             if _input['type'] == 'log':
                 _input['enabled'] = False
                 self.inputs[i] = _input
-        self.enable_ecs_normalization()
 
     def enable_log_input(self):
         """
@@ -87,7 +86,6 @@ class ConfigManager:
             if _input['type'] == 'log':
                 _input['enabled'] = True
                 self.inputs[i] = _input
-        self.disable_ecs_normalization()
 
     def enable_ecs_normalization(self):
         """
