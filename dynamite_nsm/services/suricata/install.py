@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import random
 import shutil
 import logging
 import subprocess
@@ -333,6 +334,10 @@ class InstallManager(install.BaseInstallManager):
                     self.logger.info('Updating Suricata default config path [{}]'.format(self.configuration_directory))
                     subprocess.call('echo SURICATA_CONFIG="{}" >> {}'.format(
                         self.configuration_directory, env_file), shell=True)
+                if 'SURICATA_LOGS' not in env_f.read():
+                    self.logger.info('Updating Suricata default logs path [{}]'.format(self.log_directory))
+                    subprocess.call('echo SURICATA_LOGS="{}" >> {}'.format(
+                        self.log_directory, env_file), shell=True)
         except IOError:
             self.logger.error("Failed to open {} for reading.".format(env_file))
             raise suricata_exceptions.InstallSuricataError(
@@ -349,7 +354,7 @@ class InstallManager(install.BaseInstallManager):
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
         config.af_packet_interfaces = []
         for interface in self.capture_network_interfaces:
-            config.add_afpacket_interface(interface, threads='auto', cluster_id=99)
+            config.add_afpacket_interface(interface, threads='auto', cluster_id=random.randint(1, 50000))
         try:
             config.write_config()
         except suricata_exceptions.WriteSuricataConfigError:
@@ -437,6 +442,8 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
                 if 'SURICATA_HOME' in line:
                     continue
                 elif 'SURICATA_CONFIG' in line:
+                    continue
+                elif 'SURICATA_LOGS' in line:
                     continue
                 elif 'OINKMASTER_HOME' in line:
                     continue

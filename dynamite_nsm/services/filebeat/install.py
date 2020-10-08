@@ -51,6 +51,7 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
         self.agent_tag = agent_tag
+        self.environ = utilities.get_environment_file_dict()
         install.BaseInstallManager.__init__(self, 'filebeat', verbose=self.verbose, stdout=stdout)
         if download_filebeat_archive:
             try:
@@ -196,6 +197,17 @@ class InstallManager(install.BaseInstallManager):
         if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'filebeat.service')):
             raise filebeat_exceptions.InstallFilebeatError("Failed to install Filebeat systemd service.")
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'dynamite-agent.target'))
+        zeek_logs = None
+        zeek_home = self.environ.get('ZEEK_HOME')
+        suricata_logs = os.path.join(const.LOG_PATH, 'suricata')
+        if zeek_home:
+            zeek_logs = os.path.join(zeek_home, 'logs', 'current')
+        try:
+            self.logger.info('Patching Zeek/Suricata modules.')
+            beats_config.patch_modules(zeek_log_directory=zeek_logs, suricata_log_directory=suricata_logs)
+        except filebeat_exceptions.WriteFilebeatModuleError:
+            self.logger.error('Could not patch Zeek/Suricata modules.')
+            raise filebeat_exceptions.InstallFilebeatError("Could not patch Zeek/Suricata modules.")
 
 
 def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
