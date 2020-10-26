@@ -263,7 +263,7 @@ class ConfigManager:
         """
         modules_path = os.path.join(self.install_directory, 'modules.d')
         return os.path.exists(os.path.join(modules_path, '.patched'))
-    
+
     def is_ecs_normalization_enabled(self):
         """
         Check if ECS normalization is enabled over generic inputs
@@ -274,7 +274,7 @@ class ConfigManager:
         zeek_module_exists = os.path.exists(os.path.join(modules_path, 'zeek.yml'))
         suricata_module_exists = os.path.exists(os.path.join(modules_path, 'suricata.yml'))
         return zeek_module_exists and suricata_module_exists
-        
+
     def is_elasticsearch_enabled(self):
         """
         Check if Elasticsearch is enabled.
@@ -383,13 +383,26 @@ class ConfigManager:
                     processor['add_fields'] = {'fields': {'originating_agent_tag': agent_tag}}
                     break
 
-    def set_elasticsearch_targets(self, target_hosts, index=None, username=None, password=None):
+    def set_elasticsearch_targets(self, target_hosts, index=None, username=None, password=None, ssl_enabled=False,
+                                  ssl_certificate_authorities=None, ssl_certificate=None, ssl_key=None,
+                                  ssl_verification_mode='full'):
         """
         :param target_hosts: The list of Elasticsearch nodes to connect to. 
                              The events are distributed to these nodes in round robin order.
         :param index: The index name to write events to.
         :param username: The basic authentication username for connecting to Elasticsearch.
         :param password: The basic authentication password for connecting to Elasticsearch.
+        :param ssl_enabled: If True, SSL options are added if given; otherwise they will not be included
+        :param ssl_certificate_authorities: The list of root certificates for server verifications.
+               If certificate_authorities is empty or not set, the trusted certificate authorities of the host
+               system are used. (E.G ["/etc/pki/root/ca.pem"])
+        :param ssl_certificate: The path to the certificate for SSL client authentication.
+               If the certificate is not specified, client authentication is not available.
+               The connection might fail if the server requests client authentication.
+        :param ssl_key: The client certificate key used for client authentication. This option is required if
+               ssl_certificate is specified.
+        :param ssl_verification_mode: This option controls whether the client verifies server certificates and host
+               names.
         """
         # TODO We need to add support for non-default indices.
         #  https://www.elastic.co/guide/en/beats/filebeat/current/elasticsearch-output.html#index-option-es
@@ -403,19 +416,42 @@ class ConfigManager:
             'username': username,
             'password': password
         }
+        if ssl_enabled:
+            ssl_options = self.elasticsearch_targets['ssl'] = {}
+            if isinstance(ssl_certificate_authorities, list):
+                ssl_options['certificate_authorities'] = ssl_certificate_authorities
+            if isinstance(ssl_certificate, str):
+                ssl_options['certificate'] = ssl_certificate
+            if isinstance(ssl_key, str):
+                ssl_options['key'] = ssl_key
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+                ssl_options['verification_mode'] = ssl_verification_mode
 
         self.kafka_targets['enabled'] = False
         self.logstash_targets['enabled'] = False
         self.redis_targets['enabled'] = False
 
-    def set_kafka_targets(self, target_hosts, topic, username=None, password=None):
+    def set_kafka_targets(self, target_hosts, topic, username=None, password=None, ssl_enabled=False,
+                          ssl_certificate_authorities=None, ssl_certificate=None, ssl_key=None,
+                          ssl_verification_mode='full'):
         """
         Define Kafka endpoints where events should be sent
 
         :param target_hosts: A list of Kafka brokers, and their service port (E.G ["192.168.0.9:5044"])
         :param topic: A Kafka topic
         :param username: The username used to authenticate to Kafka broker
-        :param password: The password used to authenticate to Kafka broker
+        :param password: The password used to authenticate to Kafka broker,
+        :param ssl_enabled: If True, SSL options are added if given; otherwise they will not be included
+        :param ssl_certificate_authorities: The list of root certificates for server verifications.
+               If certificate_authorities is empty or not set, the trusted certificate authorities of the host
+               system are used. (E.G ["/etc/pki/root/ca.pem"])
+        :param ssl_certificate: The path to the certificate for SSL client authentication.
+               If the certificate is not specified, client authentication is not available.
+               The connection might fail if the server requests client authentication.
+        :param ssl_key: The client certificate key used for client authentication. This option is required if
+               ssl_certificate is specified.
+        :param ssl_verification_mode: This option controls whether the client verifies server certificates and host
+               names.
         """
 
         self.kafka_targets = {
@@ -425,23 +461,47 @@ class ConfigManager:
             'password': password,
             'enabled': True
         }
+
+        if ssl_enabled:
+            ssl_options = self.kafka_targets['ssl'] = {}
+            if isinstance(ssl_certificate_authorities, list):
+                ssl_options['certificate_authorities'] = ssl_certificate_authorities
+            if isinstance(ssl_certificate, str):
+                ssl_options['certificate'] = ssl_certificate
+            if isinstance(ssl_key, str):
+                ssl_options['key'] = ssl_key
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+                ssl_options['verification_mode'] = ssl_verification_mode
+
         self.elasticsearch_targets['enabled'] = False
         self.logstash_targets['enabled'] = False
         self.redis_targets['enabled'] = False
 
     def set_logstash_targets(self, target_hosts, loadbalance=False, index='dynamite_events-%{+yyyy.MM.dd}',
-                             proxy_url=None, pipelining=2,
-                             bulk_max_size=2048):
+                             proxy_url=None, pipelining=2, bulk_max_size=2048, ssl_enabled=False,
+                             ssl_certificate_authorities=None, ssl_certificate=None, ssl_key=None,
+                             ssl_verification_mode='full'):
         """
         Define LogStash endpoints where events should be sent
 
         :param target_hosts: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"])
         :param loadbalance: If set to true and multiple Logstash hosts are configured, the output plugin load balances
-                            published events onto all Logstash hosts.
+               published events onto all Logstash hosts.
         :param index: The name of the index to include in the %{[@metadata][beat]} field
         :param proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
         :param pipelining: Configures the number of batches to be sent asynchronously to Logstash
         :param bulk_max_size: The maximum number of events to bulk in a single Logstash request.
+        :param ssl_enabled: If True, SSL options are added if given; otherwise they will not be included
+        :param ssl_certificate_authorities: The list of root certificates for server verifications.
+               If certificate_authorities is empty or not set, the trusted certificate authorities of the host
+               system are used. (E.G ["/etc/pki/root/ca.pem"])
+        :param ssl_certificate: The path to the certificate for SSL client authentication.
+               If the certificate is not specified, client authentication is not available.
+               The connection might fail if the server requests client authentication.
+        :param ssl_key: The client certificate key used for client authentication. This option is required if
+               ssl_certificate is specified.
+        :param ssl_verification_mode: This option controls whether the client verifies server certificates and host
+               names.
         """
         if not index:
             index = 'dynamite_events-%{+yyyy.MM.dd}'
@@ -462,31 +522,53 @@ class ConfigManager:
         if not bulk_max_size:
             self.logstash_targets['bulk_max_size'] = 2048
 
+        if ssl_enabled:
+            ssl_options = self.logstash_targets['ssl'] = {}
+            if isinstance(ssl_certificate_authorities, list):
+                ssl_options['certificate_authorities'] = ssl_certificate_authorities
+            if isinstance(ssl_certificate, str):
+                ssl_options['certificate'] = ssl_certificate
+            if isinstance(ssl_key, str):
+                ssl_options['key'] = ssl_key
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+                ssl_options['verification_mode'] = ssl_verification_mode
+
         self.elasticsearch_targets['enabled'] = False
         self.kafka_targets['enabled'] = False
         self.redis_targets['enabled'] = False
 
     def set_redis_targets(self, target_hosts, loadbalance=True, workers=None, password=None, db=None,
-                          index='dynamite_events', proxy_url=None, bulk_max_size=2048):
+                          index='dynamite_events', proxy_url=None, bulk_max_size=2048, ssl_enabled=False,
+                          ssl_certificate_authorities=None, ssl_certificate=None, ssl_key=None,
+                          ssl_verification_mode='full'):
         """
-
         :param target_hosts: A list of Redis hosts, and their service port (E.G ["192.168.0.9:6379"]
         :param loadbalance: If set to true and multiple hosts or workers are configured, the output plugin load balances
-                            published events onto all Redis hosts.
-                            If set to false, the output plugin sends all events to only one host (determined at random)
-                            and will switch to another host if the currently selected one becomes unreachable.
-                            The default value is true.
+               published events onto all Redis hosts. If set to false, the output plugin sends all events to only one
+               host (determined at random) and will switch to another host if the currently selected one becomes
+               unreachable. The default value is true.
         :param workers: The number of workers to use for each host configured to publish events to Redis.
-                        Use this setting along with the loadbalance option.
-                        For example, if you have 2 hosts and 3 workers,
-                        in total 6 workers are started (3 for each host).
+               Use this setting along with the loadbalance option.
+               For example, if you have 2 hosts and 3 workers,
+               in total 6 workers are started (3 for each host).
         :param password: The password to authenticate with. The default is no authentication.
         :param db: The Redis database number where the events are published. The default is 0.
         :param index: The key format string to use. If this string contains field references,
-                      such as %{[fields.name]}, the fields must exist, or the rule fails.
+               such as %{[fields.name]}, the fields must exist, or the rule fails.
         :param proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
         :param bulk_max_size: The maximum number of events to bulk in a single Redis request or pipeline.
-                              The default is 2048.
+               The default is 2048.
+        :param ssl_enabled: If True, SSL options are added if given; otherwise they will not be included
+        :param ssl_certificate_authorities: The list of root certificates for server verifications.
+               If certificate_authorities is empty or not set, the trusted certificate authorities of the host
+               system are used. (E.G ["/etc/pki/root/ca.pem"])
+        :param ssl_certificate: The path to the certificate for SSL client authentication.
+               If the certificate is not specified, client authentication is not available.
+               The connection might fail if the server requests client authentication.
+        :param ssl_key: The client certificate key used for client authentication. This option is required if
+               ssl_certificate is specified.
+        :param ssl_verification_mode: This option controls whether the client verifies server certificates and host
+               names.
         """
         self.redis_targets = {
             'hosts': target_hosts,
@@ -506,6 +588,17 @@ class ConfigManager:
             self.redis_targets['proxy_url'] = proxy_url
         if not bulk_max_size:
             self.redis_targets['bulk_max_size'] = 2048
+
+        if ssl_enabled:
+            ssl_options = self.redis_targets['ssl'] = {}
+            if isinstance(ssl_certificate_authorities, list):
+                ssl_options['certificate_authorities'] = ssl_certificate_authorities
+            if isinstance(ssl_certificate, str):
+                ssl_options['certificate'] = ssl_certificate
+            if isinstance(ssl_key, str):
+                ssl_options['key'] = ssl_key
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+                ssl_options['verification_mode'] = ssl_verification_mode
 
         self.elasticsearch_targets['enabled'] = False
         self.kafka_targets['enabled'] = False
