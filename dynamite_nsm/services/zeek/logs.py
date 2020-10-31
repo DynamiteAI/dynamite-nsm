@@ -13,6 +13,49 @@ def parse_zeek_datetime(t):
     return datetime.utcfromtimestamp(int(str(t).split('.')[0]))
 
 
+class BrokerEntry:
+
+    def __init__(self, entry_raw):
+        self.entry_raw = entry_raw
+        self.time = None
+        self.timestamp = None
+        self.category = None
+        self.event = None
+        self.peer_address = None
+        self.peer_port = None
+        self.message = None
+        self._parse_entry()
+
+    def _parse_entry(self):
+        log_entry = self.entry_raw.replace("\n", "")
+        try:
+            entry = json.loads(log_entry)
+        except ValueError:
+            raise zeek_exceptions.InvalidZeekBrokerLogEntry(
+                'broker.log entry is not JSON formatted. '
+                'Make sure to enable policy/tuning/json-logs is loaded.')
+        self.timestamp = entry.get('ts')
+        self.category = entry.get('ty')
+        self.event = entry.get('ev')
+        self.peer_address = entry.get('peer.address')
+        self.peer_port = entry.get('peer.bound_port')
+        self.message = entry.get('message')
+        if not self.timestamp:
+            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+        self.time = parse_zeek_datetime(self.timestamp)
+
+    def __str__(self):
+        log_entry = dict(
+            time=str(self.time),
+            category=self.category,
+            event=self.event,
+            peer_address=self.peer_address,
+            peer_port=self.peer_port,
+            message=self.message
+        )
+        return json.dumps(log_entry)
+
+
 class ClusterEntry:
 
     def __init__(self, entry_raw):
@@ -27,7 +70,7 @@ class ClusterEntry:
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise zeek_exceptions.InvalidZeekStatusLogEntry(
+            raise zeek_exceptions.InvalidZeekClusterLogEntry(
                 'cluster.log entry is not JSON formatted. '
                 'Make sure to enable policy/tuning/json-logs is loaded.')
         self.timestamp = entry.get('ts')
@@ -145,6 +188,45 @@ class MetricsEntry:
         ))
 
 
+class ReporterEntry:
+
+    def __init__(self, entry_raw):
+        self.entry_raw = entry_raw
+        self.time = None
+        self.timestamp = None
+        self.log_level = None
+        self.message = None
+        self.location = None
+        self._parse_entry()
+
+    def _parse_entry(self):
+        log_entry = self.entry_raw.replace("\n", "")
+        try:
+            entry = json.loads(log_entry)
+        except ValueError:
+            raise zeek_exceptions.InvalidZeekReporterLogEntry(
+                'reporter.log entry is not JSON formatted. '
+                'Make sure to enable policy/tuning/json-logs is loaded.')
+        self.timestamp = entry.get('ts')
+        self.log_level = entry.get('level')
+        self.location = entry.get('location')
+        self.message = entry.get('message')
+        if not self.timestamp:
+            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+        if self.log_level:
+            self.log_level = str(self.log_level.replace('Reporter::', ''))
+        self.time = parse_zeek_datetime(self.timestamp)
+
+    def __str__(self):
+        log_entry = dict(
+            time=str(self.time),
+            log_level=self.log_level,
+            location=self.location,
+            message=self.message
+        )
+        return json.dumps(log_entry)
+
+
 class ZeekLogsProxy:
     """
     This class makes it easy to access a Zeek log and all subsequent archived logs related to it
@@ -198,6 +280,35 @@ class ZeekLogsProxy:
 
     def iter_entries(self):
         for log_entry in self.entries:
+            yield log_entry
+
+
+class BrokerLog(logs.LogFile):
+    def __init__(self, log_sample_size=10000, include_archived_logs=False):
+        self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        self.env_dict = utilities.get_environment_file_dict()
+        self.zeek_home = self.env_dict.get('ZEEK_HOME')
+        self.log_path = os.path.join(self.zeek_home, 'logs', 'current', 'broker.log')
+
+        logs.LogFile.__init__(self,
+                              log_path=self.log_path,
+                              log_sample_size=log_sample_size)
+        if include_archived_logs:
+            self.entries = ZeekLogsProxy('broker.log', log_sample_size=log_sample_size).entries
+
+    def iter_entries(self, start=None, end=None):
+
+        def filter_entries(s=None, e=None):
+            if not e:
+                e = datetime.utcnow()
+            if not s:
+                s = datetime.utcnow() - timedelta(days=365)
+            for en in self.entries:
+                en = BrokerEntry(en)
+                if s < en.time < e:
+                    yield en
+
+        for log_entry in filter_entries(start, end):
             yield log_entry
 
 
@@ -286,3 +397,33 @@ class StatusLog(logs.LogFile):
                 else:
                     aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
+
+
+class ReporterLog(logs.LogFile):
+
+    def __init__(self, log_sample_size=10000, include_archived_logs=False):
+        self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        self.env_dict = utilities.get_environment_file_dict()
+        self.zeek_home = self.env_dict.get('ZEEK_HOME')
+        self.log_path = os.path.join(self.zeek_home, 'logs', 'current', 'reporter.log')
+
+        logs.LogFile.__init__(self,
+                              log_path=self.log_path,
+                              log_sample_size=log_sample_size)
+        if include_archived_logs:
+            self.entries = ZeekLogsProxy('reporter.log', log_sample_size=log_sample_size).entries
+
+    def iter_entries(self, start=None, end=None):
+
+        def filter_entries(s=None, e=None):
+            if not e:
+                e = datetime.utcnow()
+            if not s:
+                s = datetime.utcnow() - timedelta(days=365)
+            for en in self.entries:
+                en = ReporterEntry(en)
+                if s < en.time < e:
+                    yield en
+
+        for log_entry in filter_entries(start, end):
+            yield log_entry

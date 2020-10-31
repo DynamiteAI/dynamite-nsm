@@ -44,9 +44,9 @@ class InvalidSuricataStatusLogEntry(Exception):
         """
         :param message: A more specific error message
         """
-        msg = "FileBeat log entry is invalid: {}".format(message)
+        msg = "Suricata log entry is invalid: {}".format(message)
         super(InvalidSuricataStatusLogEntry, self).__init__(msg)
-        
+
         
 class ReadsSuricataConfigError(exceptions.ReadConfigError):
     """

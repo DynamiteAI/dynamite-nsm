@@ -38,19 +38,55 @@ class CallZeekProcessError(exceptions.CallProcessError):
 
 class InvalidZeekStatusLogEntry(Exception):
     """
-    Thrown when a Zeek zeek.log entry is improperly formatted
+    Thrown when a Zeek stats.log entry is improperly formatted
     """
     def __init__(self, message):
         """
         :param message: A more specific error message
         """
-        msg = "FileBeat log entry is invalid: {}".format(message)
+        msg = "Zeek status log entry is invalid: {}".format(message)
         super(InvalidZeekStatusLogEntry, self).__init__(msg)
+
+
+class InvalidZeekBrokerLogEntry(Exception):
+    """
+    Thrown when a Zeek broker.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Zeek broker log entry is invalid: {}".format(message)
+        super(InvalidZeekBrokerLogEntry, self).__init__(msg)
+
+
+class InvalidZeekClusterLogEntry(Exception):
+    """
+    Thrown when a Zeek cluster.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Zeek cluster log entry is invalid: {}".format(message)
+        super(InvalidZeekClusterLogEntry, self).__init__(msg)
+
+
+class InvalidZeekReporterLogEntry(Exception):
+    """
+    Thrown when a Zeek reporter.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Zeek reporter log entry is invalid: {}".format(message)
+        super(InvalidZeekReporterLogEntry, self).__init__(msg)
     
         
 class ReadsZeekConfigError(exceptions.ReadConfigError):
     """
-    Thrown when an Zeek.yaml config option fails to read
+    Thrown when an Zeek config option fails to read
     """
 
     def __init__(self, message):
@@ -154,7 +190,7 @@ class ZeekWorkerNotFoundError(Exception):
 
 class WriteZeekConfigError(exceptions.WriteConfigError):
     """
-    Thrown when an Zeek.yaml config option fails to write
+    Thrown when an sites.local config option fails to write
     """
 
     def __init__(self, message):
