@@ -272,6 +272,7 @@ class InstallManager(install.BaseInstallManager):
             self.logger.error("Failed to read Suricata configuration.")
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
         config.default_log_directory = self.log_directory
+        config.suricata_log_output_file = os.path.join(self.log_directory, 'suricata.log')
         config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
         config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
         config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')

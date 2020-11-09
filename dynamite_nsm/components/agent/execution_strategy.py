@@ -181,8 +181,8 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
         if not suricata_profile.ProcessProfiler().is_installed() and 'suricata' in agent_analyzers:
             self.add_function(func=suricata_install.install_suricata, argument_dict={
                 'configuration_directory': '/etc/dynamite/suricata/',
-                'install_directory': '/opt/dynamite/suricata',
-                'log_directory': '/var/log/dynamite/suricata/',
+                'install_directory': '/opt/dynamite/suricata/',
+                'log_directory': '/opt/dynamite/suricata/logs/',
                 'capture_network_interfaces': list(capture_network_interfaces),
                 'download_suricata_archive': True,
                 'stdout': bool(stdout),

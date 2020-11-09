@@ -61,6 +61,7 @@ class ConfigManager:
         'file_data_ports': ('vars', 'port-groups', 'FILE_DATA_PORTS'),
         'ftp_ports': ('vars', 'port-groups', 'FTP_PORTS'),
         'default_log_directory': ('default-log-dir',),
+        'suricata_log_output_file': ('logging', 'outputs', 'file', 'filename'),
         'default_rules_directory': ('default-rule-path',),
         'classification_file': ('classification-file',),
         'reference_config_file': ('reference-config-file',),
@@ -98,6 +99,7 @@ class ConfigManager:
         self.ftp_ports = None
         self.file_data_ports = None
         self.default_log_directory = None
+        self.suricata_log_output_file = None
         self.default_rules_directory = None
         self.classification_file = None
         self.reference_config_file = None
@@ -120,7 +122,15 @@ class ConfigManager:
             key_path = self.tokens[variable_name]
             value = data
             for k in key_path:
-                value = value[k]
+                if isinstance(value, dict):
+                    value = value[k]
+                elif isinstance(value, list):
+                    for list_entry in value:
+                        if isinstance(list_entry, dict):
+                            if k in list_entry.keys():
+                                value = list_entry[k]
+                else:
+                    break
             setattr(self, var_name, value)
             return True
 
@@ -250,7 +260,16 @@ class ConfigManager:
             """
             partial_config_data = self.config_data
             for i in range(0, len(path) - 1):
-                partial_config_data = partial_config_data[path[i]]
+                k = path[i]
+                if isinstance(partial_config_data, dict):
+                    partial_config_data = partial_config_data[k]
+                elif isinstance(partial_config_data, list):
+                    for list_entry in partial_config_data:
+                        if isinstance(list_entry, dict):
+                            if k in list_entry.keys():
+                                partial_config_data = list_entry[k]
+                else:
+                    break
             partial_config_data.update({path[-1]: value})
 
         timestamp = int(time.time())

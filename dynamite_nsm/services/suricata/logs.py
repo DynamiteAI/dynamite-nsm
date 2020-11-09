@@ -6,6 +6,7 @@ import itertools
 from datetime import datetime
 from datetime import timedelta
 from dynamite_nsm import const
+from dynamite_nsm import utilities
 from dynamite_nsm.services.base import logs
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
@@ -196,7 +197,10 @@ class MetricsEntry:
 class MainLog(logs.LogFile):
 
     def __init__(self, log_sample_size=10000):
-        self.log_path = os.path.join(const.LOG_PATH, 'suricata', 'suricata.log')
+        self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        self.env_dict = utilities.get_environment_file_dict()
+        self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
+        self.log_path = os.path.join(self.suricata_logs, 'suricata.log')
 
         logs.LogFile.__init__(self,
                               log_path=self.log_path,
@@ -227,7 +231,10 @@ class MainLog(logs.LogFile):
 class StatusLog(logs.LogFile):
 
     def __init__(self, log_sample_size=10000):
-        self.log_path = os.path.join(const.LOG_PATH, 'suricata', 'eve.json')
+        self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        self.env_dict = utilities.get_environment_file_dict()
+        self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
+        self.log_path = os.path.join(self.suricata_logs, 'eve.json')
 
         logs.LogFile.__init__(self,
                               log_path=self.log_path,
