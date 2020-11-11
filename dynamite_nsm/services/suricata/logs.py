@@ -249,7 +249,10 @@ class StatusLog(logs.LogFile):
             prev_en = None
             for en_raw in self.entries:
                 if '"event_type":"stats"' in en_raw:
-                    en = MetricsEntry(json.loads(en_raw))
+                    try:
+                        en = MetricsEntry(json.loads(en_raw))
+                    except ValueError:
+                        continue
                     en_corrected = MetricsEntry(json.loads(en_raw))
                     if s < en.time < e:
                         if not prev_en:

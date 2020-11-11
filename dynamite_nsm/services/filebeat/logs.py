@@ -138,7 +138,10 @@ class StatusLog(logs.LogFile):
             if not s:
                 s = datetime.utcnow() - timedelta(minutes=60)
             for en in self.entries:
-                en = StatusEntry(en, include_json_payload=self.include_json_payloads)
+                try:
+                    en = StatusEntry(en, include_json_payload=self.include_json_payloads)
+                except filebeat_exceptions.InvalidFilebeatStatusLogEntry:
+                    continue
                 if s < en.time < e:
                     yield en
 
