@@ -247,6 +247,33 @@ class ConfigManager:
         else:
             raise suricata_exceptions.SuricataRuleNotFoundError(rule_file)
 
+    def list_backup_configs(self):
+        """
+        List configuration backups in our config store
+
+        :return: A list of dictionaries with the following keys: ["filename", "filepath", "time"]
+        """
+        return utilities.list_backup_configurations(
+            os.path.join(self.backup_configuration_directory, 'suricata.yaml.d'))
+
+    def restore_backup_config(self, name):
+        """
+        Restore a configuration from our config store
+
+        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
+        backup.
+        :return: True, if successful
+        """
+        dest_config_file = os.path.join(self.configuration_directory, 'suricata.yaml')
+        if name == "recent":
+            configs = self.list_backup_configs()
+            if configs:
+                return utilities.restore_backup_configuration(
+                    configs[0]['filepath'],
+                    dest_config_file)
+        return utilities.restore_backup_configuration(
+            os.path.join(self.backup_configuration_directory, 'suricata.yaml.d', name), dest_config_file)
+
     def write_config(self):
         """
         Overwrite the existing suricata.yaml config with changed values

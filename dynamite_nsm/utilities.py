@@ -41,21 +41,54 @@ from dynamite_nsm import const
 from dynamite_nsm import exceptions
 
 
-def backup_configuration_file(source_file, destination_directory, destination_file_prefix):
+def backup_configuration_file(source_file, configuration_backup_directory, destination_file_prefix):
+    """
+    Backup a configuration file
+
+    :param source_file: The configuration file you wish to backup
+    :param configuration_backup_directory: The destination configuration directory
+    :param destination_file_prefix: The prefix of the file; timestamp is automatically appended in filename
+    """
     timestamp = int(time.time())
-    destination_backup_config_file = os.path.join(destination_directory, '{}.{}'.format(destination_file_prefix,
-                                                                                        timestamp))
+    destination_backup_config_file = os.path.join(configuration_backup_directory,
+                                                  '{}.{}'.format(destination_file_prefix,
+                                                                 timestamp))
     try:
-        makedirs(destination_directory, exist_ok=True)
+        makedirs(configuration_backup_directory, exist_ok=True)
     except Exception as e:
         raise exceptions.WriteConfigError(
-            "General error while attempting to create backup directory at {}; {}".format(destination_directory, e))
+            "General error while attempting to create backup directory at {}; {}".format(configuration_backup_directory,
+                                                                                         e))
     try:
         shutil.copy(source_file, destination_backup_config_file)
     except Exception as e:
         raise exceptions.WriteConfigError(
             "General error while attempting to copy {} to {}".format(
                 source_file, destination_backup_config_file, e))
+
+
+def list_backup_configurations(configuration_backup_directory):
+    backups = []
+    try:
+        for conf in os.listdir(configuration_backup_directory):
+            backups.append(
+                {'filename': conf, 'filepath': os.path.join(configuration_backup_directory, conf),
+                 'time': float(conf.split('.')[-1])}
+            )
+    except FileNotFoundError:
+        return backups
+    backups.sort(key=lambda item: item['time'], reverse=True)
+    return backups
+
+
+def restore_backup_configuration(configuration_backup_filepath, config_filepath):
+    try:
+        shutil.move(configuration_backup_filepath, config_filepath)
+        return True
+    except shutil.Error:
+        return False
+    except FileNotFoundError:
+        return False
 
 
 def check_pid(pid):

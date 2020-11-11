@@ -633,6 +633,32 @@ class ConfigManager:
         tag_match_pattern = bool(re.findall(r"^[a-zA-Z0-9_]*$", agent_tag))
         return tag_length_ok and tag_match_pattern
 
+    def list_backup_configs(self):
+        """
+        List configuration backups
+
+        :return: A list of dictionaries with the following keys: ["name", "path", "timestamp"]
+        """
+        return utilities.list_backup_configurations(os.path.join(self.backup_configuration_directory, 'filebeat.yml.d'))
+
+    def restore_backup_config(self, name):
+        """
+        Restore a configuration from our config store
+
+        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
+        backup.
+        :return: True, if successful
+        """
+        dest_config_file = os.path.join(self.install_directory, 'filebeat.yml')
+        if name == "recent":
+            configs = self.list_backup_configs()
+            if configs:
+                return utilities.restore_backup_configuration(
+                    configs[0]['filepath'],
+                    dest_config_file)
+        return utilities.restore_backup_configuration(
+            os.path.join(self.backup_configuration_directory, 'filebeat.yml.d', name), dest_config_file)
+
     def write_config(self):
 
         def update_dict_from_path(path, value):

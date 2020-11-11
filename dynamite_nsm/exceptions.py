@@ -86,7 +86,7 @@ class ReadConfigError(Exception):
         """
         :param message: A more specific error message
         """
-        msg = "An error occurred when writing configuration: {}".format(message)
+        msg = "An error occurred when reading configuration: {}".format(message)
         super(ReadConfigError, self).__init__(msg)
 
 
