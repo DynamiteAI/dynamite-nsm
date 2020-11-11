@@ -1,7 +1,5 @@
 import os
-import time
 import random
-import shutil
 
 from yaml import load, dump
 
@@ -11,6 +9,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
 
@@ -71,11 +70,12 @@ class ConfigManager:
         'rule_files': ('rule-files',)
     }
 
-    def __init__(self, configuration_directory):
+    def __init__(self, configuration_directory, backup_configuration_directory=None):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
         """
         self.configuration_directory = configuration_directory
+        self.backup_configuration_directory = backup_configuration_directory
         self.config_data = None
 
         self.home_net = None
@@ -163,6 +163,7 @@ class ConfigManager:
                     }
                 )
             return suricata_interface_configs
+
         return create_suricata_interfaces(network_capture_interfaces)
 
     def add_afpacket_interface(self, interface, threads=None, cluster_id=None, cluster_type='cluster_flow',
@@ -272,20 +273,19 @@ class ConfigManager:
                     break
             partial_config_data.update({path[-1]: value})
 
-        timestamp = int(time.time())
-        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
-        try:
-            utilities.makedirs(backup_configurations, exist_ok=True)
-        except Exception as e:
-            raise suricata_exceptions.WriteSuricataConfigError(
-                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
-        try:
-            shutil.copy(os.path.join(self.configuration_directory, 'suricata.yaml'), suricata_config_backup)
-        except Exception as e:
-            raise suricata_exceptions.WriteSuricataConfigError(
-                "General error while attempting to copy old suricata.yaml file to {}; {}".format(
-                    backup_configurations, e))
+        # Backup old configuration first
+        source_configuration_file_path = os.path.join(self.configuration_directory, 'suricata.yaml')
+        if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'suricata.yaml.d')
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='suricata.yaml.backup')
+            except general_exceptions.WriteConfigError:
+                raise suricata_exceptions.WriteSuricataConfigError(
+                    'Suricata configuration failed to write [suricata.yaml].')
+            except general_exceptions.ReadConfigError:
+                raise suricata_exceptions.ReadsSuricataConfigError(
+                    'Suricata configuration failed to read [suricata.yaml].')
 
         for k, v in vars(self).items():
             if k not in self.tokens:
@@ -293,11 +293,12 @@ class ConfigManager:
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
         try:
-            with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'w') as configyaml:
+            with open(source_configuration_file_path, 'w') as configyaml:
                 configyaml.write('%YAML 1.1\n---\n\n')
                 dump(self.config_data, configyaml, default_flow_style=False)
         except IOError:
-            raise suricata_exceptions.WriteSuricataConfigError("Could not locate {}".format(self.configuration_directory))
+            raise suricata_exceptions.WriteSuricataConfigError(
+                "Could not locate {}".format(self.configuration_directory))
         except Exception as e:
             raise suricata_exceptions.WriteSuricataConfigError(
                 "General error while attempting to write new suricata.yaml file to {}; {}".format(

@@ -10,6 +10,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
@@ -23,8 +24,9 @@ class ConfigManager:
         'processors': ('processors',)
     }
 
-    def __init__(self, install_directory):
+    def __init__(self, install_directory, backup_configuration_directory=None):
         self.install_directory = install_directory
+        self.backup_configuration_directory = backup_configuration_directory
 
         self.inputs = []
         self.elasticsearch_targets = {}
@@ -648,27 +650,27 @@ class ConfigManager:
                     pass
             partial_config_data.update({path[-1]: value})
 
-        timestamp = int(time.time())
-        backup_configurations = os.path.join(self.install_directory, 'config_backups/')
-        filebeat_config_backup = os.path.join(backup_configurations, 'filebeat.yml.backup.{}'.format(timestamp))
-        try:
-            utilities.makedirs(backup_configurations, exist_ok=True)
-        except Exception as e:
-            raise filebeat_exceptions.WriteFilebeatConfigError(
-                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
-        try:
-            shutil.copy(os.path.join(self.install_directory, 'filebeat.yml'), filebeat_config_backup)
-        except Exception as e:
-            raise filebeat_exceptions.WriteFilebeatConfigError(
-                "General error while attempting to copy old filebeat.yml file to {}; {}".format(
-                    backup_configurations, e))
+        # Backup old configuration first
+        source_configuration_file_path = os.path.join(self.install_directory, 'filebeat.yml')
+        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'filebeat.yml.d')
+        if self.backup_configuration_directory:
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='filebeat.yml.backup')
+            except general_exceptions.WriteConfigError:
+                raise filebeat_exceptions.WriteFilebeatConfigError(
+                    'Suricata configuration failed to write [filebeat.yml].')
+            except general_exceptions.ReadConfigError:
+                raise filebeat_exceptions.ReadFilebeatConfigError(
+                    'Suricata configuration failed to read [filebeat.yml].')
+
         for k, v in vars(self).items():
             if k not in self.tokens:
                 continue
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
         try:
-            with open(os.path.join(self.install_directory, 'filebeat.yml'), 'w') as configyaml:
+            with open(source_configuration_file_path, 'w') as configyaml:
                 dump(self.config_data, configyaml, default_flow_style=False)
         except IOError:
             raise filebeat_exceptions.WriteFilebeatConfigError("Could not locate {}".format(self.install_directory))

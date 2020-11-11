@@ -1,8 +1,6 @@
 import os
 import re
 import math
-import time
-import shutil
 import random
 import logging
 from datetime import datetime
@@ -21,6 +19,7 @@ except Exception:
 
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
@@ -29,11 +28,12 @@ class ScriptConfigManager:
     Wrapper for configuring broctl sites/local.zeek
     """
 
-    def __init__(self, configuration_directory):
+    def __init__(self, configuration_directory, backup_configuration_directory=None):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         """
         self.configuration_directory = configuration_directory
+        self.backup_configuration_directory = backup_configuration_directory
         self.zeek_scripts = {}
         self.zeek_sigs = {}
         self.zeek_redefs = {}
@@ -123,15 +123,19 @@ class ScriptConfigManager:
         """
         Overwrite the existing local.zeek config with changed values
         """
-        timestamp = int(time.time())
         output_str = ''
-        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        zeek_config_backup = os.path.join(backup_configurations, 'local.zeek.backup.{}'.format(timestamp))
-        try:
-            utilities.makedirs(backup_configurations, exist_ok=True)
-        except Exception as e:
-            raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+
+        # Backup old configuration first
+        source_configuration_file_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
+        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'local.zeek.d')
+        if self.backup_configuration_directory:
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='local.zeek.backup')
+            except general_exceptions.WriteConfigError:
+                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [local.zeek].')
+            except general_exceptions.ReadConfigError:
+                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [local.zeek].')
         for e_script in self.list_enabled_scripts():
             output_str += '@load {}\n'.format(e_script)
         for d_script in self.list_disabled_scripts():
@@ -143,20 +147,14 @@ class ScriptConfigManager:
         for rdef, val in self.list_redefinitions():
             output_str += 'redef {} = {}\n'.format(rdef, val)
         try:
-            shutil.copy(os.path.join(self.configuration_directory, 'site', 'local.zeek'), zeek_config_backup)
-        except Exception as e:
-            raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to copy old local.zeek file to {}; {}".format(
-                    backup_configurations, e))
-        try:
-            with open(os.path.join(self.configuration_directory, 'site', 'local.zeek'), 'w') as f:
+            with open(source_configuration_file_path, 'w') as f:
                 f.write(output_str)
         except IOError:
             raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
         except Exception as e:
             raise zeek_exceptions.WriteZeekConfigError(
                 "General error while attempting to write new local.zeek file to {}; {}".format(
-                    backup_configurations, e))
+                    self.configuration_directory, e))
 
 
 class NodeConfigManager:
@@ -164,11 +162,12 @@ class NodeConfigManager:
     Wrapper for configuring broctl node.cfg
     """
 
-    def __init__(self, install_directory):
+    def __init__(self, install_directory, backup_configuration_directory=None):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
         """
         self.install_directory = install_directory
+        self.backup_configuration_directory = backup_configuration_directory
         self.node_config = self._parse_node_config()
 
     def _parse_node_config(self):
@@ -440,6 +439,17 @@ class NodeConfigManager:
         """
         Overwrite the existing node.cfg with changed values
         """
+        source_configuration_file_path = os.path.join(self.install_directory, 'etc', 'node.cfg')
+        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'node.cfg.d')
+        if self.backup_configuration_directory:
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='node.cfg.backup')
+            except general_exceptions.WriteConfigError:
+                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [node.cfg].')
+            except general_exceptions.ReadConfigError:
+                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [node.cfg].')
+
         config = ConfigParser()
         for section in self.node_config.keys():
             for k, v in self.node_config[section].items():
@@ -449,7 +459,7 @@ class NodeConfigManager:
                     pass
                 config.set(section, k, str(v))
         try:
-            with open(os.path.join(self.install_directory, 'etc', 'node.cfg'), 'w') as configfile:
+            with open(source_configuration_file_path, 'w') as configfile:
                 config.write(configfile)
         except IOError:
             raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.install_directory))
@@ -494,11 +504,12 @@ class LocalNetworkConfigManager:
                             r'(?:(?:[0-9A-Fa-f]{1,4}:){,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|' \
                             r'(?:(?:[0-9A-Fa-f]{1,4}:){,6}[0-9A-Fa-f]{1,4})?::/\d{1,2}(?!\d|(?:\.\d)))'
 
-    def __init__(self, install_directory):
+    def __init__(self, install_directory, backup_configuration_directory=None):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
         """
         self.install_directory = install_directory
+        self.backup_configuration_directory = backup_configuration_directory
         self.network_config = self._parse_network_config()
 
     def _parse_network_config(self):
@@ -550,8 +561,19 @@ class LocalNetworkConfigManager:
             raise zeek_exceptions.ZeekLocalNetworkNotFoundError(ip_and_cidr)
 
     def write_config(self):
+        source_configuration_file_path = os.path.join(self.install_directory, 'etc', 'networks.cfg')
+        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'networks.cfg.d')
+        if self.backup_configuration_directory:
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='networks.cfg.backup')
+            except general_exceptions.WriteConfigError:
+                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [networks.cfg].')
+            except general_exceptions.ReadConfigError:
+                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [networks.cfg].')
+
         try:
-            with open(os.path.join(self.install_directory, 'etc', 'networks.cfg'), 'w') as net_config:
+            with open(source_configuration_file_path, 'w') as net_config:
                 lines = []
                 for k, v in self.network_config.items():
                     if v:

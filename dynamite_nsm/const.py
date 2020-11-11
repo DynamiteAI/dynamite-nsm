@@ -76,3 +76,5 @@ SYNESIS_MIRRORS = extracted_constants.get('SYNESIS_MIRRORS', '/etc/dynamite/mirr
 ZEEK_MIRRORS = extracted_constants.get('ZEEK_MIRRORS', '/etc/dynamite/mirrors/zeek')
 DYNAMITED_MIRRORS = extracted_constants.get('DYNAMITED_MIRRORS', '/etc/dynamite/mirrors/dynamited')
 
+CONFIG_BACKUP_PATH = extracted_constants.get('CONFIG_BACKUP_PATH', '/etc/dynamite/.backups')
+

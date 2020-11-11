@@ -4,6 +4,7 @@ import re
 import pwd
 import grp
 import sys
+import time
 import crypt
 import fcntl
 import socket
@@ -21,9 +22,6 @@ from hashlib import md5
 from datetime import datetime
 from contextlib import closing
 
-
-
-
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
@@ -39,8 +37,25 @@ except Exception:
 import psutil
 import progressbar
 
-
 from dynamite_nsm import const
+from dynamite_nsm import exceptions
+
+
+def backup_configuration_file(source_file, destination_directory, destination_file_prefix):
+    timestamp = int(time.time())
+    destination_backup_config_file = os.path.join(destination_directory, '{}.{}'.format(destination_file_prefix,
+                                                                                        timestamp))
+    try:
+        makedirs(destination_directory, exist_ok=True)
+    except Exception as e:
+        raise exceptions.WriteConfigError(
+            "General error while attempting to create backup directory at {}; {}".format(destination_directory, e))
+    try:
+        shutil.copy(source_file, destination_backup_config_file)
+    except Exception as e:
+        raise exceptions.WriteConfigError(
+            "General error while attempting to copy {} to {}".format(
+                source_file, destination_backup_config_file, e))
 
 
 def check_pid(pid):
@@ -257,8 +272,7 @@ def get_filepath_md5_hash(file_path):
     :return: the md5 hash of a file
     """
     with open(file_path, 'rb') as afile:
-       return get_file_md5_hash(afile)
-
+        return get_file_md5_hash(afile)
 
 
 def get_terminal_size():
