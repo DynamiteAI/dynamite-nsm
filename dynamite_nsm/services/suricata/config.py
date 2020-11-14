@@ -148,6 +148,29 @@ class ConfigManager:
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
+    @classmethod
+    def from_raw_text(cls, raw_text, configuration_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param configuration_directory: The configuration directory for Suricata
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of SuricataConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'suricata.yaml')
+        utilities.makedirs(os.path.join(tmp_dir))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(configuration_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if configuration_directory:
+            c.configuration_directory = configuration_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
     @staticmethod
     def get_optimal_suricata_interface_config(network_capture_interfaces):
 

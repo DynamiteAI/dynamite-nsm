@@ -1,6 +1,7 @@
 import os
 import re
 import math
+import time
 import random
 import logging
 from datetime import datetime
@@ -73,6 +74,46 @@ class ScriptConfigManager:
         except Exception as e:
             raise zeek_exceptions.ReadsZeekConfigError(
                 "General exception when opening/parsing config at {}; {}".format(zeeklocalsite_path, e))
+
+    @classmethod
+    def from_raw_text(cls, raw_text, configuration_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param configuration_directory: The configuration directory for Zeek
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of NodeConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'site', 'local.zeek')
+        utilities.makedirs(os.path.join(tmp_dir, 'site'))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(configuration_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if configuration_directory:
+            c.configuration_directory = configuration_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        zeeklocalsite_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
+        try:
+            with open(zeeklocalsite_path) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeeklocalsite_path))
+        except Exception as e:
+            raise zeek_exceptions.ReadsZeekConfigError(
+                "General exception when opening/parsing config at {}; {}".format(zeeklocalsite_path, e))
+        return raw_text
 
     def disable_script(self, name):
         """
@@ -154,8 +195,8 @@ class ScriptConfigManager:
 
         # Backup old configuration first
         source_configuration_file_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
-        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'local.zeek.d')
         if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'local.zeek.d')
             try:
                 utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
                                                     destination_file_prefix='local.zeek.backup')
@@ -210,6 +251,29 @@ class NodeConfigManager:
                 key, value = item
                 node_config[section][key] = value
         return node_config
+    
+    @classmethod
+    def from_raw_text(cls, raw_text, install_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param install_directory: The installation directory for Zeek
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of NodeConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'etc', 'node.cfg')
+        utilities.makedirs(os.path.join(tmp_dir, 'etc'))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(install_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if install_directory:
+            c.install_directory = install_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
 
     @staticmethod
     def get_optimal_zeek_worker_config(network_capture_interfaces, strategy="aggressive", cpus=None, stdout=True,
@@ -299,6 +363,23 @@ class NodeConfigManager:
         logger.info('Zeek Worker Count: {}'.format(len(zeek_workers)))
         logger.debug('Zeek Workers: {}'.format(zeek_workers))
         return zeek_workers
+
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        zeek_node_cfg = os.path.join(self.install_directory, 'etc', 'node.cfg')
+        try:
+            with open(zeek_node_cfg) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeek_node_cfg))
+        except Exception as e:
+            raise zeek_exceptions.ReadsZeekConfigError(
+                "General exception when opening/parsing config at {}; {}".format(zeek_node_cfg, e))
+        return raw_text
 
     def add_logger(self, name, host):
         """
@@ -494,8 +575,8 @@ class NodeConfigManager:
         Overwrite the existing node.cfg with changed values
         """
         source_configuration_file_path = os.path.join(self.install_directory, 'etc', 'node.cfg')
-        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'node.cfg.d')
         if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'node.cfg.d')
             try:
                 utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
                                                     destination_file_prefix='node.cfg.backup')
@@ -590,6 +671,46 @@ class LocalNetworkConfigManager:
                 local_networks[ip_and_cidr] = description
         return local_networks
 
+    @classmethod
+    def from_raw_text(cls, raw_text, install_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param install_directory: The installation directory for Zeek
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of LocalNetworkConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'etc', 'networks.cfg')
+        utilities.makedirs(os.path.join(tmp_dir, 'etc'))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(install_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if install_directory:
+            c.install_directory = install_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        zeek_network_cfg = os.path.join(self.install_directory, 'etc', 'networks.cfg')
+        try:
+            with open(zeek_network_cfg) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeek_network_cfg))
+        except Exception as e:
+            raise zeek_exceptions.ReadsZeekConfigError(
+                "General exception when opening/parsing config at {}; {}".format(zeek_network_cfg, e))
+        return raw_text
+
     def add_local_network(self, ip_and_cidr, description=None):
         """
         Add a new local network definition
@@ -643,8 +764,8 @@ class LocalNetworkConfigManager:
 
     def write_config(self):
         source_configuration_file_path = os.path.join(self.install_directory, 'etc', 'networks.cfg')
-        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'networks.cfg.d')
         if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'networks.cfg.d')
             try:
                 utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
                                                     destination_file_prefix='networks.cfg.backup')

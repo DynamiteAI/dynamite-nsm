@@ -70,6 +70,29 @@ class ConfigManager:
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
+    @classmethod
+    def from_raw_text(cls, raw_text, install_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param install_directory: The install directory for Filebeat
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of ConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'filebeat.yml')
+        utilities.makedirs(os.path.join(tmp_dir))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(install_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if install_directory:
+            c.install_directory = install_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
     def disable_log_input(self):
         """
         Disable generic filebeat log input
@@ -641,6 +664,22 @@ class ConfigManager:
         """
         return utilities.list_backup_configurations(os.path.join(self.backup_configuration_directory, 'filebeat.yml.d'))
 
+    def get_config_text(self, name):
+        filepath = None
+        file_text = None
+        if not name or name == "current":
+            filepath = os.path.join(self.install_directory, 'filebeat.yml')
+        elif name == "recent":
+            configs = self.list_backup_configs()
+            if configs:
+                filepath = configs[0]['filepath']
+        else:
+            filepath = os.path.join(self.backup_configuration_directory, 'filebeat.yml.d', name)
+        if filepath:
+            with open(filepath, 'r') as in_f:
+                file_text = in_f.read()
+        return file_text
+
     def restore_backup_config(self, name):
         """
         Restore a configuration from our config store
@@ -678,8 +717,8 @@ class ConfigManager:
 
         # Backup old configuration first
         source_configuration_file_path = os.path.join(self.install_directory, 'filebeat.yml')
-        destination_configuration_path = os.path.join(self.backup_configuration_directory, 'filebeat.yml.d')
         if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'filebeat.yml.d')
             try:
                 utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
                                                     destination_file_prefix='filebeat.yml.backup')
