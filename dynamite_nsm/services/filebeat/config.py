@@ -664,21 +664,22 @@ class ConfigManager:
         """
         return utilities.list_backup_configurations(os.path.join(self.backup_configuration_directory, 'filebeat.yml.d'))
 
-    def get_config_text(self, name):
-        filepath = None
-        file_text = None
-        if not name or name == "current":
-            filepath = os.path.join(self.install_directory, 'filebeat.yml')
-        elif name == "recent":
-            configs = self.list_backup_configs()
-            if configs:
-                filepath = configs[0]['filepath']
-        else:
-            filepath = os.path.join(self.backup_configuration_directory, 'filebeat.yml.d', name)
-        if filepath:
-            with open(filepath, 'r') as in_f:
-                file_text = in_f.read()
-        return file_text
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        filebeat_path = os.path.join(self.install_directory, 'filebeat.yml')
+        try:
+            with open(filebeat_path) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise filebeat_exceptions.ReadFilebeatConfigError("Could not locate config at {}".format(filebeat_path))
+        except Exception as e:
+            raise filebeat_exceptions.ReadFilebeatConfigError(
+                "General exception when opening/parsing config at {}; {}".format(filebeat_path, e))
+        return raw_text
 
     def restore_backup_config(self, name):
         """

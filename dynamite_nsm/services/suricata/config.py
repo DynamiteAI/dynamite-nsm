@@ -189,6 +189,23 @@ class ConfigManager:
 
         return create_suricata_interfaces(network_capture_interfaces)
 
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        suricata_path = os.path.join(self.configuration_directory, 'suricata.yaml')
+        try:
+            with open(suricata_path) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise suricata_exceptions.ReadsSuricataConfigError("Could not locate config at {}".format(suricata_path))
+        except Exception as e:
+            raise suricata_exceptions.ReadsSuricataConfigError(
+                "General exception when opening/parsing config at {}; {}".format(suricata_path, e))
+        return raw_text
+
     def add_afpacket_interface(self, interface, threads=None, cluster_id=None, cluster_type='cluster_flow',
                                bpf_filter=None):
         """
