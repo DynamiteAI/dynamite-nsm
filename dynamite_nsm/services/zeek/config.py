@@ -1,7 +1,6 @@
 import os
 import re
 import math
-import time
 import random
 import logging
 from datetime import datetime
@@ -22,6 +21,84 @@ from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
+
+
+class BpfConfigManager:
+    """
+    Wrapper for configuring interface_bpf.zeek script
+    """
+
+    def __init__(self, configuration_directory):
+        self.configuration_directory = configuration_directory
+        self.interface_pattern_map = {}
+        self._parse_bpf_map_file()
+
+    def _parse_bpf_map_file(self):
+        """
+        Parse bpf_map_file.input configuration file, and determine what bpf filters to apply to each interface
+        """
+
+        bpf_interface_map_path = os.path.join(self.configuration_directory, 'bpf_map_file.input')
+        try:
+            with open(bpf_interface_map_path) as conf_f:
+                for line in conf_f.readlines():
+                    if line.startswith('#'):
+                        continue
+                    tokenized_line = line.split(' ')
+                    net_interface, bpf_pattern = tokenized_line[0], ' '.join(tokenized_line[1:]).strip()
+                    if net_interface in utilities.get_network_interface_names():
+                        self.interface_pattern_map[net_interface] = bpf_pattern
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(bpf_interface_map_path))
+
+    def add_bpf_pattern(self, interface_name, bpf_pattern):
+        """
+        Associate a BPF pattern with a valid network interface.
+
+        :param interface_name: The name of the network interface to apply the filter to
+        :param bpf_pattern: A valid BPF filter
+        """
+        if interface_name in utilities.get_network_interface_names():
+            self.interface_pattern_map[interface_name] = bpf_pattern
+
+    def remove_bpf_pattern(self, interface_name):
+        """
+        Dis-associate a BPF pattern and a network interface
+
+        :param interface_name: The name of the network interface
+        """
+        try:
+            del self.interface_pattern_map[interface_name]
+        except KeyError:
+            pass
+
+    def get_bpf_pattern(self, interface_name):
+        """
+        Get the BPF pattern for a given interface, assuming there is one.
+
+        :param interface_name: The name of the network interface
+        """
+        return self.interface_pattern_map.get(interface_name)
+
+    def write_config(self):
+        """
+        Overwrite the existing bpf_map_file.input config with changed values
+        """
+
+        output_str = ''
+
+        source_configuration_file_path = os.path.join(self.configuration_directory, 'bpf_map_file.input')
+        for k, v in self.interface_pattern_map.items():
+            output_str += '{}\t{}\n'.format(k, v)
+        try:
+            with open(source_configuration_file_path, 'w') as f:
+                f.write(output_str)
+        except IOError:
+            raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to write new bpf_map_file.input file to {}; {}".format(
+                    self.configuration_directory, e))
 
 
 class ScriptConfigManager:
