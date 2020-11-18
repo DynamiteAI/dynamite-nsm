@@ -44,8 +44,8 @@ class BpfConfigManager:
                 for line in conf_f.readlines():
                     if line.startswith('#'):
                         continue
-                    tokenized_line = line.split(' ')
-                    net_interface, bpf_pattern = tokenized_line[0], ' '.join(tokenized_line[1:]).strip()
+                    tokenized_line = line.split('\t')
+                    net_interface, bpf_pattern = tokenized_line[0], ''.join(tokenized_line[1:]).strip()
                     if net_interface in utilities.get_network_interface_names():
                         self.interface_pattern_map[net_interface] = bpf_pattern
         except IOError:
