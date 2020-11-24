@@ -449,7 +449,7 @@ class ConfigManager:
                 ssl_options['certificate'] = ssl_certificate
             if isinstance(ssl_key, str):
                 ssl_options['key'] = ssl_key
-            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full', 'certificate']:
                 ssl_options['verification_mode'] = ssl_verification_mode
 
         self.kafka_targets['enabled'] = False
@@ -495,7 +495,7 @@ class ConfigManager:
                 ssl_options['certificate'] = ssl_certificate
             if isinstance(ssl_key, str):
                 ssl_options['key'] = ssl_key
-            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full', 'certificate']:
                 ssl_options['verification_mode'] = ssl_verification_mode
 
         self.elasticsearch_targets['enabled'] = False
@@ -527,6 +527,16 @@ class ConfigManager:
                ssl_certificate is specified.
         :param ssl_verification_mode: This option controls whether the client verifies server certificates and host
                names.
+                - full, which verifies that the provided certificate is signed by a trusted authority (CA)
+                  and also verifies that the server’s hostname (or IP address) matches the names identified within the
+                  certificate.
+                - certificate, which verifies that the provided certificate is signed by a trusted authority (CA),
+                  but does not perform any hostname verification.
+                - none, which performs no verification of the server’s certificate.
+                  This mode disables many of the security benefits of SSL/TLS and should only be used
+                  after very careful consideration.
+                  It is primarily intended as a temporary diagnostic mechanism when attempting to resolve TLS errors;
+                  its use in production environments is strongly discouraged.
         """
         if not index:
             index = 'dynamite_events-%{+yyyy.MM.dd}'
@@ -555,7 +565,7 @@ class ConfigManager:
                 ssl_options['certificate'] = ssl_certificate
             if isinstance(ssl_key, str):
                 ssl_options['key'] = ssl_key
-            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full', 'certificate']:
                 ssl_options['verification_mode'] = ssl_verification_mode
 
         self.elasticsearch_targets['enabled'] = False
@@ -622,7 +632,7 @@ class ConfigManager:
                 ssl_options['certificate'] = ssl_certificate
             if isinstance(ssl_key, str):
                 ssl_options['key'] = ssl_key
-            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full']:
+            if isinstance(ssl_verification_mode, str) and ssl_verification_mode in ['none', 'full', 'certificate']:
                 ssl_options['verification_mode'] = ssl_verification_mode
 
         self.elasticsearch_targets['enabled'] = False
