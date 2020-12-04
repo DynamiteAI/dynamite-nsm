@@ -103,8 +103,8 @@ class InstallManager(install.BaseInstallManager):
         elif pkt_mng.package_manager == 'yum':
 
             packages = ['cmake', 'cmake3', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
-                        'openssl-devel', 'python-devel', 'python2-devel', 'swig', 'zlib-devel',
-                        'kernel-devel-$(uname -r)', 'kernel-devel', 'tar']
+                        'openssl-devel', 'python3-devel', 'python2-devel', 'swig', 'zlib-devel',
+                        'kernel-devel', 'tar', 'jemalloc-devel']
 
             # Work around for missing dependencies in RHEL/Centos8
             try:
@@ -168,11 +168,15 @@ class InstallManager(install.BaseInstallManager):
                 "Zeek_AF_Packet configuration returned non-zero; exit-code: {}".format(
                     config_zeek_af_packet_process.returncode))
         self.logger.info('Compiling Zeek Zeek_AF_Packet plugin.')
+        if utilities.get_cpu_core_count() > 1:
+            parallel_threads = utilities.get_cpu_core_count() - 1
+        else:
+            parallel_threads = 1
         if self.verbose:
-            compile_zeek_af_packet_process = subprocess.Popen('make; make install', shell=True,
+            compile_zeek_af_packet_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads), shell=True,
                                                               cwd=bro_af_packet_plugin_path)
         else:
-            compile_zeek_af_packet_process = subprocess.Popen('make; make install', shell=True,
+            compile_zeek_af_packet_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads), shell=True,
                                                               cwd=bro_af_packet_plugin_path,
                                                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
@@ -235,11 +239,11 @@ class InstallManager(install.BaseInstallManager):
             parallel_threads = 1
         if self.verbose:
             compile_zeek_community_id_script_process = subprocess.Popen(
-                'make -g {}; make install'.format(parallel_threads), shell=True,
+                'make -j {}; make install'.format(parallel_threads), shell=True,
                 cwd=bro_commmunity_id_plugin_path)
         else:
             compile_zeek_community_id_script_process = subprocess.Popen(
-                'make -g {}; make install'.format(parallel_threads), shell=True,
+                'make -j {}; make install'.format(parallel_threads), shell=True,
                 cwd=bro_commmunity_id_plugin_path,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
@@ -466,11 +470,11 @@ class InstallManager(install.BaseInstallManager):
         time.sleep(1)
         self.logger.info('Configuring Zeek.')
         if self.verbose:
-            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={}'.format(
+            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={} --enable-jemalloc'.format(
                 self.install_directory, self.configuration_directory),
                 shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
         else:
-            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={}'.format(
+            zeek_config_p = subprocess.Popen('./configure --prefix={} --scriptdir={} --enable-jemalloc'.format(
                 self.install_directory, self.configuration_directory),
                 shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
@@ -488,8 +492,12 @@ class InstallManager(install.BaseInstallManager):
                 "Zeek configuration process returned non-zero; exit-code: {}".format(zeek_config_p.returncode))
         time.sleep(1)
         self.logger.info("Compiling Zeek.")
+        if utilities.get_cpu_core_count() > 1:
+            parallel_threads = utilities.get_cpu_core_count() - 1
+        else:
+            parallel_threads = 1
         if self.verbose:
-            compile_zeek_process = subprocess.Popen('make; make install', shell=True,
+            compile_zeek_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads), shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME))
             try:
                 compile_zeek_process.communicate()
@@ -500,7 +508,7 @@ class InstallManager(install.BaseInstallManager):
                     "General error occurred while compiling Zeek; {}".format(e))
             compile_zeek_return_code = compile_zeek_process.returncode
         else:
-            compile_zeek_process = subprocess.Popen('make; make install', shell=True,
+            compile_zeek_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads), shell=True,
                                                     cwd=os.path.join(const.INSTALL_CACHE, const.ZEEK_DIRECTORY_NAME),
                                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
