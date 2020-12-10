@@ -209,7 +209,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             if 'zeek' in agent_analyzers:
                 monitor_log_paths.append("/opt/dynamite/zeek/logs/current/*.log")
             if 'suricata' in agent_analyzers:
-                monitor_log_paths.append('/var/log/dynamite/suricata/eve.json')
+                monitor_log_paths.append('/opt/dynamite/suricata/logs/eve.json')
             filebeat_args.update({
                 'monitor_log_paths': monitor_log_paths
             })
