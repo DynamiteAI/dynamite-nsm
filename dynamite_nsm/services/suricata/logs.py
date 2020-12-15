@@ -408,14 +408,16 @@ class StatusLogEve(logs.LogFile):
             yield aggregated_entry
 
 
-class StatsLog(StatusLogEve):
+class StatsLog(logs.LogFile):
 
     def __init__(self, log_sample_size=10000):
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
 
-        StatusLogEve.__init__(self, log_sample_size=log_sample_size)
+        logs.LogFile.__init__(self,
+                              log_path=self.log_path,
+                              log_sample_size=log_sample_size)
         self.log_path = os.path.join(self.suricata_logs, 'stats.log')
         self._state_machine_parser()
 
@@ -503,3 +505,26 @@ class StatsLog(StatusLogEve):
 
         for log_entry in filter_metrics(start, end):
             yield log_entry
+
+    def iter_aggregated_metrics(self, start=None, end=None, tolerance_seconds=60):
+        """
+        :param start: UTC start time
+        :param end: UTC end time
+        :param tolerance_seconds: Specifies the maximum numbers seconds between entries to consider them common,
+                                  and therefore aggregate.
+        """
+
+        sorted_by_time = [metric for metric in self.iter_metrics(start, end)]
+        if not sorted_by_time:
+            return
+        sorted_by_time = sorted(sorted_by_time, key=lambda x: x.time)
+        start = sorted_by_time[0].time
+        for name, group in itertools.groupby(
+                sorted_by_time, lambda x: int((x.time - start).total_seconds() // tolerance_seconds + 1)):
+            aggregated_entry = None
+            for entry in group:
+                if not aggregated_entry:
+                    aggregated_entry = entry
+                else:
+                    aggregated_entry.merge_metric_entry(entry)
+            yield aggregated_entry
