@@ -414,6 +414,7 @@ class StatsLog(logs.LogFile):
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
+        self.log_path = os.path.join(self.suricata_logs, 'stats.log')
 
         logs.LogFile.__init__(self,
                               log_path=self.log_path,
