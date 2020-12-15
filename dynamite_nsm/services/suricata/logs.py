@@ -1,10 +1,11 @@
-import os
-import math
-import json
 import itertools
-
+import json
+import math
+import os
+import time
 from datetime import datetime
 from datetime import timedelta
+
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import logs
@@ -21,7 +22,6 @@ def parse_suricata_datetime(t):
 
 
 class MainEntry:
-
     LOG_LEVEL_MAP = dict(
         Debug="DEBUG",
         Info="INFO",
@@ -76,44 +76,133 @@ class MainEntry:
 
 class MetricsEntry:
 
-    def __init__(self, entry_raw):
-        self.entry_raw = entry_raw
-        self.stats = entry_raw['stats']
-        self.timestamp = self.entry_raw.get('timestamp')
-        self.time = parse_suricata_datetime(self.timestamp)
-        self.uptime = self.stats.get('uptime')
-        self.capture_kernel_packets = self.stats.get('capture', {}).get('kernel_packets', 0)
-        self.capture_kernel_drops = self.stats.get('capture', {}).get('kernel_drops', 0)
-        self.capture_errors = self.stats.get('capture', {}).get('errors', 0)
-        self.flow_memory = self.stats.get('flow', {}).get('memuse', 0)
-        self.tcp_memory = self.stats.get('tcp', {}).get('memuse', 0)
-        self.tcp_reassembly_memory = self.stats.get('tcp', {}).get('reassembly_memuse', 0)
-        self.dns_memory = self.stats.get('dns', {}).get('memuse', 0)
-        self.http_memory = self.stats.get('http', {}).get('memuse', 0)
-        self.ftp_memory = self.stats.get('ftp', {}).get('memuse', 0)
-        self.http_events = self.stats.get('app_layer', {}).get('flow', {}).get('http', 0)
-        self.tls_events = self.stats.get('app_layer', {}).get('flow', {}).get('tls', 0)
-        self.ssh_events = self.stats.get('app_layer', {}).get('flow', {}).get('ssh', 0)
-        self.imap_events = self.stats.get('app_layer', {}).get('flow', {}).get('imap', 0)
-        self.msn_events = self.stats.get('app_layer', {}).get('flow', {}).get('msn', 0)
-        self.smb_events = self.stats.get('app_layer', {}).get('flow', {}).get('smb', 0)
-        self.dcerpc_tcp_events = self.stats.get('app_layer', {}).get('flow', {}).get('dcerpc_tcp', 0)
-        self.dns_tcp_events = self.stats.get('app_layer', {}).get('flow', {}).get('dns_tcp', 0)
-        self.nfs_tcp_events = self.stats.get('app_layer', {}).get('flow', {}).get('nfs_tcp', 0)
-        self.ntp_events = self.stats.get('app_layer', {}).get('flow', {}).get('ntp', 0)
-        self.ftp_data_events = self.stats.get('app_layer', {}).get('flow', {}).get('ftp-data', 0)
-        self.tftp_events = self.stats.get('app_layer', {}).get('flow', {}).get('tftp', 0)
-        self.ikev2_data_events = self.stats.get('app_layer', {}).get('flow', {}).get('ikev2', 0)
-        self.krb5_tcp_events = self.stats.get('app_layer', {}).get('flow', {}).get('krb5_tcp', 0)
-        self.dhcp_events = self.stats.get('app_layer', {}).get('flow', {}).get('dhcp', 0)
-        self.failed_tcp_events = self.stats.get('app_layer', {}).get('flow', {}).get('failed_tcp', 0)
-        self.dcerpc_udp_events = self.stats.get('app_layer', {}).get('flow', {}).get('dcerpc_udp', 0)
-        self.dns_udp_events = self.stats.get('app_layer', {}).get('flow', {}).get('dns_udp', 0)
-        self.krb5_udp_events = self.stats.get('app_layer', {}).get('flow', {}).get('krb5_udp', 0)
-        self.failed_udp_events = self.stats.get('app_layer', {}).get('flow', {}).get('failed_udp', 0)
+    def __init__(self, time, uptime, capture_kernel_packets, capture_kernel_drops, capture_errors,
+                 flow_memory, tcp_memory, tcp_reassembly_memory, dns_memory, http_memory, ftp_memory, http_events,
+                 tls_events, ssh_events, imap_events, msn_events, smb_events, dcerpc_tcp_events, dns_tcp_events,
+                 nfs_tcp_events, ntp_events, ftp_data_events, tftp_events, ikev2_data_events, krb5_tcp_events,
+                 dhcp_events, failed_tcp_events, dcerpc_udp_events, dns_udp_events, krb5_udp_events, failed_udp_events):
+
+        self.timestamp = str(time)
+        self.time = time
+        self.uptime = uptime
+        self.capture_kernel_packets = capture_kernel_packets
+        self.capture_kernel_drops = capture_kernel_drops
+        self.capture_errors = capture_errors
+        self.flow_memory = flow_memory
+        self.tcp_memory = tcp_memory
+        self.tcp_reassembly_memory = tcp_reassembly_memory
+        self.dns_memory = dns_memory
+        self.http_memory = http_memory
+        self.ftp_memory = ftp_memory
+        self.http_events = http_events
+        self.tls_events = tls_events
+        self.ssh_events = ssh_events
+        self.imap_events = imap_events
+        self.msn_events = msn_events
+        self.smb_events = smb_events
+        self.dcerpc_tcp_events = dcerpc_tcp_events
+        self.dns_tcp_events = dns_tcp_events
+        self.nfs_tcp_events = nfs_tcp_events
+        self.ntp_events = ntp_events
+        self.ftp_data_events = ftp_data_events
+        self.tftp_events = tftp_events
+        self.ikev2_data_events = ikev2_data_events
+        self.krb5_tcp_events = krb5_tcp_events
+        self.dhcp_events = dhcp_events
+        self.failed_tcp_events = failed_tcp_events
+        self.dcerpc_udp_events = dcerpc_udp_events
+        self.dns_udp_events = dns_udp_events
+        self.krb5_udp_events = krb5_udp_events
+        self.failed_udp_events = failed_udp_events
         self.capture_kernel_drops_percentage = 0
         if self.capture_kernel_packets > 0:
             self.capture_kernel_drops_percentage = round(self.capture_kernel_drops / self.capture_kernel_packets, 2)
+
+    @classmethod
+    def create_from_raw_stats_entry(cls, entry_raw_stats):
+        entry_raw = entry_raw_stats
+        time = entry_raw.get('time')
+        uptime = entry_raw.get('uptime')
+        capture_kernel_packets = entry_raw.get('capture.kernel_packets')
+        capture_kernel_drops = entry_raw.get('capture.kernel_drops')
+        capture_errors = entry_raw.get('capture.errors')
+        flow_memory = entry_raw.get('flow.memuse')
+        tcp_memory = entry_raw.get('tcp.memuse')
+        tcp_reassembly_memory = entry_raw.get('tcp.reassembly_memuse')
+        dns_memory = entry_raw.get('dns.memuse')
+        http_memory = entry_raw.get('http.memuse')
+        ftp_memory = entry_raw.get('ftp.memuse')
+        http_events = entry_raw.get('app_layer.flow.http')
+        tls_events = entry_raw.get('app_layer.flow.tls')
+        ssh_events = entry_raw.get('app_layer.flow.ssh')
+        imap_events = entry_raw.get('app_layer.flow.imap')
+        msn_events = entry_raw.get('app_layer.flow.msn')
+        smb_events = entry_raw.get('app_layer.flow.smb')
+        dcerpc_tcp_events = entry_raw.get('app_layer.flow.dcerpc_tcp')
+        dns_tcp_events = entry_raw.get('app_layer.flow.dns_tcp')
+        nfs_tcp_events = entry_raw.get('app_layer.flow.nfs_tcp')
+        ntp_events = entry_raw.get('app_layer.flow.dcerpc_tcp')
+        ftp_data_events = entry_raw.get('app_layer.flow.ftp-data')
+        tftp_events = entry_raw.get('app_layer.flow.tftp')
+        ikev2_data_events = entry_raw.get('app_layer.flow.ikev2')
+        krb5_tcp_events = entry_raw.get('app_layer.flow.krb5_tcp')
+        dhcp_events = entry_raw.get('app_layer.flow.dhcp')
+        failed_tcp_events = entry_raw.get('app_layer.flow.failed_tcp')
+        dcerpc_udp_events = entry_raw.get('app_layer.flow.failed_udp')
+        dns_udp_events = entry_raw.get('app_layer.flow.dns_udp')
+        krb5_udp_events = entry_raw.get('app_layer.flow.krb5_udp')
+        failed_udp_events = entry_raw.get('app_layer.flow.failed_udp')
+
+        return cls(time, uptime, capture_kernel_packets, capture_kernel_drops, capture_errors,
+                   flow_memory, tcp_memory, tcp_reassembly_memory, dns_memory, http_memory, ftp_memory, http_events,
+                   tls_events, ssh_events, imap_events, msn_events, smb_events, dcerpc_tcp_events, dns_tcp_events,
+                   nfs_tcp_events, ntp_events, ftp_data_events, tftp_events, ikev2_data_events, krb5_tcp_events,
+                   dhcp_events, failed_tcp_events, dcerpc_udp_events, dns_udp_events, krb5_udp_events,
+                   failed_udp_events)
+
+    @classmethod
+    def create_from_eve_raw_stats(cls, entry_raw_eve):
+        entry_raw = entry_raw_eve
+        stats = entry_raw['stats']
+        timestamp = entry_raw.get('timestamp')
+        time = parse_suricata_datetime(timestamp)
+        uptime = stats.get('uptime')
+        capture_kernel_packets = stats.get('capture', {}).get('kernel_packets', 0)
+        capture_kernel_drops = stats.get('capture', {}).get('kernel_drops', 0)
+        capture_errors = stats.get('capture', {}).get('errors', 0)
+        flow_memory = stats.get('flow', {}).get('memuse', 0)
+        tcp_memory = stats.get('tcp', {}).get('memuse', 0)
+        tcp_reassembly_memory = stats.get('tcp', {}).get('reassembly_memuse', 0)
+        dns_memory = stats.get('dns', {}).get('memuse', 0)
+        http_memory = stats.get('http', {}).get('memuse', 0)
+        ftp_memory = stats.get('ftp', {}).get('memuse', 0)
+        http_events = stats.get('app_layer', {}).get('flow', {}).get('http', 0)
+        tls_events = stats.get('app_layer', {}).get('flow', {}).get('tls', 0)
+        ssh_events = stats.get('app_layer', {}).get('flow', {}).get('ssh', 0)
+        imap_events = stats.get('app_layer', {}).get('flow', {}).get('imap', 0)
+        msn_events = stats.get('app_layer', {}).get('flow', {}).get('msn', 0)
+        smb_events = stats.get('app_layer', {}).get('flow', {}).get('smb', 0)
+        dcerpc_tcp_events = stats.get('app_layer', {}).get('flow', {}).get('dcerpc_tcp', 0)
+        dns_tcp_events = stats.get('app_layer', {}).get('flow', {}).get('dns_tcp', 0)
+        nfs_tcp_events = stats.get('app_layer', {}).get('flow', {}).get('nfs_tcp', 0)
+        ntp_events = stats.get('app_layer', {}).get('flow', {}).get('ntp', 0)
+        ftp_data_events = stats.get('app_layer', {}).get('flow', {}).get('ftp-data', 0)
+        tftp_events = stats.get('app_layer', {}).get('flow', {}).get('tftp', 0)
+        ikev2_data_events = stats.get('app_layer', {}).get('flow', {}).get('ikev2', 0)
+        krb5_tcp_events = stats.get('app_layer', {}).get('flow', {}).get('krb5_tcp', 0)
+        dhcp_events = stats.get('app_layer', {}).get('flow', {}).get('dhcp', 0)
+        failed_tcp_events = stats.get('app_layer', {}).get('flow', {}).get('failed_tcp', 0)
+        dcerpc_udp_events = stats.get('app_layer', {}).get('flow', {}).get('dcerpc_udp', 0)
+        dns_udp_events = stats.get('app_layer', {}).get('flow', {}).get('dns_udp', 0)
+        krb5_udp_events = stats.get('app_layer', {}).get('flow', {}).get('krb5_udp', 0)
+        failed_udp_events = stats.get('app_layer', {}).get('flow', {}).get('failed_udp', 0)
+
+        return cls(time, uptime, capture_kernel_packets, capture_kernel_drops, capture_errors,
+                   flow_memory, tcp_memory, tcp_reassembly_memory, dns_memory, http_memory, ftp_memory, http_events,
+                   tls_events, ssh_events, imap_events, msn_events, smb_events, dcerpc_tcp_events, dns_tcp_events,
+                   nfs_tcp_events, ntp_events, ftp_data_events, tftp_events, ikev2_data_events, krb5_tcp_events,
+                   dhcp_events, failed_tcp_events, dcerpc_udp_events, dns_udp_events, krb5_udp_events,
+                   failed_udp_events)
 
     def __str__(self):
         return json.dumps(dict(
@@ -228,7 +317,7 @@ class MainLog(logs.LogFile):
             yield log_entry
 
 
-class StatusLog(logs.LogFile):
+class StatusLogEve(logs.LogFile):
 
     def __init__(self, log_sample_size=10000):
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
@@ -250,10 +339,10 @@ class StatusLog(logs.LogFile):
             for en_raw in self.entries:
                 if '"event_type":"stats"' in en_raw:
                     try:
-                        en = MetricsEntry(json.loads(en_raw))
+                        en = MetricsEntry.create_from_eve_raw_stats(json.loads(en_raw))
                     except ValueError:
                         continue
-                    en_corrected = MetricsEntry(json.loads(en_raw))
+                    en_corrected = MetricsEntry.create_from_eve_raw_stats(json.loads(en_raw))
                     if s < en.time < e:
                         if not prev_en:
                             prev_en = en
@@ -317,3 +406,100 @@ class StatusLog(logs.LogFile):
                 else:
                     aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
+
+
+class StatsLog(StatusLogEve):
+
+    def __init__(self, log_sample_size=10000):
+        self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
+        self.env_dict = utilities.get_environment_file_dict()
+        self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
+
+        StatusLogEve.__init__(self, log_sample_size=log_sample_size)
+        self.log_path = os.path.join(self.suricata_logs, 'stats.log')
+        self._state_machine_parser()
+
+    def _state_machine_parser(self):
+        self.entries = []
+        date_token = 'Date:'
+        section_token = '------------------------------------------------------------------------------------'
+        timezone_utc_offset_seconds = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
+        timezone_utc_offset_seconds *= -1
+        utc_datetime = None
+        entered_counter_area = False
+        stats_entry = {}
+        for line in self.iter_cache():
+            if section_token in line:
+                continue
+            elif date_token in line:
+                try:
+                    _, mm_dd_yyyy, _, hh_mm_ss, _, _, _, _, _ = line.split(' ')
+                except ValueError:
+                    continue
+                local_datetime = datetime.strptime(f'{mm_dd_yyyy} {hh_mm_ss}', '%m/%d/%Y %H:%M:%S')
+                utc_datetime = local_datetime - timedelta(seconds=timezone_utc_offset_seconds)
+                entered_counter_area = True
+            elif entered_counter_area:
+                metric, _, counter = line.replace(' ', '').strip().split('|')
+                if stats_entry:
+                    stats_entry.update({metric: int(counter)})
+                else:
+                    stats_entry = {'time': utc_datetime}
+                if metric == 'flow.memuse':
+                    self.entries.append(stats_entry)
+                    stats_entry = {}
+                    entered_counter_area = False
+
+    def iter_metrics(self, start=None, end=None):
+        def filter_metrics(s=None, e=None):
+            if not e:
+                e = datetime.utcnow()
+            if not s:
+                s = datetime.utcnow() - timedelta(minutes=60)
+            prev_en = None
+            for en_dict in self.entries:
+                try:
+                    en = MetricsEntry.create_from_raw_stats_entry(en_dict)
+                except ValueError:
+                    continue
+                en_corrected = MetricsEntry.create_from_raw_stats_entry(en_dict)
+                if s < en.time < e:
+                    if not prev_en:
+                        prev_en = en
+                        continue
+
+                    # A lot of Suricata stats are counters, meaning that they increment from zero starting at
+                    # process start. We address this by applying the difference between the current and previous
+                    # entries so that each entry represents an increment
+                    en_corrected.capture_kernel_packets = \
+                        max(0, en.capture_kernel_packets - prev_en.capture_kernel_packets)
+                    en_corrected.capture_errors = max(0, en.capture_errors - prev_en.capture_errors)
+                    en_corrected.capture_kernel_drops = \
+                        max(0, en.capture_kernel_drops - prev_en.capture_kernel_drops)
+
+                    en_corrected.http_events = max(0, en.http_events - prev_en.http_events)
+                    en_corrected.tls_events = max(0, en.tls_events - prev_en.tls_events)
+                    en_corrected.ssh_events = max(0, en.ssh_events - prev_en.ssh_events)
+                    en_corrected.imap_events = max(0, en.imap_events - prev_en.imap_events)
+                    en_corrected.msn_events = max(0, en.msn_events - prev_en.msn_events)
+                    en_corrected.smb_events = max(0, en.smb_events - prev_en.smb_events)
+                    en_corrected.dcerpc_tcp_events = max(0, en.dcerpc_tcp_events - prev_en.dcerpc_tcp_events)
+                    en_corrected.dns_tcp_events = max(0, en.dns_tcp_events - prev_en.dns_tcp_events)
+                    en_corrected.nfs_tcp_events = max(0, en.nfs_tcp_events - prev_en.nfs_tcp_events)
+                    en_corrected.ntp_events = max(0, en.ntp_events - prev_en.ntp_events)
+                    en_corrected.ftp_data_events = max(0, en.ftp_data_events - prev_en.ftp_data_events)
+                    en_corrected.tftp_events = max(0, en.tftp_events - prev_en.tftp_events)
+                    en_corrected.ikev2_data_events = max(0, en.ikev2_data_events - prev_en.ikev2_data_events)
+                    en_corrected.krb5_tcp_events = max(0, en.krb5_tcp_events - prev_en.krb5_tcp_events)
+                    en_corrected.dhcp_events = max(0, en.dhcp_events - prev_en.dhcp_events)
+                    en_corrected.failed_tcp_events = max(0, en.failed_tcp_events - prev_en.failed_tcp_events)
+                    en_corrected.dcerpc_udp_events = max(0, en.dcerpc_udp_events - prev_en.dcerpc_udp_events)
+                    en_corrected.dns_udp_events = max(0, en.dns_udp_events - prev_en.dns_udp_events)
+                    en_corrected.krb5_udp_events = max(0, en.krb5_udp_events - prev_en.krb5_udp_events)
+                    en_corrected.failed_udp_events = max(0, en.failed_udp_events - prev_en.failed_udp_events)
+
+                    prev_en = en
+                    yield en_corrected
+
+        for log_entry in filter_metrics(start, end):
+            yield log_entry
