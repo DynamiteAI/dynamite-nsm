@@ -423,7 +423,7 @@ class StatsLog(logs.LogFile):
         self._state_machine_parser()
 
     def _state_machine_parser(self):
-        self.entries = []
+        temp_entries = []
         date_token = 'Date:'
         section_token = '------------------------------------------------------------------------------------'
         timezone_utc_offset_seconds = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
@@ -431,7 +431,7 @@ class StatsLog(logs.LogFile):
         utc_datetime = None
         entered_counter_area = False
         stats_entry = {}
-        for line in self.iter_cache():
+        for line in self.entries:
             if section_token in line:
                 continue
             elif date_token in line:
@@ -449,9 +449,10 @@ class StatsLog(logs.LogFile):
                 else:
                     stats_entry = {'time': utc_datetime}
                 if metric == 'flow.memuse':
-                    self.entries.append(stats_entry)
+                    temp_entries.append(stats_entry)
                     stats_entry = {}
                     entered_counter_area = False
+        self.entries = temp_entries
 
     def iter_metrics(self, start=None, end=None):
         def filter_metrics(s=None, e=None):
