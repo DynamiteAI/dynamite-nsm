@@ -455,8 +455,7 @@ def is_root():
 
 def makedirs(path, exist_ok=True):
     if exist_ok:
-        if not os.path.exists(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
     else:
         os.makedirs(path)
 
