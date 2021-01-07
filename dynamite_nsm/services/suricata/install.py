@@ -215,12 +215,12 @@ class InstallManager(install.BaseInstallManager):
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config',
                         'libpcre3-dev', 'libpcap-dev', 'libyaml-dev', 'libjansson-dev', 'rustc', 'cargo', 'python-pip',
                         'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev',
-                        'liblz4-dev', 'tar', 'wget']
+                        'liblz4-dev', 'tar', 'wget', 'libjemalloc-dev']
         elif pkt_mng.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
                         'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python3-pip',
                         'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel', 'file-devel',
-                        'lz4-devel', 'tar', 'wget']
+                        'lz4-devel', 'tar', 'wget', 'jemalloc-devel']
         logger.info('Refreshing Package Index.')
         try:
             pkt_mng.refresh_package_indexes()

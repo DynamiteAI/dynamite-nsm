@@ -1,6 +1,4 @@
 import os
-import time
-import shutil
 from datetime import datetime
 from yaml import load, dump
 
@@ -18,6 +16,7 @@ class ConfigManager:
     tokens = {
         'inputs': ('filebeat.inputs',),
         'elasticsearch_targets': ('output.elasticsearch',),
+        'index_template_settings': ('setup.template',),
         'logstash_targets': ('output.logstash',),
         'kafka_targets': ('output.kafka',),
         'redis_targets': ('output.redis',),
@@ -33,6 +32,7 @@ class ConfigManager:
         self.kafka_targets = {}
         self.logstash_targets = {}
         self.redis_targets = {}
+        self.index_template_settings = {}
         self.processors = []
 
         self._parse_filebeatyaml()
@@ -431,15 +431,21 @@ class ConfigManager:
         """
         # TODO We need to add support for non-default indices.
         #  https://www.elastic.co/guide/en/beats/filebeat/current/elasticsearch-output.html#index-option-es
-        """
-        if not index:
-            index = 'dynamite_events-%{+yyyy.MM.dd}'
-        """
+
+        if index is None or str(index).strip() == "":
+            index = 'filebeat-%{[agent.version]}-%{+yyyy.MM.dd}'
+        if index != 'filebeat-%{[agent.version]}-%{+yyyy.MM.dd}':
+            self.index_template_settings = {
+                'enabled': True,
+                'name': str(index).split('-')[0],
+                'pattern': str(index).split('-')[0] + '-*'
+            }
         self.elasticsearch_targets = {
             'hosts': target_hosts,
             'index': index,
             'username': username,
-            'password': password
+            'password': password,
+            'enabled': True
         }
         if ssl_enabled:
             ssl_options = self.elasticsearch_targets['ssl'] = {}

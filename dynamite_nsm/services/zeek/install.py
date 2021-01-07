@@ -1,10 +1,8 @@
 import os
 import sys
 import time
-import math
 import shutil
 import logging
-import tarfile
 import subprocess
 
 try:
@@ -99,7 +97,8 @@ class InstallManager(install.BaseInstallManager):
         packages = None
         if pkt_mng.package_manager == 'apt-get':
             packages = ['cmake', 'cmake3', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
-                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-$(uname -r)', 'linux-headers-generic', 'tar']
+                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-$(uname -r)', 'linux-headers-generic', 'tar',
+                        'libjemalloc-dev']
         elif pkt_mng.package_manager == 'yum':
 
             packages = ['cmake', 'cmake3', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
@@ -173,10 +172,12 @@ class InstallManager(install.BaseInstallManager):
         else:
             parallel_threads = 1
         if self.verbose:
-            compile_zeek_af_packet_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads), shell=True,
+            compile_zeek_af_packet_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads),
+                                                              shell=True,
                                                               cwd=bro_af_packet_plugin_path)
         else:
-            compile_zeek_af_packet_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads), shell=True,
+            compile_zeek_af_packet_process = subprocess.Popen('make -j {}; make install'.format(parallel_threads),
+                                                              shell=True,
                                                               cwd=bro_af_packet_plugin_path,
                                                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
