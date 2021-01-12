@@ -49,7 +49,8 @@ class BpfConfigManager:
                     if net_interface in utilities.get_network_interface_names():
                         self.interface_pattern_map[net_interface] = bpf_pattern
         except IOError:
-            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(bpf_interface_map_path))
+            with open(bpf_interface_map_path, 'w') as bpf_input_f:
+                bpf_input_f.write('')
 
     def add_bpf_pattern(self, interface_name, bpf_pattern):
         """

@@ -147,7 +147,7 @@ class SystemCtl:
         """
         res = CmdResult()
         res.svc = svc
-        res.cmd = " ".join(["systemctl", cmd, svc])
+        res.cmd = " ".join(["sudo", "systemctl", cmd, svc])
         if args and len(args) > 0:
             for arg in args:
                 res.cmd += " " + arg
