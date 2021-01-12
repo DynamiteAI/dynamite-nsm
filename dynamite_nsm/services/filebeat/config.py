@@ -754,6 +754,7 @@ class ConfigManager:
         try:
             with open(source_configuration_file_path, 'w') as configyaml:
                 dump(self.config_data, configyaml, default_flow_style=False)
+                utilities.set_permissions_of_file(source_configuration_file_path, 744)
         except IOError:
             raise filebeat_exceptions.WriteFilebeatConfigError("Could not locate {}".format(self.install_directory))
         except Exception as e:
