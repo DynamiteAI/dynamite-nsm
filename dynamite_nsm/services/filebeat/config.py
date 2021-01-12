@@ -372,7 +372,9 @@ class ConfigManager:
                     "General exception when opening/parsing config at {}; {}".format(zeek_module_path, e))
             for k, v in zeek_module_data[0].items():
                 if isinstance(v, dict):
-                    v['vars.paths'] = [os.path.join(zeek_log_directory, k + '.log')]
+                    if k == 'connection':
+                        k = 'conn'
+                    v['var.paths'] = [os.path.join(zeek_log_directory, k + '.log')]
         if suricata_log_directory and suricata_module_path:
             try:
                 with open(suricata_module_path, 'r') as suricata_module_yaml:
@@ -382,7 +384,7 @@ class ConfigManager:
                     "General exception when opening/parsing config at {}; {}".format(suricata_module_path, e))
             for k, v in suricata_module_data[0].items():
                 if isinstance(v, dict):
-                    v['vars.paths'] = [os.path.join(suricata_log_directory, k + '.json')]
+                    v['var.paths'] = [os.path.join(suricata_log_directory, k + '.json')]
         patch_file = open(os.path.join(modules_path, '.patched'), 'w')
         if zeek_module_data:
             write_module(zeek_module_path, zeek_module_data)
