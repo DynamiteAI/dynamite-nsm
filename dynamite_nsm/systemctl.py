@@ -108,14 +108,16 @@ class SystemCtl:
 
         :return: dict() with keys 'RUNNING' and 'ENABLED'
         """
-        status = {'ENABLED': False, 'RUNNING': False}
+        status = {'enabled': False, 'running': False}
         res = self._exec('show', component, ['-p ActiveState -p LoadState'])
         if res.exit == 0 and res.err == '' and res.out != '':
             state = {l.split('=')[0].strip(): l.split('=')[1].strip() for l in res.out.split('\n') if '=' in l}
+            print(state)
             if state['LoadState'] == 'loaded':
-                status['ENABLED'] = True
+                status['enabled'] = True
             if state['ActiveState'] == 'active':
-                status['RUNNING'] = True
+                status['running'] = True
+        print(status)
         return status
 
     def _update_comp_status(self, component):
@@ -145,7 +147,7 @@ class SystemCtl:
         """
         res = CmdResult()
         res.svc = svc
-        res.cmd = " ".join(["systemctl", cmd, svc])
+        res.cmd = " ".join(["sudo", "systemctl", cmd, svc])
         if args and len(args) > 0:
             for arg in args:
                 res.cmd += " " + arg
@@ -179,6 +181,16 @@ class SystemCtl:
         p.communicate()
         return p.returncode == 0
 
+    def is_enabled(self, svc):
+        """
+        Determine if a service (or target) is enabled
+        :param svc: The name of the service
+        :return: True if enabled
+        """
+        svc = self._format_svc_string(svc)
+        cmd = self._exec("is-enabled", svc)
+        return cmd.out == "enabled"
+
     def disable(self, svc, daemon_reload=True):
         """
         Disable the given service. This will prevent it from running at boot.
@@ -191,7 +203,7 @@ class SystemCtl:
         _, _, enabled = self._exec_update("disable", svc)
         if daemon_reload and not enabled:
             self.daemon_reload()
-        return not enabled
+        return enabled
 
     def enable(self, svc, daemon_reload=True):
         """

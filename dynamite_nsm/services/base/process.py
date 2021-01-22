@@ -48,6 +48,14 @@ class BaseProcessManager:
             pass
         return pid
 
+    def disable(self):
+        self.logger.info('Disabling on startup: {}'.format(self.systemd_service))
+        return self.sysctl.disable(self.systemd_service, daemon_reload=True)
+
+    def enable(self):
+        self.logger.info('Enabling on startup: {}'.format(self.systemd_service))
+        return self.sysctl.enable(self.systemd_service, daemon_reload=True)
+
     def start(self):
         self.logger.info('Attempting to start {}'.format(self.systemd_service))
         return self.sysctl.start(self.systemd_service)
@@ -70,7 +78,8 @@ class BaseProcessManager:
                 'stderr': utilities.wrap_text(systemd_info.err)
             })
         status = {
-            'running': systemd_info.exit == 0
+            'running': systemd_info.exit == 0,
+            'enabled_on_startup': self.sysctl.is_enabled(self.systemd_service)
         }
         if self.pid:
             status.update({'pid': self.pid})

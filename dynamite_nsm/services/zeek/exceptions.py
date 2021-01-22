@@ -36,9 +36,57 @@ class CallZeekProcessError(exceptions.CallProcessError):
         super(CallZeekProcessError, self).__init__(msg)
 
 
+class InvalidZeekStatusLogEntry(Exception):
+    """
+    Thrown when a Zeek stats.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Zeek status log entry is invalid: {}".format(message)
+        super(InvalidZeekStatusLogEntry, self).__init__(msg)
+
+
+class InvalidZeekBrokerLogEntry(Exception):
+    """
+    Thrown when a Zeek broker.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Zeek broker log entry is invalid: {}".format(message)
+        super(InvalidZeekBrokerLogEntry, self).__init__(msg)
+
+
+class InvalidZeekClusterLogEntry(Exception):
+    """
+    Thrown when a Zeek cluster.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Zeek cluster log entry is invalid: {}".format(message)
+        super(InvalidZeekClusterLogEntry, self).__init__(msg)
+
+
+class InvalidZeekReporterLogEntry(Exception):
+    """
+    Thrown when a Zeek reporter.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Zeek reporter log entry is invalid: {}".format(message)
+        super(InvalidZeekReporterLogEntry, self).__init__(msg)
+    
+        
 class ReadsZeekConfigError(exceptions.ReadConfigError):
     """
-    Thrown when an Zeek.yaml config option fails to read
+    Thrown when an Zeek config option fails to read
     """
 
     def __init__(self, message):
@@ -49,6 +97,19 @@ class ReadsZeekConfigError(exceptions.ReadConfigError):
         super(ReadsZeekConfigError, self).__init__(msg)
 
 
+class ZeekLocalNetworkNotFoundError(Exception):
+    """
+    Thrown when attempting to remove a non-existent local network definition
+    """
+
+    def __init__(self, ip_and_cidr):
+        """
+        :param ip_and_cidr: The IP and CIDR of the attempted removal
+        """
+        msg = "Zeek local network does not exist: {}".format(ip_and_cidr)
+        super(ZeekLocalNetworkNotFoundError, self).__init__(msg)
+
+
 class ZeekScriptNotFoundError(Exception):
     """
     Thrown when attempting to disable a non-existent script
@@ -56,7 +117,7 @@ class ZeekScriptNotFoundError(Exception):
 
     def __init__(self, rule):
         """
-        :param rule: A suricata rule
+        :param rule: A zeek script
         """
         msg = "Zeek script does not exist: {}".format(rule)
         super(ZeekScriptNotFoundError, self).__init__(msg)
@@ -129,7 +190,7 @@ class ZeekWorkerNotFoundError(Exception):
 
 class WriteZeekConfigError(exceptions.WriteConfigError):
     """
-    Thrown when an Zeek.yaml config option fails to write
+    Thrown when an sites.local config option fails to write
     """
 
     def __init__(self, message):

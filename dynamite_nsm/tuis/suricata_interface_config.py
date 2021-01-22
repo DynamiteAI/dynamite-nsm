@@ -1,5 +1,7 @@
+import os
 import npyscreen
 
+from dynamite_nsm import const
 from dynamite_nsm.services.suricata import config
 from dynamite_nsm.utilities import get_environment_file_dict
 
@@ -8,6 +10,7 @@ class RemoveNetworkInterfaceButton(npyscreen.ButtonPress):
     """
     Button Component for removing Suricata Network Interfaces
     """
+
     def __init__(self, *args, **keywords):
         super(RemoveNetworkInterfaceButton, self).__init__(*args, **keywords)
         self.delete_value = keywords.get('delete_value')
@@ -41,6 +44,7 @@ class SuricataInstanceSettingsForm(npyscreen.ActionForm):
     """
     Main Suricata Instance Settings Form
     """
+
     def __init__(self, *args, **keywords):
         super(SuricataInstanceSettingsForm, self).__init__(*args, **keywords)
 
@@ -63,6 +67,7 @@ class EditInterfaceForm(npyscreen.ActionForm):
     """
     Suricata Network Interface Edit Form
     """
+
     def __init__(self, *args, **keywords):
         self.value = None
         self.interface_config = None
@@ -153,6 +158,7 @@ class SuricataInstanceConfiguratorApp(npyscreen.NPSAppManaged):
     """
     App Entry Point
     """
+
     def __init__(self):
         self.suricata_config = None
 
@@ -161,6 +167,8 @@ class SuricataInstanceConfiguratorApp(npyscreen.NPSAppManaged):
     def onStart(self):
         npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         env_vars = get_environment_file_dict()
-        self.suricata_config = config.ConfigManager(env_vars['SURICATA_CONFIG'])
+        self.suricata_config = config.ConfigManager(env_vars['SURICATA_CONFIG'],
+                                                    backup_configuration_directory=os.path.join(
+                                                        const.CONFIG_BACKUP_PATH))
         self.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')
         self.addForm('EDITINTERFACEFM', EditInterfaceForm, name='Edit Suricata Network Interface')

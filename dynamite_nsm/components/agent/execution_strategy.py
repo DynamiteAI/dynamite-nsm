@@ -163,6 +163,37 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                 None,
             )
         )
+        if not zeek_profile.ProcessProfiler().is_installed() and 'zeek' in agent_analyzers:
+            self.add_function(func=zeek_install.install_zeek, argument_dict={
+                'configuration_directory': '/etc/dynamite/zeek/',
+                'install_directory': '/opt/dynamite/zeek',
+                'capture_network_interfaces': list(capture_network_interfaces),
+                'download_zeek_archive': True,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+        else:
+            self.add_function(func=log_message, argument_dict={
+                "msg": 'Skipping Zeek installation.',
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            }, return_format=None)
+        if not suricata_profile.ProcessProfiler().is_installed() and 'suricata' in agent_analyzers:
+            self.add_function(func=suricata_install.install_suricata, argument_dict={
+                'configuration_directory': '/etc/dynamite/suricata/',
+                'install_directory': '/opt/dynamite/suricata/',
+                'log_directory': '/opt/dynamite/suricata/logs/',
+                'capture_network_interfaces': list(capture_network_interfaces),
+                'download_suricata_archive': True,
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            })
+        else:
+            self.add_function(func=log_message, argument_dict={
+                "msg": 'Skipping Suricata installation.',
+                'stdout': bool(stdout),
+                'verbose': bool(verbose)
+            }, return_format=None)
         if not filebeat_profile.ProcessProfiler().is_installed():
             filebeat_args = {
                 'targets': list(targets),
@@ -178,7 +209,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             if 'zeek' in agent_analyzers:
                 monitor_log_paths.append("/opt/dynamite/zeek/logs/current/*.log")
             if 'suricata' in agent_analyzers:
-                monitor_log_paths.append('/var/log/dynamite/suricata/eve.json')
+                monitor_log_paths.append('/opt/dynamite/suricata/logs/eve.json')
             filebeat_args.update({
                 'monitor_log_paths': monitor_log_paths
             })
@@ -190,39 +221,6 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
                                   'stdout': bool(stdout),
                                   'verbose': bool(verbose)
                               },
-                              return_format=None)
-        if not zeek_profile.ProcessProfiler().is_installed() and 'zeek' in agent_analyzers:
-            self.add_function(func=zeek_install.install_zeek, argument_dict={
-                'configuration_directory': '/etc/dynamite/zeek/',
-                'install_directory': '/opt/dynamite/zeek',
-                'capture_network_interfaces': list(capture_network_interfaces),
-                'download_zeek_archive': True,
-                'stdout': bool(stdout),
-                'verbose': bool(verbose)
-            })
-        else:
-            self.add_function(func=log_message, argument_dict={
-                "msg": 'Skipping Zeek installation.',
-                'stdout': bool(stdout),
-                'verbose': bool(verbose)
-            },
-                              return_format=None)
-        if not suricata_profile.ProcessProfiler().is_installed() and 'suricata' in agent_analyzers:
-            self.add_function(func=suricata_install.install_suricata, argument_dict={
-                'configuration_directory': '/etc/dynamite/suricata/',
-                'install_directory': '/opt/dynamite/suricata',
-                'log_directory': '/var/log/dynamite/suricata/',
-                'capture_network_interfaces': list(capture_network_interfaces),
-                'download_suricata_archive': True,
-                'stdout': bool(stdout),
-                'verbose': bool(verbose)
-            })
-        else:
-            self.add_function(func=log_message, argument_dict={
-                "msg": 'Skipping Suricata installation.',
-                'stdout': bool(stdout),
-                'verbose': bool(verbose)
-            },
                               return_format=None)
         self.add_function(func=log_message, argument_dict={
             "msg": '*** Agent installed successfully. ***',

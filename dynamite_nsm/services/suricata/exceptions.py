@@ -36,6 +36,18 @@ class CallSuricataProcessError(exceptions.CallProcessError):
         super(CallSuricataProcessError, self).__init__(msg)
 
 
+class InvalidSuricataStatusLogEntry(Exception):
+    """
+    Thrown when a Suricata suricata.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Suricata log entry is invalid: {}".format(message)
+        super(InvalidSuricataStatusLogEntry, self).__init__(msg)
+
+        
 class ReadsSuricataConfigError(exceptions.ReadConfigError):
     """
     Thrown when an suricata.yaml config option fails to read

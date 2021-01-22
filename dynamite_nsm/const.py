@@ -5,9 +5,9 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.72/' \
+DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.8/' \
                       'default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.72/mirrors.tar.gz'
+MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.8/mirrors.tar.gz'
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
@@ -16,6 +16,7 @@ INSTALL_PATH = "/opt/dynamite"
 CONFIG_PATH = "/etc/dynamite"
 LOG_PATH = '/var/log/dynamite/'
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
+PCAP_PATH = "/etc/dynamite/pcaps/"
 
 
 def bootstrap_constants_from_const_environment_file():
@@ -34,7 +35,7 @@ def bootstrap_constants_from_const_environment_file():
 
 extracted_constants = bootstrap_constants_from_const_environment_file()
 
-VERSION = extracted_constants.get('VERSION', '0.7.2')
+VERSION = extracted_constants.get('VERSION', '0.8.0')
 DYNAMITE_SDK_ARCHIVE_NAME = extracted_constants.get('DYNAMITE_SDK_ARCHIVE_NAME', 'dynamite-sdk-lite-0.1.2.tar.gz')
 ELASTIFLOW_ARCHIVE_NAME = extracted_constants.get('ELASTIFLOW_ARCHIVE_NAME', 'elastiflow-vlabs-0.5.3-3.5.0.tar.gz')
 ELASTICSEARCH_ARCHIVE_NAME = extracted_constants.get('ELASTICSEARCH_ARCHIVE_NAME', 'elasticsearch-7.2.0.tar.gz')
@@ -74,4 +75,6 @@ SURICATA_MIRRORS = extracted_constants.get('SURICATA_MIRRORS', '/etc/dynamite/mi
 SYNESIS_MIRRORS = extracted_constants.get('SYNESIS_MIRRORS', '/etc/dynamite/mirrors/pf_ring')
 ZEEK_MIRRORS = extracted_constants.get('ZEEK_MIRRORS', '/etc/dynamite/mirrors/zeek')
 DYNAMITED_MIRRORS = extracted_constants.get('DYNAMITED_MIRRORS', '/etc/dynamite/mirrors/dynamited')
+
+CONFIG_BACKUP_PATH = extracted_constants.get('CONFIG_BACKUP_PATH', '/etc/dynamite/.backups')
 

@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import random
 import shutil
 import logging
 import subprocess
@@ -115,7 +116,7 @@ class InstallManager(install.BaseInstallManager):
             parallel_threads = 1
         if self.verbose:
             compile_suricata_process = subprocess.Popen(
-                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                'make -j {}; make install; make install-conf'.format(parallel_threads), shell=True,
                 cwd=os.path.join(const.INSTALL_CACHE,
                                  const.SURICATA_DIRECTORY_NAME))
             try:
@@ -128,7 +129,7 @@ class InstallManager(install.BaseInstallManager):
             compile_suricata_return_code = compile_suricata_process.returncode
         else:
             compile_suricata_process = subprocess.Popen(
-                'make -g {}; make install; make install-conf'.format(parallel_threads), shell=True,
+                'make -j {}; make install; make install-conf'.format(parallel_threads), shell=True,
                 cwd=os.path.join(const.INSTALL_CACHE,
                                  const.SURICATA_DIRECTORY_NAME),
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -214,12 +215,12 @@ class InstallManager(install.BaseInstallManager):
             packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config',
                         'libpcre3-dev', 'libpcap-dev', 'libyaml-dev', 'libjansson-dev', 'rustc', 'cargo', 'python-pip',
                         'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev',
-                        'liblz4-dev', 'tar', 'wget']
+                        'liblz4-dev', 'tar', 'wget', 'libjemalloc-dev']
         elif pkt_mng.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
-                        'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python-pip',
+                        'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python3-pip',
                         'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel', 'file-devel',
-                        'lz4-devel', 'tar', 'wget']
+                        'lz4-devel', 'tar', 'wget', 'jemalloc-devel']
         logger.info('Refreshing Package Index.')
         try:
             pkt_mng.refresh_package_indexes()
@@ -271,6 +272,7 @@ class InstallManager(install.BaseInstallManager):
             self.logger.error("Failed to read Suricata configuration.")
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
         config.default_log_directory = self.log_directory
+        config.suricata_log_output_file = os.path.join(self.log_directory, 'suricata.log')
         config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')
         config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
         config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')
@@ -333,6 +335,10 @@ class InstallManager(install.BaseInstallManager):
                     self.logger.info('Updating Suricata default config path [{}]'.format(self.configuration_directory))
                     subprocess.call('echo SURICATA_CONFIG="{}" >> {}'.format(
                         self.configuration_directory, env_file), shell=True)
+                if 'SURICATA_LOGS' not in env_f.read():
+                    self.logger.info('Updating Suricata default logs path [{}]'.format(self.log_directory))
+                    subprocess.call('echo SURICATA_LOGS="{}" >> {}'.format(
+                        self.log_directory, env_file), shell=True)
         except IOError:
             self.logger.error("Failed to open {} for reading.".format(env_file))
             raise suricata_exceptions.InstallSuricataError(
@@ -349,7 +355,7 @@ class InstallManager(install.BaseInstallManager):
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
         config.af_packet_interfaces = []
         for interface in self.capture_network_interfaces:
-            config.add_afpacket_interface(interface, threads='auto', cluster_id=99)
+            config.add_afpacket_interface(interface, threads='auto', cluster_id=random.randint(1, 50000))
         try:
             config.write_config()
         except suricata_exceptions.WriteSuricataConfigError:
@@ -437,6 +443,8 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
                 if 'SURICATA_HOME' in line:
                     continue
                 elif 'SURICATA_CONFIG' in line:
+                    continue
+                elif 'SURICATA_LOGS' in line:
                     continue
                 elif 'OINKMASTER_HOME' in line:
                     continue

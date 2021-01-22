@@ -24,6 +24,18 @@ class InstallFilebeatError(exceptions.InstallError):
         super(InstallFilebeatError, self).__init__(msg)
 
 
+class InvalidFilebeatStatusLogEntry(Exception):
+    """
+    Thrown when a Filebeat log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "FileBeat log entry is invalid: {}".format(message)
+        super(InvalidFilebeatStatusLogEntry, self).__init__(msg)
+
+
 class AlreadyInstalledFilebeatError(InstallFilebeatError):
     """
     Thrown when filebeat is already installed
@@ -72,9 +84,22 @@ class ReadFilebeatConfigError(exceptions.ReadConfigError):
         super(ReadFilebeatConfigError, self).__init__(msg)
 
 
+class ReadFilebeatModuleError(exceptions.ReadConfigError):
+    """
+    Thrown when an modules.d/*.yml config option fails to read
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when reading a Filebeat module configuration: {}".format(message)
+        super(ReadFilebeatModuleError, self).__init__(msg)
+
+
 class WriteFilebeatConfigError(exceptions.WriteConfigError):
     """
-    Thrown when an FIlebeat.yml config option fails to write
+    Thrown when an Filebeat.yml config option fails to write
     """
 
     def __init__(self, message):
@@ -83,3 +108,16 @@ class WriteFilebeatConfigError(exceptions.WriteConfigError):
         """
         msg = "An error occurred when writing filebeat.yml configuration: {}".format(message)
         super(WriteFilebeatConfigError, self).__init__(msg)
+
+
+class WriteFilebeatModuleError(exceptions.WriteConfigError):
+    """
+    Thrown when an modules.d/*.yml config fails to write
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred when writing Filebeat module configuration: {}".format(message)
+        super(WriteFilebeatModuleError, self).__init__(msg)

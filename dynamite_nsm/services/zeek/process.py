@@ -42,7 +42,8 @@ class ProcessManager(process.BaseProcessManager):
         }
 
         zeek_status = {
-            'running': False
+            'running': False,
+            'enabled_on_startup': self.sysctl.is_enabled(self.systemd_service)
         }
         zeek_subprocesses = []
         for line in raw_output.split('\n')[1:]:

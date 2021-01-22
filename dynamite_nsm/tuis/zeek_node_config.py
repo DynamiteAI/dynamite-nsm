@@ -1,4 +1,7 @@
+import os
 import npyscreen
+
+from dynamite_nsm import const
 from dynamite_nsm.services.zeek import config
 from dynamite_nsm.utilities import get_environment_file_dict
 
@@ -309,7 +312,7 @@ class EditLoggerManagerProxy(npyscreen.ActionForm):
                     RemoveProxyButton, name='Delete Proxy', rely=10, color='DANGER')
                 self.delete_button.delete_value = self.value
                 self.proxy_delete_created = True
-            self.message.value = 'A proxy is a Zeek process that may be used to offload data storage or any arbitrary '\
+            self.message.value = 'A proxy is a Zeek process that may be used to offload data storage or any arbitrary ' \
                                  'workload. '
 
         if self.value:
@@ -380,7 +383,8 @@ class ZeekNodeConfiguratorApp(npyscreen.NPSAppManaged):
     def onStart(self):
         npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         env_vars = get_environment_file_dict()
-        self.zeek_config = config.NodeConfigManager(env_vars['ZEEK_HOME'])
+        self.zeek_config = config.NodeConfigManager(env_vars['ZEEK_HOME'], backup_configuration_directory=os.path.join(
+            const.CONFIG_BACKUP_PATH))
         self.addForm('MAIN', ZeekNodeSettingsForm, name='Zeek Cluster Configuration')
         self.addForm('EDITWORKERFM', EditWorkerForm, name='Edit Zeek Worker')
         self.addForm('EDITLOGGERFM', EditLoggerManagerProxy, name='Edit Logger', component_type='logger')

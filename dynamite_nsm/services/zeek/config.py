@@ -1,6 +1,16 @@
 import os
-import time
-import shutil
+import re
+import math
+import random
+import logging
+from datetime import datetime
+
+try:
+    # Python 3
+    from itertools import zip_longest
+except ImportError:
+    # Python 2
+    from itertools import izip_longest as zip_longest
 
 try:
     from ConfigParser import ConfigParser
@@ -8,18 +18,101 @@ except Exception:
     from configparser import ConfigParser
 
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
+
+
+class BpfConfigManager:
+    """
+    Wrapper for configuring interface_bpf.zeek script
+    """
+
+    def __init__(self, configuration_directory):
+        self.configuration_directory = configuration_directory
+        self.interface_pattern_map = {}
+        self._parse_bpf_map_file()
+
+    def _parse_bpf_map_file(self):
+        """
+        Parse bpf_map_file.input configuration file, and determine what bpf filters to apply to each interface
+        """
+
+        bpf_interface_map_path = os.path.join(self.configuration_directory, 'bpf_map_file.input')
+        try:
+            with open(bpf_interface_map_path) as conf_f:
+                for line in conf_f.readlines():
+                    if line.startswith('#'):
+                        continue
+                    tokenized_line = line.split('\t')
+                    net_interface, bpf_pattern = tokenized_line[0], ''.join(tokenized_line[1:]).strip()
+                    if net_interface in utilities.get_network_interface_names():
+                        self.interface_pattern_map[net_interface] = bpf_pattern
+        except IOError:
+            with open(bpf_interface_map_path, 'w') as bpf_input_f:
+                bpf_input_f.write('')
+
+    def add_bpf_pattern(self, interface_name, bpf_pattern):
+        """
+        Associate a BPF pattern with a valid network interface.
+
+        :param interface_name: The name of the network interface to apply the filter to
+        :param bpf_pattern: A valid BPF filter
+        """
+        if interface_name in utilities.get_network_interface_names():
+            self.interface_pattern_map[interface_name] = bpf_pattern
+
+    def remove_bpf_pattern(self, interface_name):
+        """
+        Dis-associate a BPF pattern and a network interface
+
+        :param interface_name: The name of the network interface
+        """
+        try:
+            del self.interface_pattern_map[interface_name]
+        except KeyError:
+            pass
+
+    def get_bpf_pattern(self, interface_name):
+        """
+        Get the BPF pattern for a given interface, assuming there is one.
+
+        :param interface_name: The name of the network interface
+        """
+        return self.interface_pattern_map.get(interface_name)
+
+    def write_config(self):
+        """
+        Overwrite the existing bpf_map_file.input config with changed values
+        """
+
+        output_str = ''
+
+        source_configuration_file_path = os.path.join(self.configuration_directory, 'bpf_map_file.input')
+        for k, v in self.interface_pattern_map.items():
+            output_str += '{}\t{}\n'.format(k, v)
+        try:
+            with open(source_configuration_file_path, 'w') as f:
+                f.write(output_str)
+        except IOError:
+            raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
+        except Exception as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to write new bpf_map_file.input file to {}; {}".format(
+                    self.configuration_directory, e))
 
 
 class ScriptConfigManager:
     """
     Wrapper for configuring broctl sites/local.zeek
     """
-    def __init__(self, configuration_directory):
+
+    def __init__(self, configuration_directory, backup_configuration_directory=None):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
         """
         self.configuration_directory = configuration_directory
+        self.backup_configuration_directory = backup_configuration_directory
         self.zeek_scripts = {}
         self.zeek_sigs = {}
         self.zeek_redefs = {}
@@ -59,6 +152,46 @@ class ScriptConfigManager:
         except Exception as e:
             raise zeek_exceptions.ReadsZeekConfigError(
                 "General exception when opening/parsing config at {}; {}".format(zeeklocalsite_path, e))
+
+    @classmethod
+    def from_raw_text(cls, raw_text, configuration_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param configuration_directory: The configuration directory for Zeek
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of NodeConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'site', 'local.zeek')
+        utilities.makedirs(os.path.join(tmp_dir, 'site'))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(configuration_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if configuration_directory:
+            c.configuration_directory = configuration_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        zeeklocalsite_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
+        try:
+            with open(zeeklocalsite_path) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeeklocalsite_path))
+        except Exception as e:
+            raise zeek_exceptions.ReadsZeekConfigError(
+                "General exception when opening/parsing config at {}; {}".format(zeeklocalsite_path, e))
+        return raw_text
 
     def disable_script(self, name):
         """
@@ -105,19 +238,50 @@ class ScriptConfigManager:
     def list_redefinitions(self):
         return [(redef, val) for redef, val in self.zeek_redefs.items()]
 
+    def list_backup_configs(self):
+        """
+        List configuration backups in our config store
+
+        :return: A list of dictionaries with the following keys: ["filename", "filepath", "time"]
+        """
+        return utilities.list_backup_configurations(
+            os.path.join(self.backup_configuration_directory, 'local.zeek.d'))
+
+    def restore_backup_config(self, name):
+        """
+        Restore a configuration from our config store
+
+        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
+        backup.
+        :return: True, if successful
+        """
+        dest_config_file = os.path.join(self.configuration_directory, 'site', 'local.zeek')
+        if name == "recent":
+            configs = self.list_backup_configs()
+            if configs:
+                return utilities.restore_backup_configuration(
+                    configs[0]['filepath'],
+                    dest_config_file)
+        return utilities.restore_backup_configuration(
+            os.path.join(self.backup_configuration_directory, 'local.zeek.d', name), dest_config_file)
+
     def write_config(self):
         """
         Overwrite the existing local.zeek config with changed values
         """
-        timestamp = int(time.time())
         output_str = ''
-        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        zeek_config_backup = os.path.join(backup_configurations, 'local.zeek.backup.{}'.format(timestamp))
-        try:
-            utilities.makedirs(backup_configurations, exist_ok=True)
-        except Exception as e:
-            raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
+
+        # Backup old configuration first
+        source_configuration_file_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
+        if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'local.zeek.d')
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='local.zeek.backup')
+            except general_exceptions.WriteConfigError:
+                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [local.zeek].')
+            except general_exceptions.ReadConfigError:
+                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [local.zeek].')
         for e_script in self.list_enabled_scripts():
             output_str += '@load {}\n'.format(e_script)
         for d_script in self.list_disabled_scripts():
@@ -129,36 +293,32 @@ class ScriptConfigManager:
         for rdef, val in self.list_redefinitions():
             output_str += 'redef {} = {}\n'.format(rdef, val)
         try:
-            shutil.copy(os.path.join(self.configuration_directory, 'site', 'local.zeek'), zeek_config_backup)
-        except Exception as e:
-            raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to copy old local.zeek file to {}; {}".format(
-                    backup_configurations, e))
-        try:
-            with open(os.path.join(self.configuration_directory, 'site', 'local.zeek'), 'w') as f:
+            with open(source_configuration_file_path, 'w') as f:
                 f.write(output_str)
         except IOError:
             raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
         except Exception as e:
             raise zeek_exceptions.WriteZeekConfigError(
                 "General error while attempting to write new local.zeek file to {}; {}".format(
-                    backup_configurations, e))
+                    self.configuration_directory, e))
 
 
 class NodeConfigManager:
     """
     Wrapper for configuring broctl node.cfg
     """
-    def __init__(self, install_directory):
+
+    def __init__(self, install_directory, backup_configuration_directory=None):
         """
         :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
         """
         self.install_directory = install_directory
+        self.backup_configuration_directory = backup_configuration_directory
         self.node_config = self._parse_node_config()
 
     def _parse_node_config(self):
         """
-        :return: A dictionary representing the configurations storred within node.cfg
+        :return: A dictionary representing the configurations stored within node.cfg
         """
         node_config = {}
         config_parser = ConfigParser()
@@ -169,6 +329,135 @@ class NodeConfigManager:
                 key, value = item
                 node_config[section][key] = value
         return node_config
+    
+    @classmethod
+    def from_raw_text(cls, raw_text, install_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param install_directory: The installation directory for Zeek
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of NodeConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'etc', 'node.cfg')
+        utilities.makedirs(os.path.join(tmp_dir, 'etc'))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(install_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if install_directory:
+            c.install_directory = install_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
+    @staticmethod
+    def get_optimal_zeek_worker_config(network_capture_interfaces, strategy="aggressive", cpus=None, stdout=True,
+                                       verbose=False):
+        """
+        Algorithm for determining the assignment of CPUs for Zeek workers
+
+        :param network_capture_interfaces: A list of network interface names
+        :param strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources
+                         'conservative', results in less CPUs pinned per interface, but never overshoots resources
+        :param cpus: If None, we'll derive this by looking at the cpu core count,
+                     otherwise a list of cpu cores (E.G [0, 1, 2])
+        :param stdout: Print the output to console
+        :param verbose: Include detailed debug messages
+        :return: A dictionary containing Zeek worker configuration
+        """
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('ZEEK', level=log_level, stdout=stdout)
+        if not cpus:
+            cpus = [c for c in range(0, utilities.get_cpu_core_count())]
+        logger.info("Calculating optimal Zeek worker strategy [strategy: {}].".format(strategy))
+        logger.debug("Detected CPU Cores: {}".format(cpus))
+
+        # Reserve 0 for KERNEL/Userland opts
+        available_cpus = cpus[1:]
+
+        def grouper(n, iterable):
+            args = [iter(iterable)] * n
+            return zip_longest(*args)
+
+        def create_workers(net_interfaces, avail_cpus):
+            idx = 0
+            zeek_worker_configs = []
+            for net_interface in net_interfaces:
+                if idx >= len(avail_cpus):
+                    idx = 0
+                if isinstance(avail_cpus[idx], int):
+                    avail_cpus[idx] = [avail_cpus[idx]]
+                zeek_worker_configs.append(
+                    dict(
+                        name='dynamite-worker-' + net_interface,
+                        host='localhost',
+                        interface=net_interface,
+                        lb_procs=len(avail_cpus[idx]),
+                        pinned_cpus=avail_cpus[idx],
+                        af_packet_fanout_id=random.randint(1, 32768),
+                        af_packet_fanout_mode='AF_Packet::FANOUT_HASH'
+                    )
+                )
+                idx += 1
+            return zeek_worker_configs
+
+        if len(available_cpus) <= len(network_capture_interfaces):
+            # Wrap the number of CPUs around the number of network interfaces;
+            # Since there are more network interfaces than CPUs; CPUs will be assigned more than once
+            # lb_procs will always be 1
+
+            zeek_workers = create_workers(network_capture_interfaces, available_cpus)
+
+        else:
+            # In this scenario we choose from one of two strategies
+            #  1. Aggressive:
+            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND UP **.
+            #     - Group the available CPUs by this integer
+            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
+            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
+            #  2. Conservative:
+            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND DOWN **.
+            #     - Group the available CPUs by this integer
+            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
+            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
+            aggressive_ratio = int(math.ceil(len(available_cpus) / float(len(network_capture_interfaces))))
+            conservative_ratio = int(math.floor(len(available_cpus) / len(network_capture_interfaces)))
+            if strategy == 'aggressive':
+                cpu_groups = grouper(aggressive_ratio, available_cpus)
+            else:
+                cpu_groups = grouper(conservative_ratio, available_cpus)
+
+            temp_cpu_groups = []
+            for cpu_group in cpu_groups:
+                cpu_group = [c for c in cpu_group if c]
+                temp_cpu_groups.append(cpu_group)
+            cpu_groups = temp_cpu_groups
+            zeek_workers = create_workers(network_capture_interfaces, cpu_groups)
+        logger.info('Zeek Worker Count: {}'.format(len(zeek_workers)))
+        logger.debug('Zeek Workers: {}'.format(zeek_workers))
+        return zeek_workers
+
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        zeek_node_cfg = os.path.join(self.install_directory, 'etc', 'node.cfg')
+        try:
+            with open(zeek_node_cfg) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeek_node_cfg))
+        except Exception as e:
+            raise zeek_exceptions.ReadsZeekConfigError(
+                "General exception when opening/parsing config at {}; {}".format(zeek_node_cfg, e))
+        return raw_text
 
     def add_logger(self, name, host):
         """
@@ -200,16 +489,46 @@ class NodeConfigManager:
             'host': host
         }
 
-    def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0, 1)):
+    def add_worker(self, name, interface, host, lb_procs=10, pin_cpus=(0, 1), af_packet_fanout_id=None,
+                   af_packet_fanout_mode=None):
         """
         :param name: The name of the worker
         :param interface: The interface that the worker should be monitoring
         :param host: The host on which the worker is running
         :param lb_procs: The number of Zeek processes associated with a given worker
-        :param pin_cpus: Core affinity for the processes (iterable)
+        :param pin_cpus: Core affinity for the processes (iterable),
+        :param af_packet_fanout_id: To scale processing across threads, packet sockets can form a
+                                    fanout group.  In this mode, each matching packet is enqueued
+                                    onto only one socket in the group.  A socket joins a fanout
+                                    group by calling setsockopt(2) with level SOL_PACKET and
+                                    option PACKET_FANOUT.  Each network namespace can have up to
+                                    65536 independent groups.
+        :param af_packet_fanout_mode: The algorithm used to spread traffic between sockets.
         """
+        valid_fanout_modes = [
+            'FANOUT_HASH',  # The default mode, PACKET_FANOUT_HASH, sends packets from
+            # the same flow to the same socket to maintain per-flow
+            # ordering.  For each packet, it chooses a socket by taking
+            # the packet flow hash modulo the number of sockets in the
+            # group, where a flow hash is a hash over network-layer
+            # address and optional transport-layer port fields.
+
+            'FANOUT_CPU',  # selects the socket based on the CPU that the packet arrived on
+
+            'FANOUT_QM'  # (available since Linux 3.14) selects the socket using the recorded
+            # queue_mapping of the received skb.
+        ]
         if not str(interface).startswith('af_packet::'):
             interface = 'af_packet::' + interface
+        if not af_packet_fanout_id:
+            af_packet_fanout_id = random.randint(1, 32768)
+        if not af_packet_fanout_mode:
+            af_packet_fanout_mode = 'AF_Packet::FANOUT_HASH'
+        else:
+            if str(af_packet_fanout_mode).upper() in valid_fanout_modes:
+                af_packet_fanout_mode = 'AF_Packet::' + str(af_packet_fanout_mode).upper()
+            else:
+                af_packet_fanout_mode = 'AF_Packet::FANOUT_HASH'
         if max(pin_cpus) < utilities.get_cpu_core_count() and min(pin_cpus) >= 0:
             pin_cpus = [str(cpu_n) for cpu_n in pin_cpus]
             self.node_config[name] = {
@@ -218,7 +537,9 @@ class NodeConfigManager:
                 'lb_method': 'custom',
                 'lb_procs': lb_procs,
                 'pin_cpus': ','.join(pin_cpus),
-                'host': host
+                'host': host,
+                'af_packet_fanout_id': af_packet_fanout_id,
+                'af_packet_fanout_mode': af_packet_fanout_mode
             }
 
     def remove_logger(self, name):
@@ -300,10 +621,48 @@ class NodeConfigManager:
                 return component
         return None
 
+    def list_backup_configs(self):
+        """
+        List configuration backups
+
+        :return: A list of dictionaries with the following keys: ["name", "path", "timestamp"]
+        """
+        return utilities.list_backup_configurations(
+            os.path.join(self.backup_configuration_directory, 'node.cfg.d'))
+
+    def restore_backup_config(self, name):
+        """
+        Restore a configuration from our config store
+
+        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
+        backup.
+        :return: True, if successful
+        """
+        dest_config_file = os.path.join(self.install_directory, 'etc', 'node.cfg')
+        if name == "recent":
+            configs = self.list_backup_configs()
+            if configs:
+                return utilities.restore_backup_configuration(
+                    configs[0]['filepath'],
+                    dest_config_file)
+        return utilities.restore_backup_configuration(
+            os.path.join(self.backup_configuration_directory, 'node.cfg.d', name), dest_config_file)
+
     def write_config(self):
         """
         Overwrite the existing node.cfg with changed values
         """
+        source_configuration_file_path = os.path.join(self.install_directory, 'etc', 'node.cfg')
+        if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'node.cfg.d')
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='node.cfg.backup')
+            except general_exceptions.WriteConfigError:
+                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [node.cfg].')
+            except general_exceptions.ReadConfigError:
+                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [node.cfg].')
+
         config = ConfigParser()
         for section in self.node_config.keys():
             for k, v in self.node_config[section].items():
@@ -313,11 +672,197 @@ class NodeConfigManager:
                     pass
                 config.set(section, k, str(v))
         try:
-            with open(os.path.join(self.install_directory, 'etc', 'node.cfg'), 'w') as configfile:
+            with open(source_configuration_file_path, 'w') as configfile:
                 config.write(configfile)
         except IOError:
             raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.install_directory))
         except Exception as e:
             raise zeek_exceptions.WriteZeekConfigError(
                 "General error while attempting to write new node.cfg file to {}; {}".format(
+                    self.install_directory, e))
+
+
+class LocalNetworkConfigManager:
+    """
+    Wrapper for configuring zeek networks.cfg (local network space)
+    """
+
+    IPV4_AND_CIDR_PATTERN = r'(?<!\d\.)(?<!\d)(?:\d{1,3}\.){3}\d{1,3}/\d{1,2}(?!\d|(?:\.\d))'
+    IPV6_AND_CIDR_PATTERN = r'^(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|::(?:[0-9A-Fa-f]{1,4}:){5}' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4})?::' \
+                            r'(?:[0-9A-Fa-f]{1,4}:){3}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(?:' \
+                            r'(?:[0-9A-Fa-f]{1,4}:){,2}[0-9A-Fa-f]{1,4})?::' \
+                            r'(?:[0-9A-Fa-f]{1,4}:)' \
+                            r'{2}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,4}[0-9A-Fa-f]{1,4})?::' \
+                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
+                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|' \
+                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,6}[0-9A-Fa-f]{1,4})?::/\d{1,2}(?!\d|(?:\.\d)))'
+
+    def __init__(self, install_directory, backup_configuration_directory=None):
+        """
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+        """
+        self.install_directory = install_directory
+        self.backup_configuration_directory = backup_configuration_directory
+        self.network_config = self._parse_network_config()
+
+    def _parse_network_config(self):
+        """
+        :return: A dictionary representing the configurations stored within networks.cfg
+        """
+        with open(os.path.join(self.install_directory, 'etc', 'networks.cfg')) as net_config:
+            local_networks = {}
+            for line in net_config.readlines():
+                ip_and_cidr = None
+                if not line.strip():
+                    continue
+                elif line.startswith('#'):
+                    continue
+                ipv4_match = re.findall(self.IPV4_AND_CIDR_PATTERN, line)
+                ipv6_match = re.findall(self.IPV6_AND_CIDR_PATTERN, line)
+                if ipv4_match:
+                    ip_and_cidr = ipv4_match[0]
+                elif ipv6_match:
+                    ip_and_cidr = ipv6_match[0]
+                if ip_and_cidr:
+                    if len(ip_and_cidr) != len(line.strip()):
+                        description = line.replace(ip_and_cidr, '').strip()
+                local_networks[ip_and_cidr] = description
+        return local_networks
+
+    @classmethod
+    def from_raw_text(cls, raw_text, install_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param install_directory: The installation directory for Zeek
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of LocalNetworkConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'etc', 'networks.cfg')
+        utilities.makedirs(os.path.join(tmp_dir, 'etc'))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(install_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if install_directory:
+            c.install_directory = install_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        zeek_network_cfg = os.path.join(self.install_directory, 'etc', 'networks.cfg')
+        try:
+            with open(zeek_network_cfg) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeek_network_cfg))
+        except Exception as e:
+            raise zeek_exceptions.ReadsZeekConfigError(
+                "General exception when opening/parsing config at {}; {}".format(zeek_network_cfg, e))
+        return raw_text
+
+    def add_local_network(self, ip_and_cidr, description=None):
+        """
+        Add a new local network definition
+
+        :param ip_and_cidr: The IP and CIDR address for private (likely internal) network (IPv4/IPv6 notation accepted)
+        :param description: An optional description of that site
+        """
+        if re.match(self.IPV4_AND_CIDR_PATTERN, ip_and_cidr) or re.match(self.IPV4_AND_CIDR_PATTERN, ip_and_cidr):
+            if isinstance(description, str):
+                self.network_config[ip_and_cidr] = description
+            else:
+                self.network_config[ip_and_cidr] = "Added {}.".format(datetime.utcnow())
+
+    def remove_local_network(self, ip_and_cidr):
+        """
+        Remove a network definition
+
+        :param ip_and_cidr: The IP and CIDR address for private (likely internal) network (IPv4/IPv6 notation accepted)
+        """
+        try:
+            del self.network_config[ip_and_cidr]
+        except KeyError:
+            raise zeek_exceptions.ZeekLocalNetworkNotFoundError(ip_and_cidr)
+
+    def list_backup_configs(self):
+        """
+        List configuration backups
+
+        :return: A list of dictionaries with the following keys: ["name", "path", "timestamp"]
+        """
+        return utilities.list_backup_configurations(
+            os.path.join(self.backup_configuration_directory, 'networks.cfg.d'))
+
+    def restore_backup_config(self, name):
+        """
+        Restore a configuration from our config store
+
+        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
+        backup.
+        :return: True, if successful
+        """
+        dest_config_file = os.path.join(self.install_directory, 'etc', 'networks.cfg')
+        if name == "recent":
+            configs = self.list_backup_configs()
+            if configs:
+                return utilities.restore_backup_configuration(
+                    configs[0]['filepath'],
+                    dest_config_file)
+        return utilities.restore_backup_configuration(
+            os.path.join(self.backup_configuration_directory, 'networks.cfg.d', name), dest_config_file)
+
+    def write_config(self):
+        source_configuration_file_path = os.path.join(self.install_directory, 'etc', 'networks.cfg')
+        if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'networks.cfg.d')
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='networks.cfg.backup')
+            except general_exceptions.WriteConfigError:
+                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [networks.cfg].')
+            except general_exceptions.ReadConfigError:
+                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [networks.cfg].')
+
+        try:
+            with open(source_configuration_file_path, 'w') as net_config:
+                lines = []
+                for k, v in self.network_config.items():
+                    if v:
+                        line = '{0: <64} {1}\n'.format(k, v)
+                    else:
+                        line = '{0: <64} {1}\n'.format(k, 'Undocumented network')
+                    lines.append(line)
+                net_config.writelines(lines)
+        except IOError as e:
+            raise zeek_exceptions.WriteZeekConfigError(
+                "General error while attempting to write new networks.cfg file to {}; {}".format(
                     self.install_directory, e))

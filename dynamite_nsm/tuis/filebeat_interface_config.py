@@ -1,9 +1,12 @@
+import os
 import npyscreen
 
 from dynamite_nsm.services.filebeat import config
 from dynamite_nsm.services.filebeat import exceptions
 from dynamite_nsm.utilities import get_environment_file_dict
 from dynamite_nsm.services.filebeat.install import InstallManager
+
+from dynamite_nsm import const
 
 
 class RemoveTargeteButton(npyscreen.ButtonPress):
@@ -270,7 +273,9 @@ class FilebeatConfiguratorApp(npyscreen.NPSAppManaged):
     def onStart(self):
         env_vars = get_environment_file_dict()
         npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
-        self.filebeat_config = config.ConfigManager(env_vars.get('FILEBEAT_HOME'))
+        self.filebeat_config = config.ConfigManager(env_vars.get('FILEBEAT_HOME'),
+                                                    backup_configuration_directory=os.path.join(
+                                                        const.CONFIG_BACKUP_PATH))
         self.addForm('MAIN', FilebeatInstanceSettingsForm, name='FileBeat Configuration')
         self.addForm('EDITTARGETTYPEFM', EditTargetTypeOutputForm, name='Select between LogStash or Kafka Output.')
         self.addForm('EDITTARGETFM', EditTargetsForm, name='Edit FileBeat Targets')

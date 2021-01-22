@@ -1,6 +1,5 @@
 import os
-import time
-import shutil
+import random
 
 from yaml import load, dump
 
@@ -10,6 +9,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 
 
@@ -60,6 +60,7 @@ class ConfigManager:
         'file_data_ports': ('vars', 'port-groups', 'FILE_DATA_PORTS'),
         'ftp_ports': ('vars', 'port-groups', 'FTP_PORTS'),
         'default_log_directory': ('default-log-dir',),
+        'suricata_log_output_file': ('logging', 'outputs', 'file', 'filename'),
         'default_rules_directory': ('default-rule-path',),
         'classification_file': ('classification-file',),
         'reference_config_file': ('reference-config-file',),
@@ -69,11 +70,12 @@ class ConfigManager:
         'rule_files': ('rule-files',)
     }
 
-    def __init__(self, configuration_directory):
+    def __init__(self, configuration_directory, backup_configuration_directory=None):
         """
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
         """
         self.configuration_directory = configuration_directory
+        self.backup_configuration_directory = backup_configuration_directory
         self.config_data = None
 
         self.home_net = None
@@ -97,6 +99,7 @@ class ConfigManager:
         self.ftp_ports = None
         self.file_data_ports = None
         self.default_log_directory = None
+        self.suricata_log_output_file = None
         self.default_rules_directory = None
         self.classification_file = None
         self.reference_config_file = None
@@ -119,7 +122,15 @@ class ConfigManager:
             key_path = self.tokens[variable_name]
             value = data
             for k in key_path:
-                value = value[k]
+                if isinstance(value, dict):
+                    value = value[k]
+                elif isinstance(value, list):
+                    for list_entry in value:
+                        if isinstance(list_entry, dict):
+                            if k in list_entry.keys():
+                                value = list_entry[k]
+                else:
+                    break
             setattr(self, var_name, value)
             return True
 
@@ -136,6 +147,64 @@ class ConfigManager:
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
+
+    @classmethod
+    def from_raw_text(cls, raw_text, configuration_directory=None, backup_configuration_directory=None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param configuration_directory: The configuration directory for Suricata
+        :param backup_configuration_directory: The backup configuration directory
+
+        :return: An instance of SuricataConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = os.path.join(tmp_dir, 'suricata.yaml')
+        utilities.makedirs(os.path.join(tmp_dir))
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(configuration_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        if configuration_directory:
+            c.configuration_directory = configuration_directory
+        if backup_configuration_directory:
+            c.backup_configuration_directory = backup_configuration_directory
+        return c
+
+    @staticmethod
+    def get_optimal_suricata_interface_config(network_capture_interfaces):
+
+        def create_suricata_interfaces(net_interfaces):
+            suricata_interface_configs = []
+            for net_interface in net_interfaces:
+                suricata_interface_configs.append(
+                    {
+                        'interface': net_interface,
+                        'cluster-id': random.randint(32769, 65535),
+                        'cluster-type': 'cluster_flow',
+                        'threads': 'auto',
+                    }
+                )
+            return suricata_interface_configs
+
+        return create_suricata_interfaces(network_capture_interfaces)
+
+    def get_raw_config(self):
+        """
+        Get the raw text of the config file
+
+        :return: Config file contents
+        """
+        suricata_path = os.path.join(self.configuration_directory, 'suricata.yaml')
+        try:
+            with open(suricata_path) as config_f:
+                raw_text = config_f.read()
+        except IOError:
+            raise suricata_exceptions.ReadsSuricataConfigError("Could not locate config at {}".format(suricata_path))
+        except Exception as e:
+            raise suricata_exceptions.ReadsSuricataConfigError(
+                "General exception when opening/parsing config at {}; {}".format(suricata_path, e))
+        return raw_text
 
     def add_afpacket_interface(self, interface, threads=None, cluster_id=None, cluster_type='cluster_flow',
                                bpf_filter=None):
@@ -218,6 +287,33 @@ class ConfigManager:
         else:
             raise suricata_exceptions.SuricataRuleNotFoundError(rule_file)
 
+    def list_backup_configs(self):
+        """
+        List configuration backups in our config store
+
+        :return: A list of dictionaries with the following keys: ["filename", "filepath", "time"]
+        """
+        return utilities.list_backup_configurations(
+            os.path.join(self.backup_configuration_directory, 'suricata.yaml.d'))
+
+    def restore_backup_config(self, name):
+        """
+        Restore a configuration from our config store
+
+        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
+        backup.
+        :return: True, if successful
+        """
+        dest_config_file = os.path.join(self.configuration_directory, 'suricata.yaml')
+        if name == "recent":
+            configs = self.list_backup_configs()
+            if configs:
+                return utilities.restore_backup_configuration(
+                    configs[0]['filepath'],
+                    dest_config_file)
+        return utilities.restore_backup_configuration(
+            os.path.join(self.backup_configuration_directory, 'suricata.yaml.d', name), dest_config_file)
+
     def write_config(self):
         """
         Overwrite the existing suricata.yaml config with changed values
@@ -232,23 +328,31 @@ class ConfigManager:
             """
             partial_config_data = self.config_data
             for i in range(0, len(path) - 1):
-                partial_config_data = partial_config_data[path[i]]
+                k = path[i]
+                if isinstance(partial_config_data, dict):
+                    partial_config_data = partial_config_data[k]
+                elif isinstance(partial_config_data, list):
+                    for list_entry in partial_config_data:
+                        if isinstance(list_entry, dict):
+                            if k in list_entry.keys():
+                                partial_config_data = list_entry[k]
+                else:
+                    break
             partial_config_data.update({path[-1]: value})
 
-        timestamp = int(time.time())
-        backup_configurations = os.path.join(self.configuration_directory, 'config_backups/')
-        suricata_config_backup = os.path.join(backup_configurations, 'suricata.yaml.backup.{}'.format(timestamp))
-        try:
-            utilities.makedirs(backup_configurations, exist_ok=True)
-        except Exception as e:
-            raise suricata_exceptions.WriteSuricataConfigError(
-                "General error while attempting to create backup directory at {}; {}".format(backup_configurations, e))
-        try:
-            shutil.copy(os.path.join(self.configuration_directory, 'suricata.yaml'), suricata_config_backup)
-        except Exception as e:
-            raise suricata_exceptions.WriteSuricataConfigError(
-                "General error while attempting to copy old suricata.yaml file to {}; {}".format(
-                    backup_configurations, e))
+        # Backup old configuration first
+        source_configuration_file_path = os.path.join(self.configuration_directory, 'suricata.yaml')
+        if self.backup_configuration_directory:
+            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'suricata.yaml.d')
+            try:
+                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
+                                                    destination_file_prefix='suricata.yaml.backup')
+            except general_exceptions.WriteConfigError:
+                raise suricata_exceptions.WriteSuricataConfigError(
+                    'Suricata configuration failed to write [suricata.yaml].')
+            except general_exceptions.ReadConfigError:
+                raise suricata_exceptions.ReadsSuricataConfigError(
+                    'Suricata configuration failed to read [suricata.yaml].')
 
         for k, v in vars(self).items():
             if k not in self.tokens:
@@ -256,11 +360,12 @@ class ConfigManager:
             token_path = self.tokens[k]
             update_dict_from_path(token_path, v)
         try:
-            with open(os.path.join(self.configuration_directory, 'suricata.yaml'), 'w') as configyaml:
+            with open(source_configuration_file_path, 'w') as configyaml:
                 configyaml.write('%YAML 1.1\n---\n\n')
                 dump(self.config_data, configyaml, default_flow_style=False)
         except IOError:
-            raise suricata_exceptions.WriteSuricataConfigError("Could not locate {}".format(self.configuration_directory))
+            raise suricata_exceptions.WriteSuricataConfigError(
+                "Could not locate {}".format(self.configuration_directory))
         except Exception as e:
             raise suricata_exceptions.WriteSuricataConfigError(
                 "General error while attempting to write new suricata.yaml file to {}; {}".format(

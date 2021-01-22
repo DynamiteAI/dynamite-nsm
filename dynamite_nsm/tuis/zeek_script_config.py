@@ -1,4 +1,7 @@
+import os
 import npyscreen
+
+from dynamite_nsm import const
 from dynamite_nsm.utilities import get_environment_file_dict
 from dynamite_nsm.services.zeek import config
 
@@ -7,6 +10,7 @@ class ZeekScriptSettingsForm(npyscreen.ActionForm):
     """
     Main Zeek Script Settings Form
     """
+
     def __init__(self, *args, **keywords):
         self.rendered_scripts = []
         super(ZeekScriptSettingsForm, self).__init__(*args, **keywords)
@@ -17,7 +21,7 @@ class ZeekScriptSettingsForm(npyscreen.ActionForm):
                        'provide highlevel application summaries, and even extract files.',
                  color='LABELBOLD',
                  editable=False
-                )
+                 )
         enabled_scripts = self.parentApp.zeek_script_config.list_enabled_scripts()
         disabled_scripts = self.parentApp.zeek_script_config.list_disabled_scripts()
         combined_scripts = list(enabled_scripts)
@@ -60,6 +64,7 @@ class ZeekScriptConfiguratorApp(npyscreen.NPSAppManaged):
     """
     App Entry Point
     """
+
     def __init__(self):
         self.zeek_script_config = None
 
@@ -68,5 +73,7 @@ class ZeekScriptConfiguratorApp(npyscreen.NPSAppManaged):
     def onStart(self):
         npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         env_vars = get_environment_file_dict()
-        self.zeek_script_config = config.ScriptConfigManager(env_vars['ZEEK_SCRIPTS'])
+        self.zeek_script_config = config.ScriptConfigManager(env_vars['ZEEK_SCRIPTS'],
+                                                             backup_configuration_directory=os.path.join(
+                                                                 const.CONFIG_BACKUP_PATH))
         self.addForm('MAIN', ZeekScriptSettingsForm, name='Zeek Script Configuration')
