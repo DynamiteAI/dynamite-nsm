@@ -5,9 +5,9 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/0.73/' \
+DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/0.8/' \
                       'default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/0.73/mirrors.tar.gz'
+MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/0.8/mirrors.tar.gz'
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
@@ -35,7 +35,7 @@ def bootstrap_constants_from_const_environment_file():
 
 extracted_constants = bootstrap_constants_from_const_environment_file()
 
-VERSION = extracted_constants.get('VERSION', '0.7.2')
+VERSION = extracted_constants.get('VERSION', '0.8.0')
 DYNAMITE_SDK_ARCHIVE_NAME = extracted_constants.get('DYNAMITE_SDK_ARCHIVE_NAME', 'dynamite-sdk-lite-0.1.2.tar.gz')
 ELASTIFLOW_ARCHIVE_NAME = extracted_constants.get('ELASTIFLOW_ARCHIVE_NAME', 'elastiflow-vlabs-0.5.3-3.5.0.tar.gz')
 ELASTICSEARCH_ARCHIVE_NAME = extracted_constants.get('ELASTICSEARCH_ARCHIVE_NAME', 'elasticsearch-7.2.0.tar.gz')

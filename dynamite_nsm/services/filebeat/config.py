@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+
 from yaml import load, dump
 
 try:
@@ -410,7 +411,8 @@ class ConfigManager:
                     processor['add_fields'] = {'fields': {'originating_agent_tag': agent_tag}}
                     break
 
-    def set_elasticsearch_targets(self, target_hosts, index=None, username=None, password=None, ssl_enabled=False,
+    def set_elasticsearch_targets(self, target_hosts, index='dynamite-events-%{+yyyy.MM.dd}', username=None,
+                                  password=None, ssl_enabled=False,
                                   ssl_certificate_authorities=None, ssl_certificate=None, ssl_key=None,
                                   ssl_verification_mode='full'):
         """
@@ -510,7 +512,7 @@ class ConfigManager:
         self.logstash_targets['enabled'] = False
         self.redis_targets['enabled'] = False
 
-    def set_logstash_targets(self, target_hosts, loadbalance=False, index='dynamite_events-%{+yyyy.MM.dd}',
+    def set_logstash_targets(self, target_hosts, loadbalance=False, index='dynamite-events-%{+yyyy.MM.dd}',
                              proxy_url=None, pipelining=2, bulk_max_size=2048, ssl_enabled=False,
                              ssl_certificate_authorities=None, ssl_certificate=None, ssl_key=None,
                              ssl_verification_mode='full'):
