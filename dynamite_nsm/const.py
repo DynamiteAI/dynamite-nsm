@@ -5,9 +5,9 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/0.8/' \
+DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.8/' \
                       'default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/0.8/mirrors.tar.gz'
+MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-public/0.8/mirrors.tar.gz'
 DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
 MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
