@@ -1,10 +1,11 @@
+import logging
 import os
 import re
+import shutil
+import subprocess
 import sys
 import time
-import shutil
-import logging
-import subprocess
+from typing import List, Optional
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -21,18 +22,22 @@ from dynamite_nsm.services.filebeat import config as filebeat_configs
 from dynamite_nsm.services.filebeat import profile as filebeat_profile
 from dynamite_nsm.services.filebeat import process as filebeat_process
 from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
+from dynamite_nsm.service_objects.filebeat import targets as filebeat_targets
 
 
 class InstallManager(install.BaseInstallManager):
 
-    def __init__(self, install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
-                 kafka_password=None, agent_tag=None, download_filebeat_archive=True, stdout=True, verbose=False):
+    def __init__(self, install_directory: str, monitor_log_paths: str, target_strings: List[str],
+                 kafka_topic: Optional[str] = None, kafka_username: Optional[str] = None,
+                 kafka_password: Optional[str] = None, agent_tag: Optional[str] = None,
+                 download_filebeat_archive: Optional[bool] = True, stdout: Optional[bool] = True,
+                 verbose: Optional[bool] = True):
         """
         Install Filebeat
 
         :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
         :param monitor_log_paths: A tuple of log paths to monitor
-        :param targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9:5044", ...])
+        :param target_strings: A tuple of Logstash/Kafka target_strings to forward events to (E.G ["192.168.0.9:5044", ...])
         :param kafka_topic: A string representing the name of the Kafka topic to write messages too
         :param kafka_username: The username for connecting to Kafka
         :param kafka_password: The password for connecting to Kafka
@@ -43,7 +48,7 @@ class InstallManager(install.BaseInstallManager):
         """
 
         self.monitor_paths = list(monitor_log_paths)
-        self.targets = list(targets)
+        self.target_strings = list(target_strings)
         self.kafka_topic = kafka_topic
         self.kafka_username = kafka_username
         self.kafka_password = kafka_password
@@ -64,7 +69,7 @@ class InstallManager(install.BaseInstallManager):
 
         if not agent_tag:
             self.agent_tag = utilities.get_default_agent_tag()
-            self.logger.info("Setting Agent Tag to {} as none was set.".format(self.agent_tag))
+            self.logger.info(f'Setting Agent Tag to {self.agent_tag} as none was set.')
         else:
             if len(agent_tag) < 5:
                 self.logger.warning("Agent tag too short. Must be more than 5 characters. Using default agent tag.")
@@ -73,27 +78,26 @@ class InstallManager(install.BaseInstallManager):
                     "Agent tag cannot contain alphanumeric and '_' characters. Using default agent tag.")
                 agent_tag = utilities.get_default_agent_tag()
             self.agent_tag = str(agent_tag)[0:29]
-            self.logger.info("Setting Agent Tag to {}.".format(self.agent_tag))
+            self.logger.info(f'Setting Agent Tag to {self.agent_tag}.')
         try:
-            self.logger.info("Attempting to extract FileBeat archive ({}).".format(const.FILE_BEAT_ARCHIVE_NAME))
+            self.logger.info(f'Attempting to extract FileBeat archive ({const.FILE_BEAT_ARCHIVE_NAME}).')
             self.extract_archive(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_ARCHIVE_NAME))
             self.logger.info("Extraction completed.")
         except general_exceptions.ArchiveExtractionError as e:
-            self.logger.error("Failed to extract FileBeat archive.")
-            self.logger.debug("Failed to extract FileBeat archive, threw: {}.".format(e))
-            raise filebeat_exceptions.InstallFilebeatError("Failed to extract Filebeat archive.")
+            self.logger.error(f'Failed to extract FileBeat archive; {e}')
+            raise filebeat_exceptions.InstallFilebeatError(f'Failed to extract Filebeat archive.')
 
-        if not self.validate_targets(targets):
-            self.logger.error("Invalid Targets specified: {}.".format(targets))
-            raise filebeat_exceptions.InstallFilebeatError(
-                "Invalid Targets specified: {}.".format(targets))
+        if not self.validate_targets(target_strings):
+            self.logger.error(f'Invalid target_strings specified: {target_strings}')
+            raise filebeat_exceptions.InstallFilebeatError(f'Invalid target_strings specified: {target_strings}')
 
     @staticmethod
-    def validate_targets(targets, stdout=True, verbose=False):
+    def validate_targets(target_strings: List[str], stdout: Optional[bool] = True,
+                         verbose: Optional[bool] = False) -> bool:
         """
-        Ensures that targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
+        Ensures that target_strings are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
 
-        :param targets: A list of IP/host port pair
+        :param target_strings: A list of IP/host port pair
         :param stdout: Print the output to console
         :param verbose: Include detailed debug messages
         :return: True if valid
@@ -103,20 +107,19 @@ class InstallManager(install.BaseInstallManager):
             log_level = logging.DEBUG
         logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
-        if isinstance(targets, list) or isinstance(targets, tuple):
-            for i, target in enumerate(targets):
+        if isinstance(target_strings, list) or isinstance(target_strings, tuple):
+            for i, target in enumerate(target_strings):
                 target = str(target)
                 try:
                     host, port = target.split(':')
                     if not str(port).isdigit():
-                        logger.warning(
-                            'Target Invalid: {} port must be numeric at position {}'.format(target, i))
+                        logger.warning(f'Target Invalid: {target} port must be numeric at position {i}')
                         return False
                 except ValueError:
-                    logger.warning('Target Invalid: {} expected host:port at position {}'.format(target, i))
+                    logger.warning(f'Target Invalid: {target} expected host:port at position {i}')
                     return False
         else:
-            logger.warning('Target Invalid: {}; must be a enumerable (list, tuple)'.format(targets))
+            logger.warning(f'Target Invalid: {target_strings}; must be a enumerable (list, tuple)')
             return False
         return True
 
@@ -135,18 +138,17 @@ class InstallManager(install.BaseInstallManager):
             shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
                         self.install_directory)
         except Exception as e:
-            self.logger.error("General error occurred while copying Filebeat configs.")
-            self.logger.debug("General error occurred while copying Filebeat configs; {}".format(e))
+            self.logger.error(f'General error occurred while copying Filebeat configs; {e}')
             raise filebeat_exceptions.InstallFilebeatError(
-                "General error occurred while copying Filebeat configs; {}".format(e))
+                f'General error occurred while copying Filebeat configs; {e}')
         self.logger.info("Building configurations and setting up permissions.")
         try:
             beats_config = filebeat_configs.ConfigManager(self.install_directory)
         except filebeat_exceptions.ReadFilebeatConfigError:
             self.logger.error("Failed to read Filebeat configuration.")
             raise filebeat_exceptions.InstallFilebeatError("Failed to read Filebeat configuration.")
-        beats_config.set_monitor_target_paths(self.monitor_paths)
-        beats_config.set_agent_tag(self.agent_tag)
+        beats_config.input_logs.monitor_log_paths = self.monitor_paths
+        beats_config.field_processors.originating_agent_tag = self.agent_tag
         if (self.kafka_password or self.kafka_username) and not self.kafka_topic:
             self.logger.error("You have specified Kafka config options without specifying a Kafka topic.")
             raise filebeat_exceptions.InstallFilebeatError(
@@ -156,39 +158,29 @@ class InstallManager(install.BaseInstallManager):
                 "You have enabled the Agent's Kafka output which does integrate natively with Dynamite "
                 "Monitor/LogStash component. You will have to bring your own broker. Happy Hacking!")
             time.sleep(2)
-            beats_config.set_kafka_targets(target_hosts=self.targets, topic=self.kafka_topic,
-                                           username=self.kafka_username, password=self.kafka_password)
+            beats_config.kafka_targets = filebeat_targets.KafkaTargets(
+                target_strings=self.target_strings,
+                topic=self.kafka_topic,
+                username=self.kafka_username,
+                password=self.kafka_password
+            )
             # setup example upstream LogStash example, just in case you want to configure later
-            beats_config.set_logstash_targets(target_hosts=['localhost:5601'])
-            beats_config.enable_kafka_output()
+            beats_config.switch_to_kafka_target()
         else:
             # setup example upstream Kafka example, just in case you want to configure later
-            beats_config.set_kafka_targets(target_hosts=['localhost:9092'], topic='dynamite-nsm-events')
-            beats_config.enable_logstash_output()
-            beats_config.set_logstash_targets(self.targets)
-        try:
-            beats_config.write_config()
-        except filebeat_exceptions.WriteFilebeatConfigError:
-            self.logger.error("Failed to write filebeat configuration.")
-            raise filebeat_exceptions.InstallFilebeatError("Failed to write filebeat configuration.")
-        try:
-            utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
-                                              unix_permissions_integer=501)
-        except Exception as e:
-            self.logger.error("Failed to set permissions of filebeat.yml file.")
-            self.logger.debug("Failed to set permissions of filebeat.yml file; {}".format(e))
-            filebeat_exceptions.InstallFilebeatError("Failed to set permissions of filebeat.yml file; {}".format(e))
+            beats_config.logstash_targets = filebeat_targets.LogstashTargets(self.target_strings)
+        beats_config.commit()
+        utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
+                                          unix_permissions_integer=501)
         try:
             with open(env_file) as env_f:
                 if 'FILEBEAT_HOME' not in env_f.read():
-                    self.logger.info('Updating FileBeat default script path [{}]'.format(self.install_directory))
-                    subprocess.call('echo FILEBEAT_HOME="{}" >> {}'.format(self.install_directory, env_file),
-                                    shell=True)
+                    self.logger.info(f'Updating FileBeat default script path [{self.install_directory}]')
+                    subprocess.call(f'echo FILEBEAT_HOME="{self.install_directory}" >> {env_file}', shell=True)
         except Exception as e:
-            self.logger.error("General error occurred while attempting to install FileBeat.")
-            self.logger.debug("General error occurred while attempting to install FileBeat; {}".format(e))
+            self.logger.error(f'General error occurred while attempting to install FileBeat; {e}')
             raise filebeat_exceptions.InstallFilebeatError(
-                "General error occurred while attempting to install FileBeat; {}".format(e))
+                f'General error occurred while attempting to install FileBeat; {e}')
         try:
             sysctl = systemctl.SystemCtl()
         except general_exceptions.CallProcessError:
@@ -210,7 +202,7 @@ class InstallManager(install.BaseInstallManager):
             raise filebeat_exceptions.InstallFilebeatError("Could not patch Zeek/Suricata modules.")
 
 
-def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=None, kafka_username=None,
+def install_filebeat(install_directory, monitor_log_paths, target_strings, kafka_topic=None, kafka_username=None,
                      kafka_password=None, agent_tag=None, download_filebeat_archive=True,
                      stdout=True, verbose=False):
     """
@@ -218,7 +210,7 @@ def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=
 
     :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
     :param monitor_log_paths: A tuple of log paths to monitor
-    :param targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9:5044", ...])
+    :param target_strings: A tuple of Logstash/Kafka target_strings to forward events to (E.G ["192.168.0.9:5044", ...])
     :param kafka_topic: A string representing the name of the Kafka topic to write messages too
     :param kafka_username: The username for connecting to Kafka
     :param kafka_password: The password for connecting to Kafka
@@ -237,7 +229,7 @@ def install_filebeat(install_directory, monitor_log_paths, targets, kafka_topic=
         logger.error('FileBeat is already installed.')
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
     filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
-                                        targets=targets, kafka_topic=kafka_topic, kafka_username=kafka_username,
+                                        target_strings=target_strings, kafka_topic=kafka_topic, kafka_username=kafka_username,
                                         kafka_password=kafka_password, agent_tag=agent_tag,
                                         download_filebeat_archive=download_filebeat_archive, stdout=stdout,
                                         verbose=verbose)
@@ -274,9 +266,8 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
         try:
             filebeat_process.ProcessManager().stop()
         except filebeat_exceptions.CallFilebeatProcessError as e:
-            logger.error("Could not kill Filebeat process. Cannot uninstall.")
-            logger.debug("Could not kill Filebeat process. Cannot uninstall; {}".format(e))
-            raise filebeat_exceptions.UninstallFilebeatError('Could not kill Filebeat process; {}'.format(e))
+            logger.error(f'Could not kill Filebeat process. Cannot uninstall. {e}')
+            raise filebeat_exceptions.UninstallFilebeatError(f'Could not kill Filebeat process; {e}')
     install_directory = environment_variables.get('FILEBEAT_HOME')
     try:
         with open(env_file) as env_fr:
@@ -292,10 +283,9 @@ def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
         if filebeat_profiler.is_installed():
             shutil.rmtree(install_directory, ignore_errors=True)
     except Exception as e:
-        logger.error("General error occurred while attempting to uninstall Filebeat.")
-        logger.debug("General error occurred while attempting to uninstall Filebeat; {}".format(e))
+        logger.error(f'General error occurred while attempting to uninstall Filebeat. {e}')
         raise filebeat_exceptions.UninstallFilebeatError(
-            "General error occurred while attempting to uninstall Filebeat; {}".format(e))
+            f'General error occurred while attempting to uninstall Filebeat; {e}')
     try:
         sysctl = systemctl.SystemCtl()
     except general_exceptions.CallProcessError:

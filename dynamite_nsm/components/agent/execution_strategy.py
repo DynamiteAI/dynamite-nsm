@@ -196,7 +196,7 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
             }, return_format=None)
         if not filebeat_profile.ProcessProfiler().is_installed():
             filebeat_args = {
-                'targets': list(targets),
+                'target_strings': list(targets),
                 'kafka_topic': kafka_topic,
                 'kafka_username': kafka_username,
                 'kafka_password': kafka_password,
