@@ -1,3 +1,5 @@
+from typing import Optional
+
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
 from dynamite_nsm import exceptions as general_exceptions
@@ -22,18 +24,22 @@ class ProcessManager(process.BaseProcessManager):
             raise logstash_exceptions.CallLogstashProcessError("LogStash is not installed.")
 
 
-def start(stdout=True, verbose=False, pretty_print_status=False):
+def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+          pretty_print_status: Optional[bool] = False) -> bool:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).start()
 
 
-def stop(stdout=True, verbose=False, pretty_print_status=False):
+def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+         pretty_print_status: Optional[bool] = False) -> bool:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
 
 
-def restart(stdout=True, verbose=False, pretty_print_status=False):
-    ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
+def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+            pretty_print_status: Optional[bool] = False) -> bool:
+    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
 
 
-def status(stdout=True, verbose=False, pretty_print_status=False):
+def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+           pretty_print_status: Optional[bool] = False) -> bool:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()
 

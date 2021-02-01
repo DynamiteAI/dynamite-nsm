@@ -1,11 +1,12 @@
 import os
 import time
+from typing import Dict, Optional
 
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
-from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
 from dynamite_nsm.services.elasticsearch import exceptions as elasticsearch_exceptions
+from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
 
 PID_DIRECTORY = '/var/run/dynamite/elasticsearch/'
 
@@ -14,6 +15,7 @@ class ProcessManager(process.BaseProcessManager):
     """
     ElasticSearch Process Manager
     """
+
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
         try:
@@ -29,7 +31,8 @@ class ProcessManager(process.BaseProcessManager):
             raise elasticsearch_exceptions.CallElasticProcessError("ElasticSearch is not installed.")
 
 
-def start(stdout=True, verbose=False, pretty_print_status=False):
+def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+          pretty_print_status: Optional[bool] = False) -> bool:
     p = ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
     p.start()
 
@@ -44,13 +47,16 @@ def start(stdout=True, verbose=False, pretty_print_status=False):
     return p.status()
 
 
-def stop(stdout=True, verbose=False, pretty_print_status=False):
+def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+         pretty_print_status: Optional[bool] = False) -> bool:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
 
 
-def restart(stdout=True, verbose=False, pretty_print_status=False):
-    ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
+def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+            pretty_print_status: Optional[bool] = False) -> bool:
+    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
 
 
-def status(stdout=True, verbose=False, pretty_print_status=False):
+def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+           pretty_print_status: Optional[bool] = False) -> Dict:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

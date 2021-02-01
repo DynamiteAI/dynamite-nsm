@@ -21,8 +21,8 @@ class SuricataRuleSettingsForm(npyscreen.ActionForm):
                  color='LABELBOLD',
                  editable=False
                  )
-        enabled_rules = self.parentApp.suricata_rule_config.list_enabled_rules()
-        disabled_rules = self.parentApp.suricata_rule_config.list_disabled_rules()
+        enabled_rules = [rule.name for rule in self.parentApp.suricata_rule_config.rules.get_enabled()]
+        disabled_rules = [rule.name for rule in self.parentApp.suricata_rule_config.rules.get_disabled()]
         combined_rules = list(enabled_rules)
         combined_rules.extend(disabled_rules)
         error = 0
@@ -51,11 +51,11 @@ class SuricataRuleSettingsForm(npyscreen.ActionForm):
         )
         for rule in self.rendered_rules:
             if rule.value:
-                self.parentApp.suricata_rule_config.enable_rule(rule.name)
+                self.parentApp.suricata_rule_config.rules.get_by_name(rule.name).enabled = True
             else:
-                self.parentApp.suricata_rule_config.disable_rule(rule.name)
+                self.parentApp.suricata_rule_config.rules.get_by_name(rule.name).enabled = False
 
-        self.parentApp.suricata_rule_config.write_config()
+        self.parentApp.suricata_rule_config.commit()
         self.parentApp.setNextForm(None)
 
 
@@ -71,6 +71,5 @@ class SuricataRuleConfiguratorApp(npyscreen.NPSAppManaged):
 
     def onStart(self):
         env_vars = get_environment_file_dict()
-        self.suricata_rule_config = config.ConfigManager(env_vars['SURICATA_CONFIG'],
-                                                         backup_configuration_directory=const.CONFIG_BACKUP_PATH)
+        self.suricata_rule_config = config.ConfigManager(env_vars['SURICATA_CONFIG'])
         self.addForm('MAIN', SuricataRuleSettingsForm, name='Suricata Rule Configuration')

@@ -1,13 +1,13 @@
 import os
-import time
 import subprocess
+import time
+from typing import Dict, Optional
 
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
-from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm.services.kibana import profile as kibana_profile
 from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
-
+from dynamite_nsm.services.kibana import profile as kibana_profile
 
 PID_DIRECTORY = '/var/run/dynamite/kibana/'
 
@@ -16,6 +16,7 @@ class ProcessManager(process.BaseProcessManager):
     """
     Kibana Process Manager
     """
+
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
         try:
@@ -48,7 +49,8 @@ class ProcessManager(process.BaseProcessManager):
         utilities.set_ownership_of_file(environ['KIBANA_HOME'], user='dynamite', group='dynamite')
 
 
-def start(stdout=True, verbose=False, pretty_print_status=False):
+def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+          pretty_print_status: Optional[bool] = False) -> Dict:
     p = ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
     p.start()
 
@@ -63,13 +65,16 @@ def start(stdout=True, verbose=False, pretty_print_status=False):
     return p.status()
 
 
-def stop(stdout=True, verbose=False, pretty_print_status=False):
+def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+         pretty_print_status: Optional[bool] = False) -> bool:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
 
 
-def restart(stdout=True, verbose=False, pretty_print_status=False):
-    ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
+def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+            pretty_print_status: Optional[bool] = False) -> bool:
+    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
 
 
-def status(stdout=True, verbose=False, pretty_print_status=False):
+def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+           pretty_print_status: Optional[bool] = False) -> Dict:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

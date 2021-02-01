@@ -2,6 +2,7 @@ import os
 from typing import Dict, List, Optional
 
 from yaml import dump
+
 from dynamite_nsm import utilities
 
 
@@ -53,18 +54,27 @@ class YamlConfigManager:
                 return False
             key_path = self.extract_tokens[variable_name]
             value = data
-            try:
-                for k in key_path:
-                    value = value[k]
-                setattr(self, var_name, value)
-            except KeyError:
-                pass
+            for k in key_path:
+                if isinstance(value, dict):
+                    try:
+                        value = value[k]
+                    except KeyError:
+                        continue
+                elif isinstance(value, list):
+                    for list_entry in value:
+                        if isinstance(list_entry, dict):
+                            if k in list_entry.keys():
+                                value = list_entry[k]
+                else:
+                    break
+            setattr(self, var_name, value)
             return True
 
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
-    def write_config(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
+    def write_config(self, out_file_path: str, backup_directory: Optional[str] = None,
+                     top_text: Optional[str] = None) -> None:
         out_file_name = os.path.basename(out_file_path)
         backup_file_name = out_file_name + '.backup'
 
@@ -77,10 +87,16 @@ class YamlConfigManager:
             """
             partial_config_data = self.config_data
             for i in range(0, len(path) - 1):
-                try:
-                    partial_config_data = partial_config_data[path[i]]
-                except KeyError:
-                    pass
+                k = path[i]
+                if isinstance(partial_config_data, dict):
+                    partial_config_data = partial_config_data[k]
+                elif isinstance(partial_config_data, list):
+                    for list_entry in partial_config_data:
+                        if isinstance(list_entry, dict):
+                            if k in list_entry.keys():
+                                partial_config_data = list_entry[k]
+                else:
+                    break
             partial_config_data.update({path[-1]: value})
 
         # Backup old configuration first
@@ -94,5 +110,7 @@ class YamlConfigManager:
             token_path = self.extract_tokens[k]
             update_dict_from_path(token_path, v)
         with open(out_file_path, 'w') as configyaml:
+            if top_text:
+                configyaml.write(f'{top_text}\n')
             dump(self.config_data, configyaml, default_flow_style=False)
             utilities.set_permissions_of_file(out_file_path, 744)

@@ -13,10 +13,10 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from dynamite_nsm import const
-from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.base import install
+from dynamite_nsm.services.base import systemctl
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.filebeat import config as filebeat_configs
 from dynamite_nsm.services.filebeat import profile as filebeat_profile
@@ -37,7 +37,8 @@ class InstallManager(install.BaseInstallManager):
 
         :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
         :param monitor_log_paths: A tuple of log paths to monitor
-        :param target_strings: A tuple of Logstash/Kafka target_strings to forward events to (E.G ["192.168.0.9:5044", ...])
+        :param target_strings: A tuple of Logstash/Kafka target_strings to forward events to
+               (E.G ["192.168.0.9:5044", ...])
         :param kafka_topic: A string representing the name of the Kafka topic to write messages too
         :param kafka_username: The username for connecting to Kafka
         :param kafka_password: The password for connecting to Kafka
@@ -123,7 +124,7 @@ class InstallManager(install.BaseInstallManager):
             return False
         return True
 
-    def setup_filebeat(self):
+    def setup_filebeat(self) -> None:
         """
         Creates necessary directory structure, and copies required files, generates a default configuration
         """
@@ -169,6 +170,9 @@ class InstallManager(install.BaseInstallManager):
         else:
             # setup example upstream Kafka example, just in case you want to configure later
             beats_config.logstash_targets = filebeat_targets.LogstashTargets(self.target_strings)
+            beats_config.index_template_settings.index_name = beats_config.logstash_targets.index.split('-')[0]
+            beats_config.index_template_settings.index_pattern = beats_config.index_template_settings.index_name + '-*'
+            beats_config.index_template_settings.enabled = True
         beats_config.commit()
         utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
                                           unix_permissions_integer=501)
@@ -202,9 +206,11 @@ class InstallManager(install.BaseInstallManager):
             raise filebeat_exceptions.InstallFilebeatError("Could not patch Zeek/Suricata modules.")
 
 
-def install_filebeat(install_directory, monitor_log_paths, target_strings, kafka_topic=None, kafka_username=None,
-                     kafka_password=None, agent_tag=None, download_filebeat_archive=True,
-                     stdout=True, verbose=False):
+def install_filebeat(install_directory: str, monitor_log_paths: str, target_strings: List[str],
+                     kafka_topic: Optional[str] = None, kafka_username: Optional[str] = None,
+                     kafka_password: Optional[str] = None, agent_tag: Optional[str] = None,
+                     download_filebeat_archive: Optional[bool] = True,
+                     stdout: Optional[bool] = True, verbose: Optional[bool] = False) -> None:
     """
     Install Filebeat
 
@@ -229,14 +235,16 @@ def install_filebeat(install_directory, monitor_log_paths, target_strings, kafka
         logger.error('FileBeat is already installed.')
         raise filebeat_exceptions.AlreadyInstalledFilebeatError()
     filebeat_installer = InstallManager(install_directory, monitor_log_paths=monitor_log_paths,
-                                        target_strings=target_strings, kafka_topic=kafka_topic, kafka_username=kafka_username,
+                                        target_strings=target_strings, kafka_topic=kafka_topic,
+                                        kafka_username=kafka_username,
                                         kafka_password=kafka_password, agent_tag=agent_tag,
                                         download_filebeat_archive=download_filebeat_archive, stdout=stdout,
                                         verbose=verbose)
     filebeat_installer.setup_filebeat()
 
 
-def uninstall_filebeat(prompt_user=True, stdout=True, verbose=False):
+def uninstall_filebeat(prompt_user: Optional[bool] = True, stdout: Optional[bool] = True,
+                       verbose: Optional[bool] = False) -> None:
     """
     Uninstall Filebeat
 

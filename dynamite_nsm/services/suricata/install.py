@@ -1,24 +1,25 @@
+import logging
 import os
-import sys
-import time
 import random
 import shutil
-import logging
 import subprocess
+import sys
+import time
 
 from dynamite_nsm import const
-from dynamite_nsm import systemctl
-from dynamite_nsm import utilities
-from dynamite_nsm import package_manager
-from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.base import install
 from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm import package_manager
+from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
+from dynamite_nsm.service_objects.suricata import misc as suricata_misc
+from dynamite_nsm.services.base import install
+from dynamite_nsm.services.base import systemctl
 from dynamite_nsm.services.suricata import config as suricata_configs
+from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
 from dynamite_nsm.services.suricata import process as suricata_process
 from dynamite_nsm.services.suricata import profile as suricata_profile
-from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
-from dynamite_nsm.services.suricata.oinkmaster import install as rules_install
 from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
+from dynamite_nsm.services.suricata.oinkmaster import install as rules_install
 
 
 class InstallManager(install.BaseInstallManager):
@@ -218,8 +219,9 @@ class InstallManager(install.BaseInstallManager):
                         'liblz4-dev', 'tar', 'wget', 'libjemalloc-dev']
         elif pkt_mng.package_manager == 'yum':
             packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
-                        'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo', 'python3-pip',
-                        'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel', 'file-devel',
+                        'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo',
+                        'python3-pip', 'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel',
+                        'file-devel',
                         'lz4-devel', 'tar', 'wget', 'jemalloc-devel']
         logger.info('Refreshing Package Index.')
         try:
@@ -280,40 +282,40 @@ class InstallManager(install.BaseInstallManager):
         # Disable Unneeded Suricata rules
         try:
             self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
-            config.disable_rule('http-events.rules')
+            config.rules.get_by_name('http-events.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'smtp-events.rules'")
-            config.disable_rule('smtp-events.rules')
+            config.rules.get_by_name('smtp-events.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'dns-events.rules'")
-            config.disable_rule('dns-events.rules')
+            config.rules.get_by_name('dns-events.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'tls-events.rules'")
-            config.disable_rule('tls-events.rules')
+            config.rules.get_by_name('tls-events.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'drop.rules'")
-            config.disable_rule('drop.rules')
+            config.rules.get_by_name('drop.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-p2p.rules'")
-            config.disable_rule('emerging-p2p.rules')
+            config.rules.get_by_name('emerging-p2p.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-pop3.rules'")
-            config.disable_rule('emerging-pop3.rules')
+            config.rules.get_by_name('emerging-pop3.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-telnet.rules'")
-            config.disable_rule('emerging-telnet.rules')
+            config.rules.get_by_name('emerging-telnet.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
-            config.disable_rule('emerging-tftp.rules')
+            config.rules.get_by_name('emerging-tftp.rules').enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-voip.rules'")
-            config.disable_rule('emerging-voip.rules')
+            config.rules.get_by_name('emerging-voip.rules').enabled = False
 
         except suricata_exceptions.SuricataRuleNotFoundError:
             self.logger.error('Could not disable one or more Suricata rules.')
             raise suricata_exceptions.InstallSuricataError("Could not disable one or more Suricata rules.")
         try:
-            config.write_config()
+            config.commit()
         except suricata_exceptions.WriteSuricataConfigError:
             self.logger.error('Could not write Suricata configurations.')
             suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
@@ -353,11 +355,16 @@ class InstallManager(install.BaseInstallManager):
         except suricata_exceptions.ReadsSuricataConfigError:
             self.logger.error("Failed to read Suricata configuration.")
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
-        config.af_packet_interfaces = []
+        config.af_packet_interfaces = suricata_misc.AfPacketInterfaces()
         for interface in self.capture_network_interfaces:
-            config.add_afpacket_interface(interface, threads='auto', cluster_id=random.randint(1, 50000))
+            config.af_packet_interfaces.add_interface(
+                suricata_misc.AfPacketInterface(
+                    interface_name=interface, threads='auto', cluster_id=random.randint(1, 50000),
+                    cluster_type='cluster_flow'
+                )
+            )
         try:
-            config.write_config()
+            config.commit()
         except suricata_exceptions.WriteSuricataConfigError:
             self.logger.error("Failed to write Suricata configuration.")
             suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")

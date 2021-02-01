@@ -114,7 +114,7 @@ class ConfigManager(YamlConfigManager):
         )
 
     @classmethod
-    def from_raw_text(cls, raw_text, install_directory=None):
+    def from_raw_text(cls, raw_text: str, install_directory: Optional[str] = None):
         """
         Alternative method for creating configuration file from raw text
 
@@ -284,3 +284,4 @@ class ConfigManager(YamlConfigManager):
         self._logstash_targets_raw = self.logstash_targets.get_raw()
         self._redis_targets_raw = self.redis_targets.get_raw()
         super(ConfigManager, self).write_config(out_file_path, backup_directory)
+

@@ -1,7 +1,6 @@
-import os
 import npyscreen
 
-from dynamite_nsm import const
+from dynamite_nsm.service_objects.suricata import misc as suricata_misc
 from dynamite_nsm.services.suricata import config
 from dynamite_nsm.utilities import get_environment_file_dict
 
@@ -23,8 +22,8 @@ class RemoveNetworkInterfaceButton(npyscreen.ButtonPress):
         if not res:
             return
 
-        self.parent.parentApp.suricata_config.remove_afpacket_interface(self.delete_value)
-        self.parent.parentApp.suricata_config.write_config()
+        self.parent.parentApp.suricata_config.af_packet_interfaces.remove_by_name(self.delete_value)
+        self.parent.parentApp.suricata_config.commit()
         self.parent.parentApp.removeForm('MAIN')
         self.parent.parentApp.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')
         self.parent.parentApp.switchForm('MAIN')
@@ -49,8 +48,9 @@ class SuricataInstanceSettingsForm(npyscreen.ActionForm):
         super(SuricataInstanceSettingsForm, self).__init__(*args, **keywords)
 
     def create(self):
-        interface_names = list(set([interface_config['interface']
-                                    for interface_config in self.parentApp.suricata_config.af_packet_interfaces]))
+        interface_names = list(set([interface_config.interface
+                                    for interface_config in
+                                    self.parentApp.suricata_config.af_packet_interfaces.interfaces]))
         interface_names.append('<create new interface>')
 
         self.add(npyscreen.TitleText, name='Network Interfaces', editable=False)
@@ -97,18 +97,16 @@ class EditInterfaceForm(npyscreen.ActionForm):
             self.value = None
 
         if self.value:
-            interface_configs = self.parentApp.suricata_config.af_packet_interfaces
-            for interface_config in interface_configs:
-                if interface_config['interface'] == self.value:
-                    self.interface_config = interface_config
-                    break
+            self.interface_config = self.parentApp.suricata_config.af_packet_interfaces.get_by_name(
+                self.value)
             if not self.interface_config:
                 self.delete_button.hidden = True
                 return
-            self.net_interface_text.value = self.interface_config['interface']
-            self.threads_text.value = self.interface_config.get('threads')
-            self.cluster_id.value = str(self.interface_config.get('cluster-id'))
-            self.bpf_filter.value = self.interface_config.get('bpf-filter')
+
+            self.net_interface_text.value = self.interface_config.interface
+            self.threads_text.value = self.interface_config.threads
+            self.cluster_id.value = str(self.interface_config.cluster_id)
+            self.bpf_filter.value = self.interface_config.bpf_filter
             self.delete_button.delete_value = self.value
             self.delete_button.hidden = False
         else:
@@ -133,19 +131,26 @@ class EditInterfaceForm(npyscreen.ActionForm):
             )
             return
         if self.value:
-            self.parentApp.suricata_config.remove_afpacket_interface(self.value)
-        self.parentApp.suricata_config.add_afpacket_interface(
-            interface=self.net_interface_text.value,
-            threads=self.threads_text.value,
-            cluster_id=self.cluster_id.value,
-            bpf_filter=self.bpf_filter.value
+            self.parentApp.suricata_config.af_packet_interfaces.remove_by_name(self.value)
+        self.parentApp.suricata_config.af_packet_interfaces.add_interface(
+            suricata_misc.AfPacketInterface(
+                interface_name=self.net_interface_text.value,
+                cluster_id=self.cluster_id.value,
+                cluster_type='cluster_flow',
+                threads=self.threads_text.value,
+                bpf_filter=self.bpf_filter.value
+            )
+        )
+        npyscreen.notify_ok_cancel(
+            str(self.parentApp.suricata_config.af_packet_interfaces),
+            form_color='DANGER'
         )
 
         # Switch back to the main interface
         npyscreen.notify_wait(
             self.net_interface_text.value + ' has been updated!', form_color='GOOD'
         )
-        self.parentApp.suricata_config.write_config()
+        self.parentApp.suricata_config.commit()
         self.parentApp.removeForm('MAIN')
         self.parentApp.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')
         self.parentApp.switchForm('MAIN')
@@ -167,8 +172,6 @@ class SuricataInstanceConfiguratorApp(npyscreen.NPSAppManaged):
     def onStart(self):
         npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
         env_vars = get_environment_file_dict()
-        self.suricata_config = config.ConfigManager(env_vars['SURICATA_CONFIG'],
-                                                    backup_configuration_directory=os.path.join(
-                                                        const.CONFIG_BACKUP_PATH))
+        self.suricata_config = config.ConfigManager(env_vars['SURICATA_CONFIG'])
         self.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')
         self.addForm('EDITINTERFACEFM', EditInterfaceForm, name='Edit Suricata Network Interface')

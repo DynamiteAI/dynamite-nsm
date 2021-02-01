@@ -1,9 +1,10 @@
 import os
+from typing import Dict, Optional
 
-from dynamite_nsm.services.base import process
 from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm.services.filebeat import profile as filebeat_profile
+from dynamite_nsm.services.base import process
 from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
+from dynamite_nsm.services.filebeat import profile as filebeat_profile
 
 PID_DIRECTORY = '/var/run/dynamite/filebeat/'
 
@@ -12,6 +13,7 @@ class ProcessManager(process.BaseProcessManager):
     """
     FileBeat Process Manager
     """
+
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         try:
             process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None,
@@ -25,17 +27,21 @@ class ProcessManager(process.BaseProcessManager):
             raise filebeat_exceptions.CallFilebeatProcessError("FileBeat is not installed.")
 
 
-def start(stdout=True, verbose=False, pretty_print_status=False):
+def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+          pretty_print_status: Optional[bool] = False) -> bool:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).start()
 
 
-def stop(stdout=True, verbose=False, pretty_print_status=False):
+def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+         pretty_print_status: Optional[bool] = False) -> bool:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
 
 
-def restart(stdout=True, verbose=False, pretty_print_status=False):
-    ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
+def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+            pretty_print_status: Optional[bool] = False) -> bool:
+    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
 
 
-def status(stdout=True, verbose=False, pretty_print_status=False):
+def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+           pretty_print_status: Optional[bool] = False) -> Dict:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

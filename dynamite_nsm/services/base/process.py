@@ -1,5 +1,7 @@
-import os
 import logging
+import os
+from typing import Dict, Optional
+
 import tabulate
 
 from dynamite_nsm import systemctl
@@ -9,8 +11,9 @@ from dynamite_nsm.logger import get_logger
 
 class BaseProcessManager:
 
-    def __init__(self, systemd_service, name, log_path=None, pid_file=None, stdout=True, verbose=False,
-                 pretty_print_status=False):
+    def __init__(self, systemd_service: str, name: str, log_path: Optional[str] = None, pid_file: Optional[str] = None,
+                 stdout: Optional[str] = True, verbose: Optional[bool] = False,
+                 pretty_print_status: Optional[bool] = False):
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -29,7 +32,7 @@ class BaseProcessManager:
             self.pid = self._get_pid(pid_file)
 
     @staticmethod
-    def _get_pid(pid_file):
+    def _get_pid(pid_file: str) -> int:
         pid = None
         h, t = os.path.split(pid_file)
         utilities.makedirs(h, exist_ok=True)
@@ -48,23 +51,23 @@ class BaseProcessManager:
             pass
         return pid
 
-    def disable(self):
+    def disable(self) -> bool:
         self.logger.info('Disabling on startup: {}'.format(self.systemd_service))
         return self.sysctl.disable(self.systemd_service, daemon_reload=True)
 
-    def enable(self):
+    def enable(self) -> bool:
         self.logger.info('Enabling on startup: {}'.format(self.systemd_service))
         return self.sysctl.enable(self.systemd_service, daemon_reload=True)
 
-    def start(self):
+    def start(self) -> bool:
         self.logger.info('Attempting to start {}'.format(self.systemd_service))
         return self.sysctl.start(self.systemd_service)
 
-    def stop(self):
+    def stop(self) -> bool:
         self.logger.info('Attempting to stop {}'.format(self.systemd_service))
         return self.sysctl.stop(self.systemd_service)
 
-    def status(self):
+    def status(self) -> Dict:
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)
         systemd_info = self.sysctl.status(self.systemd_service)
@@ -128,6 +131,6 @@ class BaseProcessManager:
             return tabulate.tabulate(status_tbl, tablefmt='fancy_grid')
         return status
 
-    def restart(self):
+    def restart(self) -> bool:
         self.logger.info('Attempting to restart {}'.format(self.systemd_service))
         return self.sysctl.restart(self.systemd_service)
