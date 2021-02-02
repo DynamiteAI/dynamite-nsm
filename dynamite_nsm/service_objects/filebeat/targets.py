@@ -66,7 +66,7 @@ class ElasticsearchTargets(BaseTargets):
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
                  ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False):
         """
-        Define ElasticSearch endpoints where events should be sent
+        Elasticsearch endpoint configuration where events should be sent
 
         :param target_strings: The list of Elasticsearch nodes to connect to.
                              The events are distributed to these nodes in round robin order.
@@ -110,7 +110,7 @@ class KafkaTargets(BaseTargets):
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
                  ssl_verification_mode: Optional[str] = None, enabled: Optional[bool] = False):
         """
-        Define Kafka endpoints where events should be sent
+        Kafka endpoint configuration where events should be sent
 
         :param target_strings: A list of Kafka brokers, and their service port (E.G ["192.168.0.9:5044"])
         :param topic: A Kafka topic
@@ -161,7 +161,7 @@ class LogstashTargets(BaseTargets):
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
                  ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False):
         """
-        Define LogStash endpoints where events should be sent
+        Logstash endpoint configuration where events should be sent
 
         :param target_strings: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"])
         :param load_balance: If set to true and multiple Logstash hosts are configured, the output plugin load balances
@@ -228,6 +228,9 @@ class RedisTargets(BaseTargets):
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
                  ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False):
         """
+
+        Redis endpoint configuration where events should be sent
+
         :param target_strings: A list of Redis hosts, and their service port (E.G ["192.168.0.9:6379"]
         :param index: The key format string to use. If this string contains field references,
                such as %{[fields.name]}, the fields must exist, or the rule fails.

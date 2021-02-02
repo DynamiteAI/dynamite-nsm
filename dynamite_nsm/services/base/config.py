@@ -1,5 +1,6 @@
 import os
-from typing import Dict, List, Optional
+import json
+from typing import Callable, Dict, List, Optional
 
 from yaml import dump
 
@@ -34,6 +35,26 @@ class BackupConfigManager:
                 return utilities.restore_backup_configuration(configs[0]['filepath'], restore_name)
         return utilities.restore_backup_configuration(
             os.path.join(self.backup_directory, backup_name), restore_name)
+
+
+class GenericConfigManager:
+
+    def __init__(self, config_data: Dict):
+        self.config_data = config_data
+        self.formatted_data = json.dumps(config_data)
+
+    def add_parser(self, parser: Callable, attribute_name):
+        setattr(self, attribute_name, parser(self.config_data))
+
+    def write_config(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
+        # Backup old configuration first
+        out_file_name = os.path.basename(out_file_path)
+        backup_file_name = out_file_name + '.backup'
+        if backup_directory:
+            utilities.backup_configuration_file(out_file_path, backup_directory,
+                                                destination_file_prefix=backup_file_name)
+        with open(out_file_path, 'w') as config_raw_f:
+            config_raw_f.write(self.formatted_data)
 
 
 class YamlConfigManager:
@@ -109,8 +130,8 @@ class YamlConfigManager:
                 continue
             token_path = self.extract_tokens[k]
             update_dict_from_path(token_path, v)
-        with open(out_file_path, 'w') as configyaml:
+        with open(out_file_path, 'w') as config_yaml_f:
             if top_text:
-                configyaml.write(f'{top_text}\n')
-            dump(self.config_data, configyaml, default_flow_style=False)
+                config_yaml_f.write(f'{top_text}\n')
+            dump(self.config_data, config_yaml_f, default_flow_style=False)
             utilities.set_permissions_of_file(out_file_path, 744)

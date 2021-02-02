@@ -124,8 +124,8 @@ class ConfigManager(YamlConfigManager):
         :return: An instance of ConfigManager
         """
         tmp_dir = '/tmp/dynamite/temp_configs/'
-        tmp_config = os.path.join(tmp_dir, 'filebeat.yml')
-        utilities.makedirs(os.path.join(tmp_dir))
+        tmp_config = f'{tmp_dir}/filebeat.yml'
+        utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
             out_f.write(raw_text)
         c = cls(install_directory=tmp_dir)

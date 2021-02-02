@@ -4,6 +4,7 @@ from typing import Optional
 from yaml import Loader
 from yaml import load
 
+from dynamite_nsm import utilities
 from dynamite_nsm.service_objects.suricata import misc, rules
 from dynamite_nsm.services.base.config import YamlConfigManager
 
@@ -11,6 +12,11 @@ from dynamite_nsm.services.base.config import YamlConfigManager
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, configuration_directory: str):
+        """
+        Configuration Manager for suricata.yaml file
+
+        :param configuration_directory: The path to the Suricata configuration directory
+        """
 
         extract_tokens = {
             'home_net': ('vars', 'address-groups', 'HOME_NET'),
@@ -103,6 +109,26 @@ class ConfigManager(YamlConfigManager):
         self.pcap_interfaces = misc.PcapInterfaces(
             interface_names=[interface_raw for interface_raw in self._pcap_interfaces_raw]
         )
+
+    @classmethod
+    def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None):
+        """
+        Alternative method for creating configuration file from raw text
+
+        :param raw_text: The string representing the configuration file
+        :param configuration_directory: The configuration directory for Suricata
+
+        :return: An instance of ConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_config = f'{tmp_dir}/suricata.yaml'
+        utilities.makedirs(tmp_dir)
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(configuration_directory=tmp_dir)
+        if configuration_directory:
+            c.configuration_directory = configuration_directory
+        return c
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """

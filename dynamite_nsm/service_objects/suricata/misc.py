@@ -1,11 +1,19 @@
 import json
-from enum import Enum
-from typing import Dict, List, Optional, NewType, Union
+from typing import Dict, List, Optional, Union
+
+AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP = dict(
+    FANOUT_HASH='cluster_flow',
+    FANOUT_CPU='cluster_cpu',
+    FANOUT_QM='cluster_qm'
+)
 
 
 class PcapInterfaces:
 
     def __init__(self, interface_names: List[str]):
+        """
+        :param interface_names: A list of network interface names
+        """
         self.interfaces = interface_names
 
     def __str__(self) -> str:
@@ -28,6 +36,9 @@ class AfPacketInterface:
         self.interface = interface_name
         self.cluster_id = cluster_id
         self.cluster_type = cluster_type
+        if cluster_type not in AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.keys():
+            self.cluster_type = AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.get(cluster_type, 'FANOUT_HASH')
+
         self.bpf_filter = bpf_filter
         self.threads = threads
         if not threads:
@@ -78,7 +89,7 @@ class AfPacketInterfaces:
             dict(
                 obj_name=str(self.__class__),
                 interfaces=[
-                    interface.get_raw() for interface in self.interfaces
+                    interface.interface for interface in self.interfaces
                 ]
             )
         )

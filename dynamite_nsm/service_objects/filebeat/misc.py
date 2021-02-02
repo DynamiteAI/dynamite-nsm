@@ -5,6 +5,11 @@ from typing import Dict, List, Optional
 class InputLogs:
 
     def __init__(self, monitor_log_paths: List[str]):
+        """
+        A set of logs to monitor on the filesystem
+
+        :param monitor_log_paths: A list of logs to monitor
+        """
         self.enabled = False
         self.monitor_log_paths = monitor_log_paths
 
@@ -27,6 +32,11 @@ class InputLogs:
 class IndexTemplateSettings:
 
     def __init__(self, index_name: str, index_pattern: Optional[str] = None):
+        """
+
+        :param index_name:
+        :param index_pattern:
+        """
         self.enabled = False
         self.index_name = index_name
         if index_pattern:
