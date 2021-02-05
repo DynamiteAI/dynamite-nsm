@@ -141,10 +141,6 @@ class EditInterfaceForm(npyscreen.ActionForm):
                 bpf_filter=self.bpf_filter.value
             )
         )
-        npyscreen.notify_ok_cancel(
-            str(self.parentApp.suricata_config.af_packet_interfaces),
-            form_color='DANGER'
-        )
 
         # Switch back to the main interface
         npyscreen.notify_wait(

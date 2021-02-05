@@ -1,6 +1,9 @@
 import json
 from typing import Optional, List
 
+from dynamite_nsm.service_objects.generic import Analyzer, Analyzers
+
+
 available_rules_names = [
     'botcc.rules', 'botcc.portgrouped.rules', 'ciarmy.rules',
     'compromised.rules', 'drop.rules', 'dshield.rules',
@@ -27,52 +30,26 @@ def list_available_rule_names():
     return available_rules_names
 
 
-class Rule:
+class Rule(Analyzer):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
-        self.name = name
-        self.enabled = enabled
-
-    def __str__(self):
-        return json.dumps(dict(
-            obj_name=str(self.__class__),
-            name=self.name,
-            enabled=self.enabled
-        ))
+        super().__init__(name, enabled)
 
 
-class Rules:
+class Rules(Analyzers):
 
     def __init__(self, rules: Optional[List[Rule]] = None):
-        self.rules = rules
-        if rules is None:
-            self.rules = []
-        self._idx = 0
+        super().__init__(rules)
+        self.rules = self.analyzers
 
-    def __iter__(self):
-        return self
+    def __str__(self):
+        return json.dumps(
+            dict(
+                obj_name=str(self.__class__),
+                rules=[rule.name for rule in self.rules]
+            )
+        )
 
-    def __next__(self):
-        if self._idx >= len(self.rules):
-            raise StopIteration
-        current_rule = self.rules[self._idx]
-        self._idx += 1
-        return current_rule
-
-    def add_rule(self, rule: Rule) -> None:
-        self.rules.append(rule)
-
-    def get_by_name(self, name: str) -> Optional[Rule]:
-        for rule in self.rules:
-            if rule.name == name:
-                return rule
-        return None
-
-    def get_disabled(self) -> List[Rule]:
-        return [rule for rule in self.rules if not rule.enabled]
-
-    def get_enabled(self) -> List[Rule]:
-        return [rule for rule in self.rules if rule.enabled]
-
-    def get_raw(self) -> List[str]:
-        return [rule.name for rule in self.rules if rule.enabled]
+    def add_rule(self, rule: Rule):
+        self.add_analyzer(rule)
+        self.rules = self.analyzers
