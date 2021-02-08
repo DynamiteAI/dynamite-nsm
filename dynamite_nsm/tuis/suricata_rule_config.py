@@ -51,9 +51,9 @@ class SuricataRuleSettingsForm(npyscreen.ActionForm):
         )
         for rule in self.rendered_rules:
             if rule.value:
-                self.parentApp.suricata_rule_config.rules.get_by_name(rule.name).enabled = True
+                self.parentApp.suricata_rule_config.rules[rule.name].enabled = True
             else:
-                self.parentApp.suricata_rule_config.rules.get_by_name(rule.name).enabled = False
+                self.parentApp.suricata_rule_config.rules[rule.name].enabled = False
 
         self.parentApp.suricata_rule_config.commit()
         self.parentApp.setNextForm(None)

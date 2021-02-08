@@ -18,11 +18,20 @@ class Definition(Analyzer):
             enabled=self.enabled
         ))
 
+    def get_raw(self):
+        if self.enabled:
+            return f'redef {self.name} = {self.value}'
+        return f'#redef {self.name} = {self.value}'
+
 
 class Definitions(Analyzers):
 
-    def __init__(self, definitions: Definition):
-        self.definitions = definitions
+    def __init__(self, definitions: List[Definition] = None):
+        super().__init__(definitions)
+        self.definitions = self.analyzers
+
+    def get_raw(self):
+        return [definition.get_raw() for definition in self.definitions]
 
 
 class Script(Analyzer):
@@ -30,11 +39,21 @@ class Script(Analyzer):
     def __init__(self, name: str, enabled: Optional[bool] = False):
         super().__init__(name, enabled)
 
+    def get_raw(self):
+        if self.enabled:
+            return f'@load {self.name}'
+        return f'#@load {self.name}'
+
 
 class Signature(Analyzer):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
         super().__init__(name, enabled)
+
+    def get_raw(self):
+        if self.enabled:
+            return f'@load-sig {self.name}'
+        return f'#@load-sig {self.name}'
 
 
 class Scripts(Analyzers):
@@ -55,6 +74,9 @@ class Scripts(Analyzers):
         self.add_analyzer(script)
         self.scripts = self.analyzers
 
+    def get_raw(self):
+        return [script.get_raw() for script in self.scripts]
+
 
 class Signatures(Analyzers):
 
@@ -73,4 +95,7 @@ class Signatures(Analyzers):
     def add_signature(self, signature: Signature):
         self.add_analyzer(signature)
         self.signatures = self.analyzers
+
+    def get_raw(self):
+        return [signature.get_raw() for signature in self.signatures]
 

@@ -9,7 +9,7 @@ from configparser import ConfigParser
 from typing import List, Optional, Tuple
 
 from dynamite_nsm import utilities
-from dynamite_nsm.service_objects.zeek import node
+from dynamite_nsm.service_objects.zeek import local_site, node
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.base.config import GenericConfigManager
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
@@ -94,205 +94,94 @@ class BpfConfigManager:
                     self.configuration_directory, e))
 
 
-class ScriptConfigManager:
-    """
-    Wrapper for configuring broctl sites/local.zeek
-    """
+class SiteLocalConfigManager(GenericConfigManager):
 
-    def __init__(self, configuration_directory, backup_configuration_directory=None):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek)
-        """
+    @staticmethod
+    def _line_denotes_script(line: str):
+        return '@load' in line.replace(' ', '') and '@load-' not in line
+
+    @staticmethod
+    def _line_denotes_signature(line):
+        return '@load-sig' in line.replace(' ', '')
+
+    @staticmethod
+    def _line_denotes_definition(line):
+        return 'redef' in line.replace(' ', '')
+
+    def __init__(self, configuration_directory):
         self.configuration_directory = configuration_directory
-        self.backup_configuration_directory = backup_configuration_directory
-        self.zeek_scripts = {}
-        self.zeek_sigs = {}
-        self.zeek_redefs = {}
+        self.scripts = local_site.Scripts()
+        self.signatures = local_site.Signatures()
+        self.definitions = local_site.Definitions()
 
-        self._parse_zeek_scripts()
+        with open(f'{self.configuration_directory}/site/local.zeek') as config_f:
+            config_data = dict(data=config_f.readlines())
+        super().__init__(config_data)
 
-    def _parse_zeek_scripts(self):
-        """
-        Parse the local.zeek configuration file, and determine which scripts are enabled/disabled
-        """
-        zeeklocalsite_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
-        try:
-            with open(zeeklocalsite_path) as config_f:
-                for line in config_f.readlines():
-                    line = line.replace(' ', '').strip()
-                    if '@load-sigs' in line:
-                        if line.startswith('#'):
-                            enabled = False
-                            line = line[1:]
-                        else:
-                            enabled = True
-                        sigs = line.split('@load-sigs')[1]
-                        self.zeek_sigs[sigs] = enabled
-                    elif '@load' in line:
-                        if line.startswith('#'):
-                            enabled = False
-                            line = line[1:]
-                        else:
-                            enabled = True
-                        script = line.split('@load')[1]
-                        self.zeek_scripts[script] = enabled
-                    elif line.startswith('redef'):
-                        definition, value = line.split('redef')[1].split('=')
-                        self.zeek_redefs[definition] = value
-        except IOError:
-            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeeklocalsite_path))
-        except Exception as e:
-            raise zeek_exceptions.ReadsZeekConfigError(
-                "General exception when opening/parsing config at {}; {}".format(zeeklocalsite_path, e))
+        self.add_parser(
+            parser=lambda data: local_site.Scripts(
+                [local_site.Script(
+                    name=line.replace(' ', '').replace('#', '').strip()[5:],
+                    enabled=line.replace(' ', '').strip()[0] != '#'
+                )
+                    for line in data['data']
+                    if self._line_denotes_script(line)]
+            ),
+            attribute_name='scripts'
+        )
+
+        self.add_parser(
+            parser=lambda data: local_site.Signatures(
+                [local_site.Signature(
+                    name=line.replace(' ', '').replace('#', '').strip()[10:],
+                    enabled=line.replace(' ', '').strip()[0] != '#'
+                )
+                    for line in data['data']
+                    if self._line_denotes_signature(line)]
+            ),
+            attribute_name='signatures'
+        )
+
+        self.add_parser(
+            parser=lambda data: local_site.Definitions(
+                [local_site.Definition(
+                    name=line.replace(' ', '').replace('#', '').strip()[5:].split('=')[0],
+                    value=line.replace(' ', '').replace('#', '').strip()[5:].split('=')[1],
+                    enabled=line.replace(' ', '').strip()[0] != '#'
+                )
+                    for line in data['data']
+                    if self._line_denotes_definition(line)]
+            ),
+            attribute_name='definitions'
+        )
 
     @classmethod
-    def from_raw_text(cls, raw_text, configuration_directory=None, backup_configuration_directory=None):
+    def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None):
         """
         Alternative method for creating configuration file from raw text
 
         :param raw_text: The string representing the configuration file
         :param configuration_directory: The configuration directory for Zeek
-        :param backup_configuration_directory: The backup configuration directory
 
-        :return: An instance of NodeConfigManager
+        :return: An instance of ConfigManager
         """
         tmp_dir = '/tmp/dynamite/temp_configs/'
-        tmp_config = os.path.join(tmp_dir, 'site', 'local.zeek')
-        utilities.makedirs(os.path.join(tmp_dir, 'site'))
+        tmp_config = f'{tmp_dir}/local.zeek'
+        utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
             out_f.write(raw_text)
-        c = cls(configuration_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
+        c = cls(configuration_directory=tmp_dir)
         if configuration_directory:
             c.configuration_directory = configuration_directory
-        if backup_configuration_directory:
-            c.backup_configuration_directory = backup_configuration_directory
         return c
 
-    def get_raw_config(self):
-        """
-        Get the raw text of the config file
-
-        :return: Config file contents
-        """
-        zeeklocalsite_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
-        try:
-            with open(zeeklocalsite_path) as config_f:
-                raw_text = config_f.read()
-        except IOError:
-            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeeklocalsite_path))
-        except Exception as e:
-            raise zeek_exceptions.ReadsZeekConfigError(
-                "General exception when opening/parsing config at {}; {}".format(zeeklocalsite_path, e))
-        return raw_text
-
-    def disable_script(self, name):
-        """
-        :param name: The name of the script (E.G protocols/http/software)
-        """
-        try:
-            self.zeek_scripts[name] = False
-        except KeyError:
-            raise zeek_exceptions.ZeekScriptNotFoundError(name)
-
-    def enable_script(self, name):
-        """
-        :param name: The name of the script (E.G protocols/http/software)
-        """
-        try:
-            self.zeek_scripts[name] = True
-        except KeyError:
-            pass
-
-    def list_disabled_scripts(self):
-        """
-        :return: A list of disabled Zeek scripts
-        """
-        return [script for script in self.zeek_scripts.keys() if not self.zeek_scripts[script]]
-
-    def list_enabled_scripts(self):
-        """
-        :return: A list of enabled Zeek scripts
-        """
-        return [script for script in self.zeek_scripts.keys() if self.zeek_scripts[script]]
-
-    def list_enabled_sigs(self):
-        """
-        :return: A list of enabled Zeek signatures
-        """
-        return [sig for sig in self.zeek_sigs.keys() if self.zeek_sigs[sig]]
-
-    def list_disabled_sigs(self):
-        """
-        :return: A list of disabled Zeek signatures
-        """
-        return [sig for sig in self.zeek_sigs.keys() if not self.zeek_sigs[sig]]
-
-    def list_redefinitions(self):
-        return [(redef, val) for redef, val in self.zeek_redefs.items()]
-
-    def list_backup_configs(self):
-        """
-        List configuration backups in our config store
-
-        :return: A list of dictionaries with the following keys: ["filename", "filepath", "time"]
-        """
-        return utilities.list_backup_configurations(
-            os.path.join(self.backup_configuration_directory, 'local.zeek.d'))
-
-    def restore_backup_config(self, name):
-        """
-        Restore a configuration from our config store
-
-        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
-        backup.
-        :return: True, if successful
-        """
-        dest_config_file = os.path.join(self.configuration_directory, 'site', 'local.zeek')
-        if name == "recent":
-            configs = self.list_backup_configs()
-            if configs:
-                return utilities.restore_backup_configuration(
-                    configs[0]['filepath'],
-                    dest_config_file)
-        return utilities.restore_backup_configuration(
-            os.path.join(self.backup_configuration_directory, 'local.zeek.d', name), dest_config_file)
-
-    def write_config(self):
-        """
-        Overwrite the existing local.zeek config with changed values
-        """
-        output_str = ''
-
-        # Backup old configuration first
-        source_configuration_file_path = os.path.join(self.configuration_directory, 'site', 'local.zeek')
-        if self.backup_configuration_directory:
-            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'local.zeek.d')
-            try:
-                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
-                                                    destination_file_prefix='local.zeek.backup')
-            except general_exceptions.WriteConfigError:
-                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [local.zeek].')
-            except general_exceptions.ReadConfigError:
-                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [local.zeek].')
-        for e_script in self.list_enabled_scripts():
-            output_str += '@load {}\n'.format(e_script)
-        for d_script in self.list_disabled_scripts():
-            output_str += '#@load {}\n'.format(d_script)
-        for e_sig in self.list_enabled_sigs():
-            output_str += '@load-sigs {}\n'.format(e_sig)
-        for d_sig in self.list_disabled_sigs():
-            output_str += '@load-sigs {}\n'.format(d_sig)
-        for rdef, val in self.list_redefinitions():
-            output_str += 'redef {} = {}\n'.format(rdef, val)
-        try:
-            with open(source_configuration_file_path, 'w') as f:
-                f.write(output_str)
-        except IOError:
-            raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
-        except Exception as e:
-            raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to write new local.zeek file to {}; {}".format(
-                    self.configuration_directory, e))
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        if not out_file_path:
+            out_file_path = f'{self.configuration_directory}/site/local.zeek'
+        self.formatted_data = '\n'.join(
+            self.definitions.get_raw() + self.signatures.get_raw() + self.scripts.get_raw()
+        )
+        super(SiteLocalConfigManager, self).write_config(out_file_path, backup_directory)
 
 
 class NodeConfigManager(GenericConfigManager):

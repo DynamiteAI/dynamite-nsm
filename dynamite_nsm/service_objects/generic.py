@@ -1,5 +1,7 @@
 import json
-from typing import Optional, List
+from typing import List, Optional, TypeVar, Union
+
+Generic = TypeVar('Generic')
 
 
 class Analyzer:
@@ -25,6 +27,15 @@ class Analyzers:
             self.analyzers = []
         self._idx = 0
 
+    def __add__(self, analyzer: Union[Analyzer, Generic]):
+        self.analyzers.append(analyzer)
+
+    def __getitem__(self, name: str):
+        for analyzer in self.analyzers:
+            if analyzer.name == name:
+                return analyzer
+        raise KeyError(f'No item named: {name}')
+
     def __iter__(self):
         return self
 
@@ -37,12 +48,6 @@ class Analyzers:
 
     def add_analyzer(self, analyzer: Analyzer) -> None:
         self.analyzers.append(analyzer)
-
-    def get_by_name(self, name: str) -> Optional[Analyzer]:
-        for analyzer in self.analyzers:
-            if analyzer.name == name:
-                return analyzer
-        return None
 
     def get_disabled(self) -> List[Analyzer]:
         return [analyzer for analyzer in self.analyzers if not analyzer.enabled]

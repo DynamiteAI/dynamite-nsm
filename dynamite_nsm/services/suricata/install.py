@@ -282,34 +282,34 @@ class InstallManager(install.BaseInstallManager):
         # Disable Unneeded Suricata rules
         try:
             self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
-            config.rules.get_by_name('http-events.rules').enabled = False
+            config.rules['http-events.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'smtp-events.rules'")
-            config.rules.get_by_name('smtp-events.rules').enabled = False
+            config.rules['smtp-events.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'dns-events.rules'")
-            config.rules.get_by_name('dns-events.rules').enabled = False
+            config.rules['dns-events.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'tls-events.rules'")
-            config.rules.get_by_name('tls-events.rules').enabled = False
+            config.rules['tls-events.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'drop.rules'")
-            config.rules.get_by_name('drop.rules').enabled = False
+            config.rules['drop.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-p2p.rules'")
-            config.rules.get_by_name('emerging-p2p.rules').enabled = False
+            config.rules['emerging-p2p.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-pop3.rules'")
-            config.rules.get_by_name('emerging-pop3.rules').enabled = False
+            config.rules['emerging-pop3.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-telnet.rules'")
-            config.rules.get_by_name('emerging-telnet.rules').enabled = False
+            config.rules['emerging-telnet.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
-            config.rules.get_by_name('emerging-tftp.rules').enabled = False
+            config.rules['emerging-tftp.rules'].enabled = False
 
             self.logger.debug("Disabling Suricata Rule: 'emerging-voip.rules'")
-            config.rules.get_by_name('emerging-voip.rules').enabled = False
+            config.rules['emerging-voip.rules'].enabled = False
 
         except suricata_exceptions.SuricataRuleNotFoundError:
             self.logger.error('Could not disable one or more Suricata rules.')
