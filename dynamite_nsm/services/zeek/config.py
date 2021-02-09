@@ -9,89 +9,40 @@ from configparser import ConfigParser
 from typing import List, Optional, Tuple
 
 from dynamite_nsm import utilities
-from dynamite_nsm.service_objects.zeek import local_site, node
 from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.service_objects.zeek import bpf_filter, local_site, node
 from dynamite_nsm.services.base.config import GenericConfigManager
+
 from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
-class BpfConfigManager:
-    """
-    Wrapper for configuring interface_bpf.zeek script
-    """
+class BpfConfigManager(GenericConfigManager):
 
     def __init__(self, configuration_directory):
         self.configuration_directory = configuration_directory
-        self.interface_pattern_map = {}
-        self._parse_bpf_map_file()
+        self.bpf_filters = bpf_filter.BpfFilters()
 
-    def _parse_bpf_map_file(self):
-        """
-        Parse bpf_map_file.input configuration file, and determine what bpf filters to apply to each interface
-        """
+        with open(f'{self.configuration_directory}/bpf_map_file.input') as config_f:
+            config_data = dict(data=config_f.readlines())
+        super().__init__(config_data)
 
-        bpf_interface_map_path = os.path.join(self.configuration_directory, 'bpf_map_file.input')
-        try:
-            with open(bpf_interface_map_path) as conf_f:
-                for line in conf_f.readlines():
-                    if line.startswith('#'):
-                        continue
-                    tokenized_line = line.split('\t')
-                    net_interface, bpf_pattern = tokenized_line[0], ''.join(tokenized_line[1:]).strip()
-                    if net_interface in utilities.get_network_interface_names():
-                        self.interface_pattern_map[net_interface] = bpf_pattern
-        except IOError:
-            with open(bpf_interface_map_path, 'w') as bpf_input_f:
-                bpf_input_f.write('')
+        self.add_parser(
+            parser=lambda data: bpf_filter.BpfFilters(
+                [bpf_filter.BpfFilter(
+                    interface_name=line.split('\t')[0],
+                    pattern=line.split('\t')[1]
+                )
+                    for line in data['data']
+                    if '\t' in line.strip().replace(' ', '')]
+            ),
+            attribute_name='bpf_filters'
+        )
 
-    def add_bpf_pattern(self, interface_name, bpf_pattern):
-        """
-        Associate a BPF pattern with a valid network interface.
-
-        :param interface_name: The name of the network interface to apply the filter to
-        :param bpf_pattern: A valid BPF filter
-        """
-        if interface_name in utilities.get_network_interface_names():
-            self.interface_pattern_map[interface_name] = bpf_pattern
-
-    def remove_bpf_pattern(self, interface_name):
-        """
-        Dis-associate a BPF pattern and a network interface
-
-        :param interface_name: The name of the network interface
-        """
-        try:
-            del self.interface_pattern_map[interface_name]
-        except KeyError:
-            pass
-
-    def get_bpf_pattern(self, interface_name):
-        """
-        Get the BPF pattern for a given interface, assuming there is one.
-
-        :param interface_name: The name of the network interface
-        """
-        return self.interface_pattern_map.get(interface_name)
-
-    def write_config(self):
-        """
-        Overwrite the existing bpf_map_file.input config with changed values
-        """
-
-        output_str = ''
-
-        source_configuration_file_path = os.path.join(self.configuration_directory, 'bpf_map_file.input')
-        for k, v in self.interface_pattern_map.items():
-            output_str += '{}\t{}\n'.format(k, v)
-        try:
-            with open(source_configuration_file_path, 'w') as f:
-                f.write(output_str)
-        except IOError:
-            raise zeek_exceptions.WriteZeekConfigError("Could not locate {}".format(self.configuration_directory))
-        except Exception as e:
-            raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to write new bpf_map_file.input file to {}; {}".format(
-                    self.configuration_directory, e))
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        if not out_file_path:
+            out_file_path = f'{self.configuration_directory}/bpf_map_file.input'
+        self.formatted_data = '\n'.join(self.bpf_filters.get_raw())
+        super(BpfConfigManager, self).write_config(out_file_path, backup_directory)
 
 
 class SiteLocalConfigManager(GenericConfigManager):

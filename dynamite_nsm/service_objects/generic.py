@@ -27,7 +27,7 @@ class Analyzers:
             self.analyzers = []
         self._idx = 0
 
-    def __add__(self, analyzer: Union[Analyzer, Generic]):
+    def __add__(self, analyzer: Analyzer):
         self.analyzers.append(analyzer)
 
     def __getitem__(self, name: str):

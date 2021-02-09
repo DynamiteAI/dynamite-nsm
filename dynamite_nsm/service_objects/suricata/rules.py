@@ -46,7 +46,7 @@ class Rules(Analyzers):
         return json.dumps(
             dict(
                 obj_name=str(self.__class__),
-                rules=[rule.name for rule in self.rules]
+                rules=[f'{rule.name} (enabled: {rule.enabled})' for rule in self.rules]
             )
         )
 

@@ -10,7 +10,7 @@ class Definition(Analyzer):
         super().__init__(name, enabled)
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return json.dumps(dict(
             obj_name=str(self.__class__),
             name=self.name,
@@ -18,7 +18,7 @@ class Definition(Analyzer):
             enabled=self.enabled
         ))
 
-    def get_raw(self):
+    def get_raw(self) -> str:
         if self.enabled:
             return f'redef {self.name} = {self.value}'
         return f'#redef {self.name} = {self.value}'
@@ -26,12 +26,25 @@ class Definition(Analyzer):
 
 class Definitions(Analyzers):
 
-    def __init__(self, definitions: List[Definition] = None):
-        super().__init__(definitions)
-        self.definitions = self.analyzers
+    def __init__(self, scripts: List[Definition] = None):
+        super().__init__(scripts)
+        self.scripts = self.analyzers
 
-    def get_raw(self):
-        return [definition.get_raw() for definition in self.definitions]
+    def __str__(self):
+        return json.dumps(
+            dict(
+                obj_name=str(self.__class__),
+                scripts=[f'{script.name} (enabled: {script.enabled}) = {script.value}' for script in
+                         self.scripts]
+            )
+        )
+
+    def add_script(self, script: Definition) -> None:
+        self.add_analyzer(script)
+        self.scripts = self.analyzers
+
+    def get_raw(self) -> List[str]:
+        return [script.get_raw() for script in self.scripts]
 
 
 class Script(Analyzer):
@@ -39,21 +52,10 @@ class Script(Analyzer):
     def __init__(self, name: str, enabled: Optional[bool] = False):
         super().__init__(name, enabled)
 
-    def get_raw(self):
+    def get_raw(self) -> str:
         if self.enabled:
             return f'@load {self.name}'
         return f'#@load {self.name}'
-
-
-class Signature(Analyzer):
-
-    def __init__(self, name: str, enabled: Optional[bool] = False):
-        super().__init__(name, enabled)
-
-    def get_raw(self):
-        if self.enabled:
-            return f'@load-sig {self.name}'
-        return f'#@load-sig {self.name}'
 
 
 class Scripts(Analyzers):
@@ -66,16 +68,28 @@ class Scripts(Analyzers):
         return json.dumps(
             dict(
                 obj_name=str(self.__class__),
-                scripts=[script.name for script in self.scripts]
+                scripts=[f'{script.name} (enabled: {script.enabled})' for script in
+                         self.scripts]
             )
         )
 
-    def add_script(self, script: Script):
+    def add_script(self, script: Script) -> None:
         self.add_analyzer(script)
         self.scripts = self.analyzers
 
-    def get_raw(self):
+    def get_raw(self) -> List[str]:
         return [script.get_raw() for script in self.scripts]
+
+
+class Signature(Analyzer):
+
+    def __init__(self, name: str, enabled: Optional[bool] = False):
+        super().__init__(name, enabled)
+
+    def get_raw(self) -> str:
+        if self.enabled:
+            return f'@load-sig {self.name}'
+        return f'#@load-sig {self.name}'
 
 
 class Signatures(Analyzers):
@@ -88,14 +102,14 @@ class Signatures(Analyzers):
         return json.dumps(
             dict(
                 obj_name=str(self.__class__),
-                signatures=[signature.name for signature in self.signatures]
+                signatures=[f'{signature.name} (enabled: {signature.enabled})' for signature in
+                            self.signatures]
             )
         )
 
-    def add_signature(self, signature: Signature):
+    def add_signature(self, signature: Signature) -> None:
         self.add_analyzer(signature)
         self.signatures = self.analyzers
 
-    def get_raw(self):
+    def get_raw(self) -> List[str]:
         return [signature.get_raw() for signature in self.signatures]
-
