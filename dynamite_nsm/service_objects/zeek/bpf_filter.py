@@ -26,16 +26,14 @@ class BpfFilter(GenericItem):
 class BpfFilters(GenericItemGroup):
 
     def __init__(self, bpf_filters: Optional[List[BpfFilter]] = None):
-        super().__init__('name')
-        self.bpf_filters = bpf_filters
-        if bpf_filters is None:
-            self.bpf_filters = []
+        super().__init__('interface', bpf_filters)
+        self.bpf_filters = self.items
         self._idx = 0
     
     def __str__(self) -> str:
         return json.dumps(
             dict(
                 obj_name=str(self.__class__),
-                bpf_filters=[f'{bpf_filter.name} = {bpf_filter.pattern}' for bpf_filter in self.bpf_filters]
+                bpf_filters=[f'{bpf_filter.interface} = {bpf_filter.pattern}' for bpf_filter in self.bpf_filters]
             )
         )

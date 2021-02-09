@@ -39,7 +39,7 @@ class BaseComponents(GenericItemGroup):
     def __init__(self, components: Optional[List[BaseComponent]] = None):
         super().__init__('name', components)
         self._idx = 0
-        self.components = components
+        self.components = self.items
 
     def __str__(self) -> str:
         return json.dumps(

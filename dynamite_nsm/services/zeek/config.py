@@ -1,19 +1,14 @@
-import os
-import re
 import math
 from io import StringIO
+from re import findall
 from random import randint
-from datetime import datetime
 from itertools import zip_longest
 from configparser import ConfigParser
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from dynamite_nsm import utilities
-from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm.service_objects.zeek import bpf_filter, local_site, node
 from dynamite_nsm.services.base.config import GenericConfigManager
-
-from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
+from dynamite_nsm.service_objects.zeek import bpf_filter, local_network, local_site, node
 
 
 class BpfConfigManager(GenericConfigManager):
@@ -333,187 +328,45 @@ class NodeConfigManager(GenericConfigManager):
         super(NodeConfigManager, self).write_config(out_file_path, backup_directory)
 
 
-class LocalNetworkConfigManager:
-    """
-    Wrapper for configuring zeek networks.cfg (local network space)
-    """
+class LocalNetworksConfigManager(GenericConfigManager):
 
-    IPV4_AND_CIDR_PATTERN = r'(?<!\d\.)(?<!\d)(?:\d{1,3}\.){3}\d{1,3}/\d{1,2}(?!\d|(?:\.\d))'
-    IPV6_AND_CIDR_PATTERN = r'^(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|::(?:[0-9A-Fa-f]{1,4}:){5}' \
-                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
-                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
-                            r'(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
-                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
-                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4})?::' \
-                            r'(?:[0-9A-Fa-f]{1,4}:){3}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
-                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|(?:' \
-                            r'(?:[0-9A-Fa-f]{1,4}:){,2}[0-9A-Fa-f]{1,4})?::' \
-                            r'(?:[0-9A-Fa-f]{1,4}:)' \
-                            r'{2}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
-                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
-                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:' \
-                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|' \
-                            r'(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
-                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,4}[0-9A-Fa-f]{1,4})?::' \
-                            r'(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}' \
-                            r'(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))|' \
-                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|' \
-                            r'(?:(?:[0-9A-Fa-f]{1,4}:){,6}[0-9A-Fa-f]{1,4})?::/\d{1,2}(?!\d|(?:\.\d)))'
-
-    def __init__(self, install_directory, backup_configuration_directory=None):
-        """
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
-        """
-        self.install_directory = install_directory
-        self.backup_configuration_directory = backup_configuration_directory
-        self.network_config = self._parse_network_config()
-
-    def _parse_network_config(self):
-        """
-        :return: A dictionary representing the configurations stored within networks.cfg
-        """
-        with open(os.path.join(self.install_directory, 'etc', 'networks.cfg')) as net_config:
-            local_networks = {}
-            for line in net_config.readlines():
-                ip_and_cidr = None
-                if not line.strip():
-                    continue
-                elif line.startswith('#'):
-                    continue
-                ipv4_match = re.findall(self.IPV4_AND_CIDR_PATTERN, line)
-                ipv6_match = re.findall(self.IPV6_AND_CIDR_PATTERN, line)
-                if ipv4_match:
-                    ip_and_cidr = ipv4_match[0]
-                elif ipv6_match:
-                    ip_and_cidr = ipv6_match[0]
-                if ip_and_cidr:
-                    if len(ip_and_cidr) != len(line.strip()):
-                        description = line.replace(ip_and_cidr, '').strip()
-                local_networks[ip_and_cidr] = description
+    @staticmethod
+    def _parse_local_networks(data: Dict) -> local_network.LocalNetworks:
+        local_networks = local_network.LocalNetworks()
+        for line in data['data']:
+            ip_and_cidr, description = None, None
+            ipv4_match = findall(local_network.IPV4_AND_CIDR_PATTERN, line)
+            ipv6_match = findall(local_network.IPV6_AND_CIDR_PATTERN, line)
+            if ipv4_match:
+                ip_and_cidr = ipv4_match[0]
+            elif ipv6_match:
+                ip_and_cidr = ipv6_match[0]
+            if ip_and_cidr:
+                if len(ip_and_cidr) != len(line.strip()):
+                    description = line.replace(ip_and_cidr, '').strip()
+            local_networks.add(
+                local_network.LocalNetwork(
+                    ip_and_cidr=ip_and_cidr,
+                    description=description
+                )
+            )
         return local_networks
 
-    @classmethod
-    def from_raw_text(cls, raw_text, install_directory=None, backup_configuration_directory=None):
-        """
-        Alternative method for creating configuration file from raw text
+    def __init__(self, installation_directory):
+        self.installation_directory = installation_directory
+        self.local_networks = local_network.LocalNetworks()
 
-        :param raw_text: The string representing the configuration file
-        :param install_directory: The installation directory for Zeek
-        :param backup_configuration_directory: The backup configuration directory
+        with open(f'{self.installation_directory}/etc/networks.cfg') as config_f:
+            config_data = dict(data=config_f.readlines())
+        super().__init__(config_data)
 
-        :return: An instance of LocalNetworkConfigManager
-        """
-        tmp_dir = '/tmp/dynamite/temp_configs/'
-        tmp_config = os.path.join(tmp_dir, 'etc', 'networks.cfg')
-        utilities.makedirs(os.path.join(tmp_dir, 'etc'))
-        with open(tmp_config, 'w') as out_f:
-            out_f.write(raw_text)
-        c = cls(install_directory=tmp_dir, backup_configuration_directory=backup_configuration_directory)
-        if install_directory:
-            c.install_directory = install_directory
-        if backup_configuration_directory:
-            c.backup_configuration_directory = backup_configuration_directory
-        return c
+        self.add_parser(
+            parser=self._parse_local_networks,
+            attribute_name='local_networks'
+        )
 
-    def get_raw_config(self):
-        """
-        Get the raw text of the config file
-
-        :return: Config file contents
-        """
-        zeek_network_cfg = os.path.join(self.install_directory, 'etc', 'networks.cfg')
-        try:
-            with open(zeek_network_cfg) as config_f:
-                raw_text = config_f.read()
-        except IOError:
-            raise zeek_exceptions.ReadsZeekConfigError("Could not locate config at {}".format(zeek_network_cfg))
-        except Exception as e:
-            raise zeek_exceptions.ReadsZeekConfigError(
-                "General exception when opening/parsing config at {}; {}".format(zeek_network_cfg, e))
-        return raw_text
-
-    def add_local_network(self, ip_and_cidr, description=None):
-        """
-        Add a new local network definition
-
-        :param ip_and_cidr: The IP and CIDR address for private (likely internal) network (IPv4/IPv6 notation accepted)
-        :param description: An optional description of that site
-        """
-        if re.match(self.IPV4_AND_CIDR_PATTERN, ip_and_cidr) or re.match(self.IPV4_AND_CIDR_PATTERN, ip_and_cidr):
-            if isinstance(description, str):
-                self.network_config[ip_and_cidr] = description
-            else:
-                self.network_config[ip_and_cidr] = "Added {}.".format(datetime.utcnow())
-
-    def remove_local_network(self, ip_and_cidr):
-        """
-        Remove a network definition
-
-        :param ip_and_cidr: The IP and CIDR address for private (likely internal) network (IPv4/IPv6 notation accepted)
-        """
-        try:
-            del self.network_config[ip_and_cidr]
-        except KeyError:
-            raise zeek_exceptions.ZeekLocalNetworkNotFoundError(ip_and_cidr)
-
-    def list_backup_configs(self):
-        """
-        List configuration backups
-
-        :return: A list of dictionaries with the following keys: ["name", "path", "timestamp"]
-        """
-        return utilities.list_backup_configurations(
-            os.path.join(self.backup_configuration_directory, 'networks.cfg.d'))
-
-    def restore_backup_config(self, name):
-        """
-        Restore a configuration from our config store
-
-        :param name: The name of the configuration file or the keyword "recent" which will restore the most recent
-        backup.
-        :return: True, if successful
-        """
-        dest_config_file = os.path.join(self.install_directory, 'etc', 'networks.cfg')
-        if name == "recent":
-            configs = self.list_backup_configs()
-            if configs:
-                return utilities.restore_backup_configuration(
-                    configs[0]['filepath'],
-                    dest_config_file)
-        return utilities.restore_backup_configuration(
-            os.path.join(self.backup_configuration_directory, 'networks.cfg.d', name), dest_config_file)
-
-    def write_config(self):
-        source_configuration_file_path = os.path.join(self.install_directory, 'etc', 'networks.cfg')
-        if self.backup_configuration_directory:
-            destination_configuration_path = os.path.join(self.backup_configuration_directory, 'networks.cfg.d')
-            try:
-                utilities.backup_configuration_file(source_configuration_file_path, destination_configuration_path,
-                                                    destination_file_prefix='networks.cfg.backup')
-            except general_exceptions.WriteConfigError:
-                raise zeek_exceptions.WriteZeekConfigError('Zeek configuration failed to write [networks.cfg].')
-            except general_exceptions.ReadConfigError:
-                raise zeek_exceptions.ReadsZeekConfigError('Zeek configuration failed to read [networks.cfg].')
-
-        try:
-            with open(source_configuration_file_path, 'w') as net_config:
-                lines = []
-                for k, v in self.network_config.items():
-                    if v:
-                        line = '{0: <64} {1}\n'.format(k, v)
-                    else:
-                        line = '{0: <64} {1}\n'.format(k, 'Undocumented network')
-                    lines.append(line)
-                net_config.writelines(lines)
-        except IOError as e:
-            raise zeek_exceptions.WriteZeekConfigError(
-                "General error while attempting to write new networks.cfg file to {}; {}".format(
-                    self.install_directory, e))
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        if not out_file_path:
+            out_file_path = f'{self.installation_directory}/etc/networks.cfg'
+        self.formatted_data = '\n'.join(self.local_networks.get_raw())
+        super(LocalNetworksConfigManager, self).write_config(out_file_path, backup_directory)
