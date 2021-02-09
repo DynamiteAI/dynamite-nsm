@@ -22,7 +22,7 @@ class RemoveNetworkInterfaceButton(npyscreen.ButtonPress):
         if not res:
             return
 
-        self.parent.parentApp.suricata_config.af_packet_interfaces.remove_by_name(self.delete_value)
+        self.parent.parentApp.suricata_config.af_packet_interfaces.remove(self.delete_value)
         self.parent.parentApp.suricata_config.commit()
         self.parent.parentApp.removeForm('MAIN')
         self.parent.parentApp.addForm('MAIN', SuricataInstanceSettingsForm, name='Suricata Instance Configuration')
@@ -97,8 +97,7 @@ class EditInterfaceForm(npyscreen.ActionForm):
             self.value = None
 
         if self.value:
-            self.interface_config = self.parentApp.suricata_config.af_packet_interfaces.get_by_name(
-                self.value)
+            self.interface_config = self.parentApp.suricata_config.af_packet_interfaces.get(self.value)
             if not self.interface_config:
                 self.delete_button.hidden = True
                 return
@@ -131,8 +130,8 @@ class EditInterfaceForm(npyscreen.ActionForm):
             )
             return
         if self.value:
-            self.parentApp.suricata_config.af_packet_interfaces.remove_by_name(self.value)
-        self.parentApp.suricata_config.af_packet_interfaces.add_interface(
+            self.parentApp.suricata_config.af_packet_interfaces.remove(self.value)
+        self.parentApp.suricata_config.af_packet_interfaces.add(
             suricata_misc.AfPacketInterface(
                 interface_name=self.net_interface_text.value,
                 cluster_id=self.cluster_id.value,

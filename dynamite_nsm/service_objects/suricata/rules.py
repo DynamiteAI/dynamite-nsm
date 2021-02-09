@@ -49,7 +49,3 @@ class Rules(Analyzers):
                 rules=[f'{rule.name} (enabled: {rule.enabled})' for rule in self.rules]
             )
         )
-
-    def add_rule(self, rule: Rule):
-        self.add_analyzer(rule)
-        self.rules = self.analyzers

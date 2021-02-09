@@ -92,9 +92,9 @@ class ConfigManager(YamlConfigManager):
 
         for rule_name in rules.list_available_rule_names():
             if rule_name in self._rule_files_raw:
-                self.rules.add_rule(rules.Rule(rule_name, enabled=True))
+                self.rules.add(rules.Rule(rule_name, enabled=True))
             else:
-                self.rules.add_rule(rules.Rule(rule_name, enabled=False))
+                self.rules.add(rules.Rule(rule_name, enabled=False))
 
         self.af_packet_interfaces = misc.AfPacketInterfaces(
             [misc.AfPacketInterface(

@@ -39,10 +39,6 @@ class Definitions(Analyzers):
             )
         )
 
-    def add_script(self, script: Definition) -> None:
-        self.add_analyzer(script)
-        self.scripts = self.analyzers
-
     def get_raw(self) -> List[str]:
         return [script.get_raw() for script in self.scripts]
 
@@ -64,7 +60,7 @@ class Scripts(Analyzers):
         super().__init__(scripts)
         self.scripts = self.analyzers
 
-    def __str__(self):
+    def __str__(self) -> str:
         return json.dumps(
             dict(
                 obj_name=str(self.__class__),
@@ -72,10 +68,6 @@ class Scripts(Analyzers):
                          self.scripts]
             )
         )
-
-    def add_script(self, script: Script) -> None:
-        self.add_analyzer(script)
-        self.scripts = self.analyzers
 
     def get_raw(self) -> List[str]:
         return [script.get_raw() for script in self.scripts]
@@ -106,10 +98,6 @@ class Signatures(Analyzers):
                             self.signatures]
             )
         )
-
-    def add_signature(self, signature: Signature) -> None:
-        self.add_analyzer(signature)
-        self.signatures = self.analyzers
 
     def get_raw(self) -> List[str]:
         return [signature.get_raw() for signature in self.signatures]

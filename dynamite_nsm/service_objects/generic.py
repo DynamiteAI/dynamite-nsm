@@ -1,10 +1,54 @@
 import json
-from typing import List, Optional, TypeVar, Union
-
-Generic = TypeVar('Generic')
+from typing import List, Optional, TypeVar
 
 
-class Analyzer:
+class GenericItem(object):
+    pass
+
+
+class GenericItemGroup:
+
+    def __init__(self, identifier_attribute: str, items: Optional[List[GenericItem]] = None, ):
+        self.identifier_attribute = identifier_attribute
+        self.items = items
+        if items is None:
+            self.items = []
+        self._idx = 0
+
+    def __add__(self, item: GenericItem) -> None:
+        self.items.append(item)
+
+    def __getitem__(self, identifier_value_str: str):
+        for item in self.items:
+            if getattr(item, self.identifier_attribute) == identifier_value_str:
+                return item
+        raise KeyError(f'{identifier_value_str} not found for any {self.identifier_attribute}')
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> GenericItem:
+        if self._idx >= len(self.items):
+            raise StopIteration
+        current_item = self.items[self._idx]
+        self._idx += 1
+        return current_item
+
+    def add(self, item: GenericItem) -> None:
+        self.__add__(item)
+
+    def remove(self, identifier_value_str: str):
+        for i, item in enumerate(self.items):
+            if getattr(item, self.identifier_attribute) == identifier_value_str:
+                del self.items[i]
+                return
+        raise KeyError(f'{identifier_value_str} not found for any {self.identifier_attribute}')
+
+    def get_raw(self) -> List[str]:
+        return [item.get_raw() for item in self.items]
+
+
+class Analyzer(GenericItem):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
         self.name = name
@@ -18,36 +62,11 @@ class Analyzer:
         ))
 
 
-class Analyzers:
+class Analyzers(GenericItemGroup):
 
     def __init__(self, analyzers: Optional[List[Analyzer]] = None):
-        self.analyzers = analyzers
-
-        if analyzers is None:
-            self.analyzers = []
-        self._idx = 0
-
-    def __add__(self, analyzer: Analyzer):
-        self.analyzers.append(analyzer)
-
-    def __getitem__(self, name: str):
-        for analyzer in self.analyzers:
-            if analyzer.name == name:
-                return analyzer
-        raise KeyError(f'No item named: {name}')
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._idx >= len(self.analyzers):
-            raise StopIteration
-        current_analyzer = self.analyzers[self._idx]
-        self._idx += 1
-        return current_analyzer
-
-    def add_analyzer(self, analyzer: Analyzer) -> None:
-        self.analyzers.append(analyzer)
+        super().__init__('name', analyzers)
+        self.analyzers = self.items
 
     def get_disabled(self) -> List[Analyzer]:
         return [analyzer for analyzer in self.analyzers if not analyzer.enabled]

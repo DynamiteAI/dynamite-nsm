@@ -357,7 +357,7 @@ class InstallManager(install.BaseInstallManager):
             raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
         config.af_packet_interfaces = suricata_misc.AfPacketInterfaces()
         for interface in self.capture_network_interfaces:
-            config.af_packet_interfaces.add_interface(
+            config.af_packet_interfaces.add(
                 suricata_misc.AfPacketInterface(
                     interface_name=interface, threads='auto', cluster_id=random.randint(1, 50000),
                     cluster_type='cluster_flow'

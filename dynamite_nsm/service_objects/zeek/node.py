@@ -1,6 +1,8 @@
 import json
 from typing import Dict, List, Optional, Tuple
 
+from dynamite_nsm.service_objects.generic import GenericItem, GenericItemGroup
+
 CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP = dict(
     cluster_flow='FANOUT_HASH',
     cluster_cpu='FANOUT_CPU',
@@ -8,7 +10,7 @@ CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP = dict(
 )
 
 
-class BaseComponent:
+class BaseComponent(GenericItem):
 
     def __init__(self, component_name: str, component_type: str, host: Optional[str] = 'localhost'):
         self.name = component_name
@@ -32,23 +34,12 @@ class BaseComponent:
         ))
     
 
-class BaseComponents:
+class BaseComponents(GenericItemGroup):
     
     def __init__(self, components: Optional[List[BaseComponent]] = None):
+        super().__init__('name', components)
         self._idx = 0
         self.components = components
-        if not self.components:
-            self.components = []
-
-    def __iter__(self):
-        return self
-
-    def __next__(self) -> BaseComponent:
-        if self._idx >= len(self.components):
-            raise StopIteration
-        current_component = self.components[self._idx]
-        self._idx += 1
-        return current_component
 
     def __str__(self) -> str:
         return json.dumps(
@@ -57,27 +48,6 @@ class BaseComponents:
                 components=[component.name for component in self.components]
             )
         )
-
-    def add_component(self, component: BaseComponent) -> None:
-        """
-        Add a new component
-
-        :param component: A component instance to add
-        """
-        self.components.append(component)
-
-    def remove_by_name(self, component_name: str) -> None:
-        """
-        Remove a component instance by name
-
-        :param component_name: The name of the component to remove
-        """
-        temp_components = []
-        for component in self.components:
-            if component.component_name == component_name:
-                continue
-            temp_components.append(component)
-        self.components = temp_components
 
     def get_raw(self) -> List[Tuple[str, Dict]]:
         return [component.get_raw() for component in self.components]
@@ -162,7 +132,7 @@ class Loggers(BaseComponents):
         super().__init__(components=loggers)
 
     def add_logger(self, logger: Logger):
-        super().add_component(logger)
+        super().add(logger)
 
 
 class Proxies(BaseComponents):
@@ -170,7 +140,7 @@ class Proxies(BaseComponents):
         super().__init__(components=proxies)
 
     def add_proxy(self, proxy: Proxy):
-        super().add_component(proxy)
+        super().add(proxy)
 
 
 class Workers(BaseComponents):
@@ -179,4 +149,4 @@ class Workers(BaseComponents):
         super().__init__(components=workers)
 
     def add_worker(self, worker: Worker):
-        super().add_component(worker)
+        super().add(worker)

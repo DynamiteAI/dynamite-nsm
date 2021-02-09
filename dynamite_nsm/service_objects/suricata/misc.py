@@ -94,16 +94,16 @@ class AfPacketInterfaces:
             )
         )
 
-    def add_interface(self, interface: AfPacketInterface) -> None:
+    def add(self, interface: AfPacketInterface) -> None:
         self.interfaces.append(interface)
 
-    def get_by_name(self, interface_name: str) -> Optional[AfPacketInterface]:
+    def get(self, interface_name: str) -> Optional[AfPacketInterface]:
         for interface in self.interfaces:
             if interface.interface == interface_name:
                 return interface
         return None
 
-    def remove_by_name(self, interface_name: str) -> None:
+    def remove(self, interface_name: str) -> None:
         temp_interfaces = []
         for interface in self.interfaces:
             if interface.interface == interface_name:
