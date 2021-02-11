@@ -225,7 +225,7 @@ class NodeConfigManager(GenericConfigManager):
 
     @staticmethod
     def get_optimal_zeek_worker_config(interface_names: List[str], strategy: Optional[str] = "aggressive",
-                                       cpus: Optional[Tuple[int]] = (0,)) -> node.Workers:
+                                       cpus: Optional[Tuple] = None) -> node.Workers:
         """
         Algorithm for determining the assignment of CPUs for Zeek workers
 
@@ -248,7 +248,10 @@ class NodeConfigManager(GenericConfigManager):
 
         def create_workers(net_interfaces, avail_cpus):
             idx = 0
+            avail_cpus = list(avail_cpus)
             zeek_worker_configs = node.Workers()
+            if not avail_cpus:
+                return zeek_worker_configs
             for net_interface in net_interfaces:
                 if idx >= len(avail_cpus):
                     idx = 0
