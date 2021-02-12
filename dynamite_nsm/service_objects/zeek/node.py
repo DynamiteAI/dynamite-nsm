@@ -94,9 +94,8 @@ class Worker(BaseComponent):
         self.interface = interface_name.replace('af_packet::', '')
         self.cluster_id = cluster_id
         self.cluster_type = cluster_type.replace('AF_Packet::', '')
-        if cluster_type in CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.keys():
-            self.cluster_type = CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.get(cluster_type.replace(
-                'AF_Packet::', ''))
+        if self.cluster_type in CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.keys():
+            self.cluster_type = CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.get(self.cluster_type)
         self.load_balance_processes = load_balance_processes
         self.pinned_cpus = list(pinned_cpus)
 

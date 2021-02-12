@@ -133,21 +133,13 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Creating FileBeat install directory.')
         utilities.makedirs(self.install_directory, exist_ok=True)
         self.logger.info('Copying FileBeat to install directory.')
-        try:
-            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME),
-                               self.install_directory)
-            shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
-                        self.install_directory)
-        except Exception as e:
-            self.logger.error(f'General error occurred while copying Filebeat configs; {e}')
-            raise filebeat_exceptions.InstallFilebeatError(
-                f'General error occurred while copying Filebeat configs; {e}')
+        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.FILE_BEAT_DIRECTORY_NAME),
+                           self.install_directory)
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'filebeat', 'filebeat.yml'),
+                    self.install_directory)
         self.logger.info("Building configurations and setting up permissions.")
-        try:
-            beats_config = filebeat_configs.ConfigManager(self.install_directory)
-        except filebeat_exceptions.ReadFilebeatConfigError:
-            self.logger.error("Failed to read Filebeat configuration.")
-            raise filebeat_exceptions.InstallFilebeatError("Failed to read Filebeat configuration.")
+
+        beats_config = filebeat_configs.ConfigManager(self.install_directory)
         beats_config.input_logs.monitor_log_paths = self.monitor_paths
         beats_config.field_processors.originating_agent_tag = self.agent_tag
         if (self.kafka_password or self.kafka_username) and not self.kafka_topic:

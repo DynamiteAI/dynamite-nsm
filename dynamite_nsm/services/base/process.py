@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import tabulate
 
@@ -67,7 +67,7 @@ class BaseProcessManager:
         self.logger.info('Attempting to stop {}'.format(self.systemd_service))
         return self.sysctl.stop(self.systemd_service)
 
-    def status(self) -> Dict:
+    def status(self) -> Union[Dict, str]:
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)
         systemd_info = self.sysctl.status(self.systemd_service)

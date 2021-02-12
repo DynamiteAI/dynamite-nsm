@@ -414,4 +414,5 @@ def uninstall_zeek(prompt_user: Optional[bool] = True, stdout: Optional[bool] = 
     shutil.rmtree(install_directory, ignore_errors=True)
     shutil.rmtree(config_directory, ignore_errors=True)
     sysctl = systemctl.SystemCtl()
+    sysctl.stop('zeek')
     sysctl.uninstall_and_disable('zeek')

@@ -35,9 +35,9 @@ class AfPacketInterface:
                  threads: Union[int, str] = None):
         self.interface = interface_name
         self.cluster_id = cluster_id
-        self.cluster_type = cluster_type
-        if cluster_type not in AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.keys():
-            self.cluster_type = AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.get(cluster_type, 'FANOUT_HASH')
+        self.cluster_type = cluster_type.replace('AF_Packet::', '')
+        if self.cluster_type in AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.keys():
+            self.cluster_type = AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.get(self.cluster_type)
 
         self.bpf_filter = bpf_filter
         self.threads = threads
@@ -57,13 +57,15 @@ class AfPacketInterface:
         )
 
     def get_raw(self):
-        return {
+        orig_raw = {
             'interface': self.interface,
             'cluster-id': self.cluster_id,
             'cluster-type': self.cluster_type,
             'bpf-filter': self.bpf_filter,
             'threads': self.threads
         }
+        orig_raw = {k: v for k, v in orig_raw.items() if v is not None and v != ''}
+        return orig_raw
 
 
 class AfPacketInterfaces:

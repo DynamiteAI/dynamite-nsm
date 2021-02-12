@@ -5,9 +5,9 @@ import shutil
 import subprocess
 import sys
 import time
+from typing import List, Optional
 
 from dynamite_nsm import const
-from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import package_manager
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
@@ -16,16 +16,15 @@ from dynamite_nsm.services.base import install
 from dynamite_nsm.services.base import systemctl
 from dynamite_nsm.services.suricata import config as suricata_configs
 from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
-from dynamite_nsm.services.suricata import process as suricata_process
-from dynamite_nsm.services.suricata import profile as suricata_profile
 from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
 from dynamite_nsm.services.suricata.oinkmaster import install as rules_install
 
 
 class InstallManager(install.BaseInstallManager):
 
-    def __init__(self, configuration_directory, install_directory, log_directory, capture_network_interfaces,
-                 download_suricata_archive=True, stdout=True, verbose=False):
+    def __init__(self, configuration_directory: str, install_directory: str, log_directory: str,
+                 capture_network_interfaces: List, download_suricata_archive: Optional[bool] = True,
+                 stdout: Optional[bool] = True, verbose: Optional[bool] = False):
         """
         Install Suricata
         
@@ -49,34 +48,15 @@ class InstallManager(install.BaseInstallManager):
 
         utilities.create_dynamite_environment_file()
         if download_suricata_archive:
-            try:
-                self.logger.info("Attempting to download Suricata archive.")
-                self.download_from_mirror(const.SURICATA_MIRRORS, const.SURICATA_ARCHIVE_NAME, stdout=stdout,
-                                          verbose=verbose)
-            except general_exceptions.DownloadError as e:
-                self.logger.error("Failed to download Suricata archive.")
-                self.logger.debug("Failed to download Suricata archive, threw: {}.".format(e))
-                raise suricata_exceptions.InstallSuricataError("Failed to download Suricata archive.")
-        try:
-            self.logger.info("Attempting to extract Suricata archive ({}).".format(const.SURICATA_ARCHIVE_NAME))
-            self.extract_archive(os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME))
-            self.logger.info("Extraction completed.")
-        except general_exceptions.ArchiveExtractionError as e:
-            self.logger.error("Failed to extract Suricata archive.")
-            self.logger.debug("Failed to extract Suricata archive, threw: {}.".format(e))
-            raise suricata_exceptions.InstallSuricataError("Failed to extract Suricata archive")
-        try:
-            self.install_dependencies(stdout=stdout, verbose=verbose)
-        except (general_exceptions.InvalidOsPackageManagerDetectedError,
-                general_exceptions.OsPackageManagerRefreshError):
-            raise suricata_exceptions.InstallSuricataError("One or more OS dependencies failed to install.")
-        if not self.validate_capture_network_interfaces(self.capture_network_interfaces):
-            self.logger.error(
-                "One or more defined network interfaces is invalid: {}".format(capture_network_interfaces))
-            raise suricata_exceptions.InstallSuricataError(
-                "One or more defined network interfaces is invalid: {}".format(capture_network_interfaces))
+            self.logger.info("Attempting to download Suricata archive.")
+            self.download_from_mirror(const.SURICATA_MIRRORS, const.SURICATA_ARCHIVE_NAME, stdout=stdout,
+                                      verbose=verbose)
+        self.logger.info("Attempting to extract Suricata archive ({}).".format(const.SURICATA_ARCHIVE_NAME))
+        self.extract_archive(os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME))
+        self.logger.info("Extraction completed.")
+        self.install_dependencies(stdout=stdout, verbose=verbose)
 
-    def _configure_and_compile_suricata(self):
+    def _configure_and_compile_suricata(self) -> None:
         if self.configuration_directory.endswith('/'):
             suricata_config_parent = '/'.join(self.configuration_directory.split('/')[:-2])
         else:
@@ -97,18 +77,7 @@ class InstallManager(install.BaseInstallManager):
                     self.install_directory, suricata_config_parent),
                 shell=True, cwd=os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME),
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        try:
-            suricata_config_p.communicate()
-        except Exception as e:
-            self.logger.error("General error occurred while configuring Suricata.")
-            self.logger.debug("General error occurred while configuring Suricata; {}".format(e))
-            raise suricata_exceptions.InstallSuricataError(
-                "General error occurred while configuring Suricata; {}".format(e))
-        if suricata_config_p.returncode != 0:
-            self.logger.error(
-                "Zeek configuration process returned non-zero; exit-code: {}".format(suricata_config_p.returncode))
-            raise suricata_exceptions.InstallSuricataError(
-                "Suricata configuration process returned non-zero; exit-code: {}".format(suricata_config_p.returncode))
+        suricata_config_p.communicate()
         time.sleep(1)
         self.logger.info("Compiling Suricata.")
         if utilities.get_cpu_core_count() > 1:
@@ -120,83 +89,32 @@ class InstallManager(install.BaseInstallManager):
                 'make -j {}; make install; make install-conf'.format(parallel_threads), shell=True,
                 cwd=os.path.join(const.INSTALL_CACHE,
                                  const.SURICATA_DIRECTORY_NAME))
-            try:
-                compile_suricata_process.communicate()
-            except Exception as e:
-                self.logger.error("General error occurred while compiling Suricata.")
-                self.logger.debug("General error occurred while compiling Suricata; {}".format(e))
-                raise suricata_exceptions.InstallSuricataError(
-                    "General error occurred while compiling Suricata; {}".format(e))
-            compile_suricata_return_code = compile_suricata_process.returncode
+            compile_suricata_process.communicate()
         else:
             compile_suricata_process = subprocess.Popen(
                 'make -j {}; make install; make install-conf'.format(parallel_threads), shell=True,
                 cwd=os.path.join(const.INSTALL_CACHE,
                                  const.SURICATA_DIRECTORY_NAME),
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            try:
-                compile_suricata_return_code = utilities.run_subprocess_with_status(compile_suricata_process,
-                                                                                    expected_lines=935)
-            except Exception as e:
-                self.logger.error("General error occurred while compiling Suricata.")
-                self.logger.debug("General error occurred while compiling Suricata; {}".format(e))
-                raise suricata_exceptions.InstallSuricataError(
-                    "General error occurred while compiling Suricata; {}".format(e))
-        if compile_suricata_return_code != 0:
-            self.logger.error(
-                "Failed to compile Suricata from source; error code: {}; run with --verbose flag for more info.".format(
-                    compile_suricata_return_code))
-            raise suricata_exceptions.InstallSuricataError(
-                "Suricata compilation process returned non-zero; exit-code: {}".format(compile_suricata_return_code))
+            utilities.run_subprocess_with_status(compile_suricata_process, expected_lines=935)
 
-    def _copy_suricata_files_and_directories(self):
-        self.logger.info('Creating Suricata installation, configuration, and logging directories.')
-        try:
-            utilities.makedirs(self.install_directory, exist_ok=True)
-            utilities.makedirs(self.configuration_directory, exist_ok=True)
-            utilities.makedirs(self.log_directory, exist_ok=True)
-        except Exception as e:
-            self.logger.error('Failed to create required directory structure.')
-            self.logger.debug("Failed to create required directory structure; {}".format(e))
-            raise suricata_exceptions.InstallSuricataError(
-                "Failed to create required directory structure; {}".format(e))
-        try:
-            utilities.makedirs(os.path.join(self.configuration_directory, 'rules'), exist_ok=True)
-        except Exception as e:
-            self.logger.error('Unable to re-create Suricata rules directory.')
-            self.logger.debug('Unable to re-create Suricata rules directory: {}'.format(e))
-        try:
-            shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'),
-                        os.path.join(self.configuration_directory, 'suricata.yaml'))
-        except Exception as e:
-            self.logger.error("General error while attempting to copy {} to {}.".format(
-                os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'), self.configuration_directory))
+    def _copy_suricata_files_and_directories(self) -> None:
 
-            self.logger.debug("General error while attempting to copy {} to {}; {}".format(
-                os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'), self.configuration_directory, e))
+        self.logger.info(f'Creating Suricata installation directory -> {self.install_directory}')
+        utilities.makedirs(self.install_directory, exist_ok=True)
+        self.logger.info(f'Creating Suricata configuration directory -> {self.configuration_directory}')
+        utilities.makedirs(self.configuration_directory, exist_ok=True)
+        self.logger.info(f'Creating Suricata log directory -> {self.log_directory}')
+        utilities.makedirs(self.log_directory, exist_ok=True)
 
-            raise suricata_exceptions.InstallSuricataError(
-                "General error while attempting to copy {} to {}; {}".format(
-                    os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'), self.configuration_directory, e))
-        try:
-            utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
-                               os.path.join(self.configuration_directory, 'rules'))
-        except Exception as e:
-            self.logger.error("General error while attempting to copy {} to {}.".format(
-                os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
-                os.path.join(self.configuration_directory, 'rules')))
-
-            self.logger.debug("General error while attempting to copy {} to {}; {}".format(
-                os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
-                os.path.join(self.configuration_directory, 'rules'), e))
-
-            raise suricata_exceptions.InstallSuricataError(
-                "General error while attempting to copy {} to {}; {}".format(
-                    os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
-                    os.path.join(self.configuration_directory, 'rules'), e))
+        utilities.makedirs(os.path.join(self.configuration_directory, 'rules'), exist_ok=True)
+        shutil.copy(os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata.yaml'),
+                    os.path.join(self.configuration_directory, 'suricata.yaml'))
+        utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
+                           os.path.join(self.configuration_directory, 'rules'))
 
     @staticmethod
-    def install_dependencies(stdout=False, verbose=False):
+    def install_dependencies(stdout: Optional[bool] = True, verbose: Optional[bool] = False):
         """
         Install the required dependencies required by Suricata
 
@@ -224,26 +142,18 @@ class InstallManager(install.BaseInstallManager):
                         'file-devel',
                         'lz4-devel', 'tar', 'wget', 'jemalloc-devel']
         logger.info('Refreshing Package Index.')
-        try:
-            pkt_mng.refresh_package_indexes()
-        except general_exceptions.OsPackageManagerRefreshError as e:
-            logger.warning("Failed to refresh packages.")
-            logger.debug("Failed to refresh packages threw: {}".format(e))
-            raise general_exceptions.OsPackageManagerRefreshError('Failed to refresh packages.')
+        pkt_mng.refresh_package_indexes()
         logger.info('Installing the following packages: {}.'.format(packages))
-        try:
-            pkt_mng.install_packages(packages)
-        except general_exceptions.OsPackageManagerInstallError as e:
-            logger.warning("Failed to install one or more packages: {}".format(e))
+        pkt_mng.install_packages(packages)
 
     @staticmethod
-    def validate_capture_network_interfaces(network_interfaces):
+    def validate_capture_network_interfaces(network_interfaces) -> bool:
         for interface in network_interfaces:
             if interface not in utilities.get_network_interface_names():
                 return False
         return True
 
-    def setup_suricata_rules(self):
+    def setup_suricata_rules(self) -> None:
         """
         Installs Oinkmaster, sets up rules, and disables unneeded rule sets.
         """
@@ -279,82 +189,59 @@ class InstallManager(install.BaseInstallManager):
         config.reference_config_file = os.path.join(self.configuration_directory, 'reference.config')
         config.classification_file = os.path.join(self.configuration_directory, 'rules', 'classification.config')
 
-        # Disable Unneeded Suricata rules
-        try:
-            self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
-            config.rules['http-events.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
+        config.rules['http-events.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'smtp-events.rules'")
-            config.rules['smtp-events.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'smtp-events.rules'")
+        config.rules['smtp-events.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'dns-events.rules'")
-            config.rules['dns-events.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'dns-events.rules'")
+        config.rules['dns-events.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'tls-events.rules'")
-            config.rules['tls-events.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'tls-events.rules'")
+        config.rules['tls-events.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'drop.rules'")
-            config.rules['drop.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'drop.rules'")
+        config.rules['drop.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'emerging-p2p.rules'")
-            config.rules['emerging-p2p.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'emerging-p2p.rules'")
+        config.rules['emerging-p2p.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'emerging-pop3.rules'")
-            config.rules['emerging-pop3.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'emerging-pop3.rules'")
+        config.rules['emerging-pop3.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'emerging-telnet.rules'")
-            config.rules['emerging-telnet.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'emerging-telnet.rules'")
+        config.rules['emerging-telnet.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
-            config.rules['emerging-tftp.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'http-events.rules'")
+        config.rules['emerging-tftp.rules'].enabled = False
 
-            self.logger.debug("Disabling Suricata Rule: 'emerging-voip.rules'")
-            config.rules['emerging-voip.rules'].enabled = False
+        self.logger.debug("Disabling Suricata Rule: 'emerging-voip.rules'")
+        config.rules['emerging-voip.rules'].enabled = False
 
-        except suricata_exceptions.SuricataRuleNotFoundError:
-            self.logger.error('Could not disable one or more Suricata rules.')
-            raise suricata_exceptions.InstallSuricataError("Could not disable one or more Suricata rules.")
-        try:
-            config.commit()
-        except suricata_exceptions.WriteSuricataConfigError:
-            self.logger.error('Could not write Suricata configurations.')
-            suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
+        config.commit()
 
-    def setup_suricata(self):
+    def setup_suricata(self) -> None:
         """
         Setup Suricata IDS with AF_PACKET support
         """
         env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self._copy_suricata_files_and_directories()
         self._configure_and_compile_suricata()
-        try:
-            with open(env_file) as env_f:
-                if 'SURICATA_HOME' not in env_f.read():
-                    self.logger.info('Updating Suricata default home path [{}]'.format(self.install_directory))
-                    subprocess.call('echo SURICATA_HOME="{}" >> {}'.format(self.install_directory, env_file),
-                                    shell=True)
-                if 'SURICATA_CONFIG' not in env_f.read():
-                    self.logger.info('Updating Suricata default config path [{}]'.format(self.configuration_directory))
-                    subprocess.call('echo SURICATA_CONFIG="{}" >> {}'.format(
-                        self.configuration_directory, env_file), shell=True)
-                if 'SURICATA_LOGS' not in env_f.read():
-                    self.logger.info('Updating Suricata default logs path [{}]'.format(self.log_directory))
-                    subprocess.call('echo SURICATA_LOGS="{}" >> {}'.format(
-                        self.log_directory, env_file), shell=True)
-        except IOError:
-            self.logger.error("Failed to open {} for reading.".format(env_file))
-            raise suricata_exceptions.InstallSuricataError(
-                "Failed to open {} for reading.".format(env_file))
-        except Exception as e:
-            self.logger.error("General error while creating environment variables in {}.".format(env_file))
-            self.logger.debug("General error while creating environment variables in {}; {}".format(env_file, e))
-            raise suricata_exceptions.InstallSuricataError(
-                "General error while creating environment variables in {}; {}".format(env_file, e))
-        try:
-            config = suricata_configs.ConfigManager(self.configuration_directory)
-        except suricata_exceptions.ReadsSuricataConfigError:
-            self.logger.error("Failed to read Suricata configuration.")
-            raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
+        with open(env_file) as env_f:
+            if 'SURICATA_HOME' not in env_f.read():
+                self.logger.info('Updating Suricata default home path [{}]'.format(self.install_directory))
+                subprocess.call('echo SURICATA_HOME="{}" >> {}'.format(self.install_directory, env_file),
+                                shell=True)
+            if 'SURICATA_CONFIG' not in env_f.read():
+                self.logger.info('Updating Suricata default config path [{}]'.format(self.configuration_directory))
+                subprocess.call('echo SURICATA_CONFIG="{}" >> {}'.format(
+                    self.configuration_directory, env_file), shell=True)
+            if 'SURICATA_LOGS' not in env_f.read():
+                self.logger.info('Updating Suricata default logs path [{}]'.format(self.log_directory))
+                subprocess.call('echo SURICATA_LOGS="{}" >> {}'.format(
+                    self.log_directory, env_file), shell=True)
+        config = suricata_configs.ConfigManager(self.configuration_directory)
         config.af_packet_interfaces = suricata_misc.AfPacketInterfaces()
         for interface in self.capture_network_interfaces:
             config.af_packet_interfaces.add(
@@ -363,18 +250,10 @@ class InstallManager(install.BaseInstallManager):
                     cluster_type='cluster_flow'
                 )
             )
-        try:
-            config.commit()
-        except suricata_exceptions.WriteSuricataConfigError:
-            self.logger.error("Failed to write Suricata configuration.")
-            suricata_exceptions.InstallSuricataError("Could not write Suricata configurations.")
-        try:
-            sysctl = systemctl.SystemCtl()
-        except general_exceptions.CallProcessError:
-            raise suricata_exceptions.InstallSuricataError("Could not find systemctl.")
+        config.commit()
+        sysctl = systemctl.SystemCtl()
         self.logger.info("Installing Suricata systemd Service.")
-        if not sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service')):
-            raise suricata_exceptions.InstallSuricataError("Failed to install Suricata systemd service.")
+        sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))
 
 
 def install_suricata(configuration_directory, install_directory, log_directory, capture_network_interfaces,
@@ -390,14 +269,6 @@ def install_suricata(configuration_directory, install_directory, log_directory, 
     :param stdout: Print the output to console
     :param verbose: Include detailed debug messages
     """
-    log_level = logging.INFO
-    if verbose:
-        log_level = logging.DEBUG
-    logger = get_logger('SURICATA', level=log_level, stdout=stdout)
-    suricata_profiler = suricata_profile.ProcessProfiler()
-    if suricata_profiler.is_installed():
-        logger.error("Suricata is already installed.")
-        raise suricata_exceptions.AlreadyInstalledSuricataError()
     suricata_installer = InstallManager(configuration_directory, install_directory, log_directory,
                                         capture_network_interfaces=capture_network_interfaces,
                                         download_suricata_archive=download_suricata_archive, stdout=stdout,
@@ -406,7 +277,8 @@ def install_suricata(configuration_directory, install_directory, log_directory, 
     suricata_installer.setup_suricata_rules()
 
 
-def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
+def uninstall_suricata(prompt_user: Optional[bool] = True, stdout: Optional[bool] = True,
+                       verbose: Optional[bool] = False) -> None:
     """
     Uninstall Suricata
 
@@ -422,10 +294,6 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
 
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     environment_variables = utilities.get_environment_file_dict()
-    suricata_profiler = suricata_profile.ProcessProfiler()
-    if not suricata_profiler.is_installed():
-        logger.error("Suricata is not installed. Cannot uninstall.")
-        raise suricata_exceptions.UninstallSuricataError("Suricata is not installed.")
     if prompt_user:
         sys.stderr.write(
             '\n\033[93m[-] WARNING! Removing Suricata Will Remove Critical Agent Functionality.\033[0m\n')
@@ -436,41 +304,28 @@ def uninstall_suricata(prompt_user=True, stdout=True, verbose=False):
             if stdout:
                 sys.stdout.write('\n[+] Exiting\n')
             exit(0)
-    if suricata_profiler.is_running():
-        try:
-            suricata_process.stop()
-        except suricata_exceptions.CallSuricataProcessError as e:
-            logger.error("Could not kill Suricata process. Cannot uninstall.")
-            logger.debug("Could not kill Suricata process. Cannot uninstall; {}".format(e))
-            raise suricata_exceptions.UninstallSuricataError("Could not kill Suricata process.")
-    try:
-        with open(env_file) as env_fr:
-            env_lines = ''
-            for line in env_fr.readlines():
-                if 'SURICATA_HOME' in line:
-                    continue
-                elif 'SURICATA_CONFIG' in line:
-                    continue
-                elif 'SURICATA_LOGS' in line:
-                    continue
-                elif 'OINKMASTER_HOME' in line:
-                    continue
-                elif line.strip() == '':
-                    continue
-                env_lines += line.strip() + '\n'
-        with open(env_file, 'w') as env_fw:
-            env_fw.write(env_lines)
-        if suricata_profiler.is_installed():
-            shutil.rmtree(environment_variables.get('SURICATA_HOME'), ignore_errors=True)
-            shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
-            shutil.rmtree(environment_variables.get('OINKMASTER_HOME'), ignore_errors=True)
-    except Exception as e:
-        logger.error("General error occurred while attempting to uninstall Suricata.")
-        logger.debug("General error occurred while attempting to uninstall Suricata; {}".format(e))
-        raise suricata_exceptions.UninstallSuricataError(
-            "General error occurred while attempting to uninstall Suricata; {}".format(e))
-    try:
-        sysctl = systemctl.SystemCtl()
-    except general_exceptions.CallProcessError:
-        raise suricata_exceptions.UninstallSuricataError("Could not find systemctl.")
+
+    with open(env_file) as env_fr:
+        env_lines = ''
+        for line in env_fr.readlines():
+            if 'SURICATA_HOME' in line:
+                continue
+            elif 'SURICATA_CONFIG' in line:
+                continue
+            elif 'SURICATA_LOGS' in line:
+                continue
+            elif 'OINKMASTER_HOME' in line:
+                continue
+            elif line.strip() == '':
+                continue
+            env_lines += line.strip() + '\n'
+    with open(env_file, 'w') as env_fw:
+        env_fw.write(env_lines)
+
+    shutil.rmtree(environment_variables.get('SURICATA_HOME'), ignore_errors=True)
+    shutil.rmtree(environment_variables.get('SURICATA_CONFIG'), ignore_errors=True)
+    shutil.rmtree(environment_variables.get('OINKMASTER_HOME'), ignore_errors=True)
+
+    sysctl = systemctl.SystemCtl()
+    sysctl.stop('suricata')
     sysctl.uninstall_and_disable('suricata')
