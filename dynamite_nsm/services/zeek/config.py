@@ -125,7 +125,7 @@ class SiteLocalConfigManager(GenericConfigManager):
         if not out_file_path:
             out_file_path = f'{self.configuration_directory}/site/local.zeek'
         self.formatted_data = '\n'.join(
-            self.definitions.get_raw() + self.signatures.get_raw() + self.scripts.get_raw()
+            self.signatures.get_raw() + self.scripts.get_raw() + self.definitions.get_raw()
         )
         super(SiteLocalConfigManager, self).write_config(out_file_path, backup_directory)
 
@@ -191,7 +191,7 @@ class NodeConfigManager(GenericConfigManager):
                 [node.Worker(worker_name=name,
                              interface_name=values.get('interface'),
                              cluster_id=values.get('af_packet_fanout_id'),
-                             cluster_type=values.get('af_packet_fanout_mode'),
+                             cluster_type=values.get('af_packet_fanout_mode', 'FANOUT_HASH'),
                              load_balance_processes=int(
                                  values.get('lb_procs')),
                              pinned_cpus=tuple(

@@ -277,26 +277,18 @@ def uninstall_filebeat(prompt_user: Optional[bool] = True, stdout: Optional[bool
             logger.error(f'Could not kill Filebeat process. Cannot uninstall. {e}')
             raise filebeat_exceptions.UninstallFilebeatError(f'Could not kill Filebeat process; {e}')
     install_directory = environment_variables.get('FILEBEAT_HOME')
-    try:
-        with open(env_file) as env_fr:
-            env_lines = ''
-            for line in env_fr.readlines():
-                if 'FILEBEAT_HOME' in line:
-                    continue
-                elif line.strip() == '':
-                    continue
-                env_lines += line.strip() + '\n'
-        with open(env_file, 'w') as env_fw:
-            env_fw.write(env_lines)
-        if filebeat_profiler.is_installed():
-            shutil.rmtree(install_directory, ignore_errors=True)
-    except Exception as e:
-        logger.error(f'General error occurred while attempting to uninstall Filebeat. {e}')
-        raise filebeat_exceptions.UninstallFilebeatError(
-            f'General error occurred while attempting to uninstall Filebeat; {e}')
-    try:
+    with open(env_file) as env_fr:
+        env_lines = ''
+        for line in env_fr.readlines():
+            if 'FILEBEAT_HOME' in line:
+                continue
+            elif line.strip() == '':
+                continue
+            env_lines += line.strip() + '\n'
+    with open(env_file, 'w') as env_fw:
+        env_fw.write(env_lines)
+    if filebeat_profiler.is_installed():
+        shutil.rmtree(install_directory, ignore_errors=True)
         sysctl = systemctl.SystemCtl()
-    except general_exceptions.CallProcessError:
-        raise filebeat_exceptions.UninstallFilebeatError("Could not find systemctl.")
-    sysctl.uninstall_and_disable('filebeat')
-    sysctl.uninstall_and_disable('dynamite-agent')
+        sysctl.uninstall_and_disable('filebeat')
+        sysctl.uninstall_and_disable('dynamite-agent')

@@ -32,10 +32,10 @@ class BaseComponent(GenericItem):
             type=self.type,
             host=self.host
         ))
-    
+
 
 class BaseComponents(GenericItemGroup):
-    
+
     def __init__(self, components: Optional[List[BaseComponent]] = None):
         super().__init__('name', components)
         self._idx = 0
@@ -66,16 +66,16 @@ class Manager(BaseComponent):
 
 
 class Proxy(BaseComponent):
-    
+
     def __init__(self, proxy_name: str, host: str):
         super().__init__(proxy_name, 'proxy', host)
 
 
 class Worker(BaseComponent):
 
-    def __init__(self, worker_name: str, interface_name: str, cluster_id: int, cluster_type: str,
-                 load_balance_processes: Optional[int] = 1, pinned_cpus: Optional[Tuple[int]] = (0,),
-                 host: Optional[str] = 'localhost'):
+    def __init__(self, worker_name: str, interface_name: str, cluster_id: int,
+                 cluster_type: Optional[str] = 'FANOUT_HASH', load_balance_processes: Optional[int] = 1,
+                 pinned_cpus: Optional[Tuple[int]] = (0,), host: Optional[str] = 'localhost'):
         """
         A Zeek worker process
 
@@ -93,10 +93,10 @@ class Worker(BaseComponent):
         self.name = worker_name
         self.interface = interface_name.replace('af_packet::', '')
         self.cluster_id = cluster_id
-        self.cluster_type = cluster_type
-        if cluster_type not in CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.keys():
-            self.cluster_type = CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.get(cluster_type, 'cluster_flow').replace(
-                'AF_PACKET::', '')
+        self.cluster_type = cluster_type.replace('AF_Packet::', '')
+        if cluster_type in CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.keys():
+            self.cluster_type = CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP.get(cluster_type.replace(
+                'AF_Packet::', ''))
         self.load_balance_processes = load_balance_processes
         self.pinned_cpus = list(pinned_cpus)
 
@@ -120,9 +120,9 @@ class Worker(BaseComponent):
             interface=f'af_packet::{self.interface}',
             lb_method='custom',
             af_packet_fanout_id=str(self.cluster_id),
-            af_packet_fanout_mode=f'AF_PACKET::{self.cluster_type}',
+            af_packet_fanout_mode=f'AF_Packet::{self.cluster_type}',
             lb_procs=str(self.load_balance_processes),
-            pinned_cpus=','.join([str(cpu) for cpu in self.pinned_cpus]),
+            pin_cpus=','.join([str(cpu) for cpu in self.pinned_cpus]),
             host=self.host
         ))
 

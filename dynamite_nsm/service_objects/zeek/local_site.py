@@ -80,8 +80,8 @@ class Signature(Analyzer):
 
     def get_raw(self) -> str:
         if self.enabled:
-            return f'@load-sig {self.name}'
-        return f'#@load-sig {self.name}'
+            return f'@load-sigs {self.name}'
+        return f'#@load-sigs {self.name}'
 
 
 class Signatures(Analyzers):
