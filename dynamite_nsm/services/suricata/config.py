@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 from typing import Optional
 
@@ -111,7 +112,7 @@ class ConfigManager(YamlConfigManager):
         )
 
     @classmethod
-    def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None):
+    def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None) -> ConfigManager:
         """
         Alternative method for creating configuration file from raw text
 

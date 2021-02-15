@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 from yaml import dump
 
@@ -65,7 +65,7 @@ class YamlConfigManager:
 
     def parse_yaml_file(self) -> None:
 
-        def set_instance_var_from_token(variable_name, data):
+        def set_instance_var_from_token(variable_name: str, data: Union[Dict, List]):
             """
             :param variable_name: The name of the instance variable to update
             :param data: The parsed yaml object
@@ -99,7 +99,7 @@ class YamlConfigManager:
         out_file_name = os.path.basename(out_file_path)
         backup_file_name = out_file_name + '.backup'
 
-        def update_dict_from_path(path, value):
+        def update_dict_from_path(path, value) -> None:
             """
             :param path: A tuple representing each level of a nested path in the yaml document
                         ('vars', 'address-groups', 'HOME_NET') = /vars/address-groups/HOME_NET

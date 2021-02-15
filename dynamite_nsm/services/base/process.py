@@ -4,9 +4,9 @@ from typing import Dict, Optional, Union
 
 import tabulate
 
-from dynamite_nsm import systemctl
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import systemctl
 
 
 class BaseProcessManager:

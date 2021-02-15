@@ -1,18 +1,19 @@
 import os
 import gzip
 import linecache
+from typing import Optional
 
 
 class LogFileSize:
 
-    def __init__(self, file_line_count, loaded_entries):
+    def __init__(self, file_line_count: int, loaded_entries: int):
         self.file_line_count = file_line_count
         self.loaded_entries = loaded_entries
 
 
 class LogFile:
 
-    def __init__(self, log_path, log_sample_size=500, gzip_decode=False):
+    def __init__(self, log_path: str, log_sample_size: Optional[int] = 500, gzip_decode: Optional[bool] = False):
         """
         :param log_path: The path to a log file
         :param log_sample_size: The number of most recent entries to include

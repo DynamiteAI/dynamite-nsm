@@ -20,7 +20,7 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              required_install_files=['filebeat', 'filebeat.yml']
                                              )
 
-    def is_running(self):
+    def is_running(self) -> bool:
         if self.filebeat_home:
             try:
                 return filebeat_process.ProcessManager().status()['running']

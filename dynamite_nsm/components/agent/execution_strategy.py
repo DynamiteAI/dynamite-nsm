@@ -1,15 +1,11 @@
+import logging
 import os
 import sys
-import logging
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
-from dynamite_nsm.logger import get_logger
-from dynamite_nsm.tuis import agent_config_selector
 from dynamite_nsm.components.base import execution_strategy
-from dynamite_nsm.services.zeek import install as zeek_install
-from dynamite_nsm.services.zeek import process as zeek_process
-from dynamite_nsm.services.zeek import profile as zeek_profile
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.filebeat import install as filebeat_install
 from dynamite_nsm.services.filebeat import process as filebeat_process
 from dynamite_nsm.services.filebeat import profile as filebeat_profile
@@ -17,7 +13,10 @@ from dynamite_nsm.services.suricata import install as suricata_install
 from dynamite_nsm.services.suricata import process as suricata_process
 from dynamite_nsm.services.suricata import profile as suricata_profile
 from dynamite_nsm.services.suricata.oinkmaster import install as oinkmaster_install
-
+from dynamite_nsm.services.zeek import install as zeek_install
+from dynamite_nsm.services.zeek import process as zeek_process
+from dynamite_nsm.services.zeek import profile as zeek_profile
+from dynamite_nsm.tuis import agent_config_selector
 from dynamite_nsm.utilities import prompt_input
 
 
@@ -147,8 +146,8 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
     Steps to install the agent
     """
 
-    def __init__(self, capture_network_interfaces, targets, kafka_topic=None, kafka_username=None, kafka_password=None,
-                 agent_analyzers=('zeek', 'suricata'), tag=None, stdout=True, verbose=False):
+    def __init__(self, capture_network_interfaces, targets, agent_analyzers=('zeek', 'suricata'), tag=None, stdout=True,
+                 verbose=False):
         execution_strategy.BaseExecStrategy.__init__(
             self,
             strategy_name="agent_install",
@@ -197,9 +196,6 @@ class AgentInstallStrategy(execution_strategy.BaseExecStrategy):
         if not filebeat_profile.ProcessProfiler().is_installed():
             filebeat_args = {
                 'target_strings': list(targets),
-                'kafka_topic': kafka_topic,
-                'kafka_username': kafka_username,
-                'kafka_password': kafka_password,
                 'agent_tag': tag,
                 'install_directory': '/opt/dynamite/filebeat/',
                 'download_filebeat_archive': True,

@@ -16,17 +16,8 @@ def register_agent_component_args(agt_component_parser, parent_parsers):
                                     required=True, help="A list of network interfaces. (E.G mon0 mon1 mon2)"
                                     )
     agt_install_parser.add_argument("--targets", dest="targets", type=str, nargs='+', required=True,
-                                    help="A list of LogStash or Kafka targets. "
+                                    help="A list of downstream targets. "
                                          "(E.G 192.168.0.1:5044 192.168.0.100:5044)"
-                                    )
-    agt_install_parser.add_argument("--kafka-topic", dest="kafka_topic", type=str,
-                                    help="The name of the upstream Kafka topic."
-                                    )
-    agt_install_parser.add_argument("--kafka-username", dest="kafka_username", type=str,
-                                    help="The optional Kafka username."
-                                    )
-    agt_install_parser.add_argument("--kafka-password", dest="kafka_password", type=str,
-                                    help="The optional Kafka password."
                                     )
     agt_install_parser.add_argument("--analyzers", dest="agent_analyzers", type=str, nargs='+',
                                     default=['zeek', 'suricata'],

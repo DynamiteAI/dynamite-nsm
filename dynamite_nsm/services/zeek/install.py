@@ -1,18 +1,17 @@
+import logging
 import os
+import shutil
+import subprocess
 import sys
 import time
-import shutil
-import logging
-import subprocess
 from typing import List, Optional
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
-from dynamite_nsm import package_manager
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.service_objects.zeek import node
 from dynamite_nsm.services.base import install
 from dynamite_nsm.services.base import systemctl
-from dynamite_nsm.service_objects.zeek import node
 from dynamite_nsm.services.zeek import config as zeek_configs
 
 
@@ -48,44 +47,32 @@ class InstallManager(install.BaseInstallManager):
             self.download_from_mirror(const.ZEEK_MIRRORS, const.ZEEK_ARCHIVE_NAME, stdout=stdout, verbose=verbose)
         self.logger.info(f'Attempting to extract Zeek archive ({const.ZEEK_ARCHIVE_NAME}).')
         self.extract_archive(f'{const.INSTALL_CACHE}/{const.ZEEK_ARCHIVE_NAME}')
-        self.install_dependencies(stdout=stdout, verbose=verbose)
+        self.install_zeek_dependencies()
 
-    @staticmethod
-    def install_dependencies(stdout: Optional[bool] = True, verbose: Optional[bool] = False) -> None:
-        """
-        Install the required dependencies required by Zeek
+    def install_zeek_dependencies(self) -> None:
 
-        :param stdout: Print the output to console
-        :param verbose: Include detailed debug messages
-        """
-
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        logger = get_logger('ZEEK', level=log_level, stdout=stdout)
-        logger.info('Installing Dependencies.')
-        pkt_mng = package_manager.OSPackageManager(stdout=stdout, verbose=verbose)
-        packages = None
-        if pkt_mng.package_manager == 'apt-get':
-            packages = ['cmake', 'cmake3', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
-                        'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-$(uname -r)', 'linux-headers-generic', 'tar',
-                        'libjemalloc-dev']
-        elif pkt_mng.package_manager == 'yum':
-
-            packages = ['cmake', 'cmake3', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
-                        'openssl-devel', 'python3-devel', 'python2-devel', 'swig', 'zlib-devel',
-                        'kernel-devel', 'tar', 'jemalloc-devel']
-
-            pkt_mng.install_packages(['dnf-plugins-core'])
+        def install_powertools_rhel(pacman_type):
+            if pacman_type != 'yum':
+                self.logger.info('Skipping RHEL PowerTools install, as it is not needed on this distribution.')
+                return
+            self.install_dependencies(yum_packages=['dnf-plugins-core'])
             enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'PowerTools'],
                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             enable_powertools_p.communicate()
-
             if enable_powertools_p.returncode == 0:
-                logger.info("Installed PowerTools.")
-        logger.info('Refreshing Package Index.')
-        pkt_mng.refresh_package_indexes()
-        logger.info('Installing the following packages: {}.'.format(packages))
+                self.logger.info("Installed PowerTools.")
+
+        apt_get_packages = \
+            ['cmake', 'cmake3', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
+             'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-$(uname -r)', 'linux-headers-generic', 'tar',
+             'libjemalloc-dev']
+        yum_packages = \
+            ['cmake', 'cmake3', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
+             'openssl-devel', 'python3-devel', 'python2-devel', 'swig', 'zlib-devel',
+             'kernel-devel', 'tar', 'jemalloc-devel']
+
+        self.install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
+                                  pre_install_function=install_powertools_rhel)
 
     @staticmethod
     def validate_capture_network_interfaces(network_interfaces: List[str]) -> bool:

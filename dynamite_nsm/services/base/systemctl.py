@@ -1,7 +1,7 @@
 import os
 import subprocess
 from shutil import copy2
-
+from typing import Dict, List, Optional, Tuple
 from dynamite_nsm import exceptions
 
 
@@ -32,7 +32,7 @@ class SystemCtl:
         'scanner': ['dynamite-scanner.target', 'rumble.service', 'filebeat.service']
     }
 
-    def __init__(self, roles=('agent',)):
+    def __init__(self, roles: Optional[Tuple] = ('agent',)):
         # Placeholder for statically selecting the currently supported roles
         # we need to replace this with some logic (utilities) that
         # get the active roles configured at install time and use that to
@@ -56,14 +56,14 @@ class SystemCtl:
             self._update_comp_status(s)
 
     @staticmethod
-    def _format_svc_string(svc):
+    def _format_svc_string(svc: str) -> str:
         if str(svc).startswith('dynamite-') and not str(svc).endswith('.target'):
             svc = svc + '.target'
         elif not str(svc).endswith('.service'):
             svc = svc + '.service'
         return svc
 
-    def _get_svc_units(self, roles):
+    def _get_svc_units(self, roles: Tuple) -> set:
         """
         Returns a unique list of service unit files used by the given roles.
         """
@@ -74,25 +74,25 @@ class SystemCtl:
                     svcs.add(s)
         return svcs
 
-    def _get_svc_status(self, svc):
+    def _get_svc_status(self, svc: str) -> CmdResult:
         """
         Retrieve the full status output from systemctl for a given service name.
         """
         return self._exec('status', svc, [])
 
-    def _enable_svc(self, svc):
+    def _enable_svc(self, svc: str) -> CmdResult:
         """
         Execute the systemctl enable command for the given service.
         """
         return self._exec('enable', svc, [])
 
-    def _disable_svc(self, svc):
+    def _disable_svc(self, svc: str) -> CmdResult:
         """
         Execute the systemctl disable command for the given service.
         """
         return self._exec('disable', svc, [])
 
-    def _get_comp_state(self, component):
+    def _get_comp_state(self, component: str) -> Dict:
         """
         Retrieve the ActiveState and LoadState from systemctl for a given unit name.
         """
@@ -102,7 +102,7 @@ class SystemCtl:
             state = {l.split('=')[0].strip(): l.split('=')[1].strip() for l in res.out.split('\n') if '=' in l}
         return state
 
-    def _get_comp_status(self, component):
+    def _get_comp_status(self, component: str) -> Dict:
         """
         Convert ActiveState and LoadState to status report for a given component.
 
@@ -117,10 +117,9 @@ class SystemCtl:
                 status['enabled'] = True
             if state['ActiveState'] == 'active':
                 status['running'] = True
-        print(status)
         return status
 
-    def _update_comp_status(self, component):
+    def _update_comp_status(self, component: str) -> Tuple[str, bool, bool]:
         """
         Update the status attributes of the given component based on the state reported by systemctl.
         """
@@ -140,11 +139,14 @@ class SystemCtl:
 
         return comp, getattr(self, comp_running), getattr(self, comp_enabled)
 
-    def _exec(self, cmd=None, svc=None, args=None):
+    @staticmethod
+    def _exec(cmd: str, svc: str, args: Optional[List] = None) -> CmdResult:
         """
         Wrapper for systemctl cli utility.
         Returns an object containing stdout, stderr, exit code from the executed systemctl command.
         """
+        if not args:
+            args = []
         res = CmdResult()
         res.svc = svc
         res.cmd = " ".join(["sudo", "systemctl", cmd, svc])
@@ -171,7 +173,7 @@ class SystemCtl:
         return self._update_comp_status(svc)
 
     @staticmethod
-    def daemon_reload():
+    def daemon_reload() -> bool:
         """
         Executes `systemctl daemon-reload` to reload all systemd unit files.
         :return:  True if successful.  False otherwise.
@@ -181,7 +183,7 @@ class SystemCtl:
         p.communicate()
         return p.returncode == 0
 
-    def is_enabled(self, svc):
+    def is_enabled(self, svc: str) -> bool:
         """
         Determine if a service (or target) is enabled
         :param svc: The name of the service
@@ -191,7 +193,7 @@ class SystemCtl:
         cmd = self._exec("is-enabled", svc)
         return cmd.out == "enabled"
 
-    def disable(self, svc, daemon_reload=True):
+    def disable(self, svc: str, daemon_reload: Optional[bool] = True) -> bool:
         """
         Disable the given service. This will prevent it from running at boot.
 
@@ -205,7 +207,7 @@ class SystemCtl:
             self.daemon_reload()
         return enabled
 
-    def enable(self, svc, daemon_reload=True):
+    def enable(self, svc, daemon_reload: Optional[bool] = True) -> bool:
         """
         Enable the given service. This will cause it to run at boot after network services have started.
 
@@ -220,7 +222,7 @@ class SystemCtl:
             self.daemon_reload()
         return enabled
 
-    def install(self, path_to_svc):
+    def install(self, path_to_svc: str) -> None:
         """
         Install a systemd service
 
@@ -239,7 +241,7 @@ class SystemCtl:
         copy2(path_to_svc, self.UNIT_FILE_DIR)
         return self.enable(os.path.basename(path_to_svc))
 
-    def start(self, svc):
+    def start(self, svc: str) -> bool:
         """
         Start the specified service.
 
@@ -251,7 +253,7 @@ class SystemCtl:
         _, running, _ = self._exec_update("start", svc)
         return running
 
-    def status(self, svc):
+    def status(self, svc: str) -> CmdResult:
         """
         Displays the full systemctl status output for the given service.
 
@@ -262,7 +264,7 @@ class SystemCtl:
         svc = self._format_svc_string(svc)
         return self._get_svc_status(svc)
 
-    def stop(self, svc):
+    def stop(self, svc: str) -> bool:
         """
         Stop the specified service.
 
@@ -274,7 +276,7 @@ class SystemCtl:
         _, running, _ = self._exec_update("stop", svc)
         return not running
 
-    def restart(self, svc):
+    def restart(self, svc: str):
         """
         Restart the specified service.
 
@@ -284,19 +286,17 @@ class SystemCtl:
 
         return self.stop(svc) and self.start(svc)
 
-    def uninstall(self, svc):
+    def uninstall(self, svc: str) -> None:
         """
         Uninstall a systemd service
 
         :param svc: The name of the service or target
         """
-        try:
-            svc = self._format_svc_string(svc)
-        except IOError:
-            return True
+
+        svc = self._format_svc_string(svc)
         os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
 
-    def uninstall_and_disable(self, svc):
+    def uninstall_and_disable(self, svc: str) -> bool:
         """
         Disable and Uninstall a systemd service
 
@@ -305,8 +305,7 @@ class SystemCtl:
 
         svc = self._format_svc_string(svc)
         res = self.disable(svc)
-        try:
-            os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
-        except FileNotFoundError:
-            return True
+
+        os.remove(os.path.join(self.UNIT_FILE_DIR, svc))
+
         return res

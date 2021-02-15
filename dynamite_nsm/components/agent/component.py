@@ -20,9 +20,6 @@ class AgentComponent(component.BaseComponent):
             install_strategy=execution_strategy.AgentInstallStrategy(
                 capture_network_interfaces=capture_network_interfaces,
                 targets=targets,
-                kafka_topic=kafka_topic,
-                kafka_username=kafka_username,
-                kafka_password=kafka_password,
                 agent_analyzers=agent_analyzers,
                 tag=tag,
                 stdout=stdout,
@@ -83,9 +80,6 @@ class AgentCommandlineComponent(component.BaseComponent):
                 execution_strategy.AgentInstallStrategy(
                     capture_network_interfaces=args.agent_capture_interfaces,
                     targets=args.targets,
-                    kafka_topic=args.kafka_topic,
-                    kafka_username=args.kafka_username,
-                    kafka_password=args.kafka_password,
                     agent_analyzers=args.agent_analyzers,
                     tag=args.agent_tag,
                     stdout=not args.no_stdout,

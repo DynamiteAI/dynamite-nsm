@@ -8,7 +8,6 @@ import time
 from typing import List, Optional
 
 from dynamite_nsm import const
-from dynamite_nsm import package_manager
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.service_objects.suricata import misc as suricata_misc
@@ -54,7 +53,7 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info("Attempting to extract Suricata archive ({}).".format(const.SURICATA_ARCHIVE_NAME))
         self.extract_archive(os.path.join(const.INSTALL_CACHE, const.SURICATA_ARCHIVE_NAME))
         self.logger.info("Extraction completed.")
-        self.install_dependencies(stdout=stdout, verbose=verbose)
+        self.install_suricata_dependencies()
 
     def _configure_and_compile_suricata(self) -> None:
         if self.configuration_directory.endswith('/'):
@@ -113,38 +112,21 @@ class InstallManager(install.BaseInstallManager):
         utilities.copytree(os.path.join(const.INSTALL_CACHE, const.SURICATA_DIRECTORY_NAME, 'rules'),
                            os.path.join(self.configuration_directory, 'rules'))
 
-    @staticmethod
-    def install_dependencies(stdout: Optional[bool] = True, verbose: Optional[bool] = False):
-        """
-        Install the required dependencies required by Suricata
+    def install_suricata_dependencies(self) -> None:
 
-        :param stdout: Print the output to console
-        :param verbose: Include detailed debug messages
-        """
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        logger = get_logger('SURICATA', level=log_level, stdout=stdout)
-        logger.info('Installing Dependencies.')
+        apt_get_packages = \
+            ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config',
+             'libpcre3-dev', 'libpcap-dev', 'libyaml-dev', 'libjansson-dev', 'rustc', 'cargo',
+             'python-pip',
+             'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev',
+             'liblz4-dev', 'tar', 'wget', 'libjemalloc-dev']
 
-        pkt_mng = package_manager.OSPackageManager(stdout=stdout, verbose=verbose)
-
-        packages = None
-        if pkt_mng.package_manager == 'apt-get':
-            packages = ['cmake', 'make', 'gcc', 'g++', 'flex', 'bison', 'libtool', 'automake', 'pkg-config',
-                        'libpcre3-dev', 'libpcap-dev', 'libyaml-dev', 'libjansson-dev', 'rustc', 'cargo', 'python-pip',
-                        'wireshark', 'zlib1g-dev', 'libcap-ng-dev', 'libnspr4-dev', 'libnss3-dev', 'libmagic-dev',
-                        'liblz4-dev', 'tar', 'wget', 'libjemalloc-dev']
-        elif pkt_mng.package_manager == 'yum':
-            packages = ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
-                        'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo',
-                        'python3-pip', 'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel',
-                        'file-devel',
-                        'lz4-devel', 'tar', 'wget', 'jemalloc-devel']
-        logger.info('Refreshing Package Index.')
-        pkt_mng.refresh_package_indexes()
-        logger.info('Installing the following packages: {}.'.format(packages))
-        pkt_mng.install_packages(packages)
+        yum_packages = \
+            ['cmake', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libtool', 'automake', 'pkgconfig',
+             'pcre-devel', 'libpcap-devel', 'libyaml-devel', 'jansson-devel', 'rustc', 'cargo',
+             'python3-pip', 'wireshark', 'zlib-devel', 'libcap-ng-devel', 'nspr-devel', 'nss-devel',
+             'file-devel', 'lz4-devel', 'tar', 'wget', 'jemalloc-devel']
+        super(InstallManager, self).install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages)
 
     @staticmethod
     def validate_capture_network_interfaces(network_interfaces) -> bool:

@@ -20,7 +20,7 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              required_install_files=['bin', 'etc', 'lib'],
                                              required_config_files=['site'])
 
-    def is_running(self):
+    def is_running(self) -> bool:
         if self.zeek_home:
             try:
                 return zeek_process.ProcessManager().status()['running']
