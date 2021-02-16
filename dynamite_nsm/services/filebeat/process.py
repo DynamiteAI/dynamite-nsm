@@ -1,10 +1,9 @@
 import os
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
-from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.base import process
-from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
-from dynamite_nsm.services.filebeat import profile as filebeat_profile
+from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.filebeat import profile as profile
 
 PID_DIRECTORY = '/var/run/dynamite/filebeat/'
 
@@ -15,16 +14,12 @@ class ProcessManager(process.BaseProcessManager):
     """
 
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
-        try:
-            process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None,
-                                                pid_file=os.path.join(PID_DIRECTORY, 'filebeat.pid'), stdout=stdout,
-                                                verbose=verbose, pretty_print_status=pretty_print_status)
-        except general_exceptions.CallProcessError:
-            self.logger.error("Could not find systemctl on this system.")
-            raise filebeat_exceptions.CallFilebeatProcessError("Could not find systemctl.")
-        if not filebeat_profile.ProcessProfiler().is_installed():
-            self.logger.error("FileBeat is not installed. Install it with 'dynamite agent install -h'")
-            raise filebeat_exceptions.CallFilebeatProcessError("FileBeat is not installed.")
+        process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None,
+                                            pid_file=os.path.join(PID_DIRECTORY, 'filebeat.pid'), stdout=stdout,
+                                            verbose=verbose, pretty_print_status=pretty_print_status)
+
+        if not profile.ProcessProfiler().is_installed():
+            raise general_exceptions.CallProcessError("FileBeat is not installed.")
 
 
 def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
@@ -43,5 +38,5 @@ def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
 
 
 def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-           pretty_print_status: Optional[bool] = False) -> Dict:
+           pretty_print_status: Optional[bool] = False) -> Union[Dict, str]:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

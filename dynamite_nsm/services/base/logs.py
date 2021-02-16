@@ -1,7 +1,7 @@
 import os
 import gzip
 import linecache
-from typing import Optional
+from typing import Generator, Optional
 
 
 class LogFileSize:
@@ -54,7 +54,7 @@ class LogFile:
         else:
             raise StopIteration
 
-    def iter_cache(self, start=1, step=1):
+    def iter_cache(self, start: Optional[int] = 1, step: Optional[int] = 1) -> Generator[str]:
         """
         Relatively Memory efficient method of accessing very large files on disk
 
@@ -72,7 +72,7 @@ class LogFile:
                 break
             i += step
 
-    def find_latest_line_offset(self, step=500000):
+    def find_latest_line_offset(self, step: Optional[int] = 500000):
         """
         Relatively fast way of finding the latest offset; algorithm guesses
         high offset and if over divides the step by half and repeats

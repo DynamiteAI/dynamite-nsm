@@ -12,6 +12,16 @@ from dynamite_nsm.service_objects.filebeat.targets import ElasticsearchTargets, 
 from dynamite_nsm.services.base.config import YamlConfigManager
 
 
+class InvalidAgentTag(Exception):
+    """
+    Thrown when Filebeat agent tag is invalid
+    """
+
+    def __init__(self):
+        msg = "Agent tag must be between 5 and 30 characters, and contain alphanumeric and '_' characters only."
+        super(InvalidAgentTag, self).__init__(msg)
+
+
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, install_directory: str):
@@ -284,4 +294,3 @@ class ConfigManager(YamlConfigManager):
         self._logstash_targets_raw = self.logstash_targets.get_raw()
         self._redis_targets_raw = self.redis_targets.get_raw()
         super(ConfigManager, self).write_config(out_file_path, backup_directory)
-

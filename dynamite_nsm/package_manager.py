@@ -1,8 +1,14 @@
 import logging
 import subprocess
+from typing import List, Optional
 
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm import exceptions as general_exceptions
+
+
+class OsPackageManagerNotDetectedError(Exception):
+    def __init__(self):
+        msg = "Did not detect a valid OS package manager; currently APT-GET & YUM are supported."
+        super(OsPackageManagerNotDetectedError, self).__init__(msg)
 
 
 class OSPackageManager:
@@ -11,7 +17,7 @@ class OSPackageManager:
     Currently supports YUM/apt-get
     """
 
-    def __init__(self, stdout=True, verbose=False):
+    def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False):
         self.package_manager = self.detect_package_manager(verbose=verbose)
         self.verbose = verbose
 
@@ -21,10 +27,10 @@ class OSPackageManager:
         self.logger = get_logger('OS_PACKAGE_MGR', level=log_level, stdout=stdout)
 
     @staticmethod
-    def detect_package_manager(verbose=False):
+    def detect_package_manager(verbose: Optional[bool] = False) -> str:
         """
         Detect the POSIX package manager currently being used
-        :return: The package manager command
+        :return: The package manager command (either apt-get or yum)
         """
         if verbose:
             apt_get_p = subprocess.Popen('apt-get -h &> /dev/null', shell=True)
@@ -42,9 +48,9 @@ class OSPackageManager:
         elif yum_p.returncode == 0:
             return 'yum'
         else:
-            raise general_exceptions.InvalidOsPackageManagerDetectedError()
+            raise OsPackageManagerNotDetectedError()
 
-    def install_packages(self, packages):
+    def install_packages(self, packages: List[str]) -> None:
         """
         Given a set of packages, installs the packages
 
@@ -53,7 +59,7 @@ class OSPackageManager:
         flags = '-y'
         failed_packages = []
         if not self.package_manager:
-            return False
+            return None
         for package in packages:
             self.logger.info('Installing {}'.format(package))
             if self.verbose:
@@ -69,14 +75,11 @@ class OSPackageManager:
                 self.logger.warning('{} failed to install.'.format(package))
                 failed_packages.append(package)
         if failed_packages:
-            self.logger.error(
-                "One or more packages failed to install install the following packages manually: {}".format(
-                    failed_packages))
-            raise general_exceptions.OsPackageManagerInstallError(
-                "One or more packages failed to install install the following packages manually: {}".format(
-                    failed_packages))
+            self.logger.warning(
+                f'One or more packages failed to install you may need to install the following packages '
+                f'manually: {failed_packages}.')
 
-    def refresh_package_indexes(self):
+    def refresh_package_indexes(self) -> None:
         """
         Refresh the package cache
         """
@@ -86,14 +89,12 @@ class OSPackageManager:
         elif self.package_manager == 'yum':
             params = 'check-update'
         if not self.package_manager:
-            return False
+            return
         if self.verbose:
-            p = subprocess.Popen('{} {} &> /dev/null'.format(self.package_manager, params), shell=True)
+            p = subprocess.Popen(f'{self.package_manager} {params} &> /dev/null', shell=True)
         else:
-            p = subprocess.Popen('{} {} &> /dev/null'.format(self.package_manager, params), shell=True,
+            p = subprocess.Popen(f'{self.package_manager} {params} &> /dev/null', shell=True,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
         if p.returncode not in [0, 100]:
-            self.logger.error('Could not refresh package index via {}'.format(self.package_manager))
-            raise general_exceptions.OsPackageManagerRefreshError(
-                "OS package manager was unable to update; exited with {}".format(p.returncode))
+            self.logger.warning(f'Could not refresh package index via {self.package_manager}')

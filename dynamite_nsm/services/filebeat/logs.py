@@ -6,12 +6,11 @@ import math
 import os
 from datetime import datetime
 from datetime import timedelta
-from typing import Dict, Iterable, Optional
+from typing import Dict, Generator, Optional
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import logs
-from dynamite_nsm.services.filebeat import exceptions as filebeat_exceptions
 
 
 def parse_filebeat_datetime(t: str) -> datetime:
@@ -21,6 +20,18 @@ def parse_filebeat_datetime(t: str) -> datetime:
     elif t[23] == '-':
         ret += timedelta(hours=int(t[24:26]), minutes=int(t[27:]))
     return ret
+
+
+class InvalidFilebeatStatusLogEntry(Exception):
+    """
+    Thrown when a Filebeat log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "FileBeat log entry is invalid: {}".format(message)
+        super(InvalidFilebeatStatusLogEntry, self).__init__(msg)
 
 
 class MetricsEntry:
@@ -112,7 +123,7 @@ class StatusEntry:
             self.timestamp, self.log_level, self.category, _, self.message, self.payload = log_entry
             self.category = self.category[1:-1]
         else:
-            raise filebeat_exceptions.InvalidFilebeatStatusLogEntry(
+            raise InvalidFilebeatStatusLogEntry(
                 "Unrecognized entity length {}".format(len(log_entry)))
         self.time = parse_filebeat_datetime(self.timestamp)
         if self.payload and ("[" in self.payload or "{" in self.payload):
@@ -159,7 +170,7 @@ class StatusLog(logs.LogFile):
                               log_sample_size=log_sample_size)
 
     def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None, log_level=None,
-                     category=None) -> Iterable[StatusEntry]:
+                     category=None) -> Generator[StatusEntry]:
         """
         Iterate through StatusEntries while providing some basic filtering options
 
@@ -179,7 +190,7 @@ class StatusLog(logs.LogFile):
             for en in self.entries:
                 try:
                     en = StatusEntry(en, include_json_payload=self.include_json_payloads)
-                except filebeat_exceptions.InvalidFilebeatStatusLogEntry:
+                except InvalidFilebeatStatusLogEntry:
                     continue
                 if s < en.time < e:
                     yield en
@@ -193,7 +204,7 @@ class StatusLog(logs.LogFile):
                     continue
             yield log_entry
 
-    def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Iterable[MetricsEntry]:
+    def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[MetricsEntry]:
         """
         Iterate through metrics entries individually
 
@@ -206,7 +217,7 @@ class StatusLog(logs.LogFile):
                 yield entry.metrics
 
     def iter_aggregated_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None,
-                                tolerance_seconds: Optional[int] = 60) -> Iterable[MetricsEntry]:
+                                tolerance_seconds: Optional[int] = 60) -> Generator[MetricsEntry]:
         """
         Iterates through metric entries, while aggregating entries together that are within the same tolerance_seconds
         into a single MetricsEntry

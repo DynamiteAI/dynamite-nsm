@@ -6,6 +6,7 @@ from yaml import Loader
 from yaml import load
 
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.service_objects.suricata import misc, rules
 from dynamite_nsm.services.base.config import YamlConfigManager
 
@@ -82,8 +83,11 @@ class ConfigManager(YamlConfigManager):
         self._pcap_interfaces_raw = []
         self._rule_files_raw = []
         self.suricata_config_file = os.path.join(self.configuration_directory, 'suricata.yaml')
-        with open(self.suricata_config_file, 'r') as configyaml:
-            self.config_data_raw = load(configyaml, Loader=Loader)
+        try:
+            with open(self.suricata_config_file, 'r') as configyaml:
+                self.config_data_raw = load(configyaml, Loader=Loader)
+        except (IOError, ValueError):
+            raise general_exceptions.ReadConfigError(f'Failed to read or parse {self.suricata_config_file}.')
 
         super().__init__(self.config_data_raw, **extract_tokens)
 

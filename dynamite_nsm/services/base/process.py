@@ -12,7 +12,7 @@ from dynamite_nsm.services.base import systemctl
 class BaseProcessManager:
 
     def __init__(self, systemd_service: str, name: str, log_path: Optional[str] = None, pid_file: Optional[str] = None,
-                 stdout: Optional[str] = True, verbose: Optional[bool] = False,
+                 stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
         log_level = logging.INFO
         if verbose:

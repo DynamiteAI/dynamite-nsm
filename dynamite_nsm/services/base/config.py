@@ -5,6 +5,7 @@ from typing import Callable, Dict, List, Optional, Union
 from yaml import dump
 
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions as general_exceptions
 
 
 class BackupConfigManager:
@@ -53,8 +54,12 @@ class GenericConfigManager:
         if backup_directory:
             utilities.backup_configuration_file(out_file_path, backup_directory,
                                                 destination_file_prefix=backup_file_name)
-        with open(out_file_path, 'w') as config_raw_f:
-            config_raw_f.write(self.formatted_data)
+        try:
+            with open(out_file_path, 'w') as config_raw_f:
+                config_raw_f.write(self.formatted_data)
+        except IOError:
+            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+        utilities.set_permissions_of_file(out_file_path, 644)
 
 
 class YamlConfigManager:
@@ -130,8 +135,11 @@ class YamlConfigManager:
                 continue
             token_path = self.extract_tokens[k]
             update_dict_from_path(token_path, v)
-        with open(out_file_path, 'w') as config_yaml_f:
-            if top_text:
-                config_yaml_f.write(f'{top_text}\n')
-            dump(self.config_data, config_yaml_f, default_flow_style=False)
-            utilities.set_permissions_of_file(out_file_path, 744)
+        try:
+            with open(out_file_path, 'w') as config_yaml_f:
+                if top_text:
+                    config_yaml_f.write(f'{top_text}\n')
+                dump(self.config_data, config_yaml_f, default_flow_style=False)
+        except IOError:
+            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+        utilities.set_permissions_of_file(out_file_path, 644)

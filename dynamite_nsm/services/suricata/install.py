@@ -10,12 +10,10 @@ from typing import List, Optional
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.service_objects.suricata import misc as suricata_misc
 from dynamite_nsm.services.base import install
 from dynamite_nsm.services.base import systemctl
 from dynamite_nsm.services.suricata import config as suricata_configs
-from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
-from dynamite_nsm.services.suricata.oinkmaster import exceptions as oinkmaster_exceptions
+from dynamite_nsm.service_objects.suricata import misc as suricata_misc
 from dynamite_nsm.services.suricata.oinkmaster import install as rules_install
 
 
@@ -44,6 +42,8 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
         install.BaseInstallManager.__init__(self, 'suricata', verbose=self.verbose, stdout=stdout)
+        if not install.BaseInstallManager.validate_capture_network_interfaces(self.capture_network_interfaces):
+            raise install.NetworkInterfaceNotFound(self.capture_network_interfaces)
 
         utilities.create_dynamite_environment_file()
         if download_suricata_archive:
@@ -147,24 +147,13 @@ class InstallManager(install.BaseInstallManager):
             install_directory=os.path.join(self.install_directory, 'oinkmaster')
         )
         try:
-            oink_installer.setup_oinkmaster()
-        except oinkmaster_exceptions.InstallOinkmasterError as e:
-            self.logger.error("Unable to install Oinkmaster dependency.")
-            self.logger.debug("Unable to install Oinkmaster dependency; {}".format(e))
-            raise suricata_exceptions.InstallSuricataError("Unable to install Oinkmaster dependency.")
-
-        try:
             self.logger.info("Updating Suricata Rules (via Oinkmaster)")
+            oink_installer.setup_oinkmaster()
             rules_install.update_suricata_rules()
-        except oinkmaster_exceptions.UpdateSuricataRulesError as e:
-            self.logger.error("Unable to update Suricata rule-sets.")
-            self.logger.debug("Unable to update Suricata rule-sets; {}".format(e))
-            raise suricata_exceptions.InstallSuricataError("Unable to update Suricata rule-sets.")
-        try:
-            config = suricata_configs.ConfigManager(self.configuration_directory)
-        except suricata_exceptions.ReadsSuricataConfigError:
-            self.logger.error("Failed to read Suricata configuration.")
-            raise suricata_exceptions.InstallSuricataError("Failed to read Suricata configuration.")
+        except Exception as e:
+            self.logger.warning(f'Failed to update Suricata Rulesets; {e}.')
+
+        config = suricata_configs.ConfigManager(self.configuration_directory)
         config.default_log_directory = self.log_directory
         config.suricata_log_output_file = os.path.join(self.log_directory, 'suricata.log')
         config.default_rules_directory = os.path.join(self.configuration_directory, 'rules')

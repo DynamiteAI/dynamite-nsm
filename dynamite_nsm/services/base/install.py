@@ -1,12 +1,25 @@
 import logging
 import tarfile
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Union
 
 from dynamite_nsm import const
-from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import package_manager
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm import exceptions as general_exceptions
+
+
+class NetworkInterfaceNotFound(Exception):
+    """
+    Thrown when attempting to disable a non-existing interface
+    """
+
+    def __init__(self, interfaces: Union[str, List]):
+        """
+        :param interfaces: A network interface
+        """
+        msg = f'Network interface(s) does not exist: {interfaces}.'
+        super(NetworkInterfaceNotFound, self).__init__(msg)
 
 
 class BaseInstallManager:
@@ -54,22 +67,29 @@ class BaseInstallManager:
             raise general_exceptions.ArchiveExtractionError(
                 f'General error while attempting to extract {archive_path} archive; {e}')
 
+    @staticmethod
+    def validate_capture_network_interfaces(network_interfaces: List[str]):
+        for interface in network_interfaces:
+            if interface not in utilities.get_network_interface_names():
+                return False
+        return True
+
     def install_dependencies(self, apt_get_packages: Optional[List] = None, yum_packages: Optional[List] = None,
                              pre_install_function: Optional[Callable] = None):
         pacman = package_manager.OSPackageManager(stdout=self.stdout, verbose=self.verbose)
+        packages = []
         if pacman.package_manager == 'apt-get':
             self.logger.info('apt-get detected. We will use this package manager to install dependencies.')
             packages = apt_get_packages
         elif pacman.package_manager == 'yum':
             self.logger.info('yum detected. We will use this package manager to install dependencies.')
             packages = yum_packages
-        else:
-            raise general_exceptions.InvalidOsPackageManagerDetectedError()
         self.logger.info('Refreshing package indexes')
         if pre_install_function:
             self.logger.info('Running pre-installation function.')
             pre_install_function(pacman.package_manager)
         pacman.refresh_package_indexes()
+
         self.logger.debug(f'Packages: {packages}')
         if packages:
             self.logger.info(f'Installing {len(packages)} new packages.')

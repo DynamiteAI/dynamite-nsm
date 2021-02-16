@@ -42,6 +42,8 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
         install.BaseInstallManager.__init__(self, 'zeek', verbose=self.verbose, stdout=stdout)
+        if not install.BaseInstallManager.validate_capture_network_interfaces(self.capture_network_interfaces):
+            raise install.NetworkInterfaceNotFound(self.capture_network_interfaces)
         utilities.create_dynamite_environment_file()
         if download_zeek_archive:
             self.download_from_mirror(const.ZEEK_MIRRORS, const.ZEEK_ARCHIVE_NAME, stdout=stdout, verbose=verbose)

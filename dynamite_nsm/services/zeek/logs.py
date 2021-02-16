@@ -5,16 +5,63 @@ import json
 import os
 from datetime import datetime
 from datetime import timedelta
-from typing import Dict, Iterable, Optional
+from typing import Dict, Generator, Optional
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import logs
-from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
 def parse_zeek_datetime(t: str) -> datetime:
     return datetime.utcfromtimestamp(int(str(t).split('.')[0]))
+
+
+class InvalidZeekStatusLogEntry(Exception):
+    """
+    Thrown when a Zeek stats.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = f'Zeek status log entry is invalid: {message}'
+        super(InvalidZeekStatusLogEntry, self).__init__(msg)
+
+
+class InvalidZeekBrokerLogEntry(Exception):
+    """
+    Thrown when a Zeek broker.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = f'Zeek broker log entry is invalid: {message}'
+        super(InvalidZeekBrokerLogEntry, self).__init__(msg)
+
+
+class InvalidZeekClusterLogEntry(Exception):
+    """
+    Thrown when a Zeek cluster.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = f'Zeek cluster log entry is invalid: {message}'
+        super(InvalidZeekClusterLogEntry, self).__init__(msg)
+
+
+class InvalidZeekReporterLogEntry(Exception):
+    """
+    Thrown when a Zeek reporter.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = f'Zeek reporter log entry is invalid: {message}'
+        super(InvalidZeekReporterLogEntry, self).__init__(msg)
 
 
 class BrokerEntry:
@@ -38,7 +85,7 @@ class BrokerEntry:
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise zeek_exceptions.InvalidZeekBrokerLogEntry(
+            raise InvalidZeekBrokerLogEntry(
                 'broker.log entry is not JSON formatted. '
                 'Make sure to enable policy/tuning/json-logs is loaded.')
         self.timestamp = entry.get('ts')
@@ -48,7 +95,7 @@ class BrokerEntry:
         self.peer_port = entry.get('peer.bound_port')
         self.message = entry.get('message')
         if not self.timestamp:
-            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+            raise InvalidZeekStatusLogEntry('Missing timestamp field')
         self.time = parse_zeek_datetime(self.timestamp)
 
     def __str__(self) -> str:
@@ -80,14 +127,14 @@ class ClusterEntry:
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise zeek_exceptions.InvalidZeekClusterLogEntry(
+            raise InvalidZeekClusterLogEntry(
                 'cluster.log entry is not JSON formatted. '
                 'Make sure to enable policy/tuning/json-logs is loaded.')
         self.timestamp = entry.get('ts')
         self.node = entry.get('node')
         self.message = entry.get('message')
         if not self.timestamp:
-            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+            raise InvalidZeekStatusLogEntry('Missing timestamp field')
         self.time = parse_zeek_datetime(self.timestamp)
 
     def __str__(self) -> str:
@@ -223,7 +270,7 @@ class ReporterEntry:
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise zeek_exceptions.InvalidZeekReporterLogEntry(
+            raise InvalidZeekReporterLogEntry(
                 'reporter.log entry is not JSON formatted. '
                 'Make sure to enable policy/tuning/json-logs is loaded.')
         self.timestamp = entry.get('ts')
@@ -231,7 +278,7 @@ class ReporterEntry:
         self.location = entry.get('location')
         self.message = entry.get('message')
         if not self.timestamp:
-            raise zeek_exceptions.InvalidZeekReporterLogEntry('Missing timestamp field')
+            raise InvalidZeekReporterLogEntry('Missing timestamp field')
         if self.log_level:
             self.log_level = str(self.log_level.replace('Reporter::', ''))
         self.time = parse_zeek_datetime(self.timestamp)
@@ -251,7 +298,11 @@ class ZeekLogsProxy:
     This class makes it easy to access a Zeek log and all subsequent archived logs related to it
     """
 
-    def __init__(self, log_name, log_sample_size=1000):
+    def __init__(self, log_name: str, log_sample_size: Optional[int] = 1000):
+        """
+        :param log_name: The name of the Zeek log to retrieve
+        :param log_sample_size: The max number of log entries to retrieve
+        """
         self.entries = []
         self.log_name = log_name
         self.log_sample_size = log_sample_size
@@ -297,7 +348,7 @@ class ZeekLogsProxy:
             else:
                 break
 
-    def iter_entries(self) -> Iterable:
+    def iter_entries(self) -> Generator[str]:
         for log_entry in self.entries:
             yield log_entry
 
@@ -319,7 +370,7 @@ class BrokerLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('broker.log', log_sample_size=log_sample_size).entries
 
-    def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Iterable[BrokerEntry]:
+    def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[BrokerEntry]:
         """
         Iterate through BrokerEntries while providing some basic filtering options
 
@@ -358,7 +409,7 @@ class ClusterLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('cluster.log', log_sample_size=log_sample_size).entries
 
-    def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Iterable[ClusterEntry]:
+    def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[ClusterEntry]:
         """
         Iterate through ClusterEntries while providing some basic filtering options
 
@@ -402,7 +453,7 @@ class StatusLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('stats.log', log_sample_size=log_sample_size).entries
 
-    def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Iterable[MetricsEntry]:
+    def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[MetricsEntry]:
         """
         Iterate through metrics entries individually. Metrics are given for each individual Zeek peer.
 
@@ -411,7 +462,7 @@ class StatusLog(logs.LogFile):
         :return: yields a MetricsEntry for every iteration
         """
 
-        def filter_metrics(s=None, e=None):
+        def filter_metrics(s: Optional[datetime] = None, e: Optional[datetime] = None):
             if not e:
                 e = datetime.utcnow()
             if not s:
@@ -425,7 +476,7 @@ class StatusLog(logs.LogFile):
             yield log_entry
 
     def iter_aggregated_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None,
-                                tolerance_seconds: Optional[int] = 60) -> Iterable[MetricsEntry]:
+                                tolerance_seconds: Optional[int] = 60) -> Generator[MetricsEntry]:
         """
         Zeek's stats.log returns a metric entry for every peer. This aggregation method will group events
         by the tolerance_seconds parameter
@@ -459,7 +510,7 @@ class ReporterLog(logs.LogFile):
     Provides an interface for working with Zeek's reporter.log
     """
 
-    def __init__(self, log_sample_size=500, include_archived_logs=False):
+    def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
         """
         :param log_sample_size: The maximum number of entries to parse
         :param include_archived_logs: If True, we will look in folders other than current/ and decode gzipped content
@@ -476,7 +527,8 @@ class ReporterLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('reporter.log', log_sample_size=log_sample_size).entries
 
-    def iter_entries(self, start=None, end=None):
+    def iter_entries(self, start: Optional[datetime] = None,
+                     end: Optional[datetime] = None) -> Generator[ReporterEntry]:
         """
         Iterate through ReporterEntries while providing some basic filtering options
 

@@ -9,7 +9,18 @@ from datetime import timedelta
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import logs
-from dynamite_nsm.services.suricata import exceptions as suricata_exceptions
+
+
+class InvalidSuricataStatusLogEntry(ValueError):
+    """
+    Thrown when a Suricata suricata.log entry is improperly formatted
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "Suricata log entry is invalid: {}".format(message)
+        super(InvalidSuricataStatusLogEntry, self).__init__(msg)
 
 
 def parse_suricata_datetime(t):
@@ -47,7 +58,7 @@ class MainEntry:
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise suricata_exceptions.InvalidSuricataStatusLogEntry(
+            raise InvalidSuricataStatusLogEntry(
                 'suricata.log entry is not JSON formatted. '
                 'Make sure to enable logging.file.type="json" in suricata.yaml.')
         self.timestamp = entry.get('timestamp')
@@ -57,7 +68,7 @@ class MainEntry:
         self.error = entry.get('engine', {}).get('error', None)
         self.message = entry.get('engine', {}).get('message', None)
         if not self.timestamp:
-            raise suricata_exceptions.InvalidSuricataStatusLogEntry('Missing timestamp field')
+            raise InvalidSuricataStatusLogEntry('Missing timestamp field')
         if self.log_level:
             self.log_level = self.LOG_LEVEL_MAP.get(self.log_level)
         self.time = parse_suricata_datetime(self.timestamp)
@@ -432,6 +443,7 @@ class StatsLog(logs.LogFile):
         entered_counter_area = False
         stats_entry = {}
         for line in self.entries:
+            line = str(line)
             if section_token in line:
                 continue
             elif date_token in line:
