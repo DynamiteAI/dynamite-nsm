@@ -75,7 +75,7 @@ class Worker(BaseComponent):
 
     def __init__(self, worker_name: str, interface_name: str, cluster_id: int,
                  cluster_type: Optional[str] = 'FANOUT_HASH', load_balance_processes: Optional[int] = 1,
-                 pinned_cpus: Optional[Tuple[int]] = (0,), host: Optional[str] = 'localhost'):
+                 pinned_cpus: Optional[Tuple] = (0,), host: Optional[str] = 'localhost'):
         """
         A Zeek worker process
 

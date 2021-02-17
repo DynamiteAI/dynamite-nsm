@@ -190,7 +190,7 @@ class NodeConfigManager(GenericConfigManager):
             parser=lambda data: node.Workers(
                 [node.Worker(worker_name=name,
                              interface_name=values.get('interface'),
-                             cluster_id=values.get('af_packet_fanout_id'),
+                             cluster_id=int(values.get('af_packet_fanout_id')),
                              cluster_type=values.get('af_packet_fanout_mode', 'FANOUT_HASH'),
                              load_balance_processes=int(
                                  values.get('lb_procs')),
