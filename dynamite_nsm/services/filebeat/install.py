@@ -104,8 +104,11 @@ class InstallManager(install.BaseInstallManager):
         logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
 
         if isinstance(targets, list) or isinstance(targets, tuple):
+            protocol_tokens = ['http://', 'https://', 'plain://', 'sasl://', 'redis://']
             for i, target in enumerate(targets):
-                target = str(target)
+                target = str(target).lower()
+                for token in protocol_tokens:
+                    target = target.replace(token, '')
                 try:
                     host, port = target.split(':')
                     if not str(port).isdigit():
