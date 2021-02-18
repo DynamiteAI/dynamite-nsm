@@ -62,6 +62,63 @@ class GenericConfigManager:
         utilities.set_permissions_of_file(out_file_path, 644)
 
 
+class JavaOptionsConfigManager(GenericConfigManager):
+
+    @staticmethod
+    def _parse_jvm_options(data: Dict):
+        initial_memory = None
+        maximum_memory = None
+        extra_params = []
+        for line in data['data']:
+            line = str(line).replace(' ', '')
+            if line.startswith('-Xms'):
+                initial_memory = line.replace('-Xms', '').strip()
+            elif line.startswith('-Xmx'):
+                maximum_memory = line.replace('-Xmx', '').strip()
+            elif line.startswith('#') or line.strip() == '':
+                continue
+            else:
+                extra_params.append(line.strip())
+        return initial_memory, maximum_memory, extra_params
+
+    def __init__(self, config_data: Dict):
+        super().__init__(config_data)
+
+        self.initial_memory = None
+        self.maximum_memory = None
+        self._raw_extra_params = None
+
+        self.add_parser(
+            parser=lambda data: self._parse_jvm_options(data)[0],
+            attribute_name='initial_memory'
+        )
+        self.add_parser(
+            parser=lambda data: self._parse_jvm_options(data)[1],
+            attribute_name='maximum_memory'
+        )
+
+        self.add_parser(
+            parser=lambda data: self._parse_jvm_options(data)[2],
+            attribute_name='_raw_extra_params'
+        )
+
+    def write_config(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
+        # Backup old configuration first
+        out_file_name = os.path.basename(out_file_path)
+        backup_file_name = out_file_name + '.backup'
+        self.formatted_data = f'-Xms={self.initial_memory}\n-Xmx={self.maximum_memory}\n' + \
+            '\n'.join(self._raw_extra_params)
+        if backup_directory:
+            utilities.backup_configuration_file(out_file_path, backup_directory,
+                                                destination_file_prefix=backup_file_name)
+        try:
+            with open(out_file_path, 'w') as config_raw_f:
+                config_raw_f.write(self.formatted_data)
+        except IOError:
+            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+        utilities.set_permissions_of_file(out_file_path, 644)
+
+
 class YamlConfigManager:
 
     def __init__(self, config_data: Dict, **extract_tokens: Dict):

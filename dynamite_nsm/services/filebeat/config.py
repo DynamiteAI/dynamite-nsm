@@ -42,7 +42,7 @@ class ConfigManager(YamlConfigManager):
         self._kafka_targets_raw = {}
         self._redis_targets_raw = {}
         self.install_directory = install_directory
-        self.filebeat_config_path = os.path.join(self.install_directory, 'filebeat.yml')
+        self.filebeat_config_path = f'{self.install_directory}/filebeat.yml'
 
         with open(self.filebeat_config_path, 'r') as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
@@ -285,7 +285,7 @@ class ConfigManager(YamlConfigManager):
         :param backup_directory: The path to the backup directory
         """
         if not out_file_path:
-            out_file_path = f'{self.install_directory}/filebeat.yml'
+            out_file_path = self.filebeat_config_path
         self._inputs_raw = self.input_logs.get_raw()
         self._processors_raw = self.field_processors.get_raw()
         self._index_template_settings_raw = self.index_template_settings.get_raw()
