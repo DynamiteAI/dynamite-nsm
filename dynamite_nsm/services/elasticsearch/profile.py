@@ -16,8 +16,6 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         self.elasticsearch_config = self.env_dict.get('ES_PATH_CONF')
 
         profile.BaseProcessProfiler.__init__(self,
-                                             install_archive_path=os.path.join(const.INSTALL_CACHE,
-                                                                               const.ELASTICSEARCH_ARCHIVE_NAME),
                                              install_directory=self.elasticsearch_home,
                                              config_directory=self.elasticsearch_config,
                                              required_install_files=['bin', 'data', 'lib', 'modules'],

@@ -4,32 +4,34 @@ from typing import Dict, Optional, Union
 
 import tabulate
 
-from dynamite_nsm import utilities
+from dynamite_nsm import const, utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.base import systemctl
 
 
 class BaseProcessManager:
 
-    def __init__(self, systemd_service: str, name: str, log_path: Optional[str] = None, pid_file: Optional[str] = None,
+    def __init__(self, systemd_service: str, name: str, log_path: Optional[str] = None,
+                 create_pid_file: Optional[bool] = False,
                  stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
-
+        self.pid_file = None
         self.pid = None
         self.systemd_service = systemd_service
         self.name = name
         self.log_path = log_path
-        self.pid_file = pid_file
+        if create_pid_file:
+            self.pid_file = f'{const.PID_PATH}/{name}.pid'
         self.stdout = stdout
         self.verbose = verbose
         self.pretty_print_status = pretty_print_status
         self.sysctl = systemctl.SystemCtl()
-        if pid_file:
-            self.pid = self._get_pid(pid_file)
+        if create_pid_file:
+            self.pid = self._get_pid(self.pid_file)
 
     @staticmethod
     def _get_pid(pid_file: str) -> int:

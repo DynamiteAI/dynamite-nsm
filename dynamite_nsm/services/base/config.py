@@ -106,7 +106,7 @@ class JavaOptionsConfigManager(GenericConfigManager):
         # Backup old configuration first
         out_file_name = os.path.basename(out_file_path)
         backup_file_name = out_file_name + '.backup'
-        self.formatted_data = f'-Xms={self.initial_memory}\n-Xmx={self.maximum_memory}\n' + \
+        self.formatted_data = f'-Xms{self.initial_memory}\n-Xmx{self.maximum_memory}\n' + \
             '\n'.join(self._raw_extra_params)
         if backup_directory:
             utilities.backup_configuration_file(out_file_path, backup_directory,

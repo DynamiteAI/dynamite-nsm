@@ -281,8 +281,12 @@ def extract_java():
         pass
 
 
-def get_default_agent_tag():
+def get_default_agent_tag() -> str:
     return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_agt'
+
+
+def get_default_es_node_name() -> str:
+    return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_es_node'
 
 
 def get_file_md5_hash(fh):
@@ -435,6 +439,19 @@ def get_network_addresses():
     if external_address:
         valid_addresses.append(external_address)
     return tuple(valid_addresses)
+
+
+def get_primary_ip_address():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
 
 
 def get_cpu_core_count():
@@ -777,3 +794,5 @@ def wrap_text(s):
         w, h = term_dim
     wrapped_s = '\n'.join(textwrap.wrap(s, w - 30, fix_sentence_endings=True))
     return wrapped_s
+
+print(get_primary_ip_address())

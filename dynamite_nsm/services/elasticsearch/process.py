@@ -1,14 +1,12 @@
 import os
 import time
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
 from dynamite_nsm.services.elasticsearch import exceptions as elasticsearch_exceptions
 from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
-
-PID_DIRECTORY = '/var/run/dynamite/elasticsearch/'
 
 
 class ProcessManager(process.BaseProcessManager):
@@ -21,7 +19,7 @@ class ProcessManager(process.BaseProcessManager):
         try:
             process.BaseProcessManager.__init__(self, 'elasticsearch.service', 'elasticsearch',
                                                 log_path=environ.get('ES_LOGS'),
-                                                pid_file=os.path.join(PID_DIRECTORY, 'elasticsearch.pid'),
+                                                create_pid_file=True,
                                                 stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
             self.logger.error("Could not find systemctl on this system.")
@@ -32,7 +30,7 @@ class ProcessManager(process.BaseProcessManager):
 
 
 def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-          pretty_print_status: Optional[bool] = False) -> bool:
+          pretty_print_status: Optional[bool] = False) -> Union[Dict, str]:
     p = ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
     p.start()
 
