@@ -2,8 +2,8 @@ import os
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
-from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.elasticsearch import config
+from dynamite_nsm.services.base import install, systemctl
 
 
 class InstallManager(install.BaseInstallManager):
@@ -27,19 +27,20 @@ class InstallManager(install.BaseInstallManager):
 
         install.BaseInstallManager.__init__(self, 'elasticsearch', verbose=self.verbose, stdout=stdout)
 
-        self.logger.info("Attempting to download Elasticsearch (OpenDistro) archive.")
-        self.url, \
-        self.archive_name, \
-        self.directory_name = self.download_from_mirror(const.ELASTICSEARCH_MIRRORS,
-                                                        download_from_mirror=download_elasticsearch_archive,
-                                                        stdout=stdout,
-                                                        verbose=verbose)
         if download_elasticsearch_archive:
-            self.logger.info(f'Attempting to extract Elasticsearch archive ({self.archive_name}).')
-            self.extract_archive(os.path.join(const.INSTALL_CACHE, self.archive_name))
-        self.logger.info("Extraction completed.")
+            self.logger.info("Attempting to download Elasticsearch (OpenDistro) archive.")
+            _ , archive_name, self.directory_name = self.download_from_mirror(const.ELASTICSEARCH_MIRRORS,
+                                                                              stdout=stdout, verbose=verbose)
+            self.logger.info(f'Attempting to extract Elasticsearch archive ({archive_name}).')
+            self.extract_archive(os.path.join(const.INSTALL_CACHE, archive_name))
+            self.logger.info("Extraction completed.")
+        else:
+            _, _, self.directory_name = self.get_mirror_info(const.ELASTICSEARCH_MIRRORS)
 
-    def copy_elasticsearch_files_and_directories(self):
+    def copy_elasticsearch_files_and_directories(self) -> None:
+        """
+        Copy the required Elasticsearch files from the install cache to their respective directories
+        """
         elasticsearch_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
         config_paths = [
             'config/elasticsearch.yml',
@@ -62,7 +63,10 @@ class InstallManager(install.BaseInstallManager):
             self.copy_file_or_directory_to_destination(f'{elasticsearch_tarball_extracted}/{inst}',
                                                        self.install_directory)
 
-    def create_update_elasticsearch_environment_variables(self):
+    def create_update_elasticsearch_environment_variables(self) -> None:
+        """
+        Creates all the required ElasticSearch environmental variables
+        """
         self.create_update_env_variable('ES_PATH_CONF', self.configuration_directory)
         self.create_update_env_variable('ES_HOME', self.install_directory)
         self.create_update_env_variable('ES_LOGS', self.log_directory)
@@ -134,9 +138,9 @@ class InstallManager(install.BaseInstallManager):
 
 if __name__ == '__main__':
     install_mngr = InstallManager(
-        install_directory='/opt/dynamite/elasticsearch',
-        configuration_directory='/etc/dynamite/elasticsearch',
-        log_directory='/var/log/dynamite/elasticsearch/',
+        install_directory=f'{const.INSTALL_PATH}/elasticsearch',
+        configuration_directory=f'{const.CONFIG_PATH}/elasticsearch',
+        log_directory=f'{const.LOG_PATH}/elasticsearch',
         download_elasticsearch_archive=True,
         stdout=True,
         verbose=True

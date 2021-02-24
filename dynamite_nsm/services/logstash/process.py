@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional, Union
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
@@ -40,6 +40,6 @@ def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
 
 
 def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-           pretty_print_status: Optional[bool] = False) -> bool:
+           pretty_print_status: Optional[bool] = False) -> Union[Dict, str]:
     return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()
 

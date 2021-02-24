@@ -15,8 +15,6 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         self.logstash_config = self.env_dict.get('LS_PATH_CONF')
 
         profile.BaseProcessProfiler.__init__(self,
-                                             install_archive_path=os.path.join(const.INSTALL_CACHE,
-                                                                               const.LOGSTASH_ARCHIVE_NAME),
                                              install_directory=self.logstash_home,
                                              config_directory=self.logstash_config,
                                              required_install_files=['bin', 'data', 'lib', 'logstash-core'],

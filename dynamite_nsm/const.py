@@ -16,6 +16,7 @@ INSTALL_PATH = "/opt/dynamite"
 CONFIG_PATH = "/etc/dynamite"
 LOG_PATH = '/var/log/dynamite/'
 PID_PATH = '/var/run/dynamite/'
+JVM_ROOT = '/usr/lib/jvm/'
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 PCAP_PATH = "/etc/dynamite/pcaps/"
 
@@ -38,6 +39,7 @@ extracted_constants = bootstrap_constants_from_const_environment_file()
 
 VERSION = extracted_constants.get('VERSION', '1.0.0')
 ELASTICSEARCH_MIRRORS = extracted_constants.get('ELASTICSEARCH_MIRRORS', '/etc/dynamite/mirrors/elasticsearch')
+LOGSTASH_MIRRORS = extracted_constants.get('LOGSTASH_MIRRORS', '/etc/dynamite/mirrors/logstash')
 FILE_BEAT_MIRRORS = extracted_constants.get('FILE_BEAT_MIRRORS', '/etc/dynamite/mirrors/filebeat')
 JAVA_MIRRORS = extracted_constants.get('JAVA_MIRRORS', '/etc/dynamite/mirrors/java')
 OINKMASTER_MIRRORS = extracted_constants.get('OINKMASTER_MIRRORS', '/etc/dynamite/mirrors/oinkmaster_nightly')

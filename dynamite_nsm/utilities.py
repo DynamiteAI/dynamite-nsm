@@ -794,5 +794,3 @@ def wrap_text(s):
         w, h = term_dim
     wrapped_s = '\n'.join(textwrap.wrap(s, w - 30, fix_sentence_endings=True))
     return wrapped_s
-
-print(get_primary_ip_address())
