@@ -21,8 +21,7 @@ class ProcessManager(process.BaseProcessManager):
         environ = utilities.get_environment_file_dict()
         try:
             process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana', log_path=environ.get('KIBANA_LOGS'),
-                                                pid_file=os.path.join(PID_DIRECTORY, 'kibana.pid'), stdout=stdout,
-                                                verbose=verbose, pretty_print_status=pretty_print_status)
+                                                stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         except general_exceptions.CallProcessError:
             self.logger.error("Could not find systemctl on this system.")
             raise kibana_exceptions.CallKibanaProcessError("Could not find systemctl.")

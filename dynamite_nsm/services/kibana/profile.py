@@ -16,11 +16,9 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         self.kibana_config = self.env_dict.get('KIBANA_PATH_CONF')
 
         profile.BaseProcessProfiler.__init__(self,
-                                             install_archive_path=os.path.join(const.INSTALL_CACHE,
-                                                                               const.KIBANA_ARCHIVE_NAME),
                                              install_directory=self.kibana_home,
                                              config_directory=self.kibana_config,
-                                             required_install_files=['bin', 'data', 'node', 'optimize'],
+                                             required_install_files=['bin', 'data', 'node'],
                                              required_config_files=['kibana.yml']
                                              )
 
@@ -39,8 +37,8 @@ class ProcessProfiler(profile.BaseProcessProfiler):
             return False
 
         kb_config_obj = kibana_config.ConfigManager(configuration_directory=self.kibana_config)
-        host = kb_config_obj.server_host
-        port = kb_config_obj.server_port
+        host = kb_config_obj.host
+        port = kb_config_obj.port
         if host.strip() == '0.0.0.0':
             host = 'localhost'
         return utilities.check_socket(host, port)

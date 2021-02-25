@@ -39,7 +39,7 @@ class InstallManager(install.BaseInstallManager):
         """
         Copy the required Logstash files from the install cache to their respective directories
         """
-        elasticsearch_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
+        logstash_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
         config_paths = [
             'config/logstash.yml',
             'config/pipelines.yml',
@@ -59,10 +59,10 @@ class InstallManager(install.BaseInstallManager):
             'vendor/',
         ]
         for conf in config_paths:
-            self.copy_file_or_directory_to_destination(f'{elasticsearch_tarball_extracted}/{conf}',
+            self.copy_file_or_directory_to_destination(f'{logstash_tarball_extracted}/{conf}',
                                                        self.configuration_directory)
         for inst in install_paths:
-            self.copy_file_or_directory_to_destination(f'{elasticsearch_tarball_extracted}/{inst}',
+            self.copy_file_or_directory_to_destination(f'{logstash_tarball_extracted}/{inst}',
                                                        self.install_directory)
 
     def create_update_logstash_environment_variables(self) -> None:
