@@ -1,11 +1,18 @@
 import os
 import json
+from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Union
 
+from yaml import SafeDumper
 from yaml import dump
 
 from dynamite_nsm import utilities
 from dynamite_nsm import exceptions as general_exceptions
+
+
+class NoAliasDumper(SafeDumper):
+    def ignore_aliases(self, data):
+        return True
 
 
 class BackupConfigManager:
@@ -180,6 +187,8 @@ class YamlConfigManager:
                                 partial_config_data = list_entry[k]
                 else:
                     break
+            if not value:
+                return
             partial_config_data.update({path[-1]: value})
 
         # Backup old configuration first
@@ -196,7 +205,10 @@ class YamlConfigManager:
             with open(out_file_path, 'w') as config_yaml_f:
                 if top_text:
                     config_yaml_f.write(f'{top_text}\n')
-                dump(self.config_data, config_yaml_f, default_flow_style=False)
+                try:
+                    dump(self.config_data, config_yaml_f, default_flow_style=False, Dumper=NoAliasDumper)
+                except RecursionError:
+                    dump(self.config_data, config_yaml_f, default_flow_style=False)
         except IOError:
             raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)

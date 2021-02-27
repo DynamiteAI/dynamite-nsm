@@ -89,11 +89,13 @@ class InstallManager(install.BaseInstallManager):
         if not port:
             port = 5601
         if not elasticsearch_targets:
-            elasticsearch_targets = [f'{utilities.get_primary_ip_address()}:9200']
+            elasticsearch_targets = [f'http://{utilities.get_primary_ip_address()}:9200']
 
         kb_main_config.host = host
         kb_main_config.port = port
         kb_main_config.elasticsearch_targets = elasticsearch_targets
+        kb_main_config.elasticsearch_username = None
+        kb_main_config.elasticsearch_password = None
         kb_main_config.commit()
 
         # Fix Permissions
@@ -110,7 +112,7 @@ if __name__ == '__main__':
         install_directory=f'{const.INSTALL_PATH}/kibana',
         configuration_directory=f'{const.CONFIG_PATH}/kibana',
         log_directory=f'{const.LOG_PATH}/kibana',
-        download_kibana_archive=True,
+        download_kibana_archive=False,
         stdout=True,
         verbose=True
     )
