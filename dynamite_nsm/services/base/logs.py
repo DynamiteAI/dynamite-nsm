@@ -34,6 +34,7 @@ class LogFile:
                                 line = f.readline().decode('utf-8', errors='ignore')
                             except gzip.BadGzipFile:
                                 pass
+
             self.log_path = decoded_log_path
         linecache.updatecache(self.log_path)
         self.last_line_num = self.find_latest_line_offset()
