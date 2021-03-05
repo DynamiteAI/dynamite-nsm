@@ -18,9 +18,12 @@ class ConfigManager(YamlConfigManager):
             'path_data': ('path.data',),
             'path_logs': ('path.logs',),
             'search_max_buckets': ('search.max_buckets',),
-            'pem_cert_file': ('opendistro_security.ssl.transport.pemcert_filepath',),
-            'pem_key_file': ('opendistro_security.ssl.transport.pemkey_filepath',),
-            'trusted_cas_file': ('opendistro_security.ssl.transport.pemtrustedcas_filepath',),
+            'transport_pem_cert_file': ('opendistro_security.ssl.transport.pemcert_filepath',),
+            'transport_pem_key_file': ('opendistro_security.ssl.transport.pemkey_filepath',),
+            'transport_trusted_cas_file': ('opendistro_security.ssl.transport.pemtrustedcas_filepath',),
+            'rest_api_pem_cert_file': ('opendistro_security.ssl.http.pemcert_filepath',),
+            'rest_api_pem_key_file': ('opendistro_security.ssl.http.pemkey_filepath',),
+            'rest_api_trusted_cas_file': ('opendistro_security.ssl.http.pemtrustedcas_filepath',),
             'authcz_admin_distinguished_names': ('opendistro_security.authcz.admin_dn',)
         }
         self.node_name = None
@@ -31,9 +34,13 @@ class ConfigManager(YamlConfigManager):
         self.http_port = None
         self.path_logs = None
         self.search_max_buckets = None
-        self.pem_cert_file = None
-        self.pem_key_file = None
-        self.trusted_cas_file = None
+        self.rest_api_pem_cert_file = None
+        self.rest_api_pem_key_file = None
+        self.rest_api_trusted_cas_file = None
+        self.transport_pem_cert_file = None
+        self.transport_pem_cert_file = None
+        self.transport_pem_key_file = None
+        self.transport_trusted_cas_file = None
         self.authcz_admin_distinguished_names = None
         self.configuration_directory = configuration_directory
         self.elasticsearch_config_path = f'{self.configuration_directory}/elasticsearch.yml'

@@ -112,7 +112,7 @@ if __name__ == '__main__':
         install_directory=f'{const.INSTALL_PATH}/kibana',
         configuration_directory=f'{const.CONFIG_PATH}/kibana',
         log_directory=f'{const.LOG_PATH}/kibana',
-        download_kibana_archive=False,
+        download_kibana_archive=True,
         stdout=True,
         verbose=True
     )
