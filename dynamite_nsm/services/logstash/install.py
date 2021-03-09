@@ -81,7 +81,9 @@ class InstallManager(install.BaseInstallManager):
         sysctl = systemctl.SystemCtl()
 
         # System patching and directory setup
+        self.logger.debug('Patching sysctl.')
         utilities.update_sysctl()
+        self.logger.debug('Patching file-handle limits.')
         utilities.update_user_file_handle_limits()
         utilities.makedirs(self.configuration_directory)
         utilities.makedirs(self.install_directory)
@@ -114,7 +116,7 @@ class InstallManager(install.BaseInstallManager):
             pipeline_batch_delay = 50
         if not heap_size_gigs:
             heap_size_gigs = int((utilities.get_memory_available_bytes() / 10 ** 9) / 2)
-
+        self.logger.debug(f'Logstash will connect to Elasticsearch on {elasticsearch_host}:{elasticsearch_port}')
         ls_main_config.node_name = node_name
         ls_main_config.host = host
         ls_main_config.pipeline_batch_size = pipeline_batch_size
@@ -123,15 +125,19 @@ class InstallManager(install.BaseInstallManager):
         self.create_update_env_variable('LS_ES_PORT', elasticsearch_port)
         ls_java_config.initial_memory = f'{heap_size_gigs}g'
         ls_java_config.maximum_memory = f'{heap_size_gigs}g'
+        self.logger.debug(f'Java Heap Initial & Max Memory = {heap_size_gigs} GB')
         ls_main_config.commit()
         ls_java_config.commit()
+        self.logger.info('Applying configuration.')
 
         # Fix Permissions
+        self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
 
         # Install and enable service
+        self.logger.debug(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/logstash.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/logstash.service')
 
 

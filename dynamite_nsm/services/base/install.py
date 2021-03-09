@@ -26,7 +26,7 @@ class NetworkInterfaceNotFound(Exception):
 
 class BaseInstallManager:
 
-    def __init__(self, name, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+    def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -69,7 +69,7 @@ class BaseInstallManager:
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        logger = get_logger('BASESVC', level=log_level, stdout=stdout)
+        logger = get_logger('DOWNLOAD', level=log_level, stdout=stdout)
 
         with open(mirror_path) as mirror_f:
             res, err = None, None
@@ -133,17 +133,24 @@ class BaseInstallManager:
         destination_location = f'{destination_file_or_dir}/{os.path.basename(file_or_dir)}'
         if os.path.isdir(file_or_dir):
             utilities.makedirs(destination_location, exist_ok=True)
+            self.logger.debug(f'Creating directory: {destination_location}')
             try:
+                self.logger.debug(f'Copying directory {file_or_dir} -> {destination_location}')
                 utilities.copytree(file_or_dir, destination_location)
             except shutil.Error as e:
                 if 'exist' in str(e):
                     self.logger.warning(f'{destination_file_or_dir} directory already exists. Skipping.')
+                else:
+                    raise e
         else:
             try:
+                self.logger.debug(f'Copying file {file_or_dir} -> {destination_file_or_dir}')
                 shutil.copy(file_or_dir, destination_file_or_dir)
             except shutil.Error as e:
                 if 'exist' in str(e):
                     self.logger.warning(f'{destination_file_or_dir} file already exists. Skipping.')
+                else:
+                    raise e
 
     def install_dependencies(self, apt_get_packages: Optional[List] = None, yum_packages: Optional[List] = None,
                              pre_install_function: Optional[Callable] = None):

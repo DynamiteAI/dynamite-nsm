@@ -18,8 +18,6 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         self.suricata_config = self.env_dict.get('SURICATA_CONFIG')
 
         profile.BaseProcessProfiler.__init__(self,
-                                             install_archive_path=os.path.join(const.INSTALL_CACHE,
-                                                                               const.ZEEK_ARCHIVE_NAME),
                                              install_directory=self.suricata_home,
                                              config_directory=self.suricata_config,
                                              required_install_files=['bin', 'include', 'lib'],

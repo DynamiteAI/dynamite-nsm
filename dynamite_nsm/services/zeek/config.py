@@ -13,13 +13,13 @@ from dynamite_nsm.service_objects.zeek import bpf_filter, local_network, local_s
 
 class BpfConfigManager(GenericConfigManager):
 
-    def __init__(self, configuration_directory):
+    def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         self.configuration_directory = configuration_directory
         self.bpf_filters = bpf_filter.BpfFilters()
 
         with open(f'{self.configuration_directory}/bpf_map_file.input') as config_f:
             config_data = dict(data=config_f.readlines())
-        super().__init__(config_data)
+        super().__init__(config_data, name='ZEEKBPF', verbose=verbose, stdout=stdout)
 
         self.add_parser(
             parser=lambda data: bpf_filter.BpfFilters(
@@ -54,7 +54,7 @@ class SiteLocalConfigManager(GenericConfigManager):
     def _line_denotes_definition(line):
         return 'redef' in line.replace(' ', '')
 
-    def __init__(self, configuration_directory):
+    def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         self.configuration_directory = configuration_directory
         self.scripts = local_site.Scripts()
         self.signatures = local_site.Signatures()
@@ -62,7 +62,7 @@ class SiteLocalConfigManager(GenericConfigManager):
 
         with open(f'{self.configuration_directory}/site/local.zeek') as config_f:
             config_data = dict(data=config_f.readlines())
-        super().__init__(config_data)
+        super().__init__(config_data, name='ZEEKLOCAL', verbose=verbose, stdout=stdout)
 
         self.add_parser(
             parser=lambda data: local_site.Scripts(
@@ -132,7 +132,7 @@ class SiteLocalConfigManager(GenericConfigManager):
 
 class NodeConfigManager(GenericConfigManager):
 
-    def __init__(self, install_directory: str):
+    def __init__(self, install_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """
         Configuration Manager for node.cfg file
 
@@ -152,7 +152,7 @@ class NodeConfigManager(GenericConfigManager):
             for item in config_parser.items(section):
                 key, value = item
                 config_data[section][key] = value
-        super().__init__(config_data)
+        super().__init__(config_data, name='ZEEKNODE', verbose=verbose, stdout=stdout)
         self.add_parser(
             parser=lambda data:
             [
@@ -355,13 +355,13 @@ class LocalNetworksConfigManager(GenericConfigManager):
             )
         return local_networks
 
-    def __init__(self, installation_directory):
+    def __init__(self, installation_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         self.installation_directory = installation_directory
         self.local_networks = local_network.LocalNetworks()
 
         with open(f'{self.installation_directory}/etc/networks.cfg') as config_f:
             config_data = dict(data=config_f.readlines())
-        super().__init__(config_data)
+        super().__init__(config_data, name='ZEEKNET', verbose=verbose, stdout=stdout)
 
         self.add_parser(
             parser=self._parse_local_networks,

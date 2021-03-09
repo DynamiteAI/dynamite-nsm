@@ -1,13 +1,14 @@
-import os
 import json
-from copy import deepcopy
+import os
+import logging
 from typing import Callable, Dict, List, Optional, Union
 
 from yaml import SafeDumper
 from yaml import dump
 
-from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm import utilities
 
 
 class NoAliasDumper(SafeDumper):
@@ -47,9 +48,15 @@ class BackupConfigManager:
 
 class GenericConfigManager:
 
-    def __init__(self, config_data: Dict):
+    def __init__(self, config_data: Dict, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         self.config_data = config_data
         self.formatted_data = json.dumps(config_data)
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.stdout = stdout
+        self.verbose = verbose
+        self.logger = get_logger(str(name), level=log_level, stdout=stdout)
 
     def add_parser(self, parser: Callable, attribute_name):
         setattr(self, attribute_name, parser(self.config_data))
@@ -88,8 +95,8 @@ class JavaOptionsConfigManager(GenericConfigManager):
                 extra_params.append(line.strip())
         return initial_memory, maximum_memory, extra_params
 
-    def __init__(self, config_data: Dict):
-        super().__init__(config_data)
+    def __init__(self, config_data: Dict, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        super().__init__(config_data, name=name, verbose=verbose, stdout=stdout)
 
         self.initial_memory = None
         self.maximum_memory = None
@@ -114,7 +121,7 @@ class JavaOptionsConfigManager(GenericConfigManager):
         out_file_name = os.path.basename(out_file_path)
         backup_file_name = out_file_name + '.backup'
         self.formatted_data = f'-Xms{self.initial_memory}\n-Xmx{self.maximum_memory}\n' + \
-            '\n'.join(self._raw_extra_params)
+                              '\n'.join(self._raw_extra_params)
         if backup_directory:
             utilities.backup_configuration_file(out_file_path, backup_directory,
                                                 destination_file_prefix=backup_file_name)
@@ -128,9 +135,16 @@ class JavaOptionsConfigManager(GenericConfigManager):
 
 class YamlConfigManager:
 
-    def __init__(self, config_data: Dict, **extract_tokens: Dict):
+    def __init__(self, config_data: Dict, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
+                 **extract_tokens: Dict):
         self.config_data = config_data
         self.extract_tokens = extract_tokens
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.stdout = stdout
+        self.verbose = verbose
+        self.logger = get_logger(str(name), level=log_level, stdout=stdout)
 
     def parse_yaml_file(self) -> None:
 

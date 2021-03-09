@@ -73,10 +73,12 @@ class InstallManager(install.BaseInstallManager):
         sysctl = systemctl.SystemCtl()
 
         # Directory setup
+        self.logger.debug(f'Creating directory: {self.configuration_directory}')
         utilities.makedirs(self.configuration_directory)
+        self.logger.debug(f'Creating directory: {self.install_directory}')
         utilities.makedirs(self.install_directory)
+        self.logger.debug(f'Creating directory: {self.log_directory}')
         utilities.makedirs(self.log_directory)
-
         self.copy_kibana_files_and_directories()
         self.create_update_kibana_environment_variables()
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/kibana/kibana.yml',
@@ -89,14 +91,14 @@ class InstallManager(install.BaseInstallManager):
         if not port:
             port = 5601
         if not elasticsearch_targets:
-            elasticsearch_targets = [f'http://{utilities.get_primary_ip_address()}:9200']
-
+            elasticsearch_targets = [f'https://{utilities.get_primary_ip_address()}:9200']
+        self.logger.debug(f'Elasticsearch Targets = {elasticsearch_targets}')
         kb_main_config.host = host
         kb_main_config.port = port
+        self.logger.debug(f'Kibana will listen on {kb_main_config.host}:{kb_main_config.port}')
         kb_main_config.elasticsearch_targets = elasticsearch_targets
-        kb_main_config.elasticsearch_username = None
-        kb_main_config.elasticsearch_password = None
         kb_main_config.commit()
+        self.logger.info('Applying configuration.')
 
         # Fix Permissions
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
@@ -104,6 +106,7 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
 
         # Install and enable service
+        self.logger.debug(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/kibana.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/kibana.service')
 
 

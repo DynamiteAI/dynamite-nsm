@@ -13,7 +13,7 @@ from dynamite_nsm.services.base.config import YamlConfigManager
 
 class ConfigManager(YamlConfigManager):
 
-    def __init__(self, configuration_directory: str):
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """
         Configuration Manager for suricata.yaml file
 
@@ -89,7 +89,7 @@ class ConfigManager(YamlConfigManager):
         except (IOError, ValueError):
             raise general_exceptions.ReadConfigError(f'Failed to read or parse {self.suricata_config_file}.')
 
-        super().__init__(self.config_data_raw, **extract_tokens)
+        super().__init__(self.config_data_raw, name='SURICATACFG', verbose=verbose, stdout=stdout, **extract_tokens)
 
         self.parse_yaml_file()
 

@@ -1,11 +1,20 @@
-import os
 from typing import Dict, Optional, Union
 
+from dynamite_nsm import exceptions
 from dynamite_nsm.services.base import process
-from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.filebeat import profile as profile
 
-PID_DIRECTORY = '/var/run/dynamite/filebeat/'
+
+class CallFilebeatProcessError(exceptions.CallProcessError):
+    """
+    Thrown when filebeat process encounters an error state
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while calling filebeat process: {}".format(message)
+        super(CallFilebeatProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):
@@ -14,12 +23,12 @@ class ProcessManager(process.BaseProcessManager):
     """
 
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
-        process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None,
-                                            pid_file=os.path.join(PID_DIRECTORY, 'filebeat.pid'), stdout=stdout,
+        process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None, stdout=stdout,
                                             verbose=verbose, pretty_print_status=pretty_print_status)
 
         if not profile.ProcessProfiler().is_installed():
-            raise general_exceptions.CallProcessError("FileBeat is not installed.")
+            self.logger.error("Filebeat is not installed. Install it with 'dynamite filebeat install -h'")
+            raise CallFilebeatProcessError('Filebeat is not installed.')
 
 
 def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,

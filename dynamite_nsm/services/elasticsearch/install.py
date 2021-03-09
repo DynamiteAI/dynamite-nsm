@@ -98,14 +98,14 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
     p = Popen(executable=opendistro_security_admin, args=security_admin_args,
               stdout=PIPE, stderr=PIPE, cwd=security_conf_directory, env=utilities.get_environment_file_dict())
     out, err = p.communicate()
-    open('out.txt', 'w').write(out.decode('utf-8'))
     if p.returncode != 0:
         logger.warning(
             f'TLS bootstrapping failed while installing initial security configuration with the following error: {err} '
             f'| {out}. You may need to do this step manually after the cluster has been started: '
             f'{" ".join(security_admin_args)}'
         )
-    # process.stop(stdout=stdout, verbose=verbose)
+    logger.info('Shutting down ElasticSearch service.')
+    process.stop(stdout=stdout, verbose=verbose)
 
 
 class InstallManager(install.BaseInstallManager):
@@ -190,10 +190,16 @@ class InstallManager(install.BaseInstallManager):
         sysctl = systemctl.SystemCtl()
 
         # System patching and directory setup
+        self.logger.debug('Patching sysctl.')
         utilities.update_sysctl()
+        self.logger.debug('Patching file-handle limits.')
         utilities.update_user_file_handle_limits()
+
+        self.logger.debug(f'Creating directory: {self.configuration_directory}')
         utilities.makedirs(self.configuration_directory)
+        self.logger.debug(f'Creating directory: {self.install_directory}')
         utilities.makedirs(self.install_directory)
+        self.logger.debug(f'Creating directory: {self.log_directory}')
         utilities.makedirs(self.log_directory)
 
         self.copy_elasticsearch_files_and_directories()
@@ -208,8 +214,9 @@ class InstallManager(install.BaseInstallManager):
                                                    self.configuration_directory)
 
         # Optimize Configurations
-        es_main_config = config.ConfigManager(self.configuration_directory)
-        es_java_config = config.JavaHeapOptionsConfigManager(self.configuration_directory)
+        es_main_config = config.ConfigManager(self.configuration_directory, verbose=self.verbose, stdout=self.stdout)
+        es_java_config = config.JavaHeapOptionsConfigManager(self.configuration_directory, verbose=self.verbose,
+                                                             stdout=self.stdout)
         es_main_config.path_logs = self.log_directory
         if not node_name:
             node_name = utilities.get_default_es_node_name()
@@ -237,15 +244,19 @@ class InstallManager(install.BaseInstallManager):
         es_main_config.authcz_admin_distinguished_names = [formatted_subj, formatted_subj_2]
         es_java_config.initial_memory = f'{heap_size_gigs}g'
         es_java_config.maximum_memory = f'{heap_size_gigs}g'
+        self.logger.debug(f'Java Heap Initial & Max Memory = {heap_size_gigs} GB')
         es_main_config.commit()
         es_java_config.commit()
+        self.logger.info('Applying configuration.')
 
         # Fix Permissions
+        self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
 
         # Install and enable service
+        self.logger.debug(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
 
         # Bootstrap Transport Layer Security

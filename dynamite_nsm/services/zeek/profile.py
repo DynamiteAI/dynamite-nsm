@@ -13,8 +13,6 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         self.zeek_scripts = self.env_dict.get('ZEEK_SCRIPTS')
 
         profile.BaseProcessProfiler.__init__(self,
-                                             install_archive_path=os.path.join(const.INSTALL_CACHE,
-                                                                               const.ZEEK_ARCHIVE_NAME),
                                              install_directory=self.zeek_home,
                                              config_directory=self.zeek_scripts,
                                              required_install_files=['bin', 'etc', 'lib'],

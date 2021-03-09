@@ -1,12 +1,14 @@
-from yaml import load
-from yaml import Loader
 from typing import Optional
+
+from yaml import Loader
+from yaml import load
+
 from dynamite_nsm.services.base.config import JavaOptionsConfigManager, YamlConfigManager
 
 
 class ConfigManager(YamlConfigManager):
 
-    def __init__(self, configuration_directory: str):
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         extract_tokens = {
             'node_name': ('node.name',),
             'path_data': ('path.data',),
@@ -25,7 +27,7 @@ class ConfigManager(YamlConfigManager):
 
         with open(self.logstash_config_path) as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
-        super().__init__(self.config_data_raw, **extract_tokens)
+        super().__init__(self.config_data_raw, name='LOGSTASHCFG', verbose=verbose, stdout=stdout, **extract_tokens)
         self.parse_yaml_file()
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
@@ -43,12 +45,12 @@ class ConfigManager(YamlConfigManager):
 
 class JavaHeapOptionsConfigManager(JavaOptionsConfigManager):
 
-    def __init__(self, configuration_directory):
+    def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         self.configuration_directory = configuration_directory
         self.logstash_jvm_config_path = f'{self.configuration_directory}/jvm.options'
         with open(self.logstash_jvm_config_path) as jvm_config:
             data = {'data': jvm_config.readlines()}
-        super().__init__(data)
+        super().__init__(data, name='LOGSTASHJAVA', verbose=verbose, stdout=stdout)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         if not out_file_path:

@@ -3,13 +3,24 @@ import subprocess
 import time
 from typing import Dict, Optional
 
-from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
+from dynamite_nsm import exceptions
 from dynamite_nsm.services.base import process
-from dynamite_nsm.services.kibana import exceptions as kibana_exceptions
 from dynamite_nsm.services.kibana import profile as kibana_profile
 
 PID_DIRECTORY = '/var/run/dynamite/kibana/'
+
+
+class CallKibanaProcessError(exceptions.CallProcessError):
+    """
+    Thrown when kibana process encounters an error state
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = f'An error occurred while calling kibana process: {message}'
+        super(CallKibanaProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):
@@ -19,15 +30,11 @@ class ProcessManager(process.BaseProcessManager):
 
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
-        try:
-            process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana', log_path=environ.get('KIBANA_LOGS'),
-                                                stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
-        except general_exceptions.CallProcessError:
-            self.logger.error("Could not find systemctl on this system.")
-            raise kibana_exceptions.CallKibanaProcessError("Could not find systemctl.")
+        process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana', log_path=environ.get('KIBANA_LOGS'),
+                                            stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         if not kibana_profile.ProcessProfiler().is_installed():
             self.logger.error("Kibana is not installed. Install it with 'dynamite kibana install -h'")
-            raise kibana_exceptions.CallKibanaProcessError("Kibana is not installed.")
+            raise CallKibanaProcessError("Kibana is not installed.")
 
     def optimize(self):
         """

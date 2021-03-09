@@ -6,7 +6,7 @@ from dynamite_nsm.services.base.config import YamlConfigManager
 
 class ConfigManager(YamlConfigManager):
 
-    def __init__(self, configuration_directory: str):
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         extract_tokens = {
             'host': ('server.host',),
             'port': ('server.port',),
@@ -23,7 +23,7 @@ class ConfigManager(YamlConfigManager):
         self.kibana_config_path = f'{self.configuration_directory}/kibana.yml'
         with open(self.kibana_config_path) as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
-        super().__init__(self.config_data_raw, **extract_tokens)
+        super().__init__(self.config_data_raw, name='KIBANACFG', verbose=verbose, stdout=stdout, **extract_tokens)
         self.parse_yaml_file()
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:

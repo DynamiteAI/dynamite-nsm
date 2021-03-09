@@ -2,11 +2,22 @@ import os
 import time
 from typing import Dict, Optional, Union
 
-from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm import exceptions
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
-from dynamite_nsm.services.elasticsearch import exceptions as elasticsearch_exceptions
 from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
+
+
+class CallElasticProcessError(exceptions.CallProcessError):
+    """
+    Thrown when elasticsearch process encounters an error state
+    """
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while calling elasticsearch process: {}".format(message)
+        super(CallElasticProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):
@@ -16,17 +27,14 @@ class ProcessManager(process.BaseProcessManager):
 
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         environ = utilities.get_environment_file_dict()
-        try:
-            process.BaseProcessManager.__init__(self, 'elasticsearch.service', 'elasticsearch',
-                                                log_path=environ.get('ES_LOGS'),
-                                                create_pid_file=True,
-                                                stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
-        except general_exceptions.CallProcessError:
-            self.logger.error("Could not find systemctl on this system.")
-            raise elasticsearch_exceptions.CallElasticProcessError("Could not find systemctl.")
+        process.BaseProcessManager.__init__(self, 'elasticsearch.service', 'elasticsearch',
+                                            log_path=environ.get('ES_LOGS'),
+                                            create_pid_file=True,
+                                            stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
+
         if not elasticsearch_profile.ProcessProfiler().is_installed():
-            self.logger.error("ElasticSearch is not installed. Install it with 'dynamite elasticsearch install -h'")
-            raise elasticsearch_exceptions.CallElasticProcessError("ElasticSearch is not installed.")
+            self.logger.error("Elasticsearch is not installed. Install it with 'dynamite elasticsearch install -h'")
+            raise CallElasticProcessError("Elasticsearch is not installed.")
 
 
 def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,

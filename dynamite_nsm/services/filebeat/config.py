@@ -24,7 +24,7 @@ class InvalidAgentTag(Exception):
 
 class ConfigManager(YamlConfigManager):
 
-    def __init__(self, install_directory: str):
+    def __init__(self, install_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         extract_tokens = {
             '_inputs_raw': ('filebeat.inputs',),
             '_elasticsearch_targets_raw': ('output.elasticsearch',),
@@ -46,7 +46,7 @@ class ConfigManager(YamlConfigManager):
 
         with open(self.filebeat_config_path, 'r') as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
-        super().__init__(self.config_data_raw, **extract_tokens)
+        super().__init__(self.config_data_raw, name='FILEBEATCFG', verbose=verbose, stdout=stdout, **extract_tokens)
 
         self.parse_yaml_file()
         try:
@@ -189,8 +189,7 @@ class ConfigManager(YamlConfigManager):
         suricata_module_exists = os.path.exists(os.path.join(modules_path, 'suricata.yml'))
         return zeek_module_exists and suricata_module_exists
 
-    def patch_modules(self, zeek_log_directory: Optional[str] = None,
-                      suricata_log_directory: Optional[str] = None) -> None:
+    def patch_modules(self, zeek_log_directory: str, suricata_log_directory: str) -> None:
         """
         Given the paths to Zeek log directory and suricata log directory attempts to locate the modules.d/ configuration
         and patch the directory paths to point to the Dynamite configured paths
@@ -200,6 +199,7 @@ class ConfigManager(YamlConfigManager):
         """
 
         def write_module(path, data):
+            self.logger.debug(f'Writing module {path}')
             with open(path, 'w') as module_yaml:
                 dump(data, module_yaml, default_flow_style=False)
 
@@ -208,6 +208,7 @@ class ConfigManager(YamlConfigManager):
         suricata_module_data = None
         zeek_module_data = None
         modules_path = os.path.join(self.install_directory, 'modules.d')
+        self.logger.debug(f'Located modules at {modules_path}')
         if not os.path.exists(modules_path):
             return
         for module in os.listdir(modules_path):
@@ -215,30 +216,38 @@ class ConfigManager(YamlConfigManager):
                 continue
             if 'zeek' in module:
                 zeek_module_path = os.path.join(modules_path, module)
+                self.logger.debug(f'Setting {module} path -> {zeek_module_path}')
             elif 'suricata' in module:
                 suricata_module_path = os.path.join(modules_path, module)
-        if zeek_log_directory and zeek_module_path:
+                self.logger.debug(f'Setting {module} path -> {suricata_module_path}')
+        if zeek_module_path:
+            self.logger.debug(f'Located Filebeat module {zeek_module_path}')
             with open(zeek_module_path, 'r') as zeek_module_yaml:
                 zeek_module_data = load(zeek_module_yaml, Loader=Loader)
-
             for k, v in zeek_module_data[0].items():
+                zeek_full_path = os.path.join(zeek_log_directory, k + '.log')
                 if isinstance(v, dict):
                     if k == 'connection':
                         k = 'conn'
-                    v['var.paths'] = [os.path.join(zeek_log_directory, k + '.log')]
-        if suricata_log_directory and suricata_module_path:
+                    v['var.paths'] = [zeek_full_path]
+                    self.logger.debug(f'Patching path {k} -> {v}')
+        if suricata_module_path:
+            self.logger.debug(f'Located Filebeat module {zeek_module_path}')
             with open(suricata_module_path, 'r') as suricata_module_yaml:
                 suricata_module_data = load(suricata_module_yaml, Loader=Loader)
             for k, v in suricata_module_data[0].items():
+                suricata_full_path = os.path.join(suricata_log_directory, k + '.json')
                 if isinstance(v, dict):
-                    v['var.paths'] = [os.path.join(suricata_log_directory, k + '.json')]
+                    v['var.paths'] = [suricata_full_path]
+                    self.logger.debug(f'Patching path {k} -> {v}')
+
         patch_file = open(os.path.join(modules_path, '.patched'), 'w')
         if zeek_module_data:
             write_module(zeek_module_path, zeek_module_data)
-            patch_file.write(str(datetime.utcnow()))
+            patch_file.write(str(datetime.utcnow()) + '\n')
         if suricata_module_data:
             write_module(suricata_module_path, suricata_module_data)
-            patch_file.write(str(datetime.utcnow()))
+            patch_file.write(str(datetime.utcnow()) + '\n')
         patch_file.close()
 
     def switch_to_elasticsearch_target(self) -> None:
