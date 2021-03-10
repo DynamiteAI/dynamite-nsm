@@ -621,10 +621,7 @@ def run_subprocess_with_status(process, expected_lines=None):
         ' ', progressbar.ETA()
     ]
     over_max_value = False
-    try:
-        pb = progressbar.ProgressBar(widgets=widgets, max_value=expected_lines)
-    except TypeError:
-        pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
+    pb = progressbar.ProgressBar(widgets=widgets, maxval=expected_lines)
     pb.start()
     while True:
         output = process.stdout.readline().decode()

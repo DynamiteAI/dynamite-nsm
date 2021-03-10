@@ -30,16 +30,15 @@ class InstallManager(install.BaseInstallManager):
         super().__init__('filebeat', verbose, stdout)
         if download_filebeat_archive:
             self.logger.info('Attempting to download Filebeat OSS archive.')
-            _, archive_name, self.directory_name = self.download_from_mirror(const.FILE_BEAT_MIRRORS, stdout=stdout,
-                                                                             verbose=verbose)
+            _, archive_name, self.local_mirror_root = self.download_from_mirror(const.FILE_BEAT_MIRRORS)
             self.logger.info(f'Attempting to extract Filebeat archive ({archive_name}).')
             self.extract_archive(os.path.join(const.INSTALL_CACHE, archive_name))
             self.logger.info("Extraction completed.")
         else:
-            _, _, self.directory_name = self.get_mirror_info(const.FILE_BEAT_MIRRORS)
+            _, _, self.local_mirror_root = self.get_mirror_info(const.FILE_BEAT_MIRRORS)
 
     def copy_filebeat_files_and_directories(self) -> None:
-        filebeat_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
+        filebeat_tarball_extracted = f'{const.INSTALL_CACHE}/{self.local_mirror_root}'
 
         install_paths = [
             'kibana/',
@@ -131,7 +130,7 @@ class InstallManager(install.BaseInstallManager):
         filebeat_config.patch_modules(zeek_log_directory=zeek_log_root, suricata_log_directory=suricata_log_root)
 
         # Install and enable service
-        self.logger.debug(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/filebeat.service')
+        self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/filebeat.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/filebeat.service')
 
 

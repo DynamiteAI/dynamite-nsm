@@ -1,14 +1,21 @@
+import logging
 import os
 import shutil
-import logging
+import subprocess
 import tarfile
 from typing import Callable, List, Optional, Tuple, Union
 
-from dynamite_nsm import const
-from dynamite_nsm import package_manager
+from dynamite_nsm import const, exceptions, package_manager
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm import exceptions as general_exceptions
+
+
+def get_parallel_threads() -> int:
+    parallel_threads = 1
+    cpu_available_cores = utilities.get_cpu_core_count()
+    if cpu_available_cores > 1:
+        parallel_threads = cpu_available_cores - 1
+    return parallel_threads
 
 
 class NetworkInterfaceNotFound(Exception):
@@ -26,8 +33,8 @@ class NetworkInterfaceNotFound(Exception):
 
 class BaseInstallManager:
 
-    def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        log_level = logging.INFO
+    def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
+                 log_level=logging.INFO):
         if verbose:
             log_level = logging.DEBUG
         self.stdout = stdout
@@ -36,8 +43,67 @@ class BaseInstallManager:
         utilities.makedirs(const.PID_PATH, exist_ok=True)
         utilities.set_ownership_of_file(const.PID_PATH, user='dynamite', group='dynamite')
 
-    @staticmethod
-    def create_update_env_variable(name: str, value: str):
+    def compile_source_package(self, source_root_directory: str, compile_args: Optional[List[str]] = None,
+                               parallel_threads: Optional[int] = None,
+                               expected_lines_printed: Optional[int] = None) -> None:
+        if not parallel_threads:
+            parallel_threads = get_parallel_threads()
+        if compile_args:
+            compile_args.extend(['-j', parallel_threads])
+        else:
+            compile_args = ['-j', parallel_threads]
+
+        temp_compile_args = [f'{const.SYS_BIN}/make']
+        temp_compile_args.extend(compile_args)
+        temp_compile_args = [str(a) for a in temp_compile_args]
+        compile_args = temp_compile_args
+        compile_args.extend([';', f'{const.SYS_BIN}/make', 'install'])
+        self.logger.info(f'Compiling: {source_root_directory}.')
+        self.logger.debug(" ".join(compile_args))
+        popen_make_args = dict(
+            args=' '.join(compile_args),
+            shell=True,
+            cwd=source_root_directory,
+        )
+        if not self.verbose:
+            popen_make_args['stdout'] = subprocess.PIPE
+            popen_make_args['stderr'] = subprocess.PIPE
+            ret = utilities.run_subprocess_with_status(subprocess.Popen(**popen_make_args),
+                                                       expected_lines=expected_lines_printed)
+        else:
+            p = subprocess.Popen(**popen_make_args)
+            p.communicate()
+            ret = p.returncode
+        if ret != 0:
+            self.logger.error(f'Exited: {ret}; Process Info: {compile_args}')
+            raise exceptions.CallProcessError(f'Exited with {ret}')
+
+    def configure_source_package(self, source_root_directory: str, configure_args: Optional[List[str]] = None) -> None:
+        temp_config_args = ['./configure']
+        temp_config_args.extend(configure_args)
+        temp_config_args = [str(a) for a in temp_config_args]
+        configure_args = temp_config_args
+        self.logger.info(f'Configuring build: {source_root_directory}.')
+        self.logger.debug(" ".join(configure_args))
+        popen_args = dict(
+            args=' '.join(configure_args),
+            shell=True,
+            cwd=source_root_directory,
+        )
+        if not self.verbose:
+            popen_args['stdout'] = subprocess.PIPE
+            popen_args['stderr'] = subprocess.PIPE
+            ret = utilities.run_subprocess_with_status(subprocess.Popen(**popen_args),
+                                                 expected_lines=None)
+        else:
+            p = subprocess.Popen(**popen_args)
+            p.communicate()
+            ret = p.returncode
+        if ret != 0:
+            self.logger.error(f'Exited: {ret}; Process Info: {configure_args}')
+            raise exceptions.CallProcessError(f'Exited with {ret}')
+
+    def create_update_env_variable(self, name: str, value: str):
         name = str(name)
         value = str(value)
         env_file_path = f'{const.CONFIG_PATH}/environment'
@@ -55,7 +121,9 @@ class BaseInstallManager:
         if overwrite_line_no == -1:
             with open(env_file_path, 'a') as env_fa:
                 env_fa.write(f'{name}={value}\n')
+                self.logger.debug(f'Setting {name} -> {value}')
         else:
+            self.logger.debug(f'Overwriting {name} -> {value}')
             if value.endswith('\n'):
                 read_lines[overwrite_line_no] = f'{name}={value}'
             else:
@@ -63,13 +131,7 @@ class BaseInstallManager:
             with open(env_file_path, 'w') as env_fw:
                 env_fw.writelines(read_lines)
 
-    @staticmethod
-    def download_from_mirror(mirror_path: str, stdout: Optional[bool] = True, verbose: Optional[bool] = True
-                             ) -> Tuple[str, str, Optional[str]]:
-        log_level = logging.INFO
-        if verbose:
-            log_level = logging.DEBUG
-        logger = get_logger('DOWNLOAD', level=log_level, stdout=stdout)
+    def download_from_mirror(self, mirror_path: str) -> Tuple[str, str, Optional[str]]:
 
         with open(mirror_path) as mirror_f:
             res, err = None, None
@@ -80,19 +142,20 @@ class BaseInstallManager:
                     url = mirror
                     archive_name = os.path.basename(url)
                     dir_name = None
-                logger.info("Downloading {} from {}".format(archive_name, url))
+                self.logger.info("Downloading {} from {}".format(archive_name, url))
                 fqdn_dir_name = f'{const.INSTALL_CACHE}/{str(dir_name)}'
                 if os.path.exists(fqdn_dir_name):
                     shutil.rmtree(fqdn_dir_name, ignore_errors=True)
                 try:
-                    res = utilities.download_file(url, archive_name, stdout=stdout)
+                    res = utilities.download_file(url, archive_name, stdout=self.stdout)
                 except Exception as e:
                     res, err = False, e
-                    logger.warning(f'Failed to download {archive_name} from {url}; {e}')
+                    self.logger.warning(f'Failed to download {archive_name} from {url}; {e}')
                 if res:
                     break
             if not res:
-                raise general_exceptions.DownloadError(
+                self.logger.error(f'An error occurred while attempting to download: {err}')
+                raise exceptions.DownloadError(
                     f'General error while attempting to download {archive_name} from all mirrors.')
             return url, archive_name, dir_name
 
@@ -102,10 +165,10 @@ class BaseInstallManager:
             tf = tarfile.open(archive_path)
             tf.extractall(path=const.INSTALL_CACHE)
         except IOError as e:
-            raise general_exceptions.ArchiveExtractionError(
+            raise exceptions.ArchiveExtractionError(
                 f'Could not extract {archive_path} archive to {const.INSTALL_CACHE}; {e}')
         except Exception as e:
-            raise general_exceptions.ArchiveExtractionError(
+            raise exceptions.ArchiveExtractionError(
                 f'General error while attempting to extract {archive_path} archive; {e}')
 
     @staticmethod
@@ -145,6 +208,11 @@ class BaseInstallManager:
         else:
             try:
                 self.logger.debug(f'Copying file {file_or_dir} -> {destination_file_or_dir}')
+                shutil.copy(file_or_dir, destination_file_or_dir)
+            except FileNotFoundError:
+                parent_directory = os.path.dirname(destination_file_or_dir)
+                self.logger.debug(f'Creating parent directory: {parent_directory}')
+                utilities.makedirs(parent_directory)
                 shutil.copy(file_or_dir, destination_file_or_dir)
             except shutil.Error as e:
                 if 'exist' in str(e):

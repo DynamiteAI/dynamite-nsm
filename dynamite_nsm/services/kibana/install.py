@@ -27,19 +27,18 @@ class InstallManager(install.BaseInstallManager):
         super().__init__('kibana', verbose, stdout)
         if download_kibana_archive:
             self.logger.info("Attempting to download Kibana (OpenDistro) archive.")
-            _, archive_name, self.directory_name = self.download_from_mirror(const.KIBANA_MIRRORS, stdout=stdout,
-                                                                             verbose=verbose)
+            _, archive_name, self.local_mirror_root = self.download_from_mirror(const.KIBANA_MIRRORS)
             self.logger.info(f'Attempting to extract Kibana archive ({archive_name}).')
             self.extract_archive(os.path.join(const.INSTALL_CACHE, archive_name))
             self.logger.info("Extraction completed.")
         else:
-            _, _, self.directory_name = self.get_mirror_info(const.KIBANA_MIRRORS)
+            _, _, self.local_mirror_root = self.get_mirror_info(const.KIBANA_MIRRORS)
 
     def copy_kibana_files_and_directories(self) -> None:
         """
         Copy the required Kibana files from the install cache to their respective directories
         """
-        kibana_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
+        kibana_tarball_extracted = f'{const.INSTALL_CACHE}/{self.local_mirror_root}'
         config_paths = [
             'config/kibana.yml',
             'config/node.options'
@@ -97,8 +96,8 @@ class InstallManager(install.BaseInstallManager):
         kb_main_config.port = port
         self.logger.debug(f'Kibana will listen on {kb_main_config.host}:{kb_main_config.port}')
         kb_main_config.elasticsearch_targets = elasticsearch_targets
-        kb_main_config.commit()
         self.logger.info('Applying configuration.')
+        kb_main_config.commit()
 
         # Fix Permissions
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
@@ -106,7 +105,7 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
 
         # Install and enable service
-        self.logger.debug(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/kibana.service')
+        self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/kibana.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/kibana.service')
 
 

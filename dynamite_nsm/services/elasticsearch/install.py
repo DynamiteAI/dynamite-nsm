@@ -1,7 +1,7 @@
 import logging
 import os
-from subprocess import Popen, PIPE
 from time import sleep
+from subprocess import Popen, PIPE
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
@@ -19,7 +19,21 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
                                             trusted_ca_key_name: Optional[str] = 'root-ca-key.pem',
                                             bootstrap_attempts=10,
                                             stdout: Optional[bool] = False,
-                                            verbose: Optional[bool] = False):
+                                            verbose: Optional[bool] = False) -> None:
+    """
+    Used to setup self-signed node-node dnd REST API TLS encryption after installation
+
+    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+    :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
+    :param cert_name: The name of the certificate file
+    :param key_name: The name of the key file
+    :param subj: The certificate subj parameters section (E.G '/C=US/ST=GA/L=Atlanta/O=Dynamite/OU=R&D/CN=dynamite.ai')
+    :param trusted_ca_cert_name: The name of the trusted CA cert
+    :param trusted_ca_key_name: The name of the trusted CA key
+    :param bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
+    :param stdout: Print output to console
+    :param verbose: Include detailed debug messages
+    """
     from dynamite_nsm.services.elasticsearch import process, profile
     es_process_profile = profile.ProcessProfiler()
     opendistro_security_tools_directory = f'{install_directory}/plugins/opendistro_security/tools'
@@ -132,19 +146,18 @@ class InstallManager(install.BaseInstallManager):
 
         if download_elasticsearch_archive:
             self.logger.info("Attempting to download Elasticsearch (OpenDistro) archive.")
-            _, archive_name, self.directory_name = self.download_from_mirror(const.ELASTICSEARCH_MIRRORS,
-                                                                             stdout=stdout, verbose=verbose)
+            _, archive_name, self.local_mirror_root = self.download_from_mirror(const.ELASTICSEARCH_MIRRORS)
             self.logger.info(f'Attempting to extract Elasticsearch archive ({archive_name}).')
             self.extract_archive(os.path.join(const.INSTALL_CACHE, archive_name))
             self.logger.info("Extraction completed.")
         else:
-            _, _, self.directory_name = self.get_mirror_info(const.ELASTICSEARCH_MIRRORS)
+            _, _, self.local_mirror_root = self.get_mirror_info(const.ELASTICSEARCH_MIRRORS)
 
     def copy_elasticsearch_files_and_directories(self) -> None:
         """
         Copy the required Elasticsearch files from the install cache to their respective directories
         """
-        elasticsearch_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
+        elasticsearch_tarball_extracted = f'{const.INSTALL_CACHE}/{self.local_mirror_root}'
         config_paths = [
             'config/elasticsearch.yml',
             'config/jvm.options',
@@ -256,7 +269,7 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
 
         # Install and enable service
-        self.logger.debug(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
+        self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
 
         # Bootstrap Transport Layer Security

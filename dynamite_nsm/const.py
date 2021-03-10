@@ -17,6 +17,7 @@ CONFIG_PATH = "/etc/dynamite"
 LOG_PATH = '/var/log/dynamite/'
 PID_PATH = '/var/run/dynamite/'
 JVM_ROOT = '/usr/lib/jvm/'
+SYS_BIN = '/usr/bin/'
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 PCAP_PATH = "/etc/dynamite/pcaps/"
 

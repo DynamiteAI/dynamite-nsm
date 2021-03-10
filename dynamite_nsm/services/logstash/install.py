@@ -27,19 +27,18 @@ class InstallManager(install.BaseInstallManager):
         super().__init__('logstash', verbose, stdout)
         if download_logstash_archive:
             self.logger.info("Attempting to download Logstash (OSS) archive.")
-            _, archive_name, self.directory_name = self.download_from_mirror(const.LOGSTASH_MIRRORS, stdout=stdout,
-                                                                             verbose=verbose)
+            _, archive_name, self.local_mirror_root = self.download_from_mirror(const.LOGSTASH_MIRRORS)
             self.logger.info(f'Attempting to extract Logstash archive ({archive_name}).')
             self.extract_archive(os.path.join(const.INSTALL_CACHE, archive_name))
             self.logger.info("Extraction completed.")
         else:
-            _, _, self.directory_name = self.get_mirror_info(const.LOGSTASH_MIRRORS)
+            _, _, self.local_mirror_root = self.get_mirror_info(const.LOGSTASH_MIRRORS)
 
     def copy_logstash_files_and_directories(self) -> None:
         """
         Copy the required Logstash files from the install cache to their respective directories
         """
-        logstash_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
+        logstash_tarball_extracted = f'{const.INSTALL_CACHE}/{self.local_mirror_root}'
         config_paths = [
             'config/logstash.yml',
             'config/pipelines.yml',
@@ -137,7 +136,7 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
 
         # Install and enable service
-        self.logger.debug(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/logstash.service')
+        self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/logstash.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/logstash.service')
 
 
