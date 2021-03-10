@@ -30,14 +30,17 @@ class PcapInterfaces:
 
 class AfPacketInterface:
 
-    def __init__(self, interface_name: str, cluster_id: int, cluster_type: str,
+    def __init__(self, interface_name: str, cluster_id: Optional[int] = None, cluster_type: Optional[str] = None,
                  bpf_filter: Optional[str] = None,
                  threads: Union[int, str] = None):
         self.interface = interface_name
         self.cluster_id = cluster_id
-        self.cluster_type = cluster_type.replace('AF_Packet::', '')
-        if self.cluster_type in AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.keys():
-            self.cluster_type = AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.get(self.cluster_type)
+        if cluster_type:
+            self.cluster_type = cluster_type.replace('AF_Packet::', '')
+            if self.cluster_type in AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.keys():
+                self.cluster_type = AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.get(self.cluster_type)
+        else:
+            self.cluster_type = 'cluster_flow'
 
         self.bpf_filter = bpf_filter
         self.threads = threads

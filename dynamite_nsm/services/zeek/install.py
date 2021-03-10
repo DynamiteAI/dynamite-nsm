@@ -40,7 +40,7 @@ class InstallManager(install.BaseInstallManager):
 
     def configure_compile_zeek(self, parallel_threads: Optional[int] = None) -> None:
         """
-        Configure and build Zeek
+        Configure and build Zeek from source
 
         :param parallel_threads: Number of parallel threads to use during the compiling process
         """
@@ -114,13 +114,12 @@ class InstallManager(install.BaseInstallManager):
                 self.logger.info("Installed PowerTools.")
 
         apt_get_packages = \
-            ['cmake', 'cmake3', 'make', 'gcc', 'g++', 'flex', 'bison', 'libpcap-dev', 'libssl-dev',
-             'python-dev', 'swig', 'zlib1g-dev', 'linux-headers-$(uname -r)', 'linux-headers-generic', 'tar',
-             'libjemalloc-dev']
+            ['bison', 'cmake', 'cmake3', 'flex', 'g++', 'gcc', 'libjemalloc-dev', 'libpcap-dev', 'libssl-dev',
+             'linux-headers-$(uname -r)', 'linux-headers-generic', 'make', 'python-dev', 'swig', 'tar', 'zlib1g-dev']
+
         yum_packages = \
-            ['cmake', 'cmake3', 'make', 'gcc', 'gcc-c++', 'flex', 'bison', 'libpcap-devel',
-             'openssl-devel', 'python3-devel', 'python2-devel', 'swig', 'zlib-devel',
-             'kernel-devel', 'tar', 'jemalloc-devel']
+            ['bison', 'cmake', 'cmake3', 'flex', 'gcc', 'gcc-c++', 'jemalloc-devel', 'kernel-devel', 'libpcap-devel',
+             'make', 'openssl-devel', 'python2-devel', 'python3-devel', 'swig', 'tar', 'zlib-devel']
 
         self.install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
                                   pre_install_function=install_powertools_rhel)
@@ -155,13 +154,13 @@ class InstallManager(install.BaseInstallManager):
                                                    f'{self.install_directory}/etc/node.cfg')
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/zeek/local.zeek',
                                                    f'{self.configuration_directory}/site/local.zeek')
-
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/zeek/dynamite_extra_scripts',
                                                    self.configuration_directory)
 
         # Optimize Configurations
-        site_local_config = config.SiteLocalConfigManager(self.configuration_directory)
-        node_config = config.NodeConfigManager(self.install_directory)
+        site_local_config = config.SiteLocalConfigManager(self.configuration_directory, stdout=self.stdout,
+                                                          verbose=self.verbose)
+        node_config = config.NodeConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
         node_config.workers = node.Workers()
         for worker in node_config.get_optimal_zeek_worker_config(capture_network_interfaces):
             node_config.workers.add_worker(
@@ -181,6 +180,7 @@ class InstallManager(install.BaseInstallManager):
             )
         self.logger.info('Applying local site configuration.')
         site_local_config.commit()
+
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
