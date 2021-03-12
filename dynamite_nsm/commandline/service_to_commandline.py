@@ -1,7 +1,7 @@
 import argparse
 import inspect
 import json
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from docstring_parser import parse as docstring_parse
 
@@ -142,7 +142,7 @@ def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None) -> 
     return base_params, interface_functions
 
 
-def get_function_definition(func: Callable) -> Tuple[str, dict, str]:
+def get_function_definition(func: Callable) -> Union[Tuple[str, dict, str], None]:
     """
     Given a callable function returns
 
@@ -162,6 +162,8 @@ def get_function_definition(func: Callable) -> Tuple[str, dict, str]:
 class SingleResponsibilityInterface:
     """
     Maps a class with only one responsibility to commandline interface
+
+    For example InstallManager's only need call one function (perform one responsibility) once instantiated.
     """
 
     def __init__(self, cls: object, entry_method_name: str, interface_name: str,
@@ -200,6 +202,7 @@ class SingleResponsibilityInterface:
     def execute(self, args: argparse.Namespace) -> None:
         """
         Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
+
         :param args: The output of argparse.ArgumentParser.parse_args() function
         """
         constructor_kwargs = dict()
