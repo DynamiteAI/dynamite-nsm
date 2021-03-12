@@ -1,14 +1,27 @@
 import os
-import time
 import random
+import time
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
+from dynamite_nsm.service_objects.suricata import misc
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.suricata import config
-from dynamite_nsm.service_objects.suricata import misc
 
 COMPILE_PROCESS_EXPECTED_LINE_COUNT = 935
+
+
+def post_install_bootstrap_updater(suricata_install_directory: str, stdout: Optional[bool] = False,
+                                   verbose: Optional[bool] = False):
+    from dynamite_nsm.services.suricata import oinkmaster as suricata_rule_updater
+    from dynamite_nsm.services.suricata.oinkmaster import install as suricata_rule_updater_install
+    suricata_rule_updater_install.InstallManager(
+        install_directory=f'{suricata_install_directory}/rule_updater',
+        download_oinkmaster_archive=True,
+        stdout=stdout,
+        verbose=verbose
+    ).setup()
+    suricata_rule_updater.update_suricata_rules()
 
 
 class InstallManager(install.BaseInstallManager):
@@ -86,6 +99,20 @@ class InstallManager(install.BaseInstallManager):
 
         super(InstallManager, self).install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages)
 
+    def copy_suricata_files_and_directories(self) -> None:
+        """
+        Copy the required Suricata files from the install cache to their respective directories
+        """
+        suricata_tarball_extracted = f'{const.INSTALL_CACHE}/{self.local_mirror_root}'
+        config_paths = [
+            'reference.config',
+            'threshold.config',
+            'rules/'
+        ]
+        for conf in config_paths:
+            self.copy_file_or_directory_to_destination(f'{suricata_tarball_extracted}/{conf}',
+                                                       self.configuration_directory)
+
     def setup(self, capture_network_interfaces: Optional[List[str]] = None):
         """
         Install Suricata
@@ -105,6 +132,7 @@ class InstallManager(install.BaseInstallManager):
         utilities.makedirs(self.install_directory)
         self.logger.debug(f'Creating directory: {self.log_directory}')
         utilities.makedirs(self.log_directory)
+        self.copy_suricata_files_and_directories()
         self.logger.info('Setting up Suricata from source. This can a few minutes.')
         if self.stdout:
             utilities.print_coffee_art()
@@ -141,6 +169,8 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
 
+        post_install_bootstrap_updater(self.install_directory, stdout=self.stdout, verbose=self.verbose)
+
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/suricata.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))
 
@@ -150,7 +180,7 @@ if __name__ == '__main__':
         install_directory=f'{const.INSTALL_PATH}/suricata',
         configuration_directory=f'{const.CONFIG_PATH}/suricata',
         log_directory=f'{const.INSTALL_PATH}/suricata/logs',
-        download_suricata_archive=True,
+        download_suricata_archive=False,
         stdout=True,
         verbose=False
     )

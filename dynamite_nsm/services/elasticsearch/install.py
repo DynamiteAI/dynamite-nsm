@@ -128,6 +128,8 @@ class InstallManager(install.BaseInstallManager):
                  download_elasticsearch_archive: Optional[bool] = True,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False):
         """
+        Install Elasticsearch
+
         :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
         :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
         :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
@@ -141,7 +143,6 @@ class InstallManager(install.BaseInstallManager):
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
-
         install.BaseInstallManager.__init__(self, 'elasticsearch', verbose=self.verbose, stdout=stdout)
 
         if download_elasticsearch_archive:

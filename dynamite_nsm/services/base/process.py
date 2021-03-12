@@ -54,22 +54,37 @@ class BaseProcessManager:
         return pid
 
     def disable(self) -> bool:
+        """
+        Disable process
+        """
         self.logger.info('Disabling on startup: {}'.format(self.systemd_service))
         return self.sysctl.disable(self.systemd_service, daemon_reload=True)
 
     def enable(self) -> bool:
+        """
+        Enable process
+        """
         self.logger.info('Enabling on startup: {}'.format(self.systemd_service))
         return self.sysctl.enable(self.systemd_service, daemon_reload=True)
 
     def start(self) -> bool:
+        """
+        Start Process
+        """
         self.logger.info('Attempting to start {}'.format(self.systemd_service))
         return self.sysctl.start(self.systemd_service)
 
     def stop(self) -> bool:
+        """
+        Stop Process
+        """
         self.logger.info('Attempting to stop {}'.format(self.systemd_service))
         return self.sysctl.stop(self.systemd_service)
 
     def status(self) -> Union[Dict, str]:
+        """
+        Get Process Status
+        """
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)
         systemd_info = self.sysctl.status(self.systemd_service)
@@ -134,5 +149,8 @@ class BaseProcessManager:
         return status
 
     def restart(self) -> bool:
+        """
+        Restart Process
+        """
         self.logger.info('Attempting to restart {}'.format(self.systemd_service))
         return self.sysctl.restart(self.systemd_service)

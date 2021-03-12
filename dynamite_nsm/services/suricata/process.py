@@ -15,8 +15,7 @@ class ProcessManager(process.BaseProcessManager):
 
     def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
         process.BaseProcessManager.__init__(self, 'suricata.service', 'suricata', log_path=None,
-                                            pid_file=os.path.join(PID_DIRECTORY, 'suricata.pid'), stdout=stdout,
-                                            verbose=verbose, pretty_print_status=pretty_print_status)
+                                            stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         if not profile.ProcessProfiler().is_installed():
             raise general_exceptions.CallProcessError("Suricata is not installed.")
 

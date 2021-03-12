@@ -24,7 +24,8 @@ setup(
         'tabulate',
         'pyyaml',
         'npyscreen',
-        'psutil'
+        'psutil',
+        'docstring-parser==0.7.3'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

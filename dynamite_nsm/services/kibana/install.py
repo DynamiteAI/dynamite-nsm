@@ -67,7 +67,12 @@ class InstallManager(install.BaseInstallManager):
         self.create_update_env_variable('KIBANA_LOGS', self.log_directory)
 
     def setup(self, host: Optional[str] = None, port: Optional[int] = None,
-              elasticsearch_targets: Optional[List[str]] = None):
+              elasticsearch_targets: Optional[List[str]] = None) -> None:
+        """
+        :param host: The IP or hostname to listen on
+        :param port: The port to listen on
+        :param elasticsearch_targets: A list of Elasticsearch urls
+        """
 
         sysctl = systemctl.SystemCtl()
 
