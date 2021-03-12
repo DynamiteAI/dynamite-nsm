@@ -1,8 +1,10 @@
 from dynamite_nsm.commandline.service_to_commandline import SingleResponsibilityInterface
 from dynamite_nsm.services.kibana import install
 
-cmd_installer = \
-    SingleResponsibilityInterface(cls=install.InstallManager, interface_name='Kibana',
+interface = \
+    SingleResponsibilityInterface(cls=install.InstallManager,
+                                  interface_name='Kibana',
+                                  interface_description='Install Kibana as a standalone component.',
                                   entry_method_name='setup',
                                   defaults=dict(download_kibana_archive=True,
                                                 install_directory='/opt/dynamite/kibana',
@@ -13,6 +15,6 @@ cmd_installer = \
                                   )
 
 if __name__ == '__main__':
-    parser = cmd_installer.get_parser()
+    parser = interface.get_parser()
     args = parser.parse_args()
-    cmd_installer.execute(args)
+    interface.execute(args)
