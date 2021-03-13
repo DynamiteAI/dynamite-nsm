@@ -1,4 +1,3 @@
-import os
 import time
 from typing import Dict, Optional, Union
 
@@ -12,6 +11,7 @@ class CallElasticProcessError(exceptions.CallProcessError):
     """
     Thrown when elasticsearch process encounters an error state
     """
+
     def __init__(self, message):
         """
         :param message: A more specific error message
@@ -25,7 +25,16 @@ class ProcessManager(process.BaseProcessManager):
     ElasticSearch Process Manager
     """
 
-    def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+    def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+                 pretty_print_status: Optional[bool] = False):
+        """
+        Manage Elasticsearch Process
+
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        :param pretty_print_status: If enabled, status will be printed in a tabulated style
+        """
+
         environ = utilities.get_environment_file_dict()
         process.BaseProcessManager.__init__(self, 'elasticsearch.service', 'elasticsearch',
                                             log_path=environ.get('ES_LOGS'),

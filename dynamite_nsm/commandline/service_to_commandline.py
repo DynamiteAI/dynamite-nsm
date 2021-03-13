@@ -53,11 +53,11 @@ class ArgparseParameters:
         if 'bool' in python_type:
             action = 'store_true'
             _type = None
-        if 'int' in python_type:
+        elif 'int' in python_type:
             _type = int
-        if 'float' in python_type:
+        elif 'float' in python_type:
             _type = float
-        if 'str' in python_type:
+        elif 'str' in python_type:
             _type = str
         derived_args = dict(
             required=required,
@@ -109,7 +109,7 @@ def get_argparse_parameters(func_def: Tuple[str, dict, str], defaults: Optional[
     return argparse_parameter_group
 
 
-def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None) -> \
+def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use_parent_init: Optional[bool] = True) -> \
         Tuple[List[ArgparseParameters], Dict[str, List[ArgparseParameters]]]:
     """
     Given a class retrieves all the methods with their corresponding parameters
@@ -132,13 +132,23 @@ def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None) -> 
             else:
                 # func_name, annotations, docs
                 func_name, _, _ = func_def
-                # Store __init__ method parameter of cls only; do not retrieve parent class __init__
-                if func_name == '__init__' and c == cls:
-                    base_params = get_argparse_parameters(func_def, defaults=defaults)
+                if func_name == '__init__':
+                    continue
                 # Store the rest of our method parameters in a dictionary
                 # {func_name: [ArgparseParameters, ArgparseParam...], func_name_2: [ArgparseParameters, Argp...]}
                 else:
                     interface_functions[func_name] = get_argparse_parameters(func_def, defaults=defaults)
+            # and parent class is selected
+    try:
+        parent_class = cls.__mro__[1]
+    except IndexError:
+        parent_class = cls
+    if use_parent_init:
+        func_def = get_function_definition(parent_class.__init__)
+    else:
+        func_def = get_function_definition(cls.__init__)
+    base_params = get_argparse_parameters(func_def, defaults=defaults)
+
     return base_params, interface_functions
 
 
@@ -151,19 +161,102 @@ def get_function_definition(func: Callable) -> Union[Tuple[str, dict, str], None
     """
     if not isinstance(func, Callable):
         return None
-    try:
-        name, annotations = func.__name__, func.__annotations__
+    if func.__name__ == '__init__':
+        name = '__init__'
+        annotations = dict(inspect.signature(func).parameters.items())
+        annotations.pop('self')
         docs = inspect.getdoc(func)
-    except AttributeError:
-        return None
+    else:
+        try:
+            name, annotations = func.__name__, func.__annotations__
+            docs = inspect.getdoc(func)
+        except AttributeError:
+            return None
     return name, annotations, docs
+
+
+class MultipleResponsibilityInterface:
+
+    def __init__(self, cls: object, supported_method_names: List[str], interface_name: str,
+                 interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
+        """
+        :param cls: The class we wish to turn into a commandline utility
+        :param supported_method_names: A list of methods to create interfaces for
+        :param interface_name: The name of this commandline interface
+        :param interface_description: A description of what this interface is supposed to do
+        :param defaults: A dictionary where the key a parameter name and the value represents the value to default it too.
+        """
+
+        self.cls = cls
+        self.supported_method_names = supported_method_names
+        self.interface_name = interface_name
+        self.interface_description = interface_description
+        if not interface_description:
+            self.interfaceModuleType_description = inspect.getdoc(cls)
+        self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
+
+    def get_parser(self):
+        """
+        Returns an argparse.ArgumentParser instance before parse_args has been called.
+
+        :return: argparse.ArgumentParser instance
+        """
+        actions = []
+        parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
+        for params in self.base_params:
+            parser.add_argument(*params.flags, **params.kwargs)
+        for method, params_group in self.interface_methods.items():
+            if method in self.supported_method_names:
+                if not params_group:
+                    actions.append(method.replace('_', '-'))
+                else:
+                    for params in params_group:
+                        parser.add_argument(*params.flags, **params.kwargs)
+        if actions:
+            parser.add_argument('action', choices=actions)
+        return parser
+
+    def execute(self, args: argparse.Namespace, print_to_stdout: Optional[bool] = True) -> None:
+        """
+        Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
+
+        :param args: The output of argparse.ArgumentParser.parse_args() function
+        """
+        constructor_kwargs = dict()
+        entry_method_kwargs = dict()
+        for param, value in vars(args).items():
+            if param == 'action':
+                continue
+            if param in [p.name for p in self.base_params]:
+                constructor_kwargs[param] = value
+            else:
+                entry_method_kwargs[param] = value
+
+        # Dynamically load our class
+        klass = getattr(self, 'cls')
+        # Instantiate it with the constructor kwargs
+        exec_inst = klass(**constructor_kwargs)
+        # Dynamically load our defined entry_method
+        exec_method = getattr(exec_inst, args.action.replace('-', '_'))
+        entry_method_kwargs.pop('sub_interface', None)
+        # Call the entry method
+        if not print_to_stdout:
+            exec_method(**entry_method_kwargs)
+        else:
+            print(exec_method(**entry_method_kwargs))
 
 
 class SingleResponsibilityInterface:
     """
     Maps a class with only one responsibility to commandline interface
-
     For example InstallManager's only need call one function (perform one responsibility) once instantiated.
+
+    1. Takes a single class and entry_method_name.
+    2. Uses several introspection techniques to enumerate instance methods from that class
+    3. Derives the **kwargs params for argparse.ArgumentParser.add_arguments method for the __init__, and entry_method
+    4. Generates parser using annotation and docs
+    5. Provide a method for executing the parsed argparse.Namespace against
+       cls.__init__(**base_kwargs).{entry_method(**interface_kwargs)}
     """
 
     def __init__(self, cls: object, entry_method_name: str, interface_name: str,
@@ -182,7 +275,7 @@ class SingleResponsibilityInterface:
         self.interface_description = interface_description
         if not interface_description:
             self.interface_description = inspect.getdoc(cls)
-        self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults)
+        self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
         self.interface_params = self.interface_methods[self.entry_method_name]
 
     def get_parser(self) -> argparse.ArgumentParser:
@@ -221,3 +314,36 @@ class SingleResponsibilityInterface:
         exec_entry_method = getattr(exec_inst, self.entry_method_name)
         # Call the entry method
         exec_entry_method(**entry_method_kwargs)
+
+
+def append_interface_to_parser(parent_parser: argparse.Action, command_name: str,
+                               interface: Union[SingleResponsibilityInterface, MultipleResponsibilityInterface]):
+    sub_interface_parser = parent_parser.add_parser(command_name, help=interface.interface_description)
+    sub_interface_parser.set_defaults(sub_interface=command_name)
+    if isinstance(interface, SingleResponsibilityInterface):
+        for params in interface.base_params + interface.interface_params:
+            sub_interface_parser.add_argument(*params.flags, **params.kwargs)
+    elif isinstance(interface, MultipleResponsibilityInterface):
+        actions = []
+        for params in interface.base_params:
+            sub_interface_parser.add_argument(*params.flags, **params.kwargs)
+        for method, params_group in interface.interface_methods.items():
+            if method in interface.supported_method_names:
+                if not params_group:
+                    actions.append(method.replace('_', '-'))
+                else:
+                    for params in params_group:
+                        sub_interface_parser.add_argument(*params.flags, **params.kwargs)
+        if actions:
+            sub_interface_parser.add_argument('action', choices=actions)
+
+
+if __name__ == '__main__':
+    from dynamite_nsm.services.elasticsearch import process
+
+    interface = MultipleResponsibilityInterface(process.ProcessManager,
+                                                supported_method_names=['start', 'stop', 'restart', 'status'],
+                                                interface_name='Elasticsearch Process Manager')
+    args = interface.get_parser().parse_args()
+    interface.execute(args, print_to_stdout=True)
+

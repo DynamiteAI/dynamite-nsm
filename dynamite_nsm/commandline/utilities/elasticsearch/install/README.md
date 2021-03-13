@@ -1,5 +1,4 @@
 ```bash
-$ sudo python3 install_elasticsearch/ -h
 usage: install_elasticsearch [-h] [--configuration-directory CONFIGURATION_DIRECTORY] [--install-directory INSTALL_DIRECTORY] [--log-directory LOG_DIRECTORY] [--download-elasticsearch-archive] [--stdout] [--verbose] [--node-name NODE_NAME] [--network-host NETWORK_HOST] [--port PORT]
                              [--initial-master-nodes INITIAL_MASTER_NODES [INITIAL_MASTER_NODES ...]] [--discover-seed-hosts DISCOVER_SEED_HOSTS [DISCOVER_SEED_HOSTS ...]] [--tls-cert-subject TLS_CERT_SUBJECT] [--heap-size-gigs HEAP_SIZE_GIGS]
 

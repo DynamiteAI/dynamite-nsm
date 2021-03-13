@@ -15,6 +15,16 @@ class BaseProcessManager:
                  create_pid_file: Optional[bool] = False,
                  stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
+        """
+
+        :param systemd_service: The name of the systemd.service file
+        :param name: The name of the process manager
+        :param log_path: The path to where the process logs
+        :param create_pid_file: If true will attempt to create a PID file
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        :param pretty_print_status: If enabled, status will be printed in a tabulated style
+        """
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG

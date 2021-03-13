@@ -28,7 +28,15 @@ class ProcessManager(process.BaseProcessManager):
     Kibana Process Manager
     """
 
-    def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+    def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+                 pretty_print_status: Optional[bool] = False):
+        """
+        Manage Kibana Process
+
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        :param pretty_print_status: If enabled, status will be printed in a tabulated style
+        """
         environ = utilities.get_environment_file_dict()
         process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana', log_path=environ.get('KIBANA_LOGS'),
                                             stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)

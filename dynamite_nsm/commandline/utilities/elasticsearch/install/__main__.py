@@ -1,4 +1,4 @@
-from dynamite_nsm.commandline.utilities.install_elasticsearch import interface as elasticsearch_installer_interface
+from dynamite_nsm.commandline.utilities.elasticsearch.install import interface as elasticsearch_installer_interface
 
 if __name__ == '__main__':
     parser = elasticsearch_installer_interface.get_parser()
