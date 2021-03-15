@@ -16,11 +16,12 @@ class ProcessManager(process.BaseProcessManager):
     Zeek Process Manager
     """
 
-    def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+    def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+                 pretty_print_status: Optional[bool] = False):
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('ZEEK_HOME')
         process.BaseProcessManager.__init__(self, 'zeek.service', 'zeek', log_path=None,
-                                            pid_file=None, stdout=stdout, verbose=verbose,
+                                            stdout=stdout, verbose=verbose,
                                             pretty_print_status=pretty_print_status)
 
         if not zeek_profile.ProcessProfiler().is_installed():

@@ -3,9 +3,12 @@ from __future__ import annotations
 import itertools
 import json
 import os
+import time
 from datetime import datetime
 from datetime import timedelta
 from typing import Dict, Generator, Optional
+
+import tabulate
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -20,6 +23,7 @@ class InvalidZeekStatusLogEntry(Exception):
     """
     Thrown when a Zeek stats.log entry is improperly formatted
     """
+
     def __init__(self, message):
         """
         :param message: A more specific error message
@@ -32,6 +36,7 @@ class InvalidZeekBrokerLogEntry(Exception):
     """
     Thrown when a Zeek broker.log entry is improperly formatted
     """
+
     def __init__(self, message):
         """
         :param message: A more specific error message
@@ -44,6 +49,7 @@ class InvalidZeekClusterLogEntry(Exception):
     """
     Thrown when a Zeek cluster.log entry is improperly formatted
     """
+
     def __init__(self, message):
         """
         :param message: A more specific error message
@@ -56,6 +62,7 @@ class InvalidZeekReporterLogEntry(Exception):
     """
     Thrown when a Zeek reporter.log entry is improperly formatted
     """
+
     def __init__(self, message):
         """
         :param message: A more specific error message
@@ -358,7 +365,7 @@ class BrokerLog(logs.LogFile):
     Provides an interface for working with Zeek's broker.log
     """
 
-    def __init__(self, log_sample_size=500, include_archived_logs=False):
+    def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -378,6 +385,7 @@ class BrokerLog(logs.LogFile):
         :param end: UTC end time
         :return: yields a BrokerEntry for every iteration
         """
+
         def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
             if not e:
                 e = datetime.utcnow()
@@ -391,13 +399,45 @@ class BrokerLog(logs.LogFile):
         for log_entry in filter_entries(start, end):
             yield log_entry
 
+    def tail(self, pretty_print: Optional[bool] = True):
+        """
+        :param pretty_print: Print the log entry in a nice tabular view
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Category', 'Peer', 'Message'],
+                                [entry.time, entry.category, f'{entry.peer_address}:{entry.peer_port}', entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')
+
 
 class ClusterLog(logs.LogFile):
     """
     Provides an interface for working with Zeek's cluster.log
     """
 
-    def __init__(self, log_sample_size=500, include_archived_logs=False):
+    def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
+        """
+        :param log_sample_size: The maximum number of entries to parse
+        :param include_archived_logs: If enabled, we will look in folders other than current/ and decode gzipped content
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -417,6 +457,7 @@ class ClusterLog(logs.LogFile):
         :param end: UTC end time
         :return: yields a ClusterEntry for every iteration
         """
+
         def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
             if not e:
                 e = datetime.utcnow()
@@ -430,6 +471,34 @@ class ClusterLog(logs.LogFile):
         for log_entry in filter_entries(start, end):
             yield log_entry
 
+    def tail(self, pretty_print: Optional[bool] = True):
+        """
+        :param pretty_print: Print the log entry in a nice tabular view
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Node', 'Message'],
+                                [entry.time, entry.node, entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')
+
 
 class StatusLog(logs.LogFile):
     """
@@ -439,7 +508,7 @@ class StatusLog(logs.LogFile):
     def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
         """
         :param log_sample_size: The maximum number of entries to parse
-        :param include_archived_logs: If True, we will look in folders other than current/ and decode gzipped content
+        :param include_archived_logs: If enabled, we will look in folders other than current/ and decode gzipped content
         """
 
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
@@ -504,6 +573,33 @@ class StatusLog(logs.LogFile):
                     aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
 
+    def tail(self, pretty_print: Optional[bool] = True):
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for metric in self.iter_aggregated_metrics(start=start, end=end):
+                    if metric.timestamp not in visited:
+                        visited.append(metric.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(metric)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Memory', 'Timers', 'Packets on Link', 'Packets Processed', 'Packets Dropped',
+                                 'Peers'],
+                                [metric.time, metric.memory, metric.timers, metric.packets_link,
+                                 metric.packets_processed, metric.packets_dropped, '\n'.join(metric.peers)]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')
+
 
 class ReporterLog(logs.LogFile):
     """
@@ -549,3 +645,31 @@ class ReporterLog(logs.LogFile):
 
         for log_entry in filter_entries(start, end):
             yield log_entry
+
+    def tail(self, pretty_print: Optional[bool] = True):
+        """
+        :param pretty_print: Print the log entry in a nice tabular view
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Log Level', 'Location', 'Message'],
+                                [entry.time, entry.log_level, entry.location, entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')

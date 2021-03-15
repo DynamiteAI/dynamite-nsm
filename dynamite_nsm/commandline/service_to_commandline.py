@@ -48,6 +48,8 @@ class ArgparseParameters:
             required = False
         if 'Union' in python_type and 'NoneType' in python_type:
             required = False
+        if 'Optional' in python_type:
+            required = False
         if 'List' in python_type:
             nargs = '+'
         if 'bool' in python_type:
@@ -305,7 +307,7 @@ class SingleResponsibilityInterface:
                 constructor_kwargs[param] = value
             else:
                 entry_method_kwargs[param] = value
-
+        entry_method_kwargs.pop('sub_interface', None)
         # Dynamically load our class
         klass = getattr(self, 'cls')
         # Instantiate it with the constructor kwargs

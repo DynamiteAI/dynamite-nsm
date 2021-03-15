@@ -1,4 +1,5 @@
 import os
+import time
 import gzip
 import linecache
 from typing import Generator, Optional
@@ -21,6 +22,7 @@ class LogFile:
         """
 
         self.log_path = log_path
+        self.log_sample_size = log_sample_size
         self.exists = False
         self.current_line = 0
         if gzip_decode and not log_path.endswith('.decoded'):
@@ -35,10 +37,10 @@ class LogFile:
             self.log_path = decoded_log_path
         linecache.updatecache(self.log_path)
         self.last_line_num = self.find_latest_line_offset()
-        if self.last_line_num < log_sample_size:
+        if self.last_line_num < self.log_sample_size:
             self.entries = [entry for entry in self.iter_cache(start=1)]
         else:
-            self.entries = [entry for entry in self.iter_cache(start=self.last_line_num - log_sample_size + 1)]
+            self.entries = [entry for entry in self.iter_cache(start=self.last_line_num - self.log_sample_size + 1)]
 
     def __len__(self):
         return self.last_line_num
@@ -54,7 +56,7 @@ class LogFile:
         else:
             raise StopIteration
 
-    def iter_cache(self, start: Optional[int] = 1, step: Optional[int] = 1) -> Generator[str]:
+    def iter_cache(self, start: Optional[int] = 1, step: Optional[int] = 1) -> Generator:
         """
         Relatively Memory efficient method of accessing very large files on disk
 
@@ -87,6 +89,13 @@ class LogFile:
             step = int(step/2)
             offset -= step
         return offset
+
+    def refresh(self):
+        linecache.updatecache(self.log_path)
+        if self.last_line_num < self.log_sample_size:
+            self.entries = [entry for entry in self.iter_cache(start=1)]
+        else:
+            self.entries = [entry for entry in self.iter_cache(start=self.last_line_num - self.log_sample_size + 1)]
 
     def size(self):
         return LogFileSize(self.find_latest_line_offset(), len(self.entries))
