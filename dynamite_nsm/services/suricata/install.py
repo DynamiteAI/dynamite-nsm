@@ -81,7 +81,7 @@ class InstallManager(install.BaseInstallManager):
         """
         self.create_update_env_variable('SURICATA_HOME', self.install_directory)
         self.create_update_env_variable('SURICATA_CONFIG', self.configuration_directory)
-        self.create_update_env_variable('SURICATA_LOGS', self.configuration_directory)
+        self.create_update_env_variable('SURICATA_LOGS', self.log_directory)
 
     def install_suricata_dependencies(self) -> None:
         """

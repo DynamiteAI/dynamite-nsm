@@ -789,5 +789,5 @@ def wrap_text(s):
         w, h = 150, 90
     else:
         w, h = term_dim
-    wrapped_s = '\n'.join(textwrap.wrap(s, w - 30, fix_sentence_endings=True))
+    wrapped_s = '\n'.join(textwrap.wrap(s, w - 40, fix_sentence_endings=True))
     return wrapped_s

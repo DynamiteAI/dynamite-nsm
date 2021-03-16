@@ -13,3 +13,11 @@ def get_action_parser():
     append_interface_to_parser(subparsers, 'reporter', reporter.interface)
     return parser
 
+
+def get_interfaces():
+    return dict(
+        broker=broker.interface,
+        cluster=cluster.interface,
+        metrics=metrics.interface,
+        reporter=reporter.interface
+    )

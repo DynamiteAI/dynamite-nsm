@@ -5,6 +5,9 @@ import os
 import time
 from datetime import datetime
 from datetime import timedelta
+from typing import Optional
+
+import tabulate
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -15,6 +18,7 @@ class InvalidSuricataStatusLogEntry(ValueError):
     """
     Thrown when a Suricata suricata.log entry is improperly formatted
     """
+
     def __init__(self, message):
         """
         :param message: A more specific error message
@@ -296,7 +300,10 @@ class MetricsEntry:
 
 class MainLog(logs.LogFile):
 
-    def __init__(self, log_sample_size=10000):
+    def __init__(self, log_sample_size: Optional[int] = 10000):
+        """
+        :param log_sample_size: The maximum number of entries (or lines) to parse
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
@@ -327,10 +334,42 @@ class MainLog(logs.LogFile):
                     continue
             yield log_entry
 
+    def tail(self, pretty_print: Optional[bool] = True):
+        """
+        :param pretty_print: Print the log entry in a nice tabular view
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Log Level', 'Category', 'Error', 'Error Code', 'Message'],
+                                [entry.time, entry.log_level, entry.category, entry.error, entry.error_code,
+                                 entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')
+
 
 class StatusLogEve(logs.LogFile):
 
-    def __init__(self, log_sample_size=10000):
+    def __init__(self, log_sample_size: Optional[int] = 10000):
+        """
+        :param log_sample_size: The maximum number of entries (or lines) to parse
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
@@ -421,7 +460,10 @@ class StatusLogEve(logs.LogFile):
 
 class StatsLog(logs.LogFile):
 
-    def __init__(self, log_sample_size=10000):
+    def __init__(self, log_sample_size: Optional[int] = 10000):
+        """
+        :param log_sample_size: The maximum number of entries (or lines) to parse
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.suricata_logs = self.env_dict.get('SURICATA_LOGS')
@@ -431,7 +473,6 @@ class StatsLog(logs.LogFile):
                               log_path=self.log_path,
                               log_sample_size=log_sample_size)
         self.log_path = os.path.join(self.suricata_logs, 'stats.log')
-        self._state_machine_parser()
 
     def _state_machine_parser(self):
         temp_entries = []
@@ -467,6 +508,8 @@ class StatsLog(logs.LogFile):
         self.entries = temp_entries
 
     def iter_metrics(self, start=None, end=None):
+        self._state_machine_parser()
+
         def filter_metrics(s=None, e=None):
             if not e:
                 e = datetime.utcnow()
@@ -542,3 +585,33 @@ class StatsLog(logs.LogFile):
                 else:
                     aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
+
+    def tail(self, pretty_print: Optional[bool] = True):
+        """
+        :param pretty_print: Print the log entry in a nice tabular view
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for metric in self.iter_aggregated_metrics(start=start, end=end):
+                    if metric.timestamp not in visited:
+                        visited.append(metric.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(metric)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Memory', 'Packets Captured', 'Packets Dropped',
+                                 'Errors During Capture'],
+                                [metric.time, metric.get_total_memory(), metric.capture_kernel_packets,
+                                 metric.capture_kernel_drops, metric.capture_errors]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')

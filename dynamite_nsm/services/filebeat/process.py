@@ -22,7 +22,15 @@ class ProcessManager(process.BaseProcessManager):
     FileBeat Process Manager
     """
 
-    def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+    def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+                 pretty_print_status: Optional[bool] = False):
+        """
+        Manage Filebeat Process
+
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        :param pretty_print_status: If enabled, status will be printed in a tabulated style
+        """
         process.BaseProcessManager.__init__(self, 'filebeat.service', 'filebeat', log_path=None, stdout=stdout,
                                             verbose=verbose, pretty_print_status=pretty_print_status)
 

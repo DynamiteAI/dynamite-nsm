@@ -218,7 +218,7 @@ class MultipleResponsibilityInterface:
             parser.add_argument('action', choices=actions)
         return parser
 
-    def execute(self, args: argparse.Namespace, print_to_stdout: Optional[bool] = True) -> None:
+    def execute(self, args: argparse.Namespace) -> Any:
         """
         Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
 
@@ -242,10 +242,8 @@ class MultipleResponsibilityInterface:
         exec_method = getattr(exec_inst, args.action.replace('-', '_'))
         entry_method_kwargs.pop('sub_interface', None)
         # Call the entry method
-        if not print_to_stdout:
-            exec_method(**entry_method_kwargs)
-        else:
-            print(exec_method(**entry_method_kwargs))
+        return exec_method(**entry_method_kwargs)
+
 
 
 class SingleResponsibilityInterface:
@@ -294,7 +292,7 @@ class SingleResponsibilityInterface:
             parser.add_argument(*params.flags, **params.kwargs)
         return parser
 
-    def execute(self, args: argparse.Namespace) -> None:
+    def execute(self, args: argparse.Namespace) -> Any:
         """
         Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
 
@@ -315,7 +313,7 @@ class SingleResponsibilityInterface:
         # Dynamically load our defined entry_method
         exec_entry_method = getattr(exec_inst, self.entry_method_name)
         # Call the entry method
-        exec_entry_method(**entry_method_kwargs)
+        return exec_entry_method(**entry_method_kwargs)
 
 
 def append_interface_to_parser(parent_parser: argparse.Action, command_name: str,
@@ -348,4 +346,3 @@ if __name__ == '__main__':
                                                 interface_name='Elasticsearch Process Manager')
     args = interface.get_parser().parse_args()
     interface.execute(args, print_to_stdout=True)
-

@@ -3,10 +3,13 @@ from __future__ import annotations
 import itertools
 import json
 import math
+import time
 import os
 from datetime import datetime
 from datetime import timedelta
 from typing import Dict, Generator, Optional
+
+import tabulate
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
@@ -26,6 +29,7 @@ class InvalidFilebeatStatusLogEntry(Exception):
     """
     Thrown when a Filebeat log entry is improperly formatted
     """
+
     def __init__(self, message):
         """
         :param message: A more specific error message
@@ -242,3 +246,62 @@ class StatusLog(logs.LogFile):
                 else:
                     aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
+
+    def tail_entries(self, pretty_print: Optional[bool] = True):
+        """
+        :param pretty_print: Print the log entry in a nice tabular view
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Log Level', 'Category', 'Message'],
+                                [entry.time, entry.log_level, entry.category, entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')
+
+    def tail_metrics(self, pretty_print: Optional[bool] = True):
+        """
+        :param pretty_print: Print the log entry in a nice tabular view
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for metric in self.iter_aggregated_metrics(start=start, end=end):
+                    if metric.time.timestamp() not in visited:
+                        visited.append(metric.time.timestamp())
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(metric)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Memory Allocated', 'Read (Bytes)',
+                                 'Write (Bytes)', 'Open Files', 'Active Events', 'Published Events'],
+                                [metric.time, metric.memory_allocated, metric.read_bytes,
+                                 metric.write_bytes, metric.open_file_handles, metric.active_events,
+                                 metric.published_events]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print('[+] Exited.')

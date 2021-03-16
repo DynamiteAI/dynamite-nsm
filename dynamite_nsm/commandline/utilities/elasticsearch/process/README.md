@@ -13,5 +13,4 @@ optional arguments:
   --pretty-print-status
                         If enabled, status will be printed in a tabulated style
 
-
 ```

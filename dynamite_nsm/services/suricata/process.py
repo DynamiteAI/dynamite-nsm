@@ -13,7 +13,8 @@ class ProcessManager(process.BaseProcessManager):
     Suricata Process Manager
     """
 
-    def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+    def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+                 pretty_print_status: Optional[bool] = False):
         process.BaseProcessManager.__init__(self, 'suricata.service', 'suricata', log_path=None,
                                             stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         if not profile.ProcessProfiler().is_installed():

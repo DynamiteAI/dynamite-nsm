@@ -5,6 +5,7 @@ interface = \
     SingleResponsibilityInterface(cls=logs.BrokerLog,
                                   interface_name='Zeek Broker Log',
                                   interface_description='Peering status events between Zeek or Broker-enabled processes',
+                                  defaults=dict(log_sample_size=500),
                                   entry_method_name='tail',
                                   )
 
