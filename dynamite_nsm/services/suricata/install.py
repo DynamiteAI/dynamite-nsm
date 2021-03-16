@@ -175,6 +175,29 @@ class InstallManager(install.BaseInstallManager):
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))
 
 
+class UninstallManager(install.BaseUninstallManager):
+
+    """
+    Uninstall Suricata
+    """
+
+    def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
+                 verbose: Optional[bool] = False):
+        """
+        :param purge_config: If enabled, remove all the configuration files associated with this installation
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
+        from dynamite_nsm.services.suricata.process import ProcessManager
+
+        env_vars = utilities.get_environment_file_dict()
+        suricata_directories = [env_vars.get('SURICATA_HOME'), env_vars.get('SURICATA_LOGS')]
+        if purge_config:
+            suricata_directories.append(env_vars.get('SURICATA_CONFIG'))
+        super().__init__('suricata', directories=suricata_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+
+
 if __name__ == '__main__':
     install_mngr = InstallManager(
         install_directory=f'{const.INSTALL_PATH}/suricata',

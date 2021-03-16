@@ -34,7 +34,7 @@ class InstallManager(install.BaseInstallManager):
         else:
             _, _, self.local_mirror_root = self.get_mirror_info(const.LOGSTASH_MIRRORS)
 
-    def copy_logstash_files_and_directories(self) -> None:
+    def copy_logstash_fills_and_directories(self) -> None:
         """
         Copy the required Logstash files from the install cache to their respective directories
         """
@@ -88,7 +88,7 @@ class InstallManager(install.BaseInstallManager):
         utilities.makedirs(self.install_directory)
         utilities.makedirs(self.log_directory)
 
-        self.copy_logstash_files_and_directories()
+        self.copy_logstash_fills_and_directories()
         self.create_update_logstash_environment_variables()
 
         # Overwrite with dynamite default configurations
@@ -138,6 +138,31 @@ class InstallManager(install.BaseInstallManager):
         # Install and enable service
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/logstash.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/logstash.service')
+
+
+class UninstallManager(install.BaseUninstallManager):
+
+    """
+    Uninstall Logstash
+    """
+
+    def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
+                 verbose: Optional[bool] = False):
+        """
+        :param purge_config: If enabled, remove all the configuration files associated with this installation
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
+        from dynamite_nsm.services.logstash.config import ConfigManager
+        from dynamite_nsm.services.logstash.process import ProcessManager
+
+        env_vars = utilities.get_environment_file_dict()
+        ls_config = ConfigManager(configuration_directory=env_vars.get('LS_PATH_CONF'))
+        ls_directories = [env_vars.get('LS_HOME'), ls_config.path_logs]
+        if purge_config:
+            ls_directories.append(env_vars.get('LS_PATH_CONF'))
+        super().__init__('logstash', directories=ls_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':

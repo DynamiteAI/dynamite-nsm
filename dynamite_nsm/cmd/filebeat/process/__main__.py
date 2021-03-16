@@ -2,7 +2,7 @@ from logging import DEBUG, INFO
 
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.filebeat import process
-from dynamite_nsm.cmd import interface as filebeat_process_interface
+from dynamite_nsm.cmd.filebeat.process import interface as filebeat_process_interface
 
 if __name__ == '__main__':
     parser = filebeat_process_interface.get_parser()

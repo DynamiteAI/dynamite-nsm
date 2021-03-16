@@ -1,13 +1,13 @@
 import logging
 import os
-from time import sleep
 from subprocess import Popen, PIPE
+from time import sleep
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.elasticsearch import config
 from dynamite_nsm.services.base import install, systemctl
+from dynamite_nsm.services.elasticsearch import config
 
 
 def post_install_bootstrap_tls_certificates(configuration_directory: str, install_directory: str,
@@ -103,7 +103,7 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
     while not es_process_profile.is_listening() and attempts < bootstrap_attempts:
         logger.info(f'Waiting for Elasticsearch API to become available - attempt {attempts + 1}.')
         attempts += 1
-        sleep(2)
+        sleep(10)
     security_admin_args = ['-diagnose', '-icl', '-nhnv', '-cacert',
                            f'{cert_directory}/root-ca.pem', '-cert', f'{cert_directory}/admin.pem', '-key',
                            f'{cert_directory}/admin-key.pem', '--hostname', network_host, '--port', '9300']
@@ -116,8 +116,10 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
         logger.warning(
             f'TLS bootstrapping failed while installing initial security configuration with the following error: {err} '
             f'| {out}. You may need to do this step manually after the cluster has been started: '
-            f'{" ".join(security_admin_args)}'
+            f'{opendistro_security_admin} {" ".join(security_admin_args)}'
         )
+    else:
+        logger.info(f'Bootstrapping security successful. You can find the current certs/keys here: {cert_directory}')
     logger.info('Shutting down ElasticSearch service.')
     process.stop(stdout=stdout, verbose=verbose)
 
@@ -278,6 +280,31 @@ class InstallManager(install.BaseInstallManager):
         post_install_bootstrap_tls_certificates(self.configuration_directory, self.install_directory,
                                                 subj=tls_cert_subject, stdout=self.stdout,
                                                 verbose=self.verbose)
+
+
+class UninstallManager(install.BaseUninstallManager):
+
+    """
+    Uninstall Elasticsearch
+    """
+
+    def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
+                 verbose: Optional[bool] = False):
+        """
+        :param purge_config: If enabled, remove all the configuration files associated with this installation
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
+        from dynamite_nsm.services.elasticsearch.config import ConfigManager
+        from dynamite_nsm.services.elasticsearch.process import ProcessManager
+
+        env_vars = utilities.get_environment_file_dict()
+        es_config = ConfigManager(configuration_directory=env_vars.get('ES_PATH_CONF'))
+        es_directories = [env_vars.get('ES_HOME'), es_config.path_logs]
+        if purge_config:
+            es_directories.append(env_vars.get('ES_PATH_CONF'))
+        super().__init__('elasticsearch', directories=es_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
-from dynamite_nsm.cmd.kibana import process, install
 from dynamite_nsm.cmd.kibana import get_action_parser
+from dynamite_nsm.cmd.kibana import process, install, uninstall
 from dynamite_nsm.services.kibana import process as process_service
 
 if __name__ == '__main__':
@@ -8,6 +8,8 @@ if __name__ == '__main__':
     try:
         if args.sub_interface == 'install':
             install.interface.execute(args)
+        elif args.sub_interface == 'uninstall':
+            uninstall.interface.execute(args)
         elif args.sub_interface == 'process':
             result = process.interface.execute(args)
             if result:

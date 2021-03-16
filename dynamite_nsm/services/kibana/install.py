@@ -114,6 +114,28 @@ class InstallManager(install.BaseInstallManager):
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/kibana.service')
 
 
+class UninstallManager(install.BaseUninstallManager):
+    """
+    Uninstall Kibana
+    """
+
+    def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
+                 verbose: Optional[bool] = False):
+        """
+        :param purge_config: If enabled, remove all the configuration files associated with this installation
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
+        from dynamite_nsm.services.kibana.process import ProcessManager
+
+        env_vars = utilities.get_environment_file_dict()
+        kb_directories = [env_vars.get('KIBANA_HOME'), env_vars.get('KIBANA_LOGS')]
+        if purge_config:
+            kb_directories.append(env_vars.get('KIBANA_PATH_CONF'))
+        super().__init__('kibana', directories=kb_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+
+
 if __name__ == '__main__':
     install_mngr = InstallManager(
         install_directory=f'{const.INSTALL_PATH}/kibana',

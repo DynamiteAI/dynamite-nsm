@@ -190,6 +190,29 @@ class InstallManager(install.BaseInstallManager):
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'zeek.service'))
 
 
+class UninstallManager(install.BaseUninstallManager):
+
+    """
+    Uninstall Zeek
+    """
+
+    def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
+                 verbose: Optional[bool] = False):
+        """
+        :param purge_config: If enabled, remove all the configuration files associated with this installation
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
+        from dynamite_nsm.services.zeek.process import ProcessManager
+
+        env_vars = utilities.get_environment_file_dict()
+        zeek_directories = [env_vars.get('ZEEK_HOME')]
+        if purge_config:
+            zeek_directories.append(env_vars.get('ZEEK_SCRIPTS'))
+        super().__init__('zeek', directories=zeek_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+
+
 if __name__ == '__main__':
     install_mngr = InstallManager(
         install_directory=f'{const.INSTALL_PATH}/zeek',

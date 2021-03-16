@@ -1,5 +1,5 @@
-from dynamite_nsm.cmd.logstash import process, install
 from dynamite_nsm.cmd.logstash import get_action_parser
+from dynamite_nsm.cmd.logstash import install, process, uninstall
 from dynamite_nsm.services.logstash import process as process_service
 
 if __name__ == '__main__':
@@ -8,6 +8,8 @@ if __name__ == '__main__':
     try:
         if args.sub_interface == 'install':
             install.interface.execute(args)
+        elif args.sub_interface == 'uninstall':
+            uninstall.interface.execute(args)
         elif args.sub_interface == 'process':
             result = process.interface.execute(args)
             if result:

@@ -12,7 +12,7 @@ from dynamite_nsm.service_objects.filebeat import targets as filebeat_targets
 class InstallManager(install.BaseInstallManager):
 
     def __init__(self, install_directory: str, download_filebeat_archive: Optional[bool] = True,
-                 stdout=True, verbose=False):
+                 stdout: Optional[bool] = False, verbose: Optional[bool] = False):
         """
         Install Filebeat
 
@@ -132,6 +132,24 @@ class InstallManager(install.BaseInstallManager):
         # Install and enable service
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/filebeat.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/filebeat.service')
+
+
+class UninstallManager(install.BaseUninstallManager):
+    """
+    Uninstall Filebeat
+    """
+
+    def __init__(self, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
+        """
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
+        from dynamite_nsm.services.filebeat.process import ProcessManager
+
+        env_vars = utilities.get_environment_file_dict()
+        fb_directories = [env_vars.get('FILEBEAT_HOME'), ]
+        super().__init__('filebeat', directories=fb_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':

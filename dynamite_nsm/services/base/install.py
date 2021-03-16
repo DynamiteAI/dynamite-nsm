@@ -8,6 +8,7 @@ from typing import Callable, List, Optional, Tuple, Union
 from dynamite_nsm import const, exceptions, package_manager
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
+from dynamite_nsm.services.base import process, systemctl
 
 
 def get_parallel_threads() -> int:
@@ -94,7 +95,7 @@ class BaseInstallManager:
             popen_args['stdout'] = subprocess.PIPE
             popen_args['stderr'] = subprocess.PIPE
             ret = utilities.run_subprocess_with_status(subprocess.Popen(**popen_args),
-                                                 expected_lines=None)
+                                                       expected_lines=None)
         else:
             p = subprocess.Popen(**popen_args)
             p.communicate()
@@ -240,3 +241,35 @@ class BaseInstallManager:
         if packages:
             self.logger.info(f'Installing {len(packages)} new packages.')
             pacman.install_packages(packages)
+
+
+class BaseUninstallManager:
+
+    def __init__(self, name: str, directories: List[str], process: Optional[process.BaseProcessManager] = None,
+                 verbose: Optional[bool] = False, stdout: Optional[bool] = True, log_level=logging.INFO):
+        """
+
+        :param name: The name of the process
+        :param directories: The directories to be removed
+        :param process: The process to be terminated
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        :param log_level: The logging.LOG_LEVEL to use when logging
+        """
+        self.name = name
+        self.directories = directories
+        self.process = process
+        self.verbose = verbose
+        self.stdout = stdout
+        self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
+
+    def uninstall(self):
+        sysctl = systemctl.SystemCtl()
+        if self.process:
+            self.process.stop()
+        for dir in self.directories:
+            self.logger.debug(f'Removing {dir}')
+            shutil.rmtree(dir, ignore_errors=True)
+        self.logger.debug(f'Uninstalling {self.name}.service')
+        sysctl.uninstall_and_disable(f'{self.name}.service')
+        self.logger.info(f'Successfully uninstalled {self.name}')
