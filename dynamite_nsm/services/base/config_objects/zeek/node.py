@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List, Optional, Tuple
 
-from dynamite_nsm.service_objects.generic import GenericItem, GenericItemGroup
+from dynamite_nsm.services.base.config_objects.generic import GenericItem, GenericItemGroup
 
 CLUSTER_TYPE_TO_AF_PACKET_FANOUT_MODE_MAP = dict(
     cluster_flow='FANOUT_HASH',

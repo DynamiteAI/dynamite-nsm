@@ -6,6 +6,8 @@ from typing import Callable, Dict, List, Optional, Union
 from yaml import SafeDumper
 from yaml import dump
 
+from tabulate import tabulate
+
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
@@ -61,7 +63,13 @@ class GenericConfigManager:
     def add_parser(self, parser: Callable, attribute_name):
         setattr(self, attribute_name, parser(self.config_data))
 
-    def write_config(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        """
+        Write out an updated configuration file, and optionally backup the old one.
+
+        :param out_file_path: The path to the output file; if none given overwrites existing
+        :param backup_directory: The path to the backup directory
+        """
         # Backup old configuration first
         out_file_name = os.path.basename(out_file_path)
         backup_file_name = out_file_name + '.backup'
@@ -74,6 +82,14 @@ class GenericConfigManager:
         except IOError:
             raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
+
+    def get_printable_config(self, pretty_print):
+        variables = {}
+        for var in vars(self):
+            if var.startswith('_'):
+                continue
+        variables[var] = str(getattr(self, var))
+        return variables
 
 
 class JavaOptionsConfigManager(GenericConfigManager):
@@ -116,7 +132,14 @@ class JavaOptionsConfigManager(GenericConfigManager):
             attribute_name='_raw_extra_params'
         )
 
-    def write_config(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        """
+        Write out an updated configuration file, and optionally backup the old one.
+
+        :param out_file_path: The path to the output file; if none given overwrites existing
+        :param backup_directory: The path to the backup directory
+        """
+
         # Backup old configuration first
         out_file_name = os.path.basename(out_file_path)
         backup_file_name = out_file_name + '.backup'
@@ -177,8 +200,13 @@ class YamlConfigManager:
         for var_name in vars(self).keys():
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
-    def write_config(self, out_file_path: str, backup_directory: Optional[str] = None,
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                      top_text: Optional[str] = None) -> None:
+        """
+        :param out_file_path: The path to the output file; if none given overwrites existing
+        :param backup_directory: The path to the backup directory
+        :param top_text: The text to be appended at the top of the config file (typically used for YAML version header)
+        """
         out_file_name = os.path.basename(out_file_path)
         backup_file_name = out_file_name + '.backup'
 
@@ -226,3 +254,18 @@ class YamlConfigManager:
         except IOError:
             raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
+
+    def get_printable_config(self, pretty_print: Optional[bool] = False) -> str:
+        reserved_keywords = ['logger', 'config_data', 'config_data_raw', 'extract_tokens']
+        variables = {}
+        for var in vars(self):
+            if var.startswith('_'):
+                continue
+            elif var in reserved_keywords:
+                continue
+            variables[var] = getattr(self, var)
+        if pretty_print:
+            table = [['Config Option', 'Value']]
+            table.extend([(label, value) for label, value in variables.items()])
+            return tabulate(table, tablefmt='fancy_grid')
+        return json.dumps(variables, indent=1)

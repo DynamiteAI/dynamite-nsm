@@ -1,6 +1,6 @@
 import npyscreen
 
-from dynamite_nsm.service_objects.filebeat import targets
+from dynamite_nsm.services.base.config_objects.filebeat import targets
 from dynamite_nsm.services.filebeat import config
 from dynamite_nsm.services.filebeat import exceptions
 from dynamite_nsm.services.filebeat.install import InstallManager

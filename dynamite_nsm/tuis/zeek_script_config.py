@@ -2,8 +2,8 @@ import os
 import npyscreen
 
 from dynamite_nsm import const
-from dynamite_nsm.utilities import get_environment_file_dict
 from dynamite_nsm.services.zeek import config
+from dynamite_nsm.utilities import get_environment_file_dict
 
 
 class ZeekScriptSettingsForm(npyscreen.ActionForm):
@@ -56,7 +56,7 @@ class ZeekScriptSettingsForm(npyscreen.ActionForm):
             else:
                 self.parentApp.zeek_script_config.disable_script(script.name)
 
-        self.parentApp.zeek_script_config.write_config()
+        self.parentApp.zeek_script_config.commit()
         self.parentApp.setNextForm(None)
 
 

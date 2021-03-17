@@ -1,6 +1,7 @@
-from yaml import load
-from yaml import Loader
 from typing import Optional
+
+from yaml import Loader
+from yaml import load
 
 from dynamite_nsm.services.base.config import JavaOptionsConfigManager, YamlConfigManager
 
@@ -8,6 +9,11 @@ from dynamite_nsm.services.base.config import JavaOptionsConfigManager, YamlConf
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
         extract_tokens = {
             'node_name': ('node.name',),
             'cluster_name': ('cluster.name',),
@@ -50,6 +56,34 @@ class ConfigManager(YamlConfigManager):
         super().__init__(self.config_data_raw, name='ELASTICCFG', verbose=verbose, stdout=stdout, **extract_tokens)
         self.parse_yaml_file()
 
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
+               top_text: Optional[str] = None) -> None:
+        """
+        Write out an updated configuration file, and optionally backup the old one.
+
+        :param out_file_path: The path to the output file; if none given overwrites existing
+        :param backup_directory: The path to the backup directory        """
+        if not out_file_path:
+            out_file_path = self.elasticsearch_config_path
+
+        super(ConfigManager, self).commit(out_file_path, backup_directory)
+
+
+class JavaHeapOptionsConfigManager(JavaOptionsConfigManager):
+
+    def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
+
+        self.configuration_directory = configuration_directory
+        self.elasticsearch_jvm_config_path = f'{self.configuration_directory}/jvm.options'
+        with open(self.elasticsearch_jvm_config_path) as jvm_config:
+            data = {'data': jvm_config.readlines()}
+        super().__init__(data, name='ELASTICJAVA', verbose=verbose, stdout=stdout)
+
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """
         Write out an updated configuration file, and optionally backup the old one.
@@ -58,21 +92,5 @@ class ConfigManager(YamlConfigManager):
         :param backup_directory: The path to the backup directory
         """
         if not out_file_path:
-            out_file_path = self.elasticsearch_config_path
-
-        super(ConfigManager, self).write_config(out_file_path, backup_directory)
-
-
-class JavaHeapOptionsConfigManager(JavaOptionsConfigManager):
-
-    def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        self.configuration_directory = configuration_directory
-        self.elasticsearch_jvm_config_path = f'{self.configuration_directory}/jvm.options'
-        with open(self.elasticsearch_jvm_config_path) as jvm_config:
-            data = {'data': jvm_config.readlines()}
-        super().__init__(data, name='ELASTICJAVA', verbose=verbose, stdout=stdout)
-
-    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
-        if not out_file_path:
             out_file_path = self.elasticsearch_jvm_config_path
-        super(JavaHeapOptionsConfigManager, self).write_config(out_file_path, backup_directory)
+        super(JavaHeapOptionsConfigManager, self).commit(out_file_path, backup_directory)

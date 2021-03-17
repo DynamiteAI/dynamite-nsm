@@ -1,7 +1,7 @@
 import json
 from typing import Optional, List
 
-from dynamite_nsm.service_objects.generic import Analyzer, Analyzers
+from dynamite_nsm.services.base.config_objects.generic import Analyzer, Analyzers
 
 
 available_rules_names = [

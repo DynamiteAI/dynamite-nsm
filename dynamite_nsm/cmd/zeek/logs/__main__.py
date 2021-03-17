@@ -1,4 +1,4 @@
-from dynamite_nsm.cmd.zeek import get_action_parser
+from dynamite_nsm.cmd.zeek.logs import get_action_parser
 from dynamite_nsm.cmd.zeek.logs import cluster, broker, metrics, reporter
 
 if __name__ == '__main__':

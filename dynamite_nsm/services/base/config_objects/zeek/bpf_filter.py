@@ -1,7 +1,7 @@
 import json
 from typing import Optional, List
 
-from dynamite_nsm.service_objects.generic import GenericItem, GenericItemGroup
+from dynamite_nsm.services.base.config_objects.generic import GenericItem, GenericItemGroup
 
 
 class BpfFilter(GenericItem):

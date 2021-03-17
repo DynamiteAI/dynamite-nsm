@@ -2,7 +2,7 @@ import argparse
 
 
 from dynamite_nsm.utilities import get_primary_ip_address
-from dynamite_nsm.cmd.kibana import  install, process, uninstall
+from dynamite_nsm.cmd.kibana import install, process, uninstall
 from dynamite_nsm.service_to_commandline import append_interface_to_parser
 
 
@@ -13,4 +13,3 @@ def get_action_parser():
     append_interface_to_parser(subparsers, 'uninstall', uninstall.interface)
     append_interface_to_parser(subparsers, 'process', process.interface)
     return parser
-

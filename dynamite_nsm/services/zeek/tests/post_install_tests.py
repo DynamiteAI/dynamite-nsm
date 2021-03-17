@@ -2,7 +2,7 @@ import os
 import shutil
 import unittest
 
-from dynamite_nsm.service_objects.zeek.node import Logger, Proxy, Worker, Workers
+from dynamite_nsm.services.base.config_objects.zeek import Logger, Proxy, Worker, Workers
 from dynamite_nsm.services.zeek.config import NodeConfigManager
 from dynamite_nsm.utilities import get_environment_file_dict, makedirs
 

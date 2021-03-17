@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 import os
 from typing import Optional
 
 from yaml import Loader
 from yaml import load
 
-from dynamite_nsm import utilities
 from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm.service_objects.suricata import misc, rules
+from dynamite_nsm import utilities
+from dynamite_nsm.services.base.config_objects.suricata import misc, rules
 from dynamite_nsm.services.base.config import YamlConfigManager
 
 
@@ -135,7 +136,8 @@ class ConfigManager(YamlConfigManager):
             c.configuration_directory = configuration_directory
         return c
 
-    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
+               top_text: Optional[str] = None) -> None:
         """
         Write out an updated configuration file, and optionally backup the old one.
 
@@ -144,7 +146,9 @@ class ConfigManager(YamlConfigManager):
         """
         if not out_file_path:
             out_file_path = f'{self.configuration_directory}/suricata.yaml'
+        if not top_text:
+            top_text = '%YAML 1.1\n---'
         self._rule_files_raw = self.rules.get_raw()
         self._pcap_interfaces_raw = self.pcap_interfaces.get_raw()
         self._af_packet_interfaces_raw = self.af_packet_interfaces.get_raw()
-        super(ConfigManager, self).write_config(out_file_path, backup_directory, top_text='%YAML 1.1\n---')
+        super(ConfigManager, self).commit(out_file_path, backup_directory, top_text=top_text)

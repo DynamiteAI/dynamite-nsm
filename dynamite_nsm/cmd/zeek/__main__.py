@@ -1,7 +1,7 @@
 
 from dynamite_nsm.cmd.zeek import get_action_parser
-from dynamite_nsm.cmd.zeek import install, process, uninstall
 from dynamite_nsm.services.zeek import process as process_service
+from dynamite_nsm.cmd.zeek import install, logs, process, uninstall
 from dynamite_nsm.cmd.zeek.logs import cluster, broker, metrics, reporter
 
 if __name__ == '__main__':
@@ -21,7 +21,9 @@ if __name__ == '__main__':
                 else:
                     print(result)
         else:
-            if args.sub_interface == 'broker':
+            if args.sub_interface == 'logs':
+                logs.get_action_parser().print_help()
+            elif args.sub_interface == 'broker':
                 broker.interface.execute(args)
             elif args.sub_interface == 'cluster':
                 cluster.interface.execute(args)

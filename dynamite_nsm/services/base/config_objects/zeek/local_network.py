@@ -1,7 +1,7 @@
 import json
 from typing import Optional, List
 
-from dynamite_nsm.service_objects.generic import GenericItem, GenericItemGroup
+from dynamite_nsm.services.base.config_objects.generic import GenericItem, GenericItemGroup
 
 IPV4_AND_CIDR_PATTERN = r'(?<!\d\.)(?<!\d)(?:\d{1,3}\.){3}\d{1,3}/\d{1,2}(?!\d|(?:\.\d))'
 IPV6_AND_CIDR_PATTERN = r'^(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:' \

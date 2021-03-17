@@ -1,6 +1,6 @@
 import npyscreen
 
-from dynamite_nsm.service_objects.suricata import misc as suricata_misc
+from dynamite_nsm.services.base.config_objects.suricata import misc as suricata_misc
 from dynamite_nsm.services.suricata import config
 from dynamite_nsm.utilities import get_environment_file_dict
 

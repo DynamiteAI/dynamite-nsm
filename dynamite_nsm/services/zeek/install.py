@@ -4,7 +4,7 @@ import time
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
-from dynamite_nsm.service_objects.zeek import node, local_site
+from dynamite_nsm.services.base.config_objects.zeek import node, local_site
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.zeek import config
 

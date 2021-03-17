@@ -1,6 +1,8 @@
-from yaml import load
-from yaml import Loader
 from typing import Optional
+
+from yaml import Loader
+from yaml import load
+
 from dynamite_nsm.services.base.config import YamlConfigManager
 
 
@@ -26,7 +28,8 @@ class ConfigManager(YamlConfigManager):
         super().__init__(self.config_data_raw, name='KIBANACFG', verbose=verbose, stdout=stdout, **extract_tokens)
         self.parse_yaml_file()
 
-    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
+               top_text: Optional[str] = None) -> None:
         """
         Write out an updated configuration file, and optionally backup the old one.
 
@@ -36,4 +39,4 @@ class ConfigManager(YamlConfigManager):
         if not out_file_path:
             out_file_path = self.kibana_config_path
 
-        super(ConfigManager, self).write_config(out_file_path, backup_directory)
+        super(ConfigManager, self).commit(out_file_path, backup_directory)

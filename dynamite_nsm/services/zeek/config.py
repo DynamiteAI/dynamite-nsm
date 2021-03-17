@@ -8,7 +8,8 @@ from typing import Dict, List, Optional, Tuple
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base.config import GenericConfigManager
-from dynamite_nsm.service_objects.zeek import bpf_filter, local_network, local_site, node
+from dynamite_nsm.services.base.config_objects.zeek import local_network, local_site, node
+from dynamite_nsm.services.base.config_objects.zeek import bpf_filter
 
 
 class BpfConfigManager(GenericConfigManager):
@@ -37,7 +38,7 @@ class BpfConfigManager(GenericConfigManager):
         if not out_file_path:
             out_file_path = f'{self.configuration_directory}/bpf_map_file.input'
         self.formatted_data = '\n'.join(self.bpf_filters.get_raw())
-        super(BpfConfigManager, self).write_config(out_file_path, backup_directory)
+        super(BpfConfigManager, self).commit(out_file_path, backup_directory)
 
 
 class SiteLocalConfigManager(GenericConfigManager):
@@ -127,7 +128,7 @@ class SiteLocalConfigManager(GenericConfigManager):
         self.formatted_data = '\n'.join(
             self.signatures.get_raw() + self.scripts.get_raw() + self.definitions.get_raw()
         )
-        super(SiteLocalConfigManager, self).write_config(out_file_path, backup_directory)
+        super(SiteLocalConfigManager, self).commit(out_file_path, backup_directory)
 
 
 class NodeConfigManager(GenericConfigManager):
@@ -328,7 +329,7 @@ class NodeConfigManager(GenericConfigManager):
         self.formatted_data.seek(0)
         self.formatted_data = self.formatted_data.read()
 
-        super(NodeConfigManager, self).write_config(out_file_path, backup_directory)
+        super(NodeConfigManager, self).commit(out_file_path, backup_directory)
 
 
 class LocalNetworksConfigManager(GenericConfigManager):
@@ -372,4 +373,4 @@ class LocalNetworksConfigManager(GenericConfigManager):
         if not out_file_path:
             out_file_path = f'{self.installation_directory}/etc/networks.cfg'
         self.formatted_data = '\n'.join(self.local_networks.get_raw())
-        super(LocalNetworksConfigManager, self).write_config(out_file_path, backup_directory)
+        super(LocalNetworksConfigManager, self).commit(out_file_path, backup_directory)

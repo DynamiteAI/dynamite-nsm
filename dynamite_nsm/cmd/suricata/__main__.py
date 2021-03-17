@@ -1,7 +1,8 @@
 from dynamite_nsm.cmd.suricata import get_action_parser
 from dynamite_nsm.cmd.suricata.logs import main, metrics
-from dynamite_nsm.cmd.suricata import install, process, uninstall
 from dynamite_nsm.services.suricata import process as process_service
+from dynamite_nsm.cmd.suricata import install, logs, process, uninstall
+
 
 if __name__ == '__main__':
     parser = get_action_parser()
@@ -20,7 +21,9 @@ if __name__ == '__main__':
                 else:
                     print(result)
         else:
-            if args.sub_interface == 'main':
+            if args.sub_interface == 'logs':
+                logs.get_action_parser().print_help()
+            elif args.sub_interface == 'main':
                 main.interface.execute(args)
             elif args.sub_interface == 'metrics':
                 metrics.interface.execute(args)

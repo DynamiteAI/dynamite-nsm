@@ -6,10 +6,10 @@ from yaml import Loader
 from yaml import load, dump
 
 from dynamite_nsm import utilities
-from dynamite_nsm.service_objects.filebeat.misc import IndexTemplateSettings, InputLogs, FieldProcessors
-from dynamite_nsm.service_objects.filebeat.targets import ElasticsearchTargets, LogstashTargets, KafkaTargets, \
-    RedisTargets
 from dynamite_nsm.services.base.config import YamlConfigManager
+from dynamite_nsm.services.base.config_objects.filebeat.misc import IndexTemplateSettings, InputLogs, FieldProcessors
+from dynamite_nsm.services.base.config_objects.filebeat.targets import ElasticsearchTargets, LogstashTargets, \
+    KafkaTargets, RedisTargets
 
 
 class InvalidAgentTag(Exception):
@@ -286,7 +286,8 @@ class ConfigManager(YamlConfigManager):
         self.logstash_targets.enabled = False
         self.redis_targets.enabled = True
 
-    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
+               top_text: Optional[str] = None) -> None:
         """
         Write out an updated configuration file, and optionally backup the old one.
 
@@ -302,4 +303,4 @@ class ConfigManager(YamlConfigManager):
         self._kafka_targets_raw = self.kafka_targets.get_raw()
         self._logstash_targets_raw = self.logstash_targets.get_raw()
         self._redis_targets_raw = self.redis_targets.get_raw()
-        super(ConfigManager, self).write_config(out_file_path, backup_directory)
+        super(ConfigManager, self).commit(out_file_path, backup_directory)

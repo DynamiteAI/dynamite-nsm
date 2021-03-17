@@ -5,8 +5,8 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.filebeat import config
 from dynamite_nsm.services.base import install, systemctl
-from dynamite_nsm.service_objects.filebeat import misc as misc_filebeat_objs
-from dynamite_nsm.service_objects.filebeat import targets as filebeat_targets
+from dynamite_nsm.services.base.config_objects.filebeat import targets as filebeat_targets
+from dynamite_nsm.services.base.config_objects.filebeat import misc as misc_filebeat_objs
 
 
 class InstallManager(install.BaseInstallManager):
