@@ -1,8 +1,8 @@
 import argparse
 from dynamite_nsm.utilities import get_primary_ip_address
 from dynamite_nsm.cmd.elasticsearch import install, process, uninstall
-from dynamite_nsm.service_to_commandline import append_interface_to_parser
 from dynamite_nsm.cmd.elasticsearch.config import get_interfaces as get_config_interfaces
+from dynamite_nsm.service_to_commandline import append_interface_to_parser, append_interfaces_to_parser
 
 ES_CONFIG_HELP = 'Modify Elasticsearch configurations.'
 
@@ -15,9 +15,8 @@ def get_action_parser():
     append_interface_to_parser(subparsers, 'process', process.interface)
     config_parser = subparsers.add_parser('config', help=ES_CONFIG_HELP)
     config_parser.set_defaults(sub_interface='config')
-    log_sub_parsers = config_parser.add_subparsers()
-    for interface_name, interface in get_config_interfaces().items():
-        append_interface_to_parser(log_sub_parsers, interface_name, interface)
+    config_sub_parsers = config_parser.add_subparsers()
+    append_interfaces_to_parser(config_sub_parsers, interfaces=get_config_interfaces())
     return parser
 
 

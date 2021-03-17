@@ -2,8 +2,8 @@ import argparse
 
 from dynamite_nsm.utilities import get_primary_ip_address
 from dynamite_nsm.cmd.zeek import install, process, uninstall
-from dynamite_nsm.service_to_commandline import append_interface_to_parser
 from dynamite_nsm.cmd.zeek.logs import get_interfaces as get_logs_interfaces
+from dynamite_nsm.service_to_commandline import append_interface_to_parser, append_interfaces_to_parser
 
 
 def get_action_parser():
@@ -16,8 +16,7 @@ def get_action_parser():
     log_parser = subparsers.add_parser('logs', help='Attach to various Zeek logs.')
     log_parser.set_defaults(sub_interface='logs')
     log_sub_parsers = log_parser.add_subparsers()
-    for interface_name, interface in get_interfaces().items():
-        append_interface_to_parser(log_sub_parsers, interface_name, interface)
+    append_interfaces_to_parser(log_sub_parsers, interfaces=get_logs_interfaces())
     return parser
 
 
