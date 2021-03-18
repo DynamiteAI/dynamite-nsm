@@ -11,7 +11,7 @@ if __name__ == '__main__':
                                 sub_interface=args.sub_interface)
     except AttributeError:
         try:
-            if args.interface == 'config':
+            if args.interface == 'logs':
                 get_logs_action_parser().print_help()
             else:
                 try:

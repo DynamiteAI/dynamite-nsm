@@ -5,6 +5,8 @@ from dynamite_nsm.cmd.logstash.config import get_interfaces as get_config_interf
 from dynamite_nsm.service_to_commandline import append_interface_to_parser, append_interfaces_to_parser
 from dynamite_nsm.utilities import get_primary_ip_address
 
+LS_CONFIG_HELP = 'Modify Logstash configurations.'
+
 
 def get_action_parser():
     parser = argparse.ArgumentParser(description=f'Logstash @ {get_primary_ip_address()}')
@@ -12,8 +14,7 @@ def get_action_parser():
     append_interface_to_parser(subparsers, 'install', install.interface, interface_group_name='interface')
     append_interface_to_parser(subparsers, 'uninstall', uninstall.interface, interface_group_name='interface')
     append_interface_to_parser(subparsers, 'process', process.interface, interface_group_name='interface')
-    config_parser = subparsers.add_parser('config', help='Modify Logstash configurations.',
-                                          interface_group_name='interface')
+    config_parser = subparsers.add_parser('config', help=LS_CONFIG_HELP)
     config_parser.set_defaults(interface='config')
     config_sub_parsers = config_parser.add_subparsers()
     append_interfaces_to_parser(config_sub_parsers, interfaces=get_config_interfaces(),

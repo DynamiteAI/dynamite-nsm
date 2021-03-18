@@ -10,13 +10,13 @@ def get_action_parser():
     parser = argparse.ArgumentParser(description=f'Zeek @ {get_primary_ip_address()}')
     subparsers = parser.add_subparsers()
 
-    append_interface_to_parser(subparsers, 'install', install.interface)
-    append_interface_to_parser(subparsers, 'uninstall', uninstall.interface)
-    append_interface_to_parser(subparsers, 'process', process.interface)
+    append_interface_to_parser(subparsers, 'install', install.interface, interface_group_name='interface')
+    append_interface_to_parser(subparsers, 'uninstall', uninstall.interface, interface_group_name='interface')
+    append_interface_to_parser(subparsers, 'process', process.interface, interface_group_name='interface')
     log_parser = subparsers.add_parser('logs', help='Attach to various Zeek logs.')
-    log_parser.set_defaults(sub_interface='logs')
+    log_parser.set_defaults(interface='logs')
     log_sub_parsers = log_parser.add_subparsers()
-    append_interfaces_to_parser(log_sub_parsers, interfaces=get_logs_interfaces())
+    append_interfaces_to_parser(log_sub_parsers, interfaces=get_logs_interfaces(), interface_group_name='sub_interface')
     return parser
 
 
