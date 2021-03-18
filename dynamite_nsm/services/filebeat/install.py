@@ -74,6 +74,7 @@ class InstallManager(install.BaseInstallManager):
         # Directory setup
         self.logger.debug(f'Creating directory: {self.install_directory}')
         utilities.makedirs(self.install_directory)
+        utilities.makedirs(f'{self.install_directory}/logs')
         self.logger.info('Installing files and directories.')
         self.copy_filebeat_files_and_directories()
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/filebeat/filebeat.yml',
@@ -123,9 +124,10 @@ class InstallManager(install.BaseInstallManager):
         # Fix Permissions
 
         self.logger.info('Setting up file permissions.')
+        config_file = f'{self.install_directory}/filebeat.yml'
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
-        utilities.set_permissions_of_file(os.path.join(self.install_directory, 'filebeat.yml'),
-                                          unix_permissions_integer=501)
+        utilities.set_ownership_of_file(config_file, user='root', group='root')
+        utilities.set_permissions_of_file(config_file, unix_permissions_integer=501)
         self.logger.info('Installing modules.')
         filebeat_config.patch_modules(zeek_log_directory=zeek_log_root, suricata_log_directory=suricata_log_root)
 

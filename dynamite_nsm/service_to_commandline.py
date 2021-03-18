@@ -149,7 +149,8 @@ class MultipleResponsibilityInterface:
         exec_inst = klass(**constructor_kwargs)
         # Dynamically load our defined entry_method
         exec_method = getattr(exec_inst, args.action.replace('-', '_'))
-        entry_method_kwargs.pop('sub_component', None)
+        entry_method_kwargs.pop('component', None)
+        entry_method_kwargs.pop('interface', None)
         entry_method_kwargs.pop('sub_interface', None)
         # Call the entry method
         return exec_method(**entry_method_kwargs)
@@ -215,7 +216,8 @@ class SingleResponsibilityInterface:
                 constructor_kwargs[param] = value
             else:
                 entry_method_kwargs[param] = value
-        entry_method_kwargs.pop('sub_component', None)
+        entry_method_kwargs.pop('component', None)
+        entry_method_kwargs.pop('interface', None)
         entry_method_kwargs.pop('sub_interface', None)
         # Dynamically load our class
         klass = getattr(self, 'cls')
@@ -229,7 +231,7 @@ class SingleResponsibilityInterface:
 
 class SimpleConfigManagerInterface(SingleResponsibilityInterface):
     reserved_variable_names = ['config_data', 'extract_tokens', 'formatted_data', 'stdout', 'verbose', 'logger',
-                               'out_file_path', 'backup_directory', 'top_text', 'sub_interface']
+                               'out_file_path', 'backup_directory', 'top_text', 'interface', 'sub_interface']
 
     def __init__(self, config: Union[config.GenericConfigManager, config.YamlConfigManager], interface_name: str,
                  interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
@@ -276,7 +278,8 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
 
 
 def append_interface_to_parser(parent_parser: argparse, interface_name: str,
-                               interface: Union[SingleResponsibilityInterface, MultipleResponsibilityInterface]):
+                               interface: Union[SingleResponsibilityInterface, MultipleResponsibilityInterface],
+                               interface_group_name: Optional[str] = 'interface'):
     """
     Add an interface to an existing parser.
 
@@ -284,8 +287,9 @@ def append_interface_to_parser(parent_parser: argparse, interface_name: str,
     :param interface_name: The name of this interface as it will appear in the commandline utility
     :param interface: The interface object itself
     """
+    interface_group_name_kwargs = {interface_group_name: interface_name}
     sub_interface_parser = parent_parser.add_parser(interface_name, help=interface.interface_description)
-    sub_interface_parser.set_defaults(sub_interface=interface_name)
+    sub_interface_parser.set_defaults(**interface_group_name_kwargs)
 
     def append_single_responsibility_interface(interface: SingleResponsibilityInterface):
         for params in interface.base_params + interface.interface_params:
@@ -330,21 +334,25 @@ def append_interface_to_parser(parent_parser: argparse, interface_name: str,
 
 def append_interfaces_to_parser(parent_parser: argparse,
                                 interfaces: Dict[
-                                    str, Union[SingleResponsibilityInterface, MultipleResponsibilityInterface]]):
+                                    str, Union[SingleResponsibilityInterface, MultipleResponsibilityInterface]],
+                                interface_group_name: Optional[str] = 'sub_interface'):
     for name, value in interfaces.items():
         if isinstance(value, tuple):
             interfaces, help_str = value
             new_section_parser = parent_parser.add_parser(name=name, help=help_str)
             new_section_parser.set_defaults(sub_interface=name)
             new_section_subparsers = new_section_parser.add_subparsers()
-            append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=interfaces)
+            append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=interfaces,
+                                        interface_group_name=interface_group_name)
         elif isinstance(value, dict):
             new_section_parser = parent_parser.add_parser(name=name, help='<None Given>')
             new_section_parser.set_defaults(sub_interface=name)
             new_section_subparsers = new_section_parser.add_subparsers()
-            append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=value)
+            append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=value,
+                                        interface_group_name=interface_group_name)
         else:
-            append_interface_to_parser(parent_parser=parent_parser, interface_name=name, interface=value)
+            append_interface_to_parser(parent_parser=parent_parser, interface_name=name, interface=value,
+                                       interface_group_name=interface_group_name)
     return parent_parser
 
 
