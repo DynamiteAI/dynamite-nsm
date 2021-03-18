@@ -51,3 +51,8 @@ def update_mirrors():
     except IOError as e:
         raise exceptions.DownloadError("General error occurred while extracting archive: {}; {}".format(
             os.path.join(const.INSTALL_CACHE, 'mirrors.tar.gz'), e))
+
+
+if __name__ == '__main__':
+    update_default_configurations()
+    update_mirrors()
