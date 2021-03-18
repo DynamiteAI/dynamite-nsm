@@ -149,6 +149,7 @@ class MultipleResponsibilityInterface:
         exec_inst = klass(**constructor_kwargs)
         # Dynamically load our defined entry_method
         exec_method = getattr(exec_inst, args.action.replace('-', '_'))
+        entry_method_kwargs.pop('sub_component', None)
         entry_method_kwargs.pop('sub_interface', None)
         # Call the entry method
         return exec_method(**entry_method_kwargs)
@@ -214,6 +215,7 @@ class SingleResponsibilityInterface:
                 constructor_kwargs[param] = value
             else:
                 entry_method_kwargs[param] = value
+        entry_method_kwargs.pop('sub_component', None)
         entry_method_kwargs.pop('sub_interface', None)
         # Dynamically load our class
         klass = getattr(self, 'cls')
@@ -327,8 +329,8 @@ def append_interface_to_parser(parent_parser: argparse, interface_name: str,
 
 
 def append_interfaces_to_parser(parent_parser: argparse,
-                                interfaces: Dict[str, Union[
-                                    SingleResponsibilityInterface, MultipleResponsibilityInterface]]):
+                                interfaces: Dict[
+                                    str, Union[SingleResponsibilityInterface, MultipleResponsibilityInterface]]):
     for name, value in interfaces.items():
         if isinstance(value, tuple):
             interfaces, help_str = value
