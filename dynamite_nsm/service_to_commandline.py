@@ -340,13 +340,11 @@ def append_interfaces_to_parser(parent_parser: argparse,
         if isinstance(value, tuple):
             interfaces, help_str = value
             new_section_parser = parent_parser.add_parser(name=name, help=help_str)
-            new_section_parser.set_defaults(sub_interface=name)
             new_section_subparsers = new_section_parser.add_subparsers()
             append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=interfaces,
                                         interface_group_name=interface_group_name)
         elif isinstance(value, dict):
             new_section_parser = parent_parser.add_parser(name=name, help='<None Given>')
-            new_section_parser.set_defaults(sub_interface=name)
             new_section_subparsers = new_section_parser.add_subparsers()
             append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=value,
                                         interface_group_name=interface_group_name)
