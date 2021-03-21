@@ -103,8 +103,8 @@ class InstallManager(install.BaseInstallManager):
                 self.logger.info(f'Zeek installation found; monitoring: {zeek_log_root}*.log')
                 filebeat_config.input_logs.monitor_log_paths.append(f'{zeek_log_root}*.log')
             if suricata_profiler.is_installed():
-                self.logger.info(f'Suricata installation found; monitoring: {suricata_log_root}eve.json')
-                filebeat_config.input_logs.monitor_log_paths.append(f'{suricata_log_root}eve.json')
+                self.logger.info(f'Suricata installation found; monitoring: {suricata_log_root}/eve.json')
+                filebeat_config.input_logs.monitor_log_paths.append(f'{suricata_log_root}/eve.json')
         else:
             filebeat_config.input_logs = misc_filebeat_objs.InputLogs(
                 monitor_log_paths=monitor_log_paths
@@ -125,7 +125,9 @@ class InstallManager(install.BaseInstallManager):
 
         self.logger.info('Setting up file permissions.')
         config_file = f'{self.install_directory}/filebeat.yml'
-        utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
+        utilities.set_ownership_of_file(self.install_directory, user='root', group='root')
+        utilities.set_permissions_of_file(f'{self.install_directory}/modules.d', unix_permissions_integer=644)
+        utilities.set_permissions_of_file(f'{self.install_directory}/modules', unix_permissions_integer=644)
         utilities.set_ownership_of_file(config_file, user='root', group='root')
         utilities.set_permissions_of_file(config_file, unix_permissions_integer=501)
         self.logger.info('Installing modules.')

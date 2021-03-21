@@ -287,6 +287,8 @@ def append_interface_to_parser(parent_parser: argparse, interface_name: str,
     :param interface_name: The name of this interface as it will appear in the commandline utility
     :param interface: The interface object itself
     """
+    if not interface:
+        return
     interface_group_name_kwargs = {interface_group_name: interface_name}
     sub_interface_parser = parent_parser.add_parser(interface_name, help=interface.interface_description)
     sub_interface_parser.set_defaults(**interface_group_name_kwargs)
