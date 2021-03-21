@@ -3,10 +3,10 @@ from typing import List, Optional
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
-from dynamite_nsm.services.filebeat import config
 from dynamite_nsm.services.base import install, systemctl
-from dynamite_nsm.services.base.config_objects.filebeat import targets as filebeat_targets
 from dynamite_nsm.services.base.config_objects.filebeat import misc as misc_filebeat_objs
+from dynamite_nsm.services.base.config_objects.filebeat import targets as filebeat_targets
+from dynamite_nsm.services.filebeat import config
 
 
 class InstallManager(install.BaseInstallManager):
@@ -67,7 +67,7 @@ class InstallManager(install.BaseInstallManager):
         """
         from dynamite_nsm.services.zeek import profile as zeek_profile
         from dynamite_nsm.services.suricata import profile as suricata_profile
-        from dynamite_nsm.services.logstash import profile as logstash_profile
+        from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
 
         sysctl = systemctl.SystemCtl()
         zeek_log_root, suricata_log_root = None, None
@@ -85,7 +85,7 @@ class InstallManager(install.BaseInstallManager):
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/filebeat/modules.d/',
                                                    self.install_directory)
         filebeat_config = config.ConfigManager(self.install_directory, verbose=self.verbose, stdout=self.stdout)
-        filebeat_config.logstash_targets = filebeat_targets.LogstashTargets(
+        filebeat_config.elasticsearch_targets = filebeat_targets.ElasticsearchTargets(
             target_strings=targets,
             enabled=True
         )
@@ -111,14 +111,16 @@ class InstallManager(install.BaseInstallManager):
             )
         self.logger.info(f'Monitoring Paths = {filebeat_config.input_logs.monitor_log_paths}')
         if not targets:
-            logstash_profiler = logstash_profile.ProcessProfiler()
-            if logstash_profiler.is_installed():
-                filebeat_config.logstash_targets.target_strings = [f'{utilities.get_primary_ip_address()}:5601']
+            elasticsearch_profiler = elasticsearch_profile.ProcessProfiler()
+            if elasticsearch_profiler.is_installed():
+                filebeat_config.elasticsearch_targets.target_strings = [
+                    f'https://{utilities.get_primary_ip_address()}:9200']
+                filebeat_config.elasticsearch_targets.ssl_verification_mode = 'none'
         if not agent_tag:
             filebeat_config.field_processors.originating_agent_tag = utilities.get_default_agent_tag()
         self.logger.info(f'Agent Tag = {filebeat_config.field_processors.originating_agent_tag}')
-        self.logger.info('Enabling Logstash connector by default.')
-        filebeat_config.switch_to_logstash_target()
+        self.logger.info('Enabling Elasticsearch connector by default.')
+        filebeat_config.switch_to_elasticsearch_target()
         filebeat_config.commit()
         self.logger.info('Applying configuration.')
         # Fix Permissions
