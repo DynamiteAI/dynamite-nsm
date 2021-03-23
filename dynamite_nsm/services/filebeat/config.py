@@ -7,7 +7,8 @@ from yaml import load, dump
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base.config import YamlConfigManager
-from dynamite_nsm.services.base.config_objects.filebeat.misc import IndexTemplateSettings, InputLogs, FieldProcessors
+from dynamite_nsm.services.base.config_objects.filebeat.misc import IndexTemplateSettings, InputLogs, FieldProcessors, \
+    KibanaSettings
 from dynamite_nsm.services.base.config_objects.filebeat.targets import ElasticsearchTargets, LogstashTargets, \
     KafkaTargets, RedisTargets
 
@@ -32,11 +33,13 @@ class ConfigManager(YamlConfigManager):
             '_kafka_targets_raw': ('output.kafka',),
             '_redis_targets_raw': ('output.redis',),
             '_index_template_settings_raw': ('setup.template',),
+            '_kibana_settings_raw': ('setup.kibana',),
             '_processors_raw': ('processors',)
         }
         self._inputs_raw = {}
         self._processors_raw = {}
         self._index_template_settings_raw = {}
+        self._kibana_settings_raw = {}
         self._elasticsearch_targets_raw = {}
         self._logstash_targets_raw = {}
         self._kafka_targets_raw = {}
@@ -70,6 +73,11 @@ class ConfigManager(YamlConfigManager):
         self.index_template_settings = IndexTemplateSettings(
             index_name=self._index_template_settings_raw.get('name'),
             index_pattern=self._index_template_settings_raw.get('pattern'),
+        )
+
+        self.kibana_settings = KibanaSettings(
+            kibana_target_str=self._kibana_settings_raw.get('host'),
+            kibana_protocol=self._kibana_settings_raw.get('protocol')
         )
 
         self.elasticsearch_targets = ElasticsearchTargets(
@@ -225,10 +233,10 @@ class ConfigManager(YamlConfigManager):
             with open(zeek_module_path, 'r') as zeek_module_yaml:
                 zeek_module_data = load(zeek_module_yaml, Loader=Loader)
             for k, v in zeek_module_data[0].items():
-                zeek_full_path = os.path.join(zeek_log_directory, k + '.log')
                 if isinstance(v, dict):
                     if k == 'connection':
                         k = 'conn'
+                    zeek_full_path = os.path.join(zeek_log_directory, k + '.log')
                     v['var.paths'] = [zeek_full_path]
                     self.logger.debug(f'Patching path {k} -> {v}')
         if suricata_module_path:
@@ -299,6 +307,7 @@ class ConfigManager(YamlConfigManager):
         self._inputs_raw = self.input_logs.get_raw()
         self._processors_raw = self.field_processors.get_raw()
         self._index_template_settings_raw = self.index_template_settings.get_raw()
+        self._kibana_settings_raw = self.kibana_settings.get_raw()
         self._elasticsearch_targets_raw = self.elasticsearch_targets.get_raw()
         self._kafka_targets_raw = self.kafka_targets.get_raw()
         self._logstash_targets_raw = self.logstash_targets.get_raw()

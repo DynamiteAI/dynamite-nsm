@@ -5,7 +5,6 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.base.config_objects.filebeat import misc as misc_filebeat_objs
-from dynamite_nsm.services.base.config_objects.filebeat import targets as filebeat_targets
 from dynamite_nsm.services.filebeat import config
 
 
@@ -59,13 +58,17 @@ class InstallManager(install.BaseInstallManager):
         self.create_update_env_variable('FILEBEAT_HOME', self.install_directory)
 
     def setup(self, monitor_log_paths: Optional[List[str]] = None, targets: Optional[List[str]] = None,
-              agent_tag: Optional[str] = None) -> None:
+              agent_tag: Optional[str] = None, kibana_target_str: Optional[str] = None,
+              kibana_protocol: Optional[str] = None) -> None:
         """
         :param monitor_log_paths: A tuple of log paths to monitor
         :param targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9:5044", ...])
         :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
+        :param kibana_target_str: The Kibana host where the dashboards will be loaded. The default is 127.0.0.1:5601.
+        :param kibana_protocol: The name of the protocol Kibana is reachable on. The options are: http or https.
         """
         from dynamite_nsm.services.zeek import profile as zeek_profile
+        from dynamite_nsm.services.kibana import profile as kibana_profile
         from dynamite_nsm.services.suricata import profile as suricata_profile
         from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
 
@@ -85,14 +88,12 @@ class InstallManager(install.BaseInstallManager):
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/filebeat/modules.d/',
                                                    self.install_directory)
         filebeat_config = config.ConfigManager(self.install_directory, verbose=self.verbose, stdout=self.stdout)
-        filebeat_config.elasticsearch_targets = filebeat_targets.ElasticsearchTargets(
-            target_strings=targets,
-            enabled=True
-        )
+        filebeat_config.elasticsearch_targets.enabled = True
         filebeat_config.input_logs = misc_filebeat_objs.InputLogs(
             monitor_log_paths=[]
         )
         filebeat_config.field_processors.originating_agent_tag = agent_tag
+        filebeat_config.kibana_settings.enabled = True
         if not monitor_log_paths:
             environ = utilities.get_environment_file_dict()
             zeek_log_root = f'{environ["ZEEK_HOME"]}/logs/current/'
@@ -115,7 +116,11 @@ class InstallManager(install.BaseInstallManager):
             if elasticsearch_profiler.is_installed():
                 filebeat_config.elasticsearch_targets.target_strings = [
                     f'https://{utilities.get_primary_ip_address()}:9200']
-                filebeat_config.elasticsearch_targets.ssl_verification_mode = 'none'
+        if not kibana_target_str:
+            kibana_profiler = kibana_profile.ProcessProfiler()
+            if kibana_profiler.is_installed():
+                filebeat_config.kibana_settings.kibana_target_str = f'{utilities.get_primary_ip_address()}:5601'
+
         if not agent_tag:
             filebeat_config.field_processors.originating_agent_tag = utilities.get_default_agent_tag()
         self.logger.info(f'Agent Tag = {filebeat_config.field_processors.originating_agent_tag}')
@@ -124,16 +129,19 @@ class InstallManager(install.BaseInstallManager):
         filebeat_config.commit()
         self.logger.info('Applying configuration.')
         # Fix Permissions
+        self.logger.info('Installing modules.')
+        filebeat_config.patch_modules(zeek_log_directory=zeek_log_root, suricata_log_directory=suricata_log_root)
 
+        # Setting up permissions
         self.logger.info('Setting up file permissions.')
         config_file = f'{self.install_directory}/filebeat.yml'
         utilities.set_ownership_of_file(self.install_directory, user='root', group='root')
-        utilities.set_permissions_of_file(f'{self.install_directory}/modules.d', unix_permissions_integer=644)
-        utilities.set_permissions_of_file(f'{self.install_directory}/modules', unix_permissions_integer=644)
+        utilities.set_permissions_of_file(f'{self.install_directory}/modules.d/',
+                                          unix_permissions_integer='go-w')
+        utilities.set_permissions_of_file(f'{self.install_directory}/module/', unix_permissions_integer='go-w')
         utilities.set_ownership_of_file(config_file, user='root', group='root')
         utilities.set_permissions_of_file(config_file, unix_permissions_integer=501)
-        self.logger.info('Installing modules.')
-        filebeat_config.patch_modules(zeek_log_directory=zeek_log_root, suricata_log_directory=suricata_log_root)
+        filebeat_config.enable_ecs_normalization()
 
         # Install and enable service
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/filebeat.service')

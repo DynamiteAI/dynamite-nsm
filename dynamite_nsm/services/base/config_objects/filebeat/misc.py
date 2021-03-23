@@ -42,7 +42,10 @@ class IndexTemplateSettings:
         if index_pattern:
             self.index_pattern = index_pattern
         else:
-            self.index_pattern = f'{index_name}-*'
+            if index_name:
+                self.index_pattern = f'{index_name}-*'
+            else:
+                self.index_pattern = f'filebeat-*'
 
     def __str__(self) -> str:
         return json.dumps(dict(
@@ -57,6 +60,29 @@ class IndexTemplateSettings:
             enabled=self.enabled,
             name=self.index_name,
             pattern=self.index_pattern
+        )
+
+
+class KibanaSettings:
+
+    def __init__(self, kibana_target_str: str, kibana_protocol: str):
+        self.enabled = False
+        self.kibana_target_str = kibana_target_str
+        self.kibana_protocol = kibana_protocol
+
+    def __str__(self) -> str:
+        return json.dumps(dict(
+            obj_name=str(self.__class__),
+            target=self.kibana_target_str,
+            protocol=self.kibana_protocol,
+            enabled=self.enabled
+        ))
+
+    def get_raw(self) -> Dict:
+        return dict(
+            enabled=self.enabled,
+            host=self.kibana_target_str,
+            protocol=self.kibana_protocol
         )
 
 
