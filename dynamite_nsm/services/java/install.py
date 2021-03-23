@@ -16,8 +16,7 @@ class InstallManager(install.BaseInstallManager):
 
         if download_java_archive:
             self.logger.info("Attempting to download OpenJDK archive.")
-            _, archive_name, self.directory_name = self.download_from_mirror(const.JAVA_MIRRORS, stdout=stdout,
-                                                                             verbose=verbose)
+            _, archive_name, self.directory_name = self.download_from_mirror(const.JAVA_MIRRORS)
             self.logger.info(f'Attempting to extract OpenJDK archive ({archive_name}).')
             self.extract_archive(os.path.join(const.INSTALL_CACHE, archive_name))
             self.logger.info("Extraction completed.")
