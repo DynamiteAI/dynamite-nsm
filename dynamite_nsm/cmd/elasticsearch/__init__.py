@@ -2,7 +2,8 @@ import argparse
 
 from dynamite_nsm.cmd.elasticsearch import install, process, uninstall
 from dynamite_nsm.cmd.elasticsearch.config import get_interfaces as get_config_interfaces
-from dynamite_nsm.cmd.service_interfaces import append_service_interface_to_parser, append_service_interfaces_to_parser
+from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser, \
+    append_service_interfaces_to_parser
 from dynamite_nsm.utilities import get_primary_ip_address
 
 ES_CONFIG_HELP = 'Modify Elasticsearch configurations.'

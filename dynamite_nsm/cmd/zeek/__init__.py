@@ -1,6 +1,7 @@
 import argparse
 
-from dynamite_nsm.cmd.service_interfaces import append_service_interface_to_parser, append_service_interfaces_to_parser
+from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser, \
+    append_service_interfaces_to_parser
 from dynamite_nsm.cmd.zeek import install, process, uninstall
 from dynamite_nsm.cmd.zeek.logs import get_interfaces as get_logs_interfaces
 from dynamite_nsm.utilities import get_primary_ip_address

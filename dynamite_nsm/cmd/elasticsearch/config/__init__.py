@@ -1,6 +1,6 @@
 import argparse
 from dynamite_nsm.cmd.elasticsearch.config import main, java
-from dynamite_nsm.cmd.service_interfaces import append_service_interface_to_parser
+from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser
 
 
 def get_action_parser():

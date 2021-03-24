@@ -2,7 +2,7 @@ import argparse
 
 from dynamite_nsm.cmd.filebeat.logs import main, metrics
 from dynamite_nsm.utilities import get_primary_ip_address
-from dynamite_nsm.cmd.service_interfaces import append_service_interface_to_parser
+from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser
 
 
 def get_action_parser():

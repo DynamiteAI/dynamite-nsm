@@ -1,6 +1,6 @@
 import argparse
 from dynamite_nsm.utilities import get_primary_ip_address
-from dynamite_nsm.cmd.service_interfaces import append_service_interface_to_parser
+from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser
 from dynamite_nsm.cmd.zeek.logs import cluster, broker, metrics, reporter
 
 
