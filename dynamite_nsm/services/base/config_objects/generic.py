@@ -1,5 +1,6 @@
 import json
-from typing import List, Optional, TypeVar
+from zlib import adler32
+from typing import List, Optional
 
 
 class GenericItem(object):
@@ -52,11 +53,13 @@ class Analyzer(GenericItem):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
         self.name = name
+        self.id = adler32(str(name).encode("utf-8")) % 15000
         self.enabled = enabled
 
     def __str__(self):
         return json.dumps(dict(
             obj_name=str(self.__class__),
+            id=self.id,
             name=self.name,
             enabled=self.enabled
         ))

@@ -1,5 +1,5 @@
 from dynamite_nsm.services.zeek import logs
-from dynamite_nsm.service_to_commandline import SingleResponsibilityInterface
+from dynamite_nsm.cmd.service_interfaces import SingleResponsibilityInterface
 
 interface = \
     SingleResponsibilityInterface(cls=logs.ReporterLog,

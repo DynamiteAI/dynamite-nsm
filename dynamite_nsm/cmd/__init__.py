@@ -1,11 +1,22 @@
-
 import argparse
 from typing import Optional
-from dynamite_nsm.cmd import elasticsearch, logstash, kibana, zeek, suricata, filebeat, updates
+
+from dynamite_nsm.cmd import elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates
 
 
 def process_arguments(args: argparse.Namespace, component: Optional[str], interface: Optional[str] = None,
                       sub_interface: Optional[str] = None):
+    """
+    Selects the proper execution context given an argparse.Namespace, executes the namespace against that context
+
+    :param args: The argparse.Namespace object containing all the user selected commandline arguments
+    :param component: A string representing the name of the component (elasticsearch, logstash, kibana, zeek, suricata,
+                      or filebeat)
+    :param interface: A string representing the name of the interface (E.G config, install, process, logs, uninstall)
+    :param sub_interface: A string representing a sub-interface (for example a config or log name)
+
+    :return: The results of the executed context.
+    """
     component_modules = dict(
         elasticsearch=elasticsearch,
         logstash=logstash,

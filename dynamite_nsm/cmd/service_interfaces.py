@@ -1,88 +1,12 @@
 import argparse
 import inspect
-import json
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
-from docstring_parser import parse as docstring_parse
 from tabulate import tabulate
 
+from dynamite_nsm.cmd.inspection_helpers import ArgparseParameters
+from dynamite_nsm.cmd.inspection_helpers import get_class_instance_methods
 from dynamite_nsm.services.base import config
-
-
-class ArgparseParameters:
-
-    def __init__(self, name, **kwargs):
-        """
-        :param name: The name of a commandline parameter (E.G setup, stdout, verbose, any_func_name)
-        :param kwargs: A list of kwargs accepted by argparse.ArgumentParser.add_argument method
-        """
-        self.name = name
-        self.flags = ['--' + self.name.replace('_', '-')]
-        self.kwargs = kwargs
-
-    def __str__(self):
-        args = self.kwargs.copy()
-        args.update({'dest': self.name, 'flags': self.flags})
-        return json.dumps({k: str(v) for k, v in args.items()})
-
-    @classmethod
-    def create_from_typing_annotation(cls, name, python_type, default: Optional[Any] = None,
-                                      required: Optional[bool] = True):
-        """
-        Convenience method for creating argparse parameters from a python <class type>
-        
-        :param name: The name of the commandline parameter
-        :param python_type: The datatype that best describes the parameter
-        :param default: The default value for the parameter being evaluated
-        """
-        return cls(name, **cls.derive_params_from_type_annotation(python_type, default=default, required=required))
-
-    @staticmethod
-    def derive_params_from_type_annotation(python_type: Any, default: Optional[Any] = None,
-                                           required: Optional[bool] = True) -> Dict:
-        """
-        :param python_type: A <class 'type'> or typing derived class
-        :param default: The default value for the parameter being evaluated
-        :return: A dictionary of supported **kwargs
-        """
-        python_type = str(python_type)
-        action, default, nargs = None, default, None
-        _type = str
-        if default:
-            required = False
-        if 'Union' in python_type and 'NoneType' in python_type:
-            required = False
-        if 'Optional' in python_type:
-            required = False
-        if 'List' in python_type:
-            nargs = '+'
-        if 'list' in python_type:
-            nargs = '+'
-        if 'bool' in python_type:
-            action = 'store_true'
-            _type = None
-        elif 'int' in python_type:
-            _type = int
-        elif 'float' in python_type:
-            _type = float
-        elif 'str' in python_type:
-            _type = str
-        derived_args = dict(
-            required=required,
-            action=action,
-            default=default,
-            nargs=nargs,
-            type=_type
-        )
-
-        derived_args = {k: v for k, v in derived_args.items() if v is not None and v != ''}
-        return derived_args
-
-    def add_description(self, description):
-        self.kwargs['help'] = description
-
-    def add_flag(self, flag: str):
-        self.flags.append(flag)
 
 
 class MultipleResponsibilityInterface:
@@ -230,6 +154,10 @@ class SingleResponsibilityInterface:
 
 
 class SimpleConfigManagerInterface(SingleResponsibilityInterface):
+    """
+    Based upon the SingleResponsibilityInterface maps a class with only one responsibility to commandline interface,
+    but also makes all the instance variables of the configuration class available as commandline arguments
+    """
     reserved_variable_names = ['config_data', 'extract_tokens', 'formatted_data', 'stdout', 'verbose', 'logger',
                                'out_file_path', 'backup_directory', 'top_text', 'interface', 'sub_interface']
 
@@ -238,22 +166,33 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         self.config = config
         super().__init__(self.config.__class__, 'commit', interface_name, interface_description, defaults)
 
-    def get_parser(self) -> argparse.ArgumentParser:
-        parser = super().get_parser()
-        config_options = parser.add_argument_group('configuration options')
-        for var in vars(self.config):
+    def load_instance_variables_parser(self, config_obj: Union[config.GenericConfigManager, config.YamlConfigManager],
+                                       parser: argparse.ArgumentParser, config_options):
+        for var in vars(config_obj):
             if var in self.reserved_variable_names:
                 continue
             elif '_raw' in var:
                 continue
             elif var in [param.name for param in self.base_params]:
                 continue
-            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config, var)),
-                                                                    required=False)
-            config_options.add_argument(*args.flags, **args.kwargs)
+            elif 'config_objects' in str(type(getattr(config_obj, var))):
+                complex_obj = getattr(config_obj, var)
+                complex_config_options = parser.add_argument_group(var.capitalize())
+            else:
+                args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(config_obj, var)))
+                try:
+                    config_options.add_argument(*args.flags, **args.kwargs)
+                except argparse.ArgumentError:
+                    continue
         return parser
 
+    def get_parser(self) -> argparse.ArgumentParser:
+        parser = super().get_parser()
+        config_options = parser.add_argument_group('configuration options')
+        return self.load_instance_variables_parser(self.config, parser, config_options)
+
     def execute(self, args: argparse.Namespace) -> Any:
+        print(args)
         changed_config = False
         table = [['Config Option', 'Value']]
         changed_rows_only = [['Config Option', 'Value']]
@@ -277,15 +216,18 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
             return tabulate(table, tablefmt='fancy_grid')
 
 
-def append_interface_to_parser(parent_parser: argparse, interface_name: str,
-                               interface: Union[SingleResponsibilityInterface, MultipleResponsibilityInterface],
-                               interface_group_name: Optional[str] = 'interface'):
+def append_service_interface_to_parser(parent_parser: argparse, interface_name: str,
+                                       interface: Union[SingleResponsibilityInterface, MultipleResponsibilityInterface],
+                                       interface_group_name: Optional[str] = 'interface') -> argparse.ArgumentParser:
     """
     Add an interface to an existing parser.
 
     :param parent_parser: The parent parser to add the interface too
     :param interface_name: The name of this interface as it will appear in the commandline utility
     :param interface: The interface object itself
+    :param interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy this
+                                 service_interface should be placed
+    :return: The parser object
     """
     if not interface:
         return
@@ -334,121 +276,34 @@ def append_interface_to_parser(parent_parser: argparse, interface_name: str,
         append_multiple_responsibility_interface(interface)
 
 
-def append_interfaces_to_parser(parent_parser: argparse,
-                                interfaces: Dict[
-                                    str, Union[SingleResponsibilityInterface, MultipleResponsibilityInterface]],
-                                interface_group_name: Optional[str] = 'sub_interface'):
+def append_service_interfaces_to_parser(
+        parent_parser: argparse,interfaces: Dict[str,
+                                                 Union[SingleResponsibilityInterface, MultipleResponsibilityInterface]],
+        interface_group_name: Optional[str] = 'sub_interface') -> argparse.ArgumentParser:
+    """
+    Append multiple service interfaces to a single parser
+
+    :param parent_parser:
+    :param interfaces: A dictionary service interface objects where the key is the name of that interface,
+                    and the value is the interface object itself.
+    :param interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy these
+                                 service_interfaces should be placed
+    :return: The parser object
+    """
+
     for name, value in interfaces.items():
         if isinstance(value, tuple):
             interfaces, help_str = value
             new_section_parser = parent_parser.add_parser(name=name, help=help_str)
             new_section_subparsers = new_section_parser.add_subparsers()
-            append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=interfaces,
-                                        interface_group_name=interface_group_name)
+            append_service_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=interfaces,
+                                                interface_group_name=interface_group_name)
         elif isinstance(value, dict):
             new_section_parser = parent_parser.add_parser(name=name, help='<None Given>')
             new_section_subparsers = new_section_parser.add_subparsers()
-            append_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=value,
-                                        interface_group_name=interface_group_name)
+            append_service_interfaces_to_parser(parent_parser=new_section_subparsers, interfaces=value,
+                                                interface_group_name=interface_group_name)
         else:
-            append_interface_to_parser(parent_parser=parent_parser, interface_name=name, interface=value,
-                                       interface_group_name=interface_group_name)
+            append_service_interface_to_parser(parent_parser=parent_parser, interface_name=name, interface=value,
+                                               interface_group_name=interface_group_name)
     return parent_parser
-
-
-def get_argparse_parameters(func_def: Tuple[str, dict, str], defaults: Optional[Dict]) -> List[ArgparseParameters]:
-    """
-    Given a callable function returns a list of argparse compatible arguments
-
-    :param func_def: A tuple containing the function.__name__, function.__annotations__, inspect.getdoc(function)
-    :param defaults: A dictionary where the key a parameter name and the value represents the value to default it too.
-
-    :return: A list of ArgparseParameters
-    """
-    argparse_parameter_group = []
-    param_map = {}
-    _, annotations, docs = func_def
-    docstring_params = docstring_parse(docs).params
-
-    for doc_param in docstring_params:
-        _, arg_name = doc_param.args
-        param_map[arg_name] = doc_param.description
-    for param_name, data_type in annotations.items():
-        argparse_params = ArgparseParameters.create_from_typing_annotation(name=param_name, python_type=data_type)
-        if param_name == 'return':
-            continue
-        if defaults and defaults.get(param_name):
-            argparse_params = ArgparseParameters.create_from_typing_annotation(name=param_name, python_type=data_type,
-                                                                               default=defaults.get(param_name))
-        try:
-            argparse_params.add_description(param_map[param_name])
-        except KeyError:
-            pass
-        argparse_parameter_group.append(argparse_params)
-    return argparse_parameter_group
-
-
-def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use_parent_init: Optional[bool] = True) -> \
-        Tuple[List[ArgparseParameters], Dict[str, List[ArgparseParameters]]]:
-    """
-    Given a class retrieves all the methods with their corresponding parameters
-
-    :param cls: The class that you wish to enumerate
-    :param defaults: A dictionary where the key a parameter name and the value represents the value to default it too.
-    :return: A tuple containing the base_params for the __init__ method in the first position; and a dictionary
-             containing a map of remaining function names to lists of their corresponding parameters
-             (E.G {func_name: [ArgparseParameters, ArgparseParam...], func_name_2: [ArgparseParameters, Argp...]})
-    """
-    base_params = None
-    interface_functions = {}
-
-    # Enumerate the class instance methods as well as any parent classes instance methods
-    for c in cls.__mro__:
-        for callable in c.__dict__.values():
-            func_def = get_function_definition(callable)
-            if not func_def:
-                continue
-            else:
-                # func_name, annotations, docs
-                func_name, _, _ = func_def
-                if func_name == '__init__':
-                    continue
-                # Store the rest of our method parameters in a dictionary
-                # {func_name: [ArgparseParameters, ArgparseParam...], func_name_2: [ArgparseParameters, Argp...]}
-                else:
-                    interface_functions[func_name] = get_argparse_parameters(func_def, defaults=defaults)
-            # and parent class is selected
-    try:
-        parent_class = cls.__mro__[1]
-    except IndexError:
-        parent_class = cls
-    if use_parent_init:
-        func_def = get_function_definition(parent_class.__init__)
-    else:
-        func_def = get_function_definition(cls.__init__)
-    base_params = get_argparse_parameters(func_def, defaults=defaults)
-
-    return base_params, interface_functions
-
-
-def get_function_definition(func: Callable) -> Union[Tuple[str, dict, str], None]:
-    """
-    Given a callable function returns a three part definition for that function
-
-    :param func: A callable function
-    :return: A tuple with the (function.__name__, function.__annotations__, inspect.getdoc(function))
-    """
-    if not isinstance(func, Callable):
-        return None
-    if func.__name__ == '__init__':
-        name = '__init__'
-        annotations = dict(inspect.signature(func).parameters.items())
-        annotations.pop('self')
-        docs = inspect.getdoc(func)
-    else:
-        try:
-            name, annotations = func.__name__, func.__annotations__
-            docs = inspect.getdoc(func)
-        except AttributeError:
-            return None
-    return name, annotations, docs

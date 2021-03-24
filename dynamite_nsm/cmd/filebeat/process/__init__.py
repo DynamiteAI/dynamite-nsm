@@ -1,5 +1,5 @@
 from dynamite_nsm.services.filebeat import process
-from dynamite_nsm.service_to_commandline import MultipleResponsibilityInterface
+from dynamite_nsm.cmd.service_interfaces import MultipleResponsibilityInterface
 
 interface = \
     MultipleResponsibilityInterface(cls=process.ProcessManager,
