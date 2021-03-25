@@ -187,7 +187,8 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
     but also makes all the instance variables of the configuration class available as commandline arguments
     """
     reserved_variable_names = ['config_data', 'extract_tokens', 'formatted_data', 'stdout', 'verbose', 'logger',
-                               'out_file_path', 'backup_directory', 'top_text', 'interface', 'sub_interface']
+                               'out_file_path', 'backup_directory', 'top_text', 'interface', 'sub_interface',
+                               'config_module']
 
     def __init__(self, config: Union[config.GenericConfigManager, config.YamlConfigManager], interface_name: str,
                  interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
@@ -205,7 +206,6 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         parser = super().get_parser()
         config_options = parser.add_argument_group('configuration options')
         config_objects_subparser = parser.add_subparsers()
-
         for var in vars(self.config):
             if var in self.reserved_variable_names:
                 continue
@@ -239,8 +239,15 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         :param args: The output of argparse.ArgumentParser.parse_args() function
         """
         changed_config = False
+        if not getattr(args, 'config_module', None):
+            args.config_module = None
         table = [['Config Option', 'Value']]
         changed_rows_only = [['Config Option', 'Value']]
+
+        # In the scenario we have configuration modules include them as config options in our display table
+        table.extend(
+            [[config_module_name, 'Configuration Module'] for config_module_name in self.config_module_map.keys()])
+
         for option, value in args.__dict__.items():
             if option in self.defaults:
                 continue
@@ -297,6 +304,7 @@ def append_service_single_responsibility_interface_to_parser(parser: argparse.Ar
 def append_service_simple_config_management_interface_to_parser(parser: argparse.ArgumentParser,
                                                                 interface: SimpleConfigManagerInterface):
     config_options = parser.add_argument_group('configuration options')
+    config_objects_subparser = parser.add_subparsers()
     for params in interface.base_params + interface.interface_params:
         parser.add_argument(*params.flags, **params.kwargs)
     for var in vars(interface.config):
@@ -306,7 +314,19 @@ def append_service_simple_config_management_interface_to_parser(parser: argparse
             continue
         elif var in [param.name for param in interface.base_params]:
             continue
-        args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config, var)),
-                                                                required=False)
-        config_options.add_argument(*args.flags, **args.kwargs)
+        elif 'config_objects' in str(type(getattr(interface.config, var))):
+            complex_obj = getattr(interface.config, var)
+            if isinstance(complex_obj, Analyzers):
+                config_module_interface = AnalyzersInterface(complex_obj)
+                interface.config_module_map.update({var: config_module_interface})
+                interface_operations.append_service_interface_to_parser(config_objects_subparser,
+                                                                        interface=AnalyzersInterface(complex_obj),
+                                                                        interface_name=var,
+                                                                        interface_group_name='config_module')
+        else:
+            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config, var)))
+            try:
+                config_options.add_argument(*args.flags, **args.kwargs)
+            except argparse.ArgumentError:
+                continue
     return parser

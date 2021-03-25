@@ -23,7 +23,7 @@ class ArgparseParameters:
 
     @classmethod
     def create_from_typing_annotation(cls, name, python_type, default: Optional[Any] = None,
-                                      required: Optional[bool] = True):
+                                      required: Optional[bool] = False):
         """
         Convenience method for creating argparse parameters from a python <class type>
 
@@ -35,7 +35,7 @@ class ArgparseParameters:
 
     @staticmethod
     def derive_params_from_type_annotation(python_type: Any, default: Optional[Any] = None,
-                                           required: Optional[bool] = True) -> Dict:
+                                           required: Optional[bool] = False) -> Dict:
         """
         :param python_type: A <class 'type'> or typing derived class
         :param default: The default value for the parameter being evaluated
