@@ -8,7 +8,6 @@ from dynamite_nsm.utilities import get_primary_ip_address
 
 KIBANA_CONFIG_HELP = 'Modify Kibana configurations.'
 
-
 def get_action_parser():
     parser = argparse.ArgumentParser(description=f'Kibana @ {get_primary_ip_address()}')
     subparsers = parser.add_subparsers()
