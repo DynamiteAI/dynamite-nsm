@@ -1,25 +1,28 @@
-import os
 import logging
-import requests
+import os
+from getpass import getpass
 from typing import Optional
 
-from dynamite_nsm import const, utilities
+import requests
+
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.services.kibana import config
-from typing import Dict, Optional, Union
-from getpass import getpass
 from dynamite_nsm.utilities import get_primary_ip_address
 
 
 class SavedObjectsManager(object):
-    def __init__(self, name: Optional[str] = "package.saved_objects", verbose: Optional[bool] = False):
+    def __init__(self, name: Optional[str] = "package.saved_objects", stdout: Optional[bool] = True,
+                 verbose: Optional[bool] = False):
+        """
+        :param name: The name of the package you wish to install
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
         self._api_auth_token = None
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        self.logger = get_logger(str(name).upper(), level=log_level, stdout=True)
+        self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
 
-            
     @property
     def kibana_url(self):
         return f'http://{get_primary_ip_address()}:5601'
@@ -28,12 +31,11 @@ class SavedObjectsManager(object):
         # need to be able to provide these as parameters to the cmd
         username = input("\nKibana Username: ")
         password = getpass("Kibana Password:\n")
-        return (username,password)
-
+        return (username, password)
 
     def browse_saved_objects(self, type, auth):
         return requests.get(f'{self.kibana_url}/api/saved_objects/_find?type={type}', auth=auth)
-        
+
     def import_saved_objects(self, auth, file, space=None, overwrite=False, create_copies=True):
         if space:
             url = f'{self.kibana_url}/s/{space}/api/saved_objects/_import'
@@ -41,8 +43,8 @@ class SavedObjectsManager(object):
             url = f'{self.kibana_url}/api/saved_objects/_import'
         if all([overwrite, create_copies]):
             raise ValueError("createNewCopies and overwrite cannot be used together.")
-        
-        #TODO: expose these as params when args work
+
+        # TODO: expose these as params when args work
         params = {'overwrite': overwrite, 'createNewCopies': create_copies}
 
         # TODO: Catch connection denied when kibana is down and handle/inform user gracefully
@@ -56,12 +58,10 @@ class SavedObjectsManager(object):
             print(resp.json())
         return resp.json()
 
-        
-    
     def add(self):
         # TODO: figure out why args to params is not working
 
-        #needs to be available as a parameter
+        # needs to be available as a parameter
         file = None
         while not bool(file):
             file = input("Path To ndjson file: ")
@@ -72,11 +72,6 @@ class SavedObjectsManager(object):
         with open(abspath, 'r') as ndjsonfile:
             print(ndjsonfile.name)
             print(self.import_saved_objects(self._get_kibana_auth(), ndjsonfile))
-        
-
-
-
-
 
     def list(self):
         # TODO: figure out why args to params is not working
@@ -87,7 +82,7 @@ class SavedObjectsManager(object):
             print(f"{types.index(type) + 1} {type}")
         while selection is None:
             sel = input("Select saved object type: ")
-            if sel in [str(i) for i in range(1,len(types)+1)]:
+            if sel in [str(i) for i in range(1, len(types) + 1)]:
                 selection = int(sel) - 1
             else:
                 print("Invalid Selection")
@@ -104,4 +99,3 @@ class SavedObjectsManager(object):
 
     def remove(self):
         pass
-
