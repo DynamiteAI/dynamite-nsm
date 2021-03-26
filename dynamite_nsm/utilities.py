@@ -692,7 +692,7 @@ def set_permissions_of_file(file_path, unix_permissions_integer):
     :param file_path: The path to the file
     :param unix_permissions_integer: The numeric representation of user/group/everyone permissions on a file
     """
-    subprocess.call('chmod {} {}'.format(unix_permissions_integer, file_path), shell=True)
+    subprocess.call('chmod -R {} {}'.format(unix_permissions_integer, file_path), shell=True)
 
 
 def update_sysctl(verbose=False):

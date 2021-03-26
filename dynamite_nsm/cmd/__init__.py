@@ -1,23 +1,37 @@
 import argparse
+from typing import Optional
 
-from dynamite_nsm import service_to_commandline
-from dynamite_nsm.cmd import elasticsearch, logstash, kibana, zeek, suricata, filebeat
-from dynamite_nsm.utilities import get_primary_ip_address
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=f'Dynamite @ {get_primary_ip_address()}')
-    subparsers = parser.add_subparsers()
-
-    elasticsearch_interfaces = elasticsearch.get_interfaces()
-    elasticsearch_parser = subparsers.add_parser(name='elasticsearch')
-    elasticsearch_subparsers = elasticsearch_parser.add_subparsers()
-
-    logstash_interfaces = logstash.get_interfaces()
-    logstash_parser = subparsers.add_parser(name='logstash')
-    logstash_subparsers = logstash_parser.add_subparsers()
+from dynamite_nsm.cmd import elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates
 
 
-    service_to_commandline.append_interfaces_to_parser(elasticsearch_subparsers, interfaces=elasticsearch_interfaces)
-    service_to_commandline.append_interfaces_to_parser(logstash_subparsers, interfaces=logstash_interfaces)
+def process_arguments(args: argparse.Namespace, component: Optional[str], interface: Optional[str] = None,
+                      sub_interface: Optional[str] = None):
+    """
+    Selects the proper execution context given an argparse.Namespace, executes the namespace against that context
+    :param args: The argparse.Namespace object containing all the user selected commandline arguments
+    :param component: A string representing the name of the component (elasticsearch, logstash, kibana, zeek, suricata,
+                      or filebeat)
+    :param interface: A string representing the name of the interface (E.G config, install, process, logs, uninstall)
+    :param sub_interface: A string representing a sub-interface (for example a config or log name)
+    :return: The results of the executed context.
+    """
+    component_modules = dict(
+        elasticsearch=elasticsearch,
+        logstash=logstash,
+        kibana=kibana,
+        zeek=zeek,
+        suricata=suricata,
+        filebeat=filebeat,
+        updates=updates
+    )
 
-    parser.parse_args()
+    try:
+        component_interface = getattr(component_modules[component], interface)
+        if sub_interface:
+            component_interface = getattr(component_interface, sub_interface)
+    except KeyError:
+        raise ModuleNotFoundError(f'{component} is not a valid component module.')
+    except AttributeError:
+        raise ModuleNotFoundError(f'{component}.{interface} is not a valid interface module.')
+    return component_interface.interface.execute(args)
+

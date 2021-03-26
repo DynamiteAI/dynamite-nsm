@@ -9,6 +9,11 @@ from dynamite_nsm.services.base.config import YamlConfigManager
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
         extract_tokens = {
             'host': ('server.host',),
             'port': ('server.port',),

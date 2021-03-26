@@ -2,8 +2,9 @@ import os
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
-from dynamite_nsm.services.kibana import config
 from dynamite_nsm.services.base import install, systemctl
+from dynamite_nsm.services.kibana import config
+from dynamite_nsm.services.kibana.post_installation_tasks import post_install_saved_objects
 
 
 class InstallManager(install.BaseInstallManager):
@@ -112,6 +113,9 @@ class InstallManager(install.BaseInstallManager):
         # Install and enable service
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/kibana.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/kibana.service')
+
+        self.logger.info('Importing Kibana saved objects.')
+        post_install_saved_objects(f'{const.DEFAULT_CONFIGS}/kibana/objects', stdout=self.stdout, verbose=self.verbose)
 
 
 class UninstallManager(install.BaseUninstallManager):

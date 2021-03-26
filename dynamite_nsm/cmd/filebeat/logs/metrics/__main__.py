@@ -1,4 +1,4 @@
-from dynamite_nsm.cmd.filebeat.logs import interface
+from dynamite_nsm.cmd.filebeat.logs.metrics import interface
 
 if __name__ == '__main__':
     parser = interface.get_parser()
