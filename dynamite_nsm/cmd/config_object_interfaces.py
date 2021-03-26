@@ -2,9 +2,13 @@ import argparse
 from typing import Any
 
 from tabulate import tabulate
+from docstring_parser import parse as docstring_parse
 
 from dynamite_nsm.cmd.base_interface import BaseInterface
+from dynamite_nsm.cmd.inspection_helpers import ArgparseParameters
+from dynamite_nsm.cmd.inspection_helpers import get_function_definition
 from dynamite_nsm.services.base.config_objects import generic
+from dynamite_nsm.services.base.config_objects.filebeat import targets
 
 """
 Commandline interface wrappers for services.base.config_objects
@@ -79,6 +83,37 @@ class AnalyzersInterface(BaseInterface):
         return self.config_obj
 
 
+class FilebeatTargetsInterface(BaseInterface):
+
+    def __init__(self, config_obj: targets.BaseTargets):
+        super().__init__()
+        self.config_obj = config_obj
+
+    def _get_description_for_instance_var(self, var: str):
+        from docstring_parser import parse as docstring_parse
+        _, _ , docs = get_function_definition(func=self.config_obj.__init__)
+        for param in docstring_parse(docs).params:
+            if param.arg_name == var:
+                return param.description
+        return ''
+
+    def get_parser(self):
+        parser = argparse.ArgumentParser()
+        target_options = parser.add_argument_group('target options')
+        for var in vars(self.config_obj):
+            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config_obj, var)))
+            if var != 'enabled':
+                arg_description = self._get_description_for_instance_var(var).replace('\n', ' ')
+            else:
+                arg_description = 'If included, this target will be enabled, and events sent to it.'
+            args.add_description(arg_description)
+            try:
+                target_options.add_argument(*args.flags, **args.kwargs)
+            except argparse.ArgumentError:
+                continue
+        return parser
+
+
 def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentParser, interface: AnalyzersInterface):
     choices = []
     for analyzer in interface.config_obj.analyzers:
@@ -92,3 +127,9 @@ def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentP
         parser.add_argument('--value', dest='value', type=str,
                             help=f'The value associated with the selected object')
     return parser
+
+"""
+from dynamite_nsm.services.filebeat.config import ConfigManager
+filebeat_config = ConfigManager('/opt/dynamite/filebeat')
+FilebeatTargetsInterface(filebeat_config.redis_targets).get_parser().parse_args()
+"""
