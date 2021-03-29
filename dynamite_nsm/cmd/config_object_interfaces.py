@@ -1,10 +1,10 @@
 import argparse
-from typing import Any
+from typing import Any, Dict, Optional
 
 from tabulate import tabulate
-from docstring_parser import parse as docstring_parse
 
 from dynamite_nsm.cmd.base_interface import BaseInterface
+from dynamite_nsm.cmd.base_interface import RESERVED_VARIABLE_NAMES
 from dynamite_nsm.cmd.inspection_helpers import ArgparseParameters
 from dynamite_nsm.cmd.inspection_helpers import get_function_definition
 from dynamite_nsm.services.base.config_objects import generic
@@ -28,6 +28,7 @@ class AnalyzersInterface(BaseInterface):
     def __init__(self, config_obj: generic.Analyzers):
         super().__init__()
         self.config_obj = config_obj
+        self.changed_rows = []
 
     def get_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser()
@@ -46,6 +47,7 @@ class AnalyzersInterface(BaseInterface):
         return parser
 
     def execute(self, args: argparse.Namespace) -> Any:
+        self.changed_rows = []
         selected_analyzer = None
         selected_analyzer_value = 'N/A'
         headers = ['Id', 'Name', 'Enabled', 'Value']
@@ -71,6 +73,8 @@ class AnalyzersInterface(BaseInterface):
 
                 if getattr(selected_analyzer, 'value',
                            None) and args.value:  # TODO smells bad - check class implementation that requires this hack
+                    if not str(args.value).endswith(';'):
+                        args.value = args.value + ';'
                     selected_analyzer.value = args.value
                 else:
                     # Populate value in the namespace so we can perform the below check w/o issue.
@@ -80,18 +84,25 @@ class AnalyzersInterface(BaseInterface):
                     table = [headers, [selected_analyzer.id, selected_analyzer.name, selected_analyzer.enabled,
                                        selected_analyzer_value]]
                     return tabulate(table, tablefmt='fancy_grid')
-        return self.config_obj
+                else:
+                    changed_value = selected_analyzer_value
+                    if args.value:
+                        changed_value = args.value
+                    self.changed_rows = [[selected_analyzer.id, selected_analyzer.name, selected_analyzer.enabled,
+                                          changed_value]]
+                    return self.config_obj
 
 
 class FilebeatTargetsInterface(BaseInterface):
 
-    def __init__(self, config_obj: targets.BaseTargets):
-        super().__init__()
+    def __init__(self, config_obj: targets.BaseTargets, defaults: Optional[Dict] = None):
+        super().__init__(defaults=defaults)
         self.config_obj = config_obj
+        self.changed_rows = []
 
     def _get_description_for_instance_var(self, var: str):
         from docstring_parser import parse as docstring_parse
-        _, _ , docs = get_function_definition(func=self.config_obj.__init__)
+        _, _, docs = get_function_definition(func=self.config_obj.__init__)
         for param in docstring_parse(docs).params:
             if param.arg_name == var:
                 return param.description
@@ -113,6 +124,29 @@ class FilebeatTargetsInterface(BaseInterface):
                 continue
         return parser
 
+    def execute(self, args: argparse.Namespace) -> Any:
+        self.changed_rows = []
+        changed_config = False
+        headers = ['Config Option', 'Value']
+        table = [headers]
+        for option, value in args.__dict__.items():
+            if option in self.defaults:
+                continue
+            if option in RESERVED_VARIABLE_NAMES:
+                continue
+            if not value:
+                config_value = (option, getattr(self.config_obj, option, None))
+                if not config_value[1]:
+                    config_value = option, 'N/A'
+                table.append(config_value)
+            else:
+                changed_config = True
+                self.changed_rows.append([option, value])
+                setattr(self.config_obj, option, value)
+        if not changed_config:
+            return tabulate(table, tablefmt='fancy_grid')
+        return self.config_obj
+
 
 def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentParser, interface: AnalyzersInterface):
     choices = []
@@ -128,8 +162,16 @@ def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentP
                             help=f'The value associated with the selected object')
     return parser
 
-"""
-from dynamite_nsm.services.filebeat.config import ConfigManager
-filebeat_config = ConfigManager('/opt/dynamite/filebeat')
-FilebeatTargetsInterface(filebeat_config.redis_targets).get_parser().parse_args()
-"""
+
+def append_config_object_filebeat_targets_to_parser(parser: argparse.ArgumentParser,
+                                                    interface: FilebeatTargetsInterface):
+    target_options = parser.add_argument_group('target options')
+    for var in vars(interface.config_obj):
+        args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)))
+        arg_description = interface._get_description_for_instance_var(var).replace('\n', ' ')
+        args.add_description(arg_description)
+        try:
+            target_options.add_argument(*args.flags, **args.kwargs)
+        except argparse.ArgumentError:
+            continue
+    return parser

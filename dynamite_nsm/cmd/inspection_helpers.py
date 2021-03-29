@@ -129,8 +129,10 @@ def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use
     interface_functions = {}
 
     # Enumerate the class instance methods as well as any parent classes instance methods
-
-    method_resolution_order = cls.__class__.__mro__
+    try:
+        method_resolution_order = cls.__mro__
+    except AttributeError:
+        method_resolution_order = cls.__class__.__mro__
     for c in method_resolution_order:
         for callable in c.__dict__.values():
             func_def = get_function_definition(callable)
