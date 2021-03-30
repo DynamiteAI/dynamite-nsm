@@ -1,5 +1,8 @@
 import logging
 import os
+import tarfile
+import zipfile
+import mimetypes
 from getpass import getpass
 from typing import Optional
 
@@ -7,17 +10,20 @@ import requests
 
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import get_primary_ip_address
-
+from io import StringIO, BytesIO
 
 class SavedObjectsManager(object):
-    def __init__(self, name: Optional[str] = "package.saved_objects", stdout: Optional[bool] = True,
-                 verbose: Optional[bool] = False):
+    def __init__(self, name: Optional[str] = "package.saved_objects",
+                 stdout: Optional[bool] = True,
+                 verbose: Optional[bool] = False,
+                 file: Optional[str] = ""):
         """
         :param name: The name of the package you wish to install
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
         """
         self._api_auth_token = None
+        self.file = file
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -48,9 +54,11 @@ class SavedObjectsManager(object):
         params = {'overwrite': overwrite, 'createNewCopies': create_copies}
 
         # TODO: Catch connection denied when kibana is down and handle/inform user gracefully
-        reqdata = {'file': file}
+        if type(file) in (StringIO, BytesIO):
+            reqdata = {'file': ('dynamite_import.ndjson', file)}
+        else:
+            reqdata = {'file': file}
         resp = requests.post(url, params=params, auth=auth, files=reqdata, headers={'kbn-xsrf': 'true'})
-
         if resp.status_code == 401:
             print("Problem authenticating to Kibana, invalid username/password?")
         if resp.status_code in [400, 500]:
@@ -59,19 +67,45 @@ class SavedObjectsManager(object):
         return resp.json()
 
     def add(self):
-        # TODO: figure out why args to params is not working
-
+        def _get_install_file_abs_path(file):
+            if file:
+                abspath = f'{os.getcwd()}/{file}'
+                if not os.path.isfile(abspath):
+                    print(f'could not find file: {abspath}')
+                    return None
+            return abspath
+        def _open_and_import_ndjsonfile(file_object):
+            # TODO: Better output w/ num successful imports, titles, etc
+            print(self.import_saved_objects(self._get_kibana_auth(), file_object))
+            if not file_object.closed:
+                file_object.close()
+            
         # needs to be available as a parameter
-        file = None
-        while not bool(file):
-            file = input("Path To ndjson file: ")
-            abspath = f'{os.getcwd()}/{file}'
-            if file and not os.path.isfile(abspath):
-                print(f'could not find file: {abspath}')
-                file = None
-        with open(abspath, 'r') as ndjsonfile:
-            print(ndjsonfile.name)
-            print(self.import_saved_objects(self._get_kibana_auth(), ndjsonfile))
+        if self.file:
+            abspath = _get_install_file_abs_path(self.file)
+        else:
+            while not bool(self.file):
+                file = input("Path To ndjson file, folder or archive: ")
+                abspath = _get_install_file_abs_path(file)
+                if not abspath:
+                    self.file = None
+        # check mimetype of the file to determine how to proceed
+        filetype, encoding = mimetypes.MimeTypes().guess_type(abspath)
+        if filetype == 'application/x-tar' or encoding == 'gzip':
+            #handle tarfile
+            tar = tarfile.open(abspath)
+            for member in tar:
+                #should we validate the json before sending it up to kibana?
+                # TODO: Check folders recursively
+                file = BytesIO(tar.extractfile(member).read())
+                _open_and_import_ndjsonfile(file)
+
+            pass
+        elif filetype in ('application/json', 'text/plain') or any([abspath.endswith('.ndjson'), abspath.endswith('json')]):
+            with open(abspath, 'r') as ndjsonfile:
+                _open_and_import_ndjsonfile(ndjsonfile)
+        else:
+            print("Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
 
     def list(self):
         # TODO: figure out why args to params is not working
