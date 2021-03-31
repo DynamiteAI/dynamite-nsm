@@ -7,7 +7,7 @@ from dynamite_nsm.cmd.service_interfaces import MultipleResponsibilityInterface
 
 interface = \
     MultipleResponsibilityInterface(cls=package.SavedObjectsManager,
-                                  supported_method_names=["add", "remove", "list"],
+                                  supported_method_names=["install", "uninstall", "list"],
                                   interface_name='Kibana Saved Objects Manager',
                                   interface_description='Add, remove and manage Saved Objects in Kibana',
                                   defaults=dict(stdout=True)

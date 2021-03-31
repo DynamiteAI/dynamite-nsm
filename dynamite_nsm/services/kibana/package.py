@@ -66,7 +66,7 @@ class SavedObjectsManager(object):
             print(resp.json())
         return resp.json()
 
-    def add(self):
+    def install(self):
         def _get_install_file_abs_path(file):
             if file:
                 abspath = f'{os.getcwd()}/{file}'
@@ -131,5 +131,5 @@ class SavedObjectsManager(object):
         else:
             raise NotImplementedError()
 
-    def remove(self):
+    def uninstall(self):
         pass
