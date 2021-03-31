@@ -68,11 +68,12 @@ class MultipleResponsibilityInterface(BaseInterface):
             parser.add_argument(*params.flags, **params.kwargs)
         for method, params_group in self.interface_methods.items():
             if method in self.supported_method_names:
-                if not params_group:
-                    actions.append(method.replace('_', '-'))
-                else:
-                    for params in params_group:
+                actions.append(method.replace('_', '-'))
+                for params in params_group:
+                    try:
                         parser.add_argument(*params.flags, **params.kwargs)
+                    except argparse.ArgumentError:
+                        continue
         if actions:
             parser.add_argument('action', choices=actions)
         return parser
@@ -88,13 +89,10 @@ class MultipleResponsibilityInterface(BaseInterface):
         constructor_kwargs = dict()
         entry_method_kwargs = dict()
         for param, value in vars(args).items():
-            if param == 'action':
-                continue
             if param in [p.name for p in self.base_params]:
                 constructor_kwargs[param] = value
-            else:
+            elif param in [p.name for p in self.interface_methods[args.action.replace('-', '_')]]:
                 entry_method_kwargs[param] = value
-
         # Dynamically load our class
         klass = getattr(self, 'cls')
         # Instantiate it with the constructor kwargs
@@ -304,11 +302,12 @@ def append_service_multiple_responsibility_interface_to_parser(parser: argparse.
         parser.add_argument(*params.flags, **params.kwargs)
     for method, params_group in interface.interface_methods.items():
         if method in interface.supported_method_names:
-            if not params_group:
-                actions.append(method.replace('_', '-'))
-            else:
-                for params in params_group:
+            actions.append(method.replace('_', '-'))
+            for params in params_group:
+                try:
                     parser.add_argument(*params.flags, **params.kwargs)
+                except argparse.ArgumentError:
+                    continue
     if actions:
         parser.add_argument('action', choices=actions)
     return parser

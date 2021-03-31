@@ -43,7 +43,8 @@ if __name__ == '__main__':
         'kibana',
         'zeek',
         'suricata',
-        'filebeat'
+        'filebeat',
+        'updates'
     ])
 
     dynamite_dummy_parser.add_argument('action',

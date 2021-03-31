@@ -1,48 +1,71 @@
 import logging
-import os
-import tarfile
-import zipfile
 import mimetypes
+import tarfile
 from getpass import getpass
-from typing import Optional
+from io import BytesIO, IOBase
+from typing import AnyStr, Optional, Tuple, IO
 
 import requests
 
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import get_primary_ip_address
-from io import StringIO, BytesIO
+
 
 class SavedObjectsManager(object):
-    def __init__(self, name: Optional[str] = "package.saved_objects",
+    def __init__(self,
                  stdout: Optional[bool] = True,
-                 verbose: Optional[bool] = False,
-                 file: Optional[str] = ""):
+                 verbose: Optional[bool] = False):
         """
         :param name: The name of the package you wish to install
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
         """
         self._api_auth_token = None
-        self.file = file
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
+        self.logger = get_logger(str('KIBANA.PACKAGE_MANAGER'), level=log_level, stdout=stdout)
 
     @property
     def kibana_url(self):
         return f'http://{get_primary_ip_address()}:5601'
 
-    def _get_kibana_auth(self):
+    @staticmethod
+    def _get_kibana_auth_securely(username: Optional[str] = None, password: Optional[str] = None) -> Tuple[str, str]:
         # need to be able to provide these as parameters to the cmd
-        username = input("\nKibana Username: ")
-        password = getpass("Kibana Password:\n")
-        return (username, password)
+        if not username:
+            print()
+            username = input("Kibana Username: ")
+        if not password:
+            print()
+            password = getpass("Kibana Password: ")
+        return username, password
 
-    def browse_saved_objects(self, type, auth):
-        return requests.get(f'{self.kibana_url}/api/saved_objects/_find?type={type}', auth=auth)
+    def browse_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
+                             saved_object_type: Optional[str] = None) -> requests.Response:
+        auth = self._get_kibana_auth_securely(username, password)
+        if saved_object_type:
+            resp = requests.get(f'{self.kibana_url}/api/saved_objects/_find?type={saved_object_type}', auth=auth)
+        resp = requests.get(
+            f'{self.kibana_url}/api/saved_objects/_find'
+            f'?type=dashboard'
+            f'&type=index-pattern'
+            f'&type=visualization'
+            f'&type=search'
+            f'&type=config'
+            f'&type=timelion-sheet',
+            auth=auth)
+        if resp.status_code not in range(200, 299):
+            self.logger.error(f'Kibana endpoint returned a {resp.status_code} - {resp.text}')
+            # TODO raise exception
+        return resp
 
-    def import_saved_objects(self, auth, file, space=None, overwrite=False, create_copies=True):
+    def import_kibana_saved_objects(self, username: str, password: str, kibana_objects_file: IO[AnyStr],
+                                    space: Optional[str] = None, overwrite: Optional[bool] = False,
+                                    create_copies: Optional[bool] = True):
+
+        auth = self._get_kibana_auth_securely(username, password)
+
         if space:
             url = f'{self.kibana_url}/s/{space}/api/saved_objects/_import'
         else:
@@ -54,82 +77,74 @@ class SavedObjectsManager(object):
         params = {'overwrite': overwrite, 'createNewCopies': create_copies}
 
         # TODO: Catch connection denied when kibana is down and handle/inform user gracefully
-        if type(file) in (StringIO, BytesIO):
-            reqdata = {'file': ('dynamite_import.ndjson', file)}
+        if isinstance(kibana_objects_file, IOBase):
+            reqdata = {'file': ('dynamite_import.ndjson', kibana_objects_file)}
         else:
-            reqdata = {'file': file}
+            reqdata = {'file': kibana_objects_file}
         resp = requests.post(url, params=params, auth=auth, files=reqdata, headers={'kbn-xsrf': 'true'})
-        if resp.status_code == 401:
-            print("Problem authenticating to Kibana, invalid username/password?")
-        if resp.status_code in [400, 500]:
-            print("Something went wrong trying to import the saved object(s):")
-            print(resp.json())
+        if resp.status_code not in range(200, 299):
+            self.logger.error(f'Kibana endpoint returned a {resp.status_code} - {resp.text}')
+            # TODO raise exception
         return resp.json()
 
-    def install(self):
-        def _get_install_file_abs_path(file):
-            if file:
-                abspath = f'{os.getcwd()}/{file}'
-                if not os.path.isfile(abspath):
-                    print(f'could not find file: {abspath}')
-                    return None
-            return abspath
-        def _open_and_import_ndjsonfile(file_object):
-            # TODO: Better output w/ num successful imports, titles, etc
-            print(self.import_saved_objects(self._get_kibana_auth(), file_object))
-            if not file_object.closed:
-                file_object.close()
-            
-        # needs to be available as a parameter
-        if self.file:
-            abspath = _get_install_file_abs_path(self.file)
-        else:
-            while not bool(self.file):
-                file = input("Path To ndjson file, folder or archive: ")
-                abspath = _get_install_file_abs_path(file)
-                if not abspath:
-                    self.file = None
+    def install(self, package_install_path: str, username: Optional[str] = None, password: Optional[str] = None):
+        """
+        Install a package. A package can be given as an archive or directory. A package must contain one or more ndjson
+        files and a manifest.json file
+
+        :param package_install_path: The path to the package to install
+        :param username: The name of the Kibana user to authenticate with
+        :param password: The corresponding Kibana password
+        """
+
         # check mimetype of the file to determine how to proceed
-        filetype, encoding = mimetypes.MimeTypes().guess_type(abspath)
+
+        filetype, encoding = mimetypes.MimeTypes().guess_type(package_install_path)
         if filetype == 'application/x-tar' or encoding == 'gzip':
-            #handle tarfile
-            tar = tarfile.open(abspath)
+            # handle tarfile
+            tar = tarfile.open(package_install_path)
             for member in tar:
-                #should we validate the json before sending it up to kibana?
+                # should we validate the json before sending it up to kibana?
                 # TODO: Check folders recursively
-                file = BytesIO(tar.extractfile(member).read())
-                _open_and_import_ndjsonfile(file)
+                kibana_objects_file = BytesIO(tar.extractfile(member).read())
+                self.import_kibana_saved_objects(username=username, password=password,
+                                                 kibana_objects_file=kibana_objects_file)
+                kibana_objects_file.close()
 
-            pass
-        elif filetype in ('application/json', 'text/plain') or any([abspath.endswith('.ndjson'), abspath.endswith('json')]):
-            with open(abspath, 'r') as ndjsonfile:
-                _open_and_import_ndjsonfile(ndjsonfile)
+        elif filetype in ('application/json', 'text/plain') or any(
+                [package_install_path.endswith('.ndjson'), package_install_path.endswith('json')]):
+            with open(package_install_path, 'r') as kibana_objects_file:
+                self.import_kibana_saved_objects(username=username, password=password,
+                                                 kibana_objects_file=kibana_objects_file)
         else:
-            print("Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
+            self.logger.error("Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
+            # TODO raise exception
 
-    def list(self):
-        # TODO: figure out why args to params is not working
-        selection = None
-        types = ['visualization', 'dashboard', 'search', 'index-pattern', 'config', 'timelion-sheet']
-        print("Available saved object types:")
-        for type in types:
-            print(f"{types.index(type) + 1} {type}")
-        while selection is None:
-            sel = input("Select saved object type: ")
-            if sel in [str(i) for i in range(1, len(types) + 1)]:
-                selection = int(sel) - 1
-            else:
-                print("Invalid Selection")
-        username, password = self._get_kibana_auth()
-        fetched_data = self.browse_saved_objects(type=types[selection], auth=(username, password)).json()
-        if types[selection] in ['dashboard', 'visualization', 'dashboard', 'search']:
-            for obj in fetched_data.get('saved_objects', []):
-                title = obj['attributes']['title']
-                desc = obj.get('attributes').get('description', '')
-                item = f'{title} - {desc}' if desc else title
-                print(item)
-        else:
-            raise NotImplementedError()
+    def list(self, username: Optional[str] = None, password: Optional[str] = None):
+        """
+        List packages currently installed for this instance
+        """
+        raise NotImplementedError()
+
+    def list_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
+                           saved_object_type: Optional[str] = None):
+        """
+        List the saved_objects currently installed irrespective of which "package" the belong too
+
+        :param username: The name of the Kibana user to authenticate with
+        :param password: The corresponding Kibana password
+        :param saved_object_type: One of the following supported saved_object types:
+                            ['config', 'dashboard', 'index-pattern', 'search', 'timelion-sheet', 'visualization']
+        """
+
+        username, password = auth = self._get_kibana_auth_securely(username, password)
+        fetched_data = self.browse_saved_objects(username, password, saved_object_type=saved_object_type).json()
+        for obj in fetched_data.get('saved_objects', []):
+            kibana_object_id = obj['id']
+            kibana_object_type = obj['type']
+            kibana_object_title = obj['attributes'].get('title', '')
+            item = f'[{kibana_object_type}][{kibana_object_id}] {kibana_object_title}'
+            print(item)
 
     def uninstall(self):
-        pass
+        raise NotImplementedError()

@@ -1,8 +1,8 @@
 import argparse
-import traceback
 from typing import Optional
 
-from dynamite_nsm.cmd import elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates, package
+from dynamite_nsm.cmd import elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates
+from dynamite_nsm.cmd.kibana import package
 
 
 def process_arguments(args: argparse.Namespace, component: Optional[str], interface: Optional[str] = None,
