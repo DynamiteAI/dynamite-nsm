@@ -1,11 +1,12 @@
 import argparse
+import traceback
 from typing import Optional
 
 from dynamite_nsm.cmd import elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates
 
 
 def process_arguments(args: argparse.Namespace, component: Optional[str], interface: Optional[str] = None,
-                      sub_interface: Optional[str] = None):
+                      sub_interface: Optional[str] = None, print_help_on_error: Optional[bool] = False):
     """
     Selects the proper execution context given an argparse.Namespace, executes the namespace against that context
     :param args: The argparse.Namespace object containing all the user selected commandline arguments
@@ -24,7 +25,7 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
         filebeat=filebeat,
         updates=updates
     )
-
+    component_interface = None
     try:
         component_interface = getattr(component_modules[component], interface)
         if sub_interface:
@@ -32,6 +33,12 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
     except KeyError:
         raise ModuleNotFoundError(f'{component} is not a valid component module.')
     except AttributeError:
-        raise ModuleNotFoundError(f'{component}.{interface} is not a valid interface module.')
-    return component_interface.interface.execute(args)
+        if not print_help_on_error:
+            raise ModuleNotFoundError(f'{component}.{interface} is not a valid interface module.')
+        component_modules[component].get_action_parser().print_help()
+
+    try:
+        return component_interface.interface.execute(args)
+    except AttributeError:
+        component_modules[component].get_action_parser().print_help()
 

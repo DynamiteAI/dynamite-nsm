@@ -1,0 +1,83 @@
+#!/usr/bin/python3.8
+import argparse
+import sys
+
+from dynamite_nsm.cmd import elasticsearch, logstash, kibana, zeek, suricata, filebeat, updates
+from dynamite_nsm.cmd import process_arguments
+from dynamite_nsm.const import VERSION
+from dynamite_nsm.utilities import print_dynamite_logo
+
+
+def get_component(component_name: str):
+    """
+    Given the name of a component, return the module by the same name.
+
+    :param component_name: The name of the component
+    """
+    component_map = dict(
+        elasticsearch=elasticsearch,
+        logstash=logstash,
+        kibana=kibana,
+        zeek=zeek,
+        suricata=suricata,
+        filebeat=filebeat,
+        updates=updates
+    )
+    selected_component = component_map[component_name]
+    return selected_component
+
+
+def get_interface(component_name: str, interface_name: str):
+    return get_component(component_name).get_interfaces()[interface_name]
+
+
+def get_component_level_args(component_name: str):
+    return get_component(component_name).get_action_parser().parse_args()
+
+
+if __name__ == '__main__':
+    dynamite_dummy_parser = argparse.ArgumentParser(f'Dynamite Network Security Monitor [{VERSION}]')
+    dynamite_dummy_parser.add_argument('component', help='A component within the Dynamite stack to manage.', choices=[
+        'elasticsearch',
+        'logstash',
+        'kibana',
+        'zeek',
+        'suricata',
+        'filebeat'
+    ])
+
+    dynamite_dummy_parser.add_argument('action',
+                                       help='An action or set of actions that can be performed against a specified '
+                                            'component.',
+                                       choices=['install', 'uninstall', 'config', 'process'])
+    try:
+        component, interface, sub_interface = sys.argv[1], None, None
+        if '--version' in sys.argv:
+            print_dynamite_logo(VERSION)
+            sys.exit(0)
+
+        if len(sys.argv[1:]) == 1:
+            get_component(sys.argv[1]).get_action_parser().print_help()
+            sys.exit(0)
+
+        if len(sys.argv[1:]) > 2:
+            sub_interface = sys.argv[3]
+        if len(sys.argv[1:]) > 1:
+            interface = sys.argv[2]
+
+        # A workaround for testing whether we are invoking into a sub-interface or calling an interface_method from a
+        # MultiResponsibilityInterface
+
+        try:
+            # Delete the 'component' from sys.sys.argv as process_arguments does not know how to handle it when it's
+            # ingested into a child argparse.Namespace
+            del sys.argv[1]
+            print(process_arguments(args=get_component_level_args(component), component=component, interface=interface,
+                                    sub_interface=sub_interface, print_help_on_error=False))
+        except ModuleNotFoundError:
+            print(process_arguments(args=get_component_level_args(component), component=component, interface=interface,
+                                    print_help_on_error=True))
+    except IndexError:
+        dynamite_dummy_parser.print_help()
+    except KeyError:
+        dynamite_dummy_parser.print_help()
