@@ -1,14 +1,55 @@
 import logging
 import mimetypes
 import tarfile
+import json
+import requests
 from getpass import getpass
 from io import BytesIO, IOBase
 from typing import AnyStr, Optional, Tuple, IO
+from marshmallow import Schema, fields, validate, ValidationError
 
-import requests
 
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import get_primary_ip_address
+
+
+class PackageManifestSchema(Schema):
+    name = fields.String(required=True, validate=validate.Length(1))
+    author = fields.String(required=False)
+    package_type = fields.String(required=True, validate=validate.OneOf(('saved_objects')))
+    description = fields.String(required=True, validate=validate.Length(1,300))
+    file_list = fields.List(fields.String,
+                            required=True,
+                            # TODO: Regex validation for supported filetypes
+                            validate=validate.Length(1))
+    author_email = fields.String(required=False, default="")
+    
+    
+
+class PackageManifest(object):
+    def __init__(self, json_data):
+        """
+        :param json_data: JSON Body of the package manifest, conforms to PackageManifestSchema
+
+        """
+        try:
+            if type(json_data) == dict:
+                self.data = PackageManifestSchema().load(json_data)
+            elif type(json_data) == str:
+                self.data = PackageManifestSchema().loads(json_data)
+            else:
+                raise ValidationError("Invalid input type. must be one of: str, dict")
+        except ValidationError as e:
+            print(e.messages)
+            return None
+        for key, value in self.data.items():
+            setattr(self, key, value)
+    
+    def json(self):
+        return json.dumps(self.data)
+
+    def __repr__(self):
+        return f"<PackageManifest(name={self.name}, author={self.author})>"
 
 
 class SavedObjectsManager(object):
@@ -73,7 +114,6 @@ class SavedObjectsManager(object):
         if all([overwrite, create_copies]):
             raise ValueError("createNewCopies and overwrite cannot be used together.")
 
-        # TODO: expose these as params when args work
         params = {'overwrite': overwrite, 'createNewCopies': create_copies}
 
         # TODO: Catch connection denied when kibana is down and handle/inform user gracefully
@@ -103,7 +143,13 @@ class SavedObjectsManager(object):
         if filetype == 'application/x-tar' or encoding == 'gzip':
             # handle tarfile
             tar = tarfile.open(package_install_path)
-            for member in tar:
+            try:
+                manifest = tar.extractfile('manifest.json')
+                manifest = PackageManifest(manifest.read())
+            except KeyError:
+                print("Package must contain a manifest.json")
+                exit(0)
+            for member in manifest.file_list:
                 # should we validate the json before sending it up to kibana?
                 # TODO: Check folders recursively
                 kibana_objects_file = BytesIO(tar.extractfile(member).read())
