@@ -25,7 +25,8 @@ setup(
         'pyyaml',
         'npyscreen',
         'psutil',
-        'docstring-parser==0.7.3'
+        'docstring-parser==0.7.3',
+        'marshmallow==3.11.1'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
