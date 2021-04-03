@@ -19,14 +19,15 @@ setup(
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
     install_requires=[
-        'coloredlogs',
-        'progressbar',
-        'tabulate',
-        'pyyaml',
-        'npyscreen',
-        'psutil',
+        'coloredlogs==15.0',
+        'progressbar==2.5',
+        'tabulate==0.8.9',
+        'PyYAML==5.3.1',
+        'npyscreen==4.10.5',
+        'psutil==5.8.0',
         'docstring-parser==0.7.3',
-        'marshmallow==3.11.1'
+        'marshmallow==3.11.1',
+        'pytest==6.2.2'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
