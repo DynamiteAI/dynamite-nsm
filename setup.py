@@ -25,6 +25,7 @@ setup(
         'pyyaml',
         'npyscreen',
         'psutil',
+        'marshmallow==3.11.1',
         'docstring-parser==0.7.3',
         'marshmallow==3.11.1'
     ],

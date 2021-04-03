@@ -25,6 +25,11 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
         super().__init__('logstash', verbose, stdout)
+        java_home = self.dynamite_environ.get('JAVA_HOME')
+        if not java_home:
+            self.logger.info('Installing compatible version of Java.')
+            from dynamite_nsm.services.java import install as java_install
+            java_install.InstallManager(const.JVM_ROOT, stdout=stdout, verbose=verbose).setup()
         if download_logstash_archive:
             self.logger.info("Attempting to download Logstash (OSS) archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.LOGSTASH_MIRRORS)

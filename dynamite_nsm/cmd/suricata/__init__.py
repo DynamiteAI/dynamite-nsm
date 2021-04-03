@@ -2,7 +2,7 @@ import argparse
 
 from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser, \
     append_service_interfaces_to_parser
-from dynamite_nsm.cmd.suricata import logs, install, process, uninstall
+from dynamite_nsm.cmd.suricata import logs, install, process, uninstall, update
 from dynamite_nsm.cmd.suricata.logs import get_interfaces as get_logs_interfaces
 from dynamite_nsm.cmd.suricata.config import get_interfaces as get_config_interfaces
 from dynamite_nsm.utilities import get_primary_ip_address
@@ -17,6 +17,7 @@ def get_action_parser():
 
     append_service_interface_to_parser(subparsers, 'install', install.interface, interface_group_name='interface')
     append_service_interface_to_parser(subparsers, 'uninstall', uninstall.interface, interface_group_name='interface')
+    append_service_interface_to_parser(subparsers, 'update', update.interface, interface_group_name='interface')
     append_service_interface_to_parser(subparsers, 'process', process.interface, interface_group_name='interface')
     config_parser = subparsers.add_parser('config', help=SURICATA_CONFIG_HELP)
     config_parser.set_defaults(interface='config')

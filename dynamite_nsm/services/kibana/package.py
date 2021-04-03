@@ -24,7 +24,6 @@ class PackageManifestSchema(Schema):
                             validate=validate.Length(1))
     author_email = fields.String(required=False, default="")
     
-    
 
 class PackageManifest(object):
     def __init__(self, json_data):

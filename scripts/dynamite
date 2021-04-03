@@ -50,7 +50,7 @@ if __name__ == '__main__':
     dynamite_dummy_parser.add_argument('action',
                                        help='An action or set of actions that can be performed against a specified '
                                             'component.',
-                                       choices=['install', 'uninstall', 'config', 'process'])
+                                       choices=['install', 'uninstall', 'config', 'logs', 'process'])
     try:
         component, interface, sub_interface = sys.argv[1], None, None
         if '--version' in sys.argv:
