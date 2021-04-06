@@ -8,17 +8,66 @@ from yaml import load
 
 from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
-from dynamite_nsm.services.base.config_objects.suricata import misc, rules
 from dynamite_nsm.services.base.config import YamlConfigManager
+from dynamite_nsm.services.base.config_objects.suricata import misc, rules
 
 
 class ConfigManager(YamlConfigManager):
+    """
+    Manage Suricata.yaml configuration
+    """
 
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        """
-        Configuration Manager for suricata.yaml file
 
-        :param configuration_directory: The path to the Suricata configuration directory
+        """Configuration Manager for suricata.yaml file
+
+        Args:
+            configuration_directory: The path to the Suricata configuration directory (E.G /etc/dynamite/suricata)
+        ___
+
+        # Instance Variables:
+
+        ## Directories and Files:
+        - `suricata_log_output_file` - Directory where logs are written
+        - `default_rules_directory` - Directory where rules live
+        - `classification_file` - The file (path) that maps severity to various [class]types (classification.config)
+        - `reference_config_file` - The file (path) to the reference.config file
+
+        ## Network Interface Setup:
+        - `af_packet_interfaces` - A `list` of `misc.AfPacketInterfaces` representing suricata monitored interfaces
+        - `pcap_interfaces` - A `list` of `misc.PcapInterfaces` (libpcap support if af_packet isn't possible)
+
+        ## Rules:
+        - `rule_files` - A `list` of suricata `rules.Rules` (rulesets)
+
+        ## Address Groups:
+
+        > <sup>[See syntax.](https://suricata.readthedocs.io/en/suricata-6.0.0/configuration/suricata-yaml.html#rule-vars)</sup>
+
+        - `home_net`
+        - `external_net`
+        - `http_servers`
+        - `sql_servers`
+        - `dns_servers`
+        - `telnet_servers`
+        - `aim_servers`
+        - `dc_servers`
+        - `dnp3_servers`
+        - `modbus_servers`
+        - `enip_server`
+
+        ## Port Groups:
+
+        > <sup>[See syntax.](https://suricata.readthedocs.io/en/suricata-6.0.0/configuration/suricata-yaml.html#rule-vars)</sup>
+
+        - `http_ports`
+        - `shellcode_ports`
+        - `oracle_ports`
+        - `ssh_ports`
+        - `dnp3_ports`
+        - `modbus_ports`
+        - `file_data_ports`
+        - `ftp_ports`
         """
 
         extract_tokens = {
@@ -118,13 +167,12 @@ class ConfigManager(YamlConfigManager):
 
     @classmethod
     def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None) -> ConfigManager:
-        """
-        Alternative method for creating configuration file from raw text
-
-        :param raw_text: The string representing the configuration file
-        :param configuration_directory: The configuration directory for Suricata
-
-        :return: An instance of ConfigManager
+        """Alternative method for creating configuration file from raw text
+        Args:
+            raw_text: The string representing the configuration file
+            configuration_directory: The configuration directory for Suricata
+        Returns:
+             An instance of ConfigManager
         """
         tmp_dir = '/tmp/dynamite/temp_configs/'
         tmp_config = f'{tmp_dir}/suricata.yaml'
@@ -138,11 +186,14 @@ class ConfigManager(YamlConfigManager):
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:
-        """
-        Write out an updated configuration file, and optionally backup the old one.
 
-        :param out_file_path: The path to the output file; if none given overwrites existing
-        :param backup_directory: The path to the backup directory
+        """Write out an updated configuration file, and optionally backup the old one.
+        Args:
+            out_file_path: The path to the output file; if none given overwrites existing
+            backup_directory: The path to the backup directory
+            top_text: If specified, the first line of the configuration file will be set to the value of your choosing.
+        Returns:
+            None
         """
         if not out_file_path:
             out_file_path = f'{self.configuration_directory}/suricata.yaml'

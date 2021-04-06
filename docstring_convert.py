@@ -1,12 +1,9 @@
 text = '''
         """
-        Algorithm for determining the assignment of CPUs for Zeek workers
-
-        :param interface_names: A list of network interface names
-        :param strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources; 'conservative', results in less CPUs pinned per interface, but never overshoots resources
-        :param cpus: If None, we'll derive this by looking at the cpu core count, otherwise a list of cpu cores (E.G [0, 1, 2])
-        :return: A dictionary containing Zeek worker configuration
+        Work with Suricata's stats.log
+        :param log_sample_size: The maximum number of entries (or lines) to parse. This size is set significantly higher than others as stats.log is not line-entry delimited
         """
+
 '''
 params = []
 return_val = 'None'

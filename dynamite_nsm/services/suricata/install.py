@@ -12,11 +12,14 @@ COMPILE_PROCESS_EXPECTED_LINE_COUNT = 935
 
 
 def post_install_bootstrap_updater(suricata_install_directory: str, stdout: Optional[bool] = False,
-                                   verbose: Optional[bool] = False):
-    """
-    :param suricata_install_directory: The location of the suricata root install directory (E.G /opt/dynamite/suricata)
-    :param stdout: Print the output to console
-    :param verbose: Include detailed debug messages
+                                   verbose: Optional[bool] = False) -> None:
+    """Perform Suricata rule setup and updating with Oinkmaster
+    Args:
+        suricata_install_directory: The location of the suricata root install directory (E.G /opt/dynamite/suricata)
+        stdout: Print the output to console
+        verbose: Include detailed debug messages
+    Returns:
+        None
     """
     from dynamite_nsm.services.suricata import oinkmaster as suricata_rule_updater
     from dynamite_nsm.services.suricata.oinkmaster import install as suricata_rule_updater_install
@@ -31,18 +34,23 @@ def post_install_bootstrap_updater(suricata_install_directory: str, stdout: Opti
 
 class InstallManager(install.BaseInstallManager):
 
+    """
+    Manage Suricata installation process
+    """
+
     def __init__(self, configuration_directory: str, install_directory: str, log_directory: str,
                  download_suricata_archive: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        Install Suricata
-
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)
-        :param download_suricata_archive: If True, download the Suricata archive from a mirror
-        :param stdout: Print the output to console
-        :param verbose: Include detailed debug messages
+        """Install Suricata
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
+            install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
+            log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)
+            download_suricata_archive: If True, download the Suricata archive from a mirror
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
@@ -61,10 +69,11 @@ class InstallManager(install.BaseInstallManager):
             _, _, self.local_mirror_root = self.get_mirror_info(const.SURICATA_MIRRORS)
 
     def configure_compile_suricata(self, parallel_threads: Optional[int] = None) -> None:
-        """
-        Configure and build Suricata from source
-
-        :param parallel_threads: Number of parallel threads to use during the compiling process
+        """Configure and build Suricata from source
+        Args:
+            parallel_threads: Number of parallel threads to use during the compiling process
+        Returns:
+            None
         """
         suricata_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
         suricata_config_parent_directory = '/'.join(self.configuration_directory.split('/')[:-1])
@@ -81,16 +90,20 @@ class InstallManager(install.BaseInstallManager):
                                     expected_lines_printed=COMPILE_PROCESS_EXPECTED_LINE_COUNT)
 
     def create_update_suricata_environment_variables(self) -> None:
-        """
-        Creates all the required Suricata environmental variables
+        """Creates all the required Suricata environmental variables
+
+        Returns:
+            None
         """
         self.create_update_env_variable('SURICATA_HOME', self.install_directory)
         self.create_update_env_variable('SURICATA_CONFIG', self.configuration_directory)
         self.create_update_env_variable('SURICATA_LOGS', self.log_directory)
 
     def install_suricata_dependencies(self) -> None:
-        """
-        Install Suricata dependencies
+        """Install Suricata dependencies
+
+        Returns:
+            None
         """
         apt_get_packages = ['automake', 'bison', 'cargo', 'cmake', 'flex', 'g++', 'gcc', 'libcap-ng-dev',
                             'libjansson-dev', 'libjemalloc-dev', 'liblz4-dev', 'libmagic-dev', 'libnspr4-dev',
@@ -105,8 +118,9 @@ class InstallManager(install.BaseInstallManager):
         super(InstallManager, self).install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages)
 
     def copy_suricata_files_and_directories(self) -> None:
-        """
-        Copy the required Suricata files from the install cache to their respective directories
+        """Copy the required Suricata files from the install cache to their respective directories
+        Returns:
+            None
         """
         suricata_tarball_extracted = f'{const.INSTALL_CACHE}/{self.local_mirror_root}'
         config_paths = [
@@ -119,10 +133,11 @@ class InstallManager(install.BaseInstallManager):
                                                        self.configuration_directory)
 
     def setup(self, capture_network_interfaces: Optional[List[str]] = None):
-        """
-        Install Suricata
-
-        :param capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+        """Install Suricata
+        Args:
+            capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+        Returns:
+            None
         """
         if not capture_network_interfaces:
             capture_network_interfaces = utilities.get_network_interface_names()
@@ -183,15 +198,18 @@ class InstallManager(install.BaseInstallManager):
 class UninstallManager(install.BaseUninstallManager):
 
     """
-    Uninstall Suricata
+    Uninstall Suricata process manager
     """
 
     def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param purge_config: If enabled, remove all the configuration files associated with this installation
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Uninstall Suricata
+        Args:
+            purge_config: If enabled, remove all the configuration files associated with this installation
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         from dynamite_nsm.services.suricata.process import ProcessManager
 

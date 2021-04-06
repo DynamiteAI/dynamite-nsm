@@ -18,10 +18,15 @@ class BpfConfigManager(GenericConfigManager):
     """
     def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """Configure Berkley Packet Filters for Zeek monitored interfaces.
+
         Args:
             configuration_directory: The path to the Zeek configuration directory (E.G /etc/dynamite/zeek)
             verbose: Include detailed debug messages
             stdout: Print output to console
+        ___
+
+        # Instance Variables:
+        - `bpf_filters` - A `bpf_filter.BpfFilters` instance.
         """
         self.configuration_directory = configuration_directory
         self.bpf_filters = bpf_filter.BpfFilters()
@@ -76,10 +81,17 @@ class SiteLocalConfigManager(GenericConfigManager):
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """
         Configure Zeek scripts, signatures, and definitions
+
         Args:
-            configuration_directory:
+            configuration_directory: The path to the Zeek configuration directory (E.G /etc/dynamite/zeek)
             verbose: Include detailed debug messages
             stdout: Print output to console
+        ___
+
+        # Instance Variables:
+        - `scripts` - A `local_site.Scripts` instance representing a set of enabled (and disabled) Zeek scripts.
+        - `signatures` A `local_site.Signatures` instance representing a set of signatures to load.
+        - `definitions` - A `local_site.Definitions` instance representing a set of script variables `redefs`.
         """
         self.configuration_directory = configuration_directory
         self.scripts = local_site.Scripts()
@@ -169,10 +181,17 @@ class NodeConfigManager(GenericConfigManager):
     """
     def __init__(self, install_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """Configuration Manager for node.cfg file
+
         Args:
             install_directory: The path to the Zeek installation directory
-        Returns:
-            None
+        ___
+
+        # Instance Variables:
+        - `manager` - A basic `node.Manager` instance representing a manager configuration (one per cluster)
+        - `loggers` - A `node.Loggers` instance representing one or more loggers. Loggers alleviate manager load
+        - `proxies` A `node.Proxies` instance representing one or more proxies. Offload workloads.
+        - `workers` A `node.Workers` instance reprsenting one or more workers. The worker is the Zeek process that
+        sniffs network traffic and does protocol analysis on the reassembled traffic streams.
         """
         self.install_directory = install_directory
         self.manager = None
@@ -407,6 +426,11 @@ class LocalNetworksConfigManager(GenericConfigManager):
             installation_directory: The path to the installation directory (E.G /opt/dynamite/zeek)
             verbose: Include detailed debug messages
             stdout: Print output to console
+        ___
+
+        # Instance Variables: 
+        - `local_networks` - A `local_network.LocalNetworks` instance representing a list of networks considered local 
+        by this cluster.
         """
         self.installation_directory = installation_directory
         self.local_networks = local_network.LocalNetworks()

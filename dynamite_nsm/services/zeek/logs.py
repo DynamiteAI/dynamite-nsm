@@ -77,6 +77,12 @@ class BrokerEntry:
     """
 
     def __init__(self, entry_raw: str):
+        """
+        A single line item entry in the broker.log
+
+        Args:
+            entry_raw: A JSON serializable string representing a single line item entry in the broker.log
+        """
         self.entry_raw = entry_raw
         self.time = None
         self.timestamp = None
@@ -123,6 +129,12 @@ class ClusterEntry:
     """
 
     def __init__(self, entry_raw: str):
+        """
+        A single line item entry in the cluster.log
+
+        Args:
+            entry_raw: A JSON serializable string representing a single line item entry in the cluster.log
+        """
         self.entry_raw = entry_raw
         self.time = None
         self.timestamp = None
@@ -159,6 +171,12 @@ class MetricsEntry:
     """
 
     def __init__(self, entry: Dict):
+        """
+        A metrics entry derived from the stats.log
+
+        Args:
+            entry: A dictionary containing a variety of analyzable fields within a line item metrics entry
+        """
         self.entry_raw = entry
         self.timestamp = entry.get('ts')
         self.time = parse_zeek_datetime(self.timestamp)
@@ -192,10 +210,11 @@ class MetricsEntry:
             self.packets_dropped_percentage = round(self.packets_dropped / self.packets_processed, 2)
 
     def merge_metric_entry(self, metric_entry: MetricsEntry) -> None:
-        """
-        Merge another metrics entry into this one
-
-        :param metric_entry: The MetricsEntry you wish to merge in
+        """Merge another metrics entry into this one
+        Args:
+            metric_entry: The MetricsEntry you wish to merge in
+        Returns:
+            None
         """
         self.peer = None
         self.peers.append(metric_entry.peer)
@@ -260,10 +279,16 @@ class MetricsEntry:
 
 class ReporterEntry:
     """
-    A single line item entry for Zeek's cluster.log
+    A single line item entry for Zeek's reporter.log
     """
 
     def __init__(self, entry_raw: str):
+        """
+        A single line item entry in the reporter.log
+
+        Args:
+            entry_raw: A JSON serializable string representing a single line item entry in the reporter.log
+        """
         self.entry_raw = entry_raw
         self.time = None
         self.timestamp = None
@@ -302,13 +327,14 @@ class ReporterEntry:
 
 class ZeekLogsProxy:
     """
-    This class makes it easy to access a Zeek log and all subsequent archived logs related to it
+    A convenience class providing accessibility to Zeek's archived logs; supports gzipped content
     """
 
     def __init__(self, log_name: str, log_sample_size: Optional[int] = 1000):
-        """
-        :param log_name: The name of the Zeek log to retrieve
-        :param log_sample_size: The max number of log entries to retrieve
+        """Access a log and all of its corresponding archived logs until log_sample_size is reached.
+        Args:
+            log_name: The name of the Zeek log to retrieve
+            log_sample_size: The max number of log entries to retrieve
         """
         self.entries = []
         self.log_name = log_name
@@ -320,7 +346,12 @@ class ZeekLogsProxy:
         self.log_archive_directory = os.path.join(self.zeek_home, 'logs')
         self.load_all_logs()
 
-    def load_all_logs(self):
+    def load_all_logs(self) -> None:
+        """
+        Load all logs into memory up to self.log_sample_size
+        Returns:
+            None
+        """
         archive_directories = []
         sorted_log_paths = []
         for log_archive_directory in os.listdir(self.log_archive_directory):
@@ -366,6 +397,13 @@ class BrokerLog(logs.LogFile):
     """
 
     def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
+        """
+        Work with Zeek's broker.log
+
+        Args:
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -378,12 +416,12 @@ class BrokerLog(logs.LogFile):
             self.entries = ZeekLogsProxy('broker.log', log_sample_size=log_sample_size).entries
 
     def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[BrokerEntry]:
-        """
-        Iterate through BrokerEntries while providing some basic filtering options
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :return: yields a BrokerEntry for every iteration
+        """Iterate through BrokerEntries while providing some basic filtering options
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a BrokerEntry for every iteration
         """
 
         def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
@@ -399,9 +437,12 @@ class BrokerLog(logs.LogFile):
         for log_entry in filter_entries(start, end):
             yield log_entry
 
-    def tail(self, pretty_print: Optional[bool] = True):
-        """
-        :param pretty_print: Print the log entry in a nice tabular view
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
         """
         visited = []
         start = datetime.utcnow() - timedelta(days=365)
@@ -434,9 +475,9 @@ class ClusterLog(logs.LogFile):
     """
 
     def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
-        """
-        :param log_sample_size: The maximum number of entries to parse
-        :param include_archived_logs: If enabled, we will look in folders other than current/ and decode gzipped content
+        """Work with Zeek's cluster.log
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs
         """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
@@ -450,12 +491,12 @@ class ClusterLog(logs.LogFile):
             self.entries = ZeekLogsProxy('cluster.log', log_sample_size=log_sample_size).entries
 
     def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[ClusterEntry]:
-        """
-        Iterate through ClusterEntries while providing some basic filtering options
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :return: yields a ClusterEntry for every iteration
+        """Iterate through ClusterEntries while providing some basic filtering options
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a ClusterEntry for every iteration
         """
 
         def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
@@ -471,9 +512,12 @@ class ClusterLog(logs.LogFile):
         for log_entry in filter_entries(start, end):
             yield log_entry
 
-    def tail(self, pretty_print: Optional[bool] = True):
-        """
-        :param pretty_print: Print the log entry in a nice tabular view
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
         """
         visited = []
         start = datetime.utcnow() - timedelta(days=365)
@@ -506,9 +550,10 @@ class StatusLog(logs.LogFile):
     """
 
     def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
-        """
-        :param log_sample_size: The maximum number of entries to parse
-        :param include_archived_logs: If enabled, we will look in folders other than current/ and decode gzipped content
+        """Work with Zeek's stats.log
+        Args:
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs content
         """
 
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
@@ -523,12 +568,13 @@ class StatusLog(logs.LogFile):
             self.entries = ZeekLogsProxy('stats.log', log_sample_size=log_sample_size).entries
 
     def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[MetricsEntry]:
-        """
-        Iterate through metrics entries individually. Metrics are given for each individual Zeek peer.
+        """Iterate through metrics entries individually. Metrics are given for each individual Zeek peer.
 
-        :param start: UTC start time
-        :param end: UTC end time
-        :return: yields a MetricsEntry for every iteration
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a MetricsEntry for every iteration
         """
 
         def filter_metrics(s: Optional[datetime] = None, e: Optional[datetime] = None):
@@ -546,18 +592,16 @@ class StatusLog(logs.LogFile):
 
     def iter_aggregated_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None,
                                 tolerance_seconds: Optional[int] = 60) -> Generator[MetricsEntry]:
+
+        """Aggregate peers and combine events within tolerance_seconds into the same entry.
+
+        Args:
+            start: UTC start time
+            end: UTC end time
+            tolerance_seconds: Specifies the maximum time distance between entries to combine them
+        Returns:
+             yields a MetricsEntry for every iteration
         """
-        Zeek's stats.log returns a metric entry for every peer. This aggregation method will group events
-        by the tolerance_seconds parameter
-
-        In practice metrics aggregated like this will provide an accurate summation of Zeek resources at each point
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :param tolerance_seconds: Specifies the maximum numbers seconds between entries to consider them common,
-                                  and therefore aggregate.
-        """
-
         sorted_by_time = [metric for metric in self.iter_metrics(start, end)]
         if not sorted_by_time:
             return
@@ -573,7 +617,13 @@ class StatusLog(logs.LogFile):
                     aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
 
-    def tail(self, pretty_print: Optional[bool] = True):
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
+        """
         visited = []
         start = datetime.utcnow() - timedelta(days=365)
         try:
@@ -607,9 +657,10 @@ class ReporterLog(logs.LogFile):
     """
 
     def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
-        """
-        :param log_sample_size: The maximum number of entries to parse
-        :param include_archived_logs: If True, we will look in folders other than current/ and decode gzipped content
+        """Work with Zeek's reporter.log
+        Args:
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs content
         """
 
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
@@ -625,12 +676,12 @@ class ReporterLog(logs.LogFile):
 
     def iter_entries(self, start: Optional[datetime] = None,
                      end: Optional[datetime] = None) -> Generator[ReporterEntry]:
-        """
-        Iterate through ReporterEntries while providing some basic filtering options
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :return: yields a ReporterEntry for every iteration
+        """Iterate through ReporterEntries while providing some basic filtering options
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a ReporterEntry for every iteration
         """
 
         def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
@@ -646,9 +697,12 @@ class ReporterLog(logs.LogFile):
         for log_entry in filter_entries(start, end):
             yield log_entry
 
-    def tail(self, pretty_print: Optional[bool] = True):
-        """
-        :param pretty_print: Print the log entry in a nice tabular view
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
         """
         visited = []
         start = datetime.utcnow() - timedelta(days=365)

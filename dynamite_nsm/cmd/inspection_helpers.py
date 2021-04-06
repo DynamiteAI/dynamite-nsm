@@ -97,7 +97,16 @@ def get_argparse_parameters(func_def: Tuple[str, dict, str], defaults: Optional[
 
     for doc_param in docstring_params:
         _, arg_name = doc_param.args
-        param_map[arg_name] = doc_param.description
+        if '***' in doc_param.description:
+            split_token = '***'
+        elif '---' in docstring_params:
+            split_token = '---'
+        else:
+            split_token = '___'
+
+        # If an explicit line break is detected in our docstrings we don't parse parameters passed that line break.
+
+        param_map[arg_name] = doc_param.description.split(split_token)[0]
     for param_name, data_type in annotations.items():
         argparse_params = ArgparseParameters.create_from_typing_annotation(name=param_name, python_type=data_type)
         if param_name == 'return':
