@@ -7,77 +7,57 @@ import requests
 from getpass import getpass
 from io import BytesIO, IOBase
 from typing import AnyStr, Optional, Tuple, IO
-from marshmallow import Schema, fields, validate, ValidationError
-
-
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm.const import INSTALLED_KIBANA_PACKAGES_FILE
 from dynamite_nsm.utilities import get_primary_ip_address
+from dynamite_nsm.services.kibana.package.mappings import PACKAGES_INDEX_MAPPING, PACKAGES_INDEX_NAME
+from dynamite_nsm.services.kibana.package.schemas import InstalledPackagesListSchema, \
+                                                         InstalledObjectSchema, \
+                                                         PackageManifestSchema, \
+                                                         SchemaToObject
 
-INSTALLED_KIBANA_PACKAGES_FILE_BASE = {'installed_packages': {}}
 
-class InstalledPackagesListSchema(Schema):
-    # should we use sqlite instead?
-    installed_packages = fields.Dict(required=True)
 
-class InstalledPackages(object):
+class InstalledObject(SchemaToObject):
     def __init__(self, json_data):
-        try:
-            if type(json_data) == dict:
-                self.data = InstalledPackagesListSchema().load(json_data)
-            elif type(json_data) == str:
-                self.data = InstalledPackagesListSchema().loads(json_data)
-            else:
-                raise ValidationError("Invalid input type. must be one of: str, dict")
-        except ValidationError as e:
-            print(e.messages)
-            return None
-        self.installed_packages = self.data.get('installed_packages')
-
-    def json(self) -> str:
-        return json.dumps(self.data)
+        super().__init__(json_data, InstalledObjectSchema())
 
     def __repr__(self) -> str:
-        return f"<InstalledPackages [{len(self.installed_packages)} installed])>"
+        return f"<InstalledObect id: {self.id}, tile: {self.title}, package: {self.package_slug} >"
 
-
-class PackageManifestSchema(Schema):
-    name = fields.String(required=True, validate=validate.Length(1))
-    author = fields.String(required=False)
-    package_type = fields.String(required=True, validate=validate.OneOf(('saved_objects')))
-    description = fields.String(required=True, validate=validate.Length(1,300))
-    file_list = fields.List(fields.String,
-                            required=True,
-                            # TODO: Regex validation for supported filetypes
-                            validate=validate.Length(1))
-    author_email = fields.String(required=False, default="")
-    
-
-
-class PackageManifest(object):
+class PackageManifest(SchemaToObject):
     def __init__(self, json_data):
         """
         :param json_data: JSON Body of the package manifest, conforms to PackageManifestSchema
-
         """
-        try:
-            if type(json_data) == dict:
-                self.data = PackageManifestSchema().load(json_data)
-            elif type(json_data) == str:
-                self.data = PackageManifestSchema().loads(json_data)
-            else:
-                raise ValidationError("Invalid input type. must be one of: str, dict")
-        except ValidationError as e:
-            print(e.messages)
-            return None
-        for key, value in self.data.items():
-            setattr(self, key, value)
-    
-    def json(self) -> str:
-        return json.dumps(self.data)
+        super().__init__(json_data, PackageManifestSchema())
 
     def __repr__(self) -> str:
         return f"<PackageManifest(name={self.name}, author={self.author})>"
+
+class InstalledPackages(object):
+
+    def __init__(self, auth=None) -> None:
+        self.package_index_name = PACKAGES_INDEX_NAME
+        self.es_url = f'https://{get_primary_ip_address()}:9200'
+        # should this be parameterized? its hardcoded in ES post install steps.
+        self.auth = auth or ('admin', 'admin') 
+
+    def _check_index_exists(self):
+        res = requests.head(f"{self.es_url}/{self.package_index_name}", verify=False, auth=self.auth)
+        return res.status_code == 200
+    
+    def create_packages_index(self):
+        exists = self._check_index_exists()
+        if not exists:
+            res = requests.put(
+                    url=f"{self.es_url}/{self.package_index_name}",
+                    data=json.dumps(PACKAGES_INDEX_MAPPING),
+                    auth=self.auth,
+                    headers={'content-type': 'application/json'},
+                    verify=False
+                )
+            return res.status_code == 200
+        return True
 
 
 class SavedObjectsManager(object):
@@ -97,19 +77,7 @@ class SavedObjectsManager(object):
         self.verbose = verbose
         self._installed_packages = None
 
-    @property
-    def installed_packages(self) -> InstalledPackages:
-        if not self._installed_packages:
-            if not os.path.exists(INSTALLED_KIBANA_PACKAGES_FILE):
-                with open(INSTALLED_KIBANA_PACKAGES_FILE, 'w'):
-                    # open the file as writeable and pass to create it
-                    pass
-            with open(INSTALLED_KIBANA_PACKAGES_FILE, 'r') as ikpf:
-                contents = ikpf.read()
-                if not contents:
-                    contents = INSTALLED_KIBANA_PACKAGES_FILE_BASE
-                self._installed_packages = InstalledPackages(contents)
-        return self._installed_packages
+
     @property
     def kibana_url(self):
         return f'http://{get_primary_ip_address()}:5601'
@@ -125,11 +93,6 @@ class SavedObjectsManager(object):
             password = getpass("Kibana Password: ")
         return username, password
 
-    def _update_installed_packages_file(self):
-        self._installed_packages_json = self.installed_packages
-        with open(INSTALLED_KIBANA_PACKAGES_FILE, 'w') as packagedata:
-            if self._installed_packages:
-                packagedata.write(self._installed_packages.json())
     def _process_package_installation_results(self, kibana_response: dict) -> bool:
         success = kibana_response.get('success', False)
         errors = kibana_response.get('errors')
@@ -139,7 +102,9 @@ class SavedObjectsManager(object):
                 if self.verbose:
                     print(f"{error}\n")
         for installed in kibana_response.get('successResults', []):
-            self.installed_packages.installed_packages[installed['id']] = installed
+            if self.verbose:
+                print(installed)
+            # TODO: save to ES with package information using InstalledPackages
 
 
         return success
@@ -164,8 +129,8 @@ class SavedObjectsManager(object):
         return resp
 
     def import_kibana_saved_objects(self, username: str, password: str, kibana_objects_file: IO[AnyStr],
-                                    space: Optional[str] = None, overwrite: Optional[bool] = False,
-                                    create_copies: Optional[bool] = True):
+                                    space: Optional[str] = None, overwrite: Optional[bool] = True,
+                                    create_copies: Optional[bool] = False):
 
         auth = self._get_kibana_auth_securely(username, password)
 
@@ -238,7 +203,6 @@ class SavedObjectsManager(object):
                 print("Use --verbose flag to see more error detail.\n")
         else:
             print(f"\r\n{package_name} installation succeeded!")
-        self._update_installed_packages_file()
 
     def list(self, username: Optional[str] = None, password: Optional[str] = None):
         """
