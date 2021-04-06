@@ -7,7 +7,17 @@ from dynamite_nsm import const
 from dynamite_nsm import utilities
 
 
-def get_logger(component_name, level=logging.INFO, stdout=True):
+def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logger:
+    """Get a pre-configured logging instance
+
+    Args:
+        component_name: The name of the service doing the logging.
+        level: The minimum logging level
+        stdout: If True, prints to console
+
+    Returns: A logger instance
+    """
+
     coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'green'}, 'hostname': {'color': 'magenta'},
                                         'levelname': {'bold': True, 'color': 'black'},
                                         'name': {'color': 'cyan', 'bold': True},
