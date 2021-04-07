@@ -2,9 +2,11 @@
 
 ### What is Dynamite Network Security Monitor?
 
-Dynamite Network Security Monitor or DynamiteNSM for short is an extensible framework for managing your network monitoring infrastructure.
+DynamiteNSM is a lightweight, versatile network security monitor designed to make monitoring your network environment a breeze.
+DynamiteNSM ships with a powerful set of Python based libraries that greatly simplify the deployment and maintenance of 
+your network monitoring program.
 
-DynamiteNSM ships with a powerful set of Python based libraries that greatly simplify the deployment and maintenance of your network monitoring environment.
+[Read more »](introduction.md)
 
 ### Watch the demo.
 
@@ -19,7 +21,7 @@ DynamiteNSM ships with a powerful set of Python based libraries that greatly sim
 |[Read the docs »](security_engineers/)| [Read the docs »](threat_hunters/) | [Read the docs »](security_analysts/) | [Read the docs »](developers/)
 
 
-### Get involved!
+### Contribute
 
 You don't have to be a software developer to contribute. 
 Whether you have a cool detection, visualisation, or SDK contribution we welcome collaboration!

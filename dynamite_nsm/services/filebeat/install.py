@@ -9,16 +9,17 @@ from dynamite_nsm.services.filebeat import config
 
 
 class InstallManager(install.BaseInstallManager):
-
+    """
+    Manage Filebeat installation process
+    """
     def __init__(self, install_directory: str, download_filebeat_archive: Optional[bool] = True,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        """
-        Install Filebeat
-
-        :param install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
-        :param download_filebeat_archive: If True, download the Filebeat archive from a mirror
-        :param stdout: Print the output to console
-        :param verbose: Include detailed debug messages
+        """Install Filebeat
+        Args:
+            install_directory: The installation directory (E.G /opt/dynamite/filebeat/)
+            download_filebeat_archive: If True, download the Filebeat archive from a mirror
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
         """
 
         self.install_directory = install_directory
@@ -52,20 +53,22 @@ class InstallManager(install.BaseInstallManager):
                                                        self.install_directory)
 
     def create_update_filebeat_environment_variables(self) -> None:
-        """
-        Creates all the required Logstash environmental variables
+        """Creates all the required Filebeat environmental variables
+        Returns:
+            None
         """
         self.create_update_env_variable('FILEBEAT_HOME', self.install_directory)
 
     def setup(self, monitor_log_paths: Optional[List[str]] = None, targets: Optional[List[str]] = None,
-              agent_tag: Optional[str] = None, kibana_target_str: Optional[str] = None,
-              kibana_protocol: Optional[str] = None) -> None:
-        """
-        :param monitor_log_paths: A tuple of log paths to monitor
-        :param targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9:5044", ...])
-        :param agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
-        :param kibana_target_str: The Kibana host where the dashboards will be loaded. The default is 127.0.0.1:5601.
-        :param kibana_protocol: The name of the protocol Kibana is reachable on. The options are: http or https.
+              agent_tag: Optional[str] = None, kibana_target_str: Optional[str] = None) -> None:
+        """Setup Kibana
+        Args:
+            monitor_log_paths: A tuple of log paths to monitor
+            targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9 5044", ...])
+            agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
+            kibana_target_str: The Kibana host where the dashboards will be loaded. The default is 127.0.0.1 5601.
+        Returns:
+            None
         """
         from dynamite_nsm.services.zeek import profile as zeek_profile
         from dynamite_nsm.services.kibana import profile as kibana_profile
@@ -149,14 +152,16 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
+
     """
-    Uninstall Filebeat
+    Manage Filebeat uninstall process
     """
 
     def __init__(self, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        """
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Uninstall Filebeat
+        Args:
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
         from dynamite_nsm.services.filebeat.process import ProcessManager
 

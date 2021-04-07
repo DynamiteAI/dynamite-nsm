@@ -1,7 +1,10 @@
 text = '''
         """
-        Work with Suricata's stats.log
-        :param log_sample_size: The maximum number of entries (or lines) to parse. This size is set significantly higher than others as stats.log is not line-entry delimited
+        Manage Filebeat Process
+
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        :param pretty_print_status: If enabled, status will be printed in a tabulated style
         """
 
 '''

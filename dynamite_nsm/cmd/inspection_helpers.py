@@ -93,7 +93,13 @@ def get_argparse_parameters(func_def: Tuple[str, dict, str], defaults: Optional[
     argparse_parameter_group = []
     param_map = {}
     _, annotations, docs = func_def
-    docstring_params = docstring_parse(docs).params
+    try:
+        docstring_params = docstring_parse(docs).params
+    except ValueError as e:
+        newline_delim_doc_str = '\\n'.join(docs.split('\n'))
+        raise Exception(
+            f'Docs: {newline_delim_doc_str} failed to parse: {e} likely because this docstring has a '
+            f'newline in it somewhere.')
 
     for doc_param in docstring_params:
         _, arg_name = doc_param.args
@@ -122,7 +128,7 @@ def get_argparse_parameters(func_def: Tuple[str, dict, str], defaults: Optional[
     return argparse_parameter_group
 
 
-def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use_parent_init: Optional[bool] = True) ->\
+def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use_parent_init: Optional[bool] = True) -> \
         Tuple[List[ArgparseParameters], Dict[str, List[ArgparseParameters]]]:
     """
     Given a class retrieves all the methods with their corresponding parameters
