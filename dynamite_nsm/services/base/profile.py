@@ -2,15 +2,28 @@ import os
 
 
 class BaseProcessProfiler:
-
+    """
+    Process Profiler base class
+    """
     def __init__(self, install_directory, config_directory, required_install_files=(),
                  required_config_files=()):
+        """Build a process profiler for a service
+        Args:
+            install_directory: The directory where the service is installed
+            config_directory: The directory holding configuration related files
+            required_install_files: The names of files required to consider the installation successful
+            required_config_files: The names of config files to consider the installation properly configured.
+        """
         self.install_directory = install_directory
         self.config_directory = config_directory
         self.required_install_files = required_install_files
         self.required_config_files = required_config_files
 
-    def is_configured(self):
+    def is_configured(self) -> bool:
+        """Determine if the instance is properly configured
+
+        Returns: True if properly configured
+        """
         if not self.config_directory:
             return False
         if not os.path.exists(self.config_directory):
@@ -20,7 +33,11 @@ class BaseProcessProfiler:
                 return False
         return True
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
+        """Determine if the instance is properly installed
+
+        Returns: True if properly installed
+        """
         if not self.install_directory:
             return False
         if not os.path.exists(self.install_directory):
