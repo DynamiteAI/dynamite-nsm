@@ -1,10 +1,13 @@
 import logging
 import mimetypes
 import tarfile
-import os
 import json
+import re
+from marshmallow.exceptions import ValidationError
 import requests
 from getpass import getpass
+from uuid import uuid4
+from unidecode import unidecode
 from io import BytesIO, IOBase
 from typing import AnyStr, Optional, Tuple, IO
 from dynamite_nsm.logger import get_logger
@@ -21,6 +24,17 @@ class InstalledObject(SchemaToObject):
     def __init__(self, json_data):
         super().__init__(json_data, InstalledObjectSchema())
 
+    @staticmethod
+    def from_installation_result(package, responsedata):
+        schema = InstalledObjectSchema()
+        data = {}
+        data['title'] = responsedata.get('meta', {'title': 'untitled object'}).get('title')
+        data['package_slug'] = package.manifest.create_slug()
+        data['object_type'] = responsedata.get('type', None)
+        data['object_id'] = responsedata.get('id', None)
+        obj = InstalledObject(data)
+        return obj
+
     def __repr__(self) -> str:
         return f"<InstalledObect id: {self.id}, tile: {self.title}, package: {self.package_slug} >"
 
@@ -30,22 +44,37 @@ class PackageManifest(SchemaToObject):
         :param json_data: JSON Body of the package manifest, conforms to PackageManifestSchema
         """
         super().__init__(json_data, PackageManifestSchema())
+        self.data['slug'] = self.create_slug()
+
+    def create_slug(self):
+        name = self.name or f"UnnamedPackages"
+        # using unidecode to support unicode/ascii in the package manifest data.
+        slug = unidecode(name).lower()
+        return re.sub(r'[\W_]+', '-', slug)
+    
+    def json(self) -> str:
+        if not self.data.get('slug', None):
+            self.data['slug'] = self.slug
+        return json.dumps(self.data)
 
     def __repr__(self) -> str:
         return f"<PackageManifest(name={self.name}, author={self.author})>"
 
-class InstalledPackages(object):
+class Package(object):
 
-    def __init__(self, auth=None) -> None:
+    def __init__(self, manifest: PackageManifest, auth=None) -> None:
+        self.manifest = manifest
         self.package_index_name = PACKAGES_INDEX_NAME
         self.es_url = f'https://{get_primary_ip_address()}:9200'
         # should this be parameterized? its hardcoded in ES post install steps.
         self.auth = auth or ('admin', 'admin') 
 
+
     def _check_index_exists(self):
         res = requests.head(f"{self.es_url}/{self.package_index_name}", verify=False, auth=self.auth)
         return res.status_code == 200
     
+
     def create_packages_index(self):
         exists = self._check_index_exists()
         if not exists:
@@ -59,6 +88,22 @@ class InstalledPackages(object):
             return res.status_code == 200
         return True
 
+    def result_to_object(self, result: dict) -> InstalledObject:
+        obj = InstalledObject.from_installation_result(self, result)
+        return obj
+
+    def register_object(self, installed_object: InstalledObject) -> bool:
+        exists = self._check_index_exists()
+        if not exists:
+            self.create_packages_index()
+        id = uuid4()
+        res = requests.post(f"{self.es_url}/{self.package_index_name}/{id}",
+                      json=installed_object.data,
+                      verify=False,
+                      auth=self.auth)
+        return res.status_code in range(200, 299)
+
+
 
 class SavedObjectsManager(object):
     def __init__(self,
@@ -69,7 +114,7 @@ class SavedObjectsManager(object):
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
         """
-        self._api_auth_token = None
+        self._api_auth_token = None              
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -93,9 +138,10 @@ class SavedObjectsManager(object):
             password = getpass("Kibana Password: ")
         return username, password
 
-    def _process_package_installation_results(self, kibana_response: dict) -> bool:
+    def _process_package_installation_results(self, manifest: PackageManifest, kibana_response: dict) -> bool:
         success = kibana_response.get('success', False)
         errors = kibana_response.get('errors')
+        package = Package(manifest)
         if errors:
             for error in errors:
                 print(f"{error['title']} - {error.get('error', {'type': 'unknown'})['type']}")
@@ -105,7 +151,8 @@ class SavedObjectsManager(object):
             if self.verbose:
                 print(installed)
             # TODO: save to ES with package information using InstalledPackages
-
+            installed_obj = package.result_to_object(installed)
+            package.register_object(installed_obj)
 
         return success
 
@@ -185,7 +232,7 @@ class SavedObjectsManager(object):
                 result = self.import_kibana_saved_objects(username=username, password=password,
                                                  kibana_objects_file=kibana_objects_file)
                 kibana_objects_file.close()
-                installation_statuses.append(self._process_package_installation_results(result))
+                installation_statuses.append(self._process_package_installation_results(manifest, result))
         # Should we remove this and ONLY install validatable packages?
         elif filetype in ('application/json', 'text/plain') or any(
                 [package_install_path.endswith('.ndjson'), package_install_path.endswith('json')]):

@@ -5,16 +5,14 @@ INSTALLED_KIBANA_PACKAGES_FILE_BASE = {'installed_packages': {}}
 
 class SchemaToObject(object):
     def __init__(self, json_data, object_schema):
-        try:
-            if type(json_data) == dict:
-                self.data = object_schema.load(json_data)
-            elif type(json_data) == str:
-                self.data = object_schema.loads(json_data)
-            else:
-                raise ValidationError("Invalid input type. must be one of: str, dict")
-        except ValidationError as e:
-            print(e.messages)
-            return None
+
+        if type(json_data) == dict:
+            self.data = object_schema.load(json_data)
+        elif type(json_data) == str:
+            self.data = object_schema.loads(json_data)
+        else:
+            raise ValidationError("Invalid input type. must be one of: str, dict")
+
 
         for key, value in self.data.items():
             setattr(self, key, value)
@@ -27,12 +25,12 @@ class InstalledPackagesListSchema(Schema):
 
 
 class InstalledObjectSchema(Schema):
-    id = fields.String(required=True)
+    object_id = fields.String(required=True)
     package_slug = fields.String(required=True)
     object_type = fields.String(required=True)
     title = fields.String(required=True)
-    overwrite = fields.Boolean(required=False, default=False)
-    destination_id = fields.String(required=False, default=None)
+    overwrite = fields.Boolean(required=False, default=False, allow_none=True)
+    destination_id = fields.String(required=False, default=None, allow_none=True)
 
 
 class PackageManifestSchema(Schema):
@@ -45,6 +43,7 @@ class PackageManifestSchema(Schema):
                             # TODO: Regex validation for supported filetypes
                             validate=validate.Length(1))
     author_email = fields.String(required=False, default="")
+    slug = fields.String(required=False, default=None)
     
 
 

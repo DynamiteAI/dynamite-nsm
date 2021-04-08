@@ -27,7 +27,8 @@ setup(
         'psutil==5.8.0',
         'docstring-parser==0.7.3',
         'marshmallow==3.11.1',
-        'pytest==6.2.2'
+        'pytest==6.2.2',
+        'Unidecode==1.2.0'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
