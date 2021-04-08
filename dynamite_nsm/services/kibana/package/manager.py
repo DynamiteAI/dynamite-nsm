@@ -114,7 +114,7 @@ class SavedObjectsManager(object):
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
         """
-        self._api_auth_token = None              
+        self._api_auth_token = None
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
