@@ -7,28 +7,49 @@ Below you can find documentation to get you started down a development track.
 
 DynamiteNSM provides a powerful set of SDKs for creating installable, configurable, and *moniterable* `services` that can be converted directly into command-line utilities with very little code.
 
-![img.png](../data/img/new_cmd_util_example.png)
 
-[Read the docs »](cmd_module/)
+<center>
+    <img src="/data/img/new_cmd_util_example.png">
+</center>
+
+<p style="text-align: right;">
+    <a href="/cmd_module"> Read the docs »</a>
+</p>
+
 
 ### Extend a configuration wrapper
 
 DynamiteNSM provides configuration wrappers for the majority of the available `services` modules. Each `ConfigManager` classes are easily extended to support new options. 
 
-![img_1.png](../data/img/extending_configuration_manager.png)
+<center>
+    <img src="/data/img/extending_configuration_manager.png">
+</center>
 
-[Read the docs »](config_extend/)
+<p style="text-align: right;">
+    <a href="/config_extend"> Read the docs »</a>
+</p>
+
 
 ### Build a Kibana Package
 DynamiteNSM provides a simple package manager for creating and managing packages. Create an awesome set of dashboards and visualisations built for your use-case.
-![img.png](../data/img/kibana_package_dashboard.png)
 
-[Read the docs »](kibana_package/)
+<center>
+    <img src="/data/img/kibana_package_dashboard.png">
+</center>
+
+<p style="text-align: right;">
+    <a href="/kibana_package"> Read the docs »</a>
+</p>
 
 ### Dive into the SDK Documentation
 
 Check out our SDK documentation to learn about the different libraries available to you.
 
-![img_3.png](../data/img/sdk_example.png)
+<center>
+    <img src="/data/img/sdk_example.png">
+</center>
 
-[Read the docs »](SDK/logger.py)
+<p style="text-align: right;">
+    <a href="../SDK/logger.py"> Read the docs »</a>
+</p>
+
