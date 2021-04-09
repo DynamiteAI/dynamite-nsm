@@ -1,12 +1,10 @@
 text = '''
-        """
-        Manage Filebeat Process
+    """
+    Given a callable function returns a three part definition for that function
 
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
-        :param pretty_print_status: If enabled, status will be printed in a tabulated style
-        """
-
+    :param func: A callable function
+    :return: A tuple with the (function.__name__, function.__annotations__, inspect.getdoc(function))
+    """
 '''
 params = []
 return_val = 'None'

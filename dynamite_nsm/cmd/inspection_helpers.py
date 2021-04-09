@@ -6,11 +6,14 @@ from docstring_parser import parse as docstring_parse
 
 
 class ArgparseParameters:
-
+    """
+    Represent the **kwargs that can be provided to the `argparse.ArgumentParser` class
+    """
     def __init__(self, name, **kwargs):
-        """
-        :param name: The name of a commandline parameter (E.G setup, stdout, verbose, any_func_name)
-        :param kwargs: A list of kwargs accepted by argparse.ArgumentParser.add_argument method
+        """Setup from a dictionary
+        Args:
+            name: The name of a commandline parameter (E.G setup, stdout, verbose, any_func_name)
+            kwargs: A list of kwargs accepted by argparse.ArgumentParser.add_argument method
         """
         self.name = name
         self.flags = ['--' + self.name.replace('_', '-')]
@@ -24,22 +27,27 @@ class ArgparseParameters:
     @classmethod
     def create_from_typing_annotation(cls, name, python_type, default: Optional[Any] = None,
                                       required: Optional[bool] = False):
+        """Convenience method for creating argparse parameters from a python <class type>
+        Args:
+            name: The name of the commandline parameter
+            python_type: The datatype that best describes the parameter
+            default: The default value for the parameter being evaluated
+            required: If True, argparse will interpret this argument as required
+        Returns:
+            None
         """
-        Convenience method for creating argparse parameters from a python <class type>
 
-        :param name: The name of the commandline parameter
-        :param python_type: The datatype that best describes the parameter
-        :param default: The default value for the parameter being evaluated
-        """
         return cls(name, **cls.derive_params_from_type_annotation(python_type, default=default, required=required))
 
     @staticmethod
     def derive_params_from_type_annotation(python_type: Any, default: Optional[Any] = None,
                                            required: Optional[bool] = False) -> Dict:
-        """
-        :param python_type: A <class 'type'> or typing derived class
-        :param default: The default value for the parameter being evaluated
-        :return: A dictionary of supported **kwargs
+        """Convert from a typing annotation string to an `argparse.ArgumentParser` `type`
+        Args:
+            python_type: A <class 'type'> or typing derived class
+            default: The default value for the parameter being evaluated
+        Returns:
+             A dictionary of supported **kwargs used to instantiate an `argparse.ArgumentParser` object
         """
         python_type = str(python_type)
         action, default, nargs = None, default, None
@@ -82,13 +90,12 @@ class ArgparseParameters:
 
 
 def get_argparse_parameters(func_def: Tuple[str, dict, str], defaults: Optional[Dict]) -> List[ArgparseParameters]:
-    """
-    Given a callable function returns a list of argparse compatible arguments
-
-    :param func_def: A tuple containing the function.__name__, function.__annotations__, inspect.getdoc(function)
-    :param defaults: A dictionary where the key a parameter name and the value represents the value to default it too.
-
-    :return: A list of ArgparseParameters
+    """Given a callable function returns a list of argparse compatible arguments
+    Args:
+        func_def: A tuple containing the `function.__name__`, `function.__annotations__`, `inspect.getdoc(function)`
+        defaults: A dictionary where the key a parameter name and the value represents the value to default it too.
+    Returns:
+         A list of `ArgparseParameters`
     """
     argparse_parameter_group = []
     param_map = {}
@@ -130,17 +137,16 @@ def get_argparse_parameters(func_def: Tuple[str, dict, str], defaults: Optional[
 
 def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use_parent_init: Optional[bool] = True) -> \
         Tuple[List[ArgparseParameters], Dict[str, List[ArgparseParameters]]]:
+    """Given a class retrieves all the methods with their corresponding parameters
+    Args:
+        cls: The class that you wish to enumerate
+        use_parent_init: If True, the parent class' init arguments will be scanned as well
+        defaults: A dictionary where the key a parameter name and the value represents the value to default it too.
+    Returns:
+         A tuple containing the base_params for the __init__ method in the first position; and a dictionary containing a
+          map of remaining function names to lists of their corresponding parameters
+          (E.G `{func_name [ArgparseParameters, ArgparseParam...], func_name_2 [ArgparseParameters, Argp...]}`)
     """
-    Given a class retrieves all the methods with their corresponding parameters
-
-    :param cls: The class that you wish to enumerate
-    :param use_parent_init: If True, the parent class' init arguments will be scanned as well
-    :param defaults: A dictionary where the key a parameter name and the value represents the value to default it too.
-    :return: A tuple containing the base_params for the __init__ method in the first position; and a dictionary
-             containing a map of remaining function names to lists of their corresponding parameters
-             (E.G {func_name: [ArgparseParameters, ArgparseParam...], func_name_2: [ArgparseParameters, Argp...]})
-    """
-    base_params = None
     interface_functions = {}
 
     # Enumerate the class instance methods as well as any parent classes instance methods
@@ -177,11 +183,11 @@ def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use
 
 
 def get_function_definition(func: Callable) -> Union[Tuple[str, dict, str], None]:
-    """
-    Given a callable function returns a three part definition for that function
-
-    :param func: A callable function
-    :return: A tuple with the (function.__name__, function.__annotations__, inspect.getdoc(function))
+    """Given a callable function returns a three part definition for that function
+    Args:
+        func: A callable function
+    Returns:
+         A tuple with the (`function.__name__`, `function.__annotations__`, `inspect.getdoc(function)`)
     """
     if not isinstance(func, Callable):
         return None

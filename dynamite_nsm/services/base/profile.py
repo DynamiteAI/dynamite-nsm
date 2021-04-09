@@ -22,7 +22,8 @@ class BaseProcessProfiler:
     def is_configured(self) -> bool:
         """Determine if the instance is properly configured
 
-        Returns: True if properly configured
+        Returns:
+            True if properly configured
         """
         if not self.config_directory:
             return False
@@ -36,7 +37,8 @@ class BaseProcessProfiler:
     def is_installed(self) -> bool:
         """Determine if the instance is properly installed
 
-        Returns: True if properly installed
+        Returns:
+            True if properly installed
         """
         if not self.install_directory:
             return False

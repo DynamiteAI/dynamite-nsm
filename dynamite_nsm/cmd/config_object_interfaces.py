@@ -17,20 +17,27 @@ Commandline interface wrappers for services.base.config_objects
 
 class AnalyzersInterface(BaseInterface):
     """
-    Provides a commandline interface wrapper for any services.base.config_objects.generic.Analyzers derived class
-    are derived:
-        - services.base.config_objects.zeek.local_site.Definitions
-        - services.base.config_objects.zeek.local_site.Signatures
-        - services.base.config_objects.zeek.local_site.Scripts
-        - services.base.config_objects.suricata.rules.Rules
+    Convert any `generic.Analyzers` derived class into a commandline utility (E.G Zeek scripts, signatures, and redefs
+    as well as Suricata signatures
     """
 
     def __init__(self, config_obj: generic.Analyzers):
+        """
+        Setup the interface
+
+        Args:
+            config_obj: A complex config object that contains one or more `Analyzers`
+        """
         super().__init__()
         self.config_obj = config_obj
         self.changed_rows = []
 
     def get_parser(self) -> argparse.ArgumentParser:
+        """ For the given interface return an `argparse.ArgumentParser` object for a Zeek Script, Definition, or Signature
+        or a Suricata signature.
+
+        Returns: An argparse.ArgumentParser instance for the instantiated `AnalyzerInterface`
+        """
         parser = argparse.ArgumentParser()
         choices = []
         for analyzer in self.config_obj.analyzers:
@@ -47,6 +54,12 @@ class AnalyzersInterface(BaseInterface):
         return parser
 
     def execute(self, args: argparse.Namespace) -> Any:
+        """Interpret the parsed arguments and execute using the proper `service.action` class; can return any value.
+        Args:
+            args: `argparse.Namespace` created by a method such as `argparse.ArgumentParser().parse_args()`
+
+        Returns: Can return any value; completely depends on the `service.action` being invoked
+        """
         self.changed_rows = []
         selected_analyzer = None
         selected_analyzer_value = 'N/A'
@@ -94,8 +107,18 @@ class AnalyzersInterface(BaseInterface):
 
 
 class FilebeatTargetsInterface(BaseInterface):
+    """
+    Convert any Filebeat `BaseTargets` derived class into a commandline utility.
+    """
 
     def __init__(self, config_obj: targets.BaseTargets, defaults: Optional[Dict] = None):
+        """
+        Setup the interface
+        Args:
+            config_obj: A Filebeat specific complex config object that specifies a downstream target config - where
+            to send logs.
+            defaults: Any default commandline arguments you wish to define ahead of time `dict(arg_name=arg_value)`
+        """
         super().__init__(defaults=defaults)
         self.config_obj = config_obj
         self.changed_rows = []
@@ -109,6 +132,9 @@ class FilebeatTargetsInterface(BaseInterface):
         return ''
 
     def get_parser(self):
+        """ For the given interface return an `argparse.ArgumentParser` object for a Filebeat `BaseTargets` object
+        Returns: An argparse.ArgumentParser instance for the instantiated `BaseTargets` derived class
+        """
         parser = argparse.ArgumentParser()
         target_options = parser.add_argument_group('target options')
         for var in vars(self.config_obj):
@@ -125,6 +151,12 @@ class FilebeatTargetsInterface(BaseInterface):
         return parser
 
     def execute(self, args: argparse.Namespace) -> Any:
+        """Interpret the parsed arguments and execute using the proper `service.action` class; can return any value.
+        Args:
+            args: `argparse.Namespace` created by a method such as `argparse.ArgumentParser().parse_args()`
+
+        Returns: Can return any value; completely depends on the `service.action` being invoked
+        """
         self.changed_rows = []
         changed_config = False
         headers = ['Config Option', 'Value']
@@ -148,7 +180,15 @@ class FilebeatTargetsInterface(BaseInterface):
         return self.config_obj
 
 
-def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentParser, interface: AnalyzersInterface):
+def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentParser,
+                                                      interface: AnalyzersInterface) -> argparse.ArgumentParser:
+    """Append an `AnalyzersInterface` interface into an existing parser.
+    Args:
+        parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+        interface: The `AnalyzerInterface` instance you wish to append
+
+    Returns: The modified parser
+    """
     choices = []
     for analyzer in interface.config_obj.analyzers:
         choices.append(analyzer.id)
@@ -164,7 +204,14 @@ def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentP
 
 
 def append_config_object_filebeat_targets_to_parser(parser: argparse.ArgumentParser,
-                                                    interface: FilebeatTargetsInterface):
+                                                    interface: FilebeatTargetsInterface) -> argparse.ArgumentParser:
+    """Append an `FilebeatTargetsInterface` interface into an existing parser.
+    Args:
+        parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+        interface: The `FilebeatTargetsInterface` instance you wish to append
+
+    Returns: The modified parser
+    """
     target_options = parser.add_argument_group('target options')
     for var in vars(interface.config_obj):
         args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)))

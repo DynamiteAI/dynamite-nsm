@@ -22,6 +22,7 @@ class SystemCtl:
     """
     Provides a wrapper for systemctl for managing Dynamite services.
     """
+
     # Class variables
     UNIT_FILE_DIR = '/etc/systemd/system'
 

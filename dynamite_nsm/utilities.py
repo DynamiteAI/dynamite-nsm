@@ -413,10 +413,13 @@ def get_environment_file_dict() -> Dict:
          The contents of the /etc/dynamite/environment file as a dictionary
     """
     export_dict = {}
-    for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
-        if '=' in line:
-            key, value = line.strip().split('=')
-            export_dict[key] = value
+    try:
+        for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
+            if '=' in line:
+                key, value = line.strip().split('=')
+                export_dict[key] = value
+    except PermissionError:
+        return {}
     return export_dict
 
 

@@ -2,24 +2,28 @@
 
 ### What is Dynamite Network Security Monitor?
 
-DynamiteNSM is a lightweight, versatile network security monitor designed to make monitoring your network environment a breeze.
-DynamiteNSM ships with a powerful set of Python based libraries that greatly simplify the deployment and maintenance of 
-your network monitoring program.
+DynamiteNSM is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive.
 
-[Read more »](introduction.md)
+<p style="text-align: right;">
+    <a href="/about"> Read More »</a>
+</p>
 
 ### Watch the demo.
 
-![img.png](data/img/youtube_placeholder.png)
+<center>
+    <img src="/data/img/youtube_placeholder.png">
+</center>
+<p style="text-align: right;">
+    <a href="https://youtube.com"> Demo »</a>
+</p>
 
 
 ### Checkout our documentation.
 
-| For Security Engineers   | For Threat Hunters     | For Security Analysts | For Software Engineers
-|---|---|---|---|
-| ![img.png](data/img/security_engineers_icon.png) | ![img.png](data/img/threat_hunting_icon.png) | ![img.png](data/img/security_analysts_icon.png) | ![img.png](data/img/developers_icon.png) |
-|[Read the docs »](security_engineers/)| [Read the docs »](threat_hunters/) | [Read the docs »](security_analysts/) | [Read the docs »](developers/)
-
+| For Security Engineers                           | For Threat Hunters                           | For Security Analysts                           | For Data Scientists                         | For Software Engineers                      |
+|--------------------------------------------------|----------------------------------------------|-------------------------------------------------|---------------------------------------------|---------------------------------------------|
+| ![img.png](data/img/security_engineers_icon.png) | ![img.png](data/img/threat_hunting_icon.png) | ![img.png](data/img/security_analysts_icon.png) | ![img.png](data/img/datascientist_icon.png) | ![img.png](data/img/developers_icon.png)    |
+| [Read the docs »](guides/for_security_engineers/)       | [Read the docs »](for_threat_hunters/)       | [Read the docs »](guides/for_security_analysts/)       | [Read the docs »](for_data_scientists/)     | [Read the docs »](guides/for_software_developers/) |
 
 ### Contribute
 
