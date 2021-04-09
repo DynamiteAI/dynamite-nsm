@@ -27,6 +27,7 @@ class InstalledPackagesListSchema(Schema):
 class InstalledObjectSchema(Schema):
     object_id = fields.String(required=True)
     package_slug = fields.String(required=True)
+    package_name = fields.String(required=True)
     object_type = fields.String(required=True)
     title = fields.String(required=True)
     overwrite = fields.Boolean(required=False, default=False, allow_none=True)

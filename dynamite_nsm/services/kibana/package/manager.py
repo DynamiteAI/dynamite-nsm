@@ -3,13 +3,14 @@ import mimetypes
 import tarfile
 import json
 import re
-from marshmallow.exceptions import ValidationError
 import requests
 from getpass import getpass
+from collections import defaultdict
 from uuid import uuid4
 from unidecode import unidecode
 from io import BytesIO, IOBase
 from typing import AnyStr, Optional, Tuple, IO
+from marshmallow.exceptions import ValidationError
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import get_primary_ip_address
 from dynamite_nsm.services.kibana.package.mappings import PACKAGES_INDEX_MAPPING, PACKAGES_INDEX_NAME
@@ -25,18 +26,29 @@ class InstalledObject(SchemaToObject):
         super().__init__(json_data, InstalledObjectSchema())
 
     @staticmethod
+    def from_kwargs(**kwargs):
+        data = {}
+        data['title'] = kwargs.get('title')
+        data['package_slug'] = kwargs.get('package_slug')
+        data['package_name'] = kwargs.get('package_name')
+        data['object_type'] = kwargs.get('object_type', None)
+        data['object_id'] = kwargs.get('object_id', None)
+        obj = InstalledObject(data)
+        return obj
+
+    @staticmethod
     def from_installation_result(package, responsedata):
-        schema = InstalledObjectSchema()
         data = {}
         data['title'] = responsedata.get('meta', {'title': 'untitled object'}).get('title')
         data['package_slug'] = package.manifest.create_slug()
+        data['package_name'] = package.manifest.name
         data['object_type'] = responsedata.get('type', None)
         data['object_id'] = responsedata.get('id', None)
         obj = InstalledObject(data)
         return obj
 
     def __repr__(self) -> str:
-        return f"<InstalledObect id: {self.id}, tile: {self.title}, package: {self.package_slug} >"
+        return f"<InstalledObect id: {self.object_id}, title: {self.title}, package: {self.package_name} >"
 
 class PackageManifest(SchemaToObject):
     def __init__(self, json_data):
@@ -47,7 +59,7 @@ class PackageManifest(SchemaToObject):
         self.data['slug'] = self.create_slug()
 
     def create_slug(self):
-        name = self.name or f"UnnamedPackages"
+        name = self.name or "UnnamedPackages"
         # using unidecode to support unicode/ascii in the package manifest data.
         slug = unidecode(name).lower()
         return re.sub(r'[\W_]+', '-', slug)
@@ -62,13 +74,13 @@ class PackageManifest(SchemaToObject):
 
 class Package(object):
 
+    package_index_name = PACKAGES_INDEX_NAME
+    es_url = f'https://{get_primary_ip_address()}:9200'
+    auth = ('admin', 'admin') 
+    
     def __init__(self, manifest: PackageManifest, auth=None) -> None:
         self.manifest = manifest
-        self.package_index_name = PACKAGES_INDEX_NAME
-        self.es_url = f'https://{get_primary_ip_address()}:9200'
-        # should this be parameterized? its hardcoded in ES post install steps.
-        self.auth = auth or ('admin', 'admin') 
-
+        self.auth = auth or Package.auth
 
     def _check_index_exists(self):
         res = requests.head(f"{self.es_url}/{self.package_index_name}", verify=False, auth=self.auth)
@@ -97,13 +109,72 @@ class Package(object):
         if not exists:
             self.create_packages_index()
         id = uuid4()
-        res = requests.post(f"{self.es_url}/{self.package_index_name}/{id}",
+        res = requests.post(f"{self.es_url}/{self.package_index_name}/_doc/{id}",
                       json=installed_object.data,
                       verify=False,
                       auth=self.auth)
         return res.status_code in range(200, 299)
+    
+    @staticmethod
+    def search_installed_packages(package_name=None):
+        """
+            Gives basic information about installed packages
 
+        """
+        query = {
+            "aggs":{
+                "package_names": {
+                    "terms": {
+                        "field": "package_name"
+                    }
+                }
+            }
+        }
 
+        if package_name:
+            query['bool'] = {
+                'should': [
+                    {'term': {'package_name': package_name}}
+                ]
+            }
+        
+
+        result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
+                      json=query,
+                      verify=False,
+                      auth=Package.auth)
+        if result.status_code not in range(200,299):
+            # TODO: log response details
+            raise ValueError("Something went wrong enumerating installed packages.")
+        num_returned = result.json().get('hits', {
+            "total" : {
+                "value" : 0,
+            },
+            "hits" : []
+        }).get('total').get('value')
+
+        if not num_returned:
+             return []
+        
+        # If we want to just display the titles and num packages, we can pull from aggs result instead.
+        instobjdata = [r['_source'] for r in result.json()['hits']['hits']]
+        if instobjdata:
+            instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in instobjdata]
+            packages = {}
+            for obj in instobjs:
+                
+                if obj.package_slug not in packages:
+                    packages[obj.package_slug] = {
+                        'package_name': obj.package_name,
+                        'installed_objects': defaultdict(list)
+                    }
+                    for iobj in instobjs:
+                        if iobj.package_slug == obj.package_slug:
+                            packages[obj.package_slug]['installed_objects'][iobj.object_type].append(iobj)
+                            # remove from list to prevent unnecessary iterations for other packages
+                            instobjs.remove(iobj)
+            return packages
+        return []
 
 class SavedObjectsManager(object):
     def __init__(self,
@@ -121,7 +192,6 @@ class SavedObjectsManager(object):
         self.logger = get_logger(str('KIBANA.PACKAGE_MANAGER'), level=log_level, stdout=stdout)
         self.verbose = verbose
         self._installed_packages = None
-
 
     @property
     def kibana_url(self):
@@ -150,7 +220,6 @@ class SavedObjectsManager(object):
         for installed in kibana_response.get('successResults', []):
             if self.verbose:
                 print(installed)
-            # TODO: save to ES with package information using InstalledPackages
             installed_obj = package.result_to_object(installed)
             package.register_object(installed_obj)
 
@@ -212,7 +281,6 @@ class SavedObjectsManager(object):
         """
 
         # check mimetype of the file to determine how to proceed
-
         filetype, encoding = mimetypes.MimeTypes().guess_type(package_install_path)
         installation_statuses = []
         package_name = "Package"
@@ -255,7 +323,16 @@ class SavedObjectsManager(object):
         """
         List packages currently installed for this instance
         """
-        raise NotImplementedError()
+        package_data = Package.search_installed_packages()
+        for slug, pdata in package_data.items():
+            print("\r\nInstalled Packages:")
+            print(f"* {pdata.get('package_name')}")
+            total = 0
+            for object_type, objects in pdata.get('installed_objects').items():
+                numobjs = len(objects)
+                total += numobjs
+                print(f" - {object_type}s: {numobjs}")
+            print(f" - Total Objects: {total}")
 
     def list_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
                            saved_object_type: Optional[str] = None):

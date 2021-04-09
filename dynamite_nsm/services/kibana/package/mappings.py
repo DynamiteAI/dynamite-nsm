@@ -7,8 +7,9 @@ PACKAGES_INDEX_MAPPING = {
     "mappings": {
             "properties": {
                 "id": { "type": "text" },
-                "package_slug": { "type": "text" },
-                "object_type": { "type": "text" },
+                "package_slug": { "type": "keyword" },
+                "package_name": { "type": "keyword" },
+                "object_type": { "type": "keyword" },
                 "title": { "type": "text" },
                 "overwrite": { "type": "boolean" },
                 "destination_id": { "type": "text" }
