@@ -2,6 +2,13 @@ from marshmallow import Schema, fields, validate, ValidationError
 import json
 
 INSTALLED_KIBANA_PACKAGES_FILE_BASE = {'installed_packages': {}}
+ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA = {
+    'name': 'Orphaned Objects',
+    'author': 'dynamite.ai',
+    'package_type': 'system',
+    'description': 'This package contains all orphaned objects installed directly from a file.',
+    'file_list': ['default.ndjson']
+}
 
 class SchemaToObject(object):
     def __init__(self, json_data, object_schema):
@@ -26,8 +33,6 @@ class InstalledPackagesListSchema(Schema):
 
 class InstalledObjectSchema(Schema):
     object_id = fields.String(required=True)
-    package_slug = fields.String(required=True)
-    package_name = fields.String(required=True)
     object_type = fields.String(required=True)
     title = fields.String(required=True)
     overwrite = fields.Boolean(required=False, default=False, allow_none=True)
@@ -37,7 +42,7 @@ class InstalledObjectSchema(Schema):
 class PackageManifestSchema(Schema):
     name = fields.String(required=True, validate=validate.Length(1))
     author = fields.String(required=False)
-    package_type = fields.String(required=True, validate=validate.OneOf(('saved_objects')))
+    package_type = fields.String(required=True, validate=validate.OneOf(['saved_objects', 'system']))
     description = fields.String(required=True, validate=validate.Length(1,300))
     file_list = fields.List(fields.String,
                             required=True,

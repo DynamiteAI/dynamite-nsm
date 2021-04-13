@@ -10,11 +10,10 @@ from uuid import uuid4
 from unidecode import unidecode
 from io import BytesIO, IOBase
 from typing import AnyStr, Optional, Tuple, IO
-from marshmallow.exceptions import ValidationError
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import get_primary_ip_address
 from dynamite_nsm.services.kibana.package.mappings import PACKAGES_INDEX_MAPPING, PACKAGES_INDEX_NAME
-from dynamite_nsm.services.kibana.package.schemas import InstalledPackagesListSchema, \
+from dynamite_nsm.services.kibana.package.schemas import ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA as OrphanPackageData, \
                                                          InstalledObjectSchema, \
                                                          PackageManifestSchema, \
                                                          SchemaToObject
@@ -29,8 +28,6 @@ class InstalledObject(SchemaToObject):
     def from_kwargs(**kwargs):
         data = {}
         data['title'] = kwargs.get('title')
-        data['package_slug'] = kwargs.get('package_slug')
-        data['package_name'] = kwargs.get('package_name')
         data['object_type'] = kwargs.get('object_type', None)
         data['object_id'] = kwargs.get('object_id', None)
         obj = InstalledObject(data)
@@ -40,9 +37,8 @@ class InstalledObject(SchemaToObject):
     def from_installation_result(package, responsedata):
         data = {}
         data['title'] = responsedata.get('meta', {'title': 'untitled object'}).get('title')
-        data['package_slug'] = package.manifest.create_slug()
-        data['package_name'] = package.manifest.name
         data['object_type'] = responsedata.get('type', None)
+        # this is the id of the saved object, not the document for tracking
         data['object_id'] = responsedata.get('id', None)
         obj = InstalledObject(data)
         return obj
@@ -76,16 +72,19 @@ class Package(object):
 
     package_index_name = PACKAGES_INDEX_NAME
     es_url = f'https://{get_primary_ip_address()}:9200'
-    auth = ('admin', 'admin') 
+    auth = ('admin', 'admin')
+    installed_objects = []
     
-    def __init__(self, manifest: PackageManifest, auth=None) -> None:
+    def __init__(self, manifest: PackageManifest, installed_objects=None, auth=None) -> None:
         self.manifest = manifest
+        if installed_objects:
+            self.installed_objects = installed_objects
         self.auth = auth or Package.auth
+        self.slug = self.manifest.create_slug()
 
     def _check_index_exists(self):
         res = requests.head(f"{self.es_url}/{self.package_index_name}", verify=False, auth=self.auth)
         return res.status_code == 200
-    
 
     def create_packages_index(self):
         exists = self._check_index_exists()
@@ -99,45 +98,64 @@ class Package(object):
                 )
             return res.status_code == 200
         return True
+    
+    @property
+    def __dict__(self) -> dict:
+
+        package_dict = {
+            'manifest': self.manifest.data or {},
+            'installed_objects': [obj.data for obj in self.installed_objects]
+        }
+        return package_dict
+
+    def es_input(self) -> dict:
+        """
+            friendly func name for __dict__
+        """
+        return self.__dict__
 
     def result_to_object(self, result: dict) -> InstalledObject:
         obj = InstalledObject.from_installation_result(self, result)
         return obj
+    
+    def is_registered(self) -> bool:
+        return False
 
-    def register_object(self, installed_object: InstalledObject) -> bool:
+    def register(self) -> bool:
         exists = self._check_index_exists()
         if not exists:
             self.create_packages_index()
         id = uuid4()
         res = requests.post(f"{self.es_url}/{self.package_index_name}/_doc/{id}",
-                      json=installed_object.data,
+                      json=self.es_input(),
                       verify=False,
                       auth=self.auth)
         return res.status_code in range(200, 299)
     
     @staticmethod
-    def search_installed_packages(package_name=None):
+    def search_installed_packages(package_name=None) -> list:
         """
             Gives basic information about installed packages
 
         """
         query = {
             "aggs":{
-                "package_names": {
+                "manifest.name": {
                     "terms": {
-                        "field": "package_name"
+                        "field": "manifest.name.keyword"
                     }
                 }
             }
         }
 
         if package_name:
-            query['bool'] = {
-                'should': [
-                    {'term': {'package_name': package_name}}
-                ]
+            query["query"] = {
+                "wildcard":{
+                    "package_name":{
+                        "wildcard": f"*{package_name}*",
+                    }
+                }
             }
-        
 
         result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
                       json=query,
@@ -157,24 +175,14 @@ class Package(object):
              return []
         
         # If we want to just display the titles and num packages, we can pull from aggs result instead.
-        instobjdata = [r['_source'] for r in result.json()['hits']['hits']]
-        if instobjdata:
-            instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in instobjdata]
-            packages = {}
-            for obj in instobjs:
-                
-                if obj.package_slug not in packages:
-                    packages[obj.package_slug] = {
-                        'package_name': obj.package_name,
-                        'installed_objects': defaultdict(list)
-                    }
-                    for iobj in instobjs:
-                        if iobj.package_slug == obj.package_slug:
-                            packages[obj.package_slug]['installed_objects'][iobj.object_type].append(iobj)
-                            # remove from list to prevent unnecessary iterations for other packages
-                            instobjs.remove(iobj)
-            return packages
-        return []
+        packagesdata = [r['_source'] for r in result.json()['hits']['hits']]
+        packages = []
+        for pkg in packagesdata:
+            manifest = PackageManifest(pkg.get('manifest'))
+            instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
+            package = Package(manifest, instobjs)
+            packages.append(package)
+        return packages
 
 class SavedObjectsManager(object):
     def __init__(self,
@@ -208,10 +216,10 @@ class SavedObjectsManager(object):
             password = getpass("Kibana Password: ")
         return username, password
 
-    def _process_package_installation_results(self, manifest: PackageManifest, kibana_response: dict) -> bool:
+    def _process_package_installation_results(self, package: Package, kibana_response: dict) -> bool:
         success = kibana_response.get('success', False)
         errors = kibana_response.get('errors')
-        package = Package(manifest)
+
         if errors:
             for error in errors:
                 print(f"{error['title']} - {error.get('error', {'type': 'unknown'})['type']}")
@@ -221,8 +229,7 @@ class SavedObjectsManager(object):
             if self.verbose:
                 print(installed)
             installed_obj = package.result_to_object(installed)
-            package.register_object(installed_obj)
-
+            package.installed_objects.append(installed_obj)
         return success
 
     def browse_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
@@ -283,14 +290,17 @@ class SavedObjectsManager(object):
         # check mimetype of the file to determine how to proceed
         filetype, encoding = mimetypes.MimeTypes().guess_type(package_install_path)
         installation_statuses = []
-        package_name = "Package"
+        # default to orphan package in case of install from .ndjson
+        manifest = PackageManifest(OrphanPackageData)
+        package = Package(manifest)
         if filetype == 'application/x-tar' or encoding == 'gzip':
             # handle tarfile
             tar = tarfile.open(package_install_path)
             try:
                 manifest = tar.extractfile('manifest.json')
                 manifest = PackageManifest(manifest.read().decode('utf8'))
-                package_name = manifest.name
+                package = Package(manifest)
+                
             except KeyError:
                 print("Package must contain a manifest.json")
                 exit(0)
@@ -300,39 +310,52 @@ class SavedObjectsManager(object):
                 result = self.import_kibana_saved_objects(username=username, password=password,
                                                  kibana_objects_file=kibana_objects_file)
                 kibana_objects_file.close()
-                installation_statuses.append(self._process_package_installation_results(manifest, result))
+                installation_statuses.append(self._process_package_installation_results(package, result))
         # Should we remove this and ONLY install validatable packages?
         elif filetype in ('application/json', 'text/plain') or any(
-                [package_install_path.endswith('.ndjson'), package_install_path.endswith('json')]):
+                [package_install_path.endswith('ndjson'), package_install_path.endswith('json')]):
             with open(package_install_path, 'r') as kibana_objects_file:
                 result = self.import_kibana_saved_objects(username=username, password=password,
                                                  kibana_objects_file=kibana_objects_file)
-                installation_statuses.append(self._process_package_installation_results(result))
+                installation_statuses.append(self._process_package_installation_results(package, result))
         else:
             self.logger.error("Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
             # TODO raise exception
         
         if not all(installation_statuses):
-            print(f"\r\n{package_name} installation failed.")
+            print(f"\r\n{package.manifest.name} installation failed.")
             if not self.verbose:
                 print("Use --verbose flag to see more error detail.\n")
         else:
-            print(f"\r\n{package_name} installation succeeded!")
+            package.register()
+            print(f"\r\n{package.manifest.name} installation succeeded!")
 
     def list(self, username: Optional[str] = None, password: Optional[str] = None):
         """
         List packages currently installed for this instance
+
+        :param username: The name of the Kibana user to authenticate with
+        :param password: The corresponding Kibana password
         """
-        package_data = Package.search_installed_packages()
-        for slug, pdata in package_data.items():
-            print("\r\nInstalled Packages:")
-            print(f"* {pdata.get('package_name')}")
+        packages = Package.search_installed_packages()
+        if not packages:
+            print("Could not find any installed packages")
+            return None
+        print("\r\nInstalled Packages:\n")
+        for package in packages:
             total = 0
-            for object_type, objects in pdata.get('installed_objects').items():
-                numobjs = len(objects)
+            numobjs = len(package.installed_objects)
+            print(f"Package Name:\n * {package.manifest.name}")
+            print(f"Description:\n * {package.manifest.description}")
+            objects_by_type = defaultdict(list)
+            print(f"Objects contained:")
+            for obj in package.installed_objects:
+                objects_by_type[obj.object_type].append(obj)
+            for object_type, objs in objects_by_type.items():
+                numobjs = len(objs)
                 total += numobjs
-                print(f" - {object_type}s: {numobjs}")
-            print(f" - Total Objects: {total}")
+                print(f" - {object_type}: {numobjs}")
+            print(f" Total Objects: {total}")
 
     def list_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
                            saved_object_type: Optional[str] = None):
