@@ -1,10 +1,5 @@
 site_name: DynamiteNSM
-nav:
-    - Home: index.md
-    - About: about.md
-    - Introduction: introduction.md
-    - Getting Started: getting_started.md
-    - Kibana Dashboards: kibana_dashboards.md
-    - DynamiteLab: dynamite_lab.md
-    - Dynamite Daemon: dynamite_daemon.md
-theme: readthedocs
+theme: material
+plugins:
+- search
+- mkdocstrings

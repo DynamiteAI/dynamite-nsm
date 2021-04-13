@@ -1,54 +1,53 @@
 # -*- coding: utf-8 -*-
-import os
-import re
-import pwd
-import grp
-import sys
-import time
 import crypt
 import fcntl
-import socket
-import struct
-import shutil
-import string
-import random
-import termios
 import getpass
-import textwrap
-import tarfile
-import subprocess
+import grp
 import multiprocessing
-from hashlib import md5
-from datetime import datetime
+import os
+import pwd
+import random
+import re
+import shutil
+import socket
+import string
+import struct
+import subprocess
+import sys
+import tarfile
+import termios
+import textwrap
+import time
 from contextlib import closing
+from datetime import datetime
+from hashlib import md5
+from typing import BinaryIO, TextIO, Dict, List, Optional, Tuple, Union
+from urllib.error import HTTPError
+from urllib.error import URLError
+from urllib.request import urlopen
 
-try:
-    from urllib2 import urlopen
-    from urllib2 import URLError
-    from urllib2 import HTTPError
-    from urllib2 import Request
-except Exception:
-    from urllib.request import urlopen
-    from urllib.error import URLError
-    from urllib.error import HTTPError
-    from urllib.request import Request
-    from urllib.parse import urlencode
-
-import psutil
 import progressbar
+import psutil
 
 from dynamite_nsm import const
 from dynamite_nsm import exceptions
 
+"""
+General purpose utility methods used by a variety of services.
+"""
 
-def backup_configuration_file(source_file, configuration_backup_directory, destination_file_prefix):
-    """
-    Backup a configuration file
 
-    :param source_file: The configuration file you wish to backup
-    :param configuration_backup_directory: The destination configuration directory
-    :param destination_file_prefix: The prefix of the file; timestamp is automatically appended in filename
+def backup_configuration_file(source_file: str, configuration_backup_directory: str,
+                              destination_file_prefix: str) -> None:
+    """Backup a configuration file
+    Args:
+        source_file: The configuration file you wish to backup
+        configuration_backup_directory: The destination configuration directory
+        destination_file_prefix: The prefix of the file; timestamp is automatically appended in filename
+    Returns:
+        None
     """
+
     timestamp = int(time.time())
     destination_backup_config_file = os.path.join(configuration_backup_directory,
                                                   '{}.{}'.format(destination_file_prefix,
@@ -67,7 +66,14 @@ def backup_configuration_file(source_file, configuration_backup_directory, desti
                 source_file, destination_backup_config_file, e))
 
 
-def list_backup_configurations(configuration_backup_directory):
+def list_backup_configurations(configuration_backup_directory: str) -> List[Dict]:
+    """List available backup files in the configuration_backup_directory
+    Args:
+        configuration_backup_directory: The destination configuration directory backup directory
+    Returns:
+        A list of dictionaries, where each dictionary contains a filename representing the name of the backup and a UNIX timestamp.
+    """
+
     backups = []
     try:
         for conf in os.listdir(configuration_backup_directory):
@@ -81,7 +87,14 @@ def list_backup_configurations(configuration_backup_directory):
     return backups
 
 
-def restore_backup_configuration(configuration_backup_filepath, config_filepath):
+def restore_backup_configuration(configuration_backup_filepath: str, config_filepath: str) -> bool:
+    """Restore a backup file to a configuration folder of choice
+    Args:
+        configuration_backup_filepath: The full path to the backup file
+        config_filepath: The full path to the to-be-restored configuration file
+    Returns:
+        True, if successful
+    """
     try:
         shutil.move(configuration_backup_filepath, config_filepath)
         return True
@@ -91,11 +104,12 @@ def restore_backup_configuration(configuration_backup_filepath, config_filepath)
         return False
 
 
-def check_pid(pid):
-    """
-    Check For the existence of a unix pid.
+def check_pid(pid: int) -> bool:
+    """:return: True, if the process is running
+    Args:
 
-    :return: True, if the process is running
+    Returns:
+        None
     """
     if not pid:
         return False
@@ -109,13 +123,13 @@ def check_pid(pid):
         return True
 
 
-def check_socket(host, port):
-    """
-    Check if a host is listening on a given port
-
-    :param host: The host the service is listening on
-    :param port: The port the service is listening on
-    :return: True, if a service is listening on a given HOST:PORT
+def check_socket(host: str, port: int) -> bool:
+    """Check if a host is listening on a given port
+    Args:
+        host: The host the service is listening on
+        port: The port the service is listening on
+    Returns:
+         True, if a service is listening on a given HOST:PORT
     """
     if isinstance(port, str):
         port = int(port)
@@ -126,10 +140,12 @@ def check_socket(host, port):
             return False
 
 
-def check_user_exists(username):
-    """
-    :param username: The username of the user to check
-    :return: True if the user exists
+def check_user_exists(username: str) -> bool:
+    """Check of a UNIX user exists
+    Args:
+        username: The username of the user to check
+    Returns:
+        : True if the user exists
     """
     try:
         pwd.getpwnam(username)
@@ -138,7 +154,16 @@ def check_user_exists(username):
         return False
 
 
-def copytree(src, dst, symlinks=False, ignore=None):
+def copytree(src: str, dst: str, symlinks: Optional[bool] = False, ignore: Optional[bool] = None) -> None:
+    """Copy a src file or directory to a destination file or directory
+    Args:
+        src: The source directory
+        dst: The destination directory
+        symlinks: If True, symlinks will be followed (Default value = False)
+        ignore: If True, errors will be ignored
+    Returns:
+        None
+    """
     for item in os.listdir(src):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
@@ -152,7 +177,13 @@ def copytree(src, dst, symlinks=False, ignore=None):
             shutil.copy2(s, d)
 
 
-def create_dynamite_environment_file():
+def create_dynamite_environment_file() -> None:
+    """Creates the dynamite environment file accessible only to the root user.
+    Args:
+
+    Returns:
+        None
+    """
     makedirs(const.CONFIG_PATH, exist_ok=True)
     env_file = os.path.join(const.CONFIG_PATH, 'environment')
     env_file_f = open(env_file, 'a')
@@ -161,34 +192,40 @@ def create_dynamite_environment_file():
     set_permissions_of_file(env_file, 700)
 
 
-def create_dynamite_user(password):
-    """
-    Create the dynamite user and group
-
-    :param password: The password for the user
+def create_dynamite_user(password: str) -> None:
+    """Create the dynamite user and group
+    Args:
+        password: The password for the user
+    Returns:
+        None
     """
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
-def create_jupyter_user(password):
-    """
-    Create the jupyter user w/ home
-
-    :param password: The password for the user
+def create_jupyter_user(password: str) -> None:
+    """Create the jupyter user w/ home
+    Args:
+        password: The password for the user
+    Returns:
+        None
     """
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
     subprocess.call('useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
                     shell=True)
 
 
-def download_file(url, filename, stdout=False):
+def download_file(url: str, filename: str, stdout: Optional[bool] = False) -> bool:
     """
     Given a URL and destination file name, download the file to local install_cache
 
-    :param url: The url to the file to download
-    :param filename: The name of the file to store
-    :return: None
+    Args:
+        url: The url to the file to download
+        filename: The name of the file to write to disk
+        stdout: Print the output to the console
+
+    Returns: True, if successfully downloaded.
+
     """
     makedirs(const.INSTALL_CACHE, exist_ok=True)
     response = urlopen(url)
@@ -259,13 +296,15 @@ def download_file(url, filename, stdout=False):
     return True
 
 
-def download_java(stdout=False):
-    for url in open(const.JAVA_MIRRORS, 'r').readlines():
-        if download_file(url, const.JAVA_ARCHIVE_NAME, stdout):
-            break
+def extract_archive(archive_path: str, destination_path: str) -> None:
+    """Extract a tar.gz archive to a given destination path.
+    Args:
+        archive_path: The full path to the tar.gz archive file
+        destination_path: The path where the archive will be extracted
+    Returns:
+        None
+    """
 
-
-def extract_archive(archive_path, destination_path):
     try:
         tf = tarfile.open(archive_path)
         tf.extractall(path=destination_path)
@@ -273,27 +312,35 @@ def extract_archive(archive_path, destination_path):
         pass
 
 
-def extract_java():
-    try:
-        tf = tarfile.open(os.path.join(const.INSTALL_CACHE, const.JAVA_ARCHIVE_NAME))
-        tf.extractall(path=const.INSTALL_CACHE)
-    except IOError:
-        pass
-
-
 def get_default_agent_tag() -> str:
+    """:return: The agent tag
+    Args:
+
+    Returns:
+        The agent tag
+    """
+
     return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_agt'
 
 
 def get_default_es_node_name() -> str:
+    """:return: The node name
+    Args:
+
+    Returns:
+        The node name.
+    """
     return ''.join([c.lower() for c in str(socket.gethostname()) if c.isalnum()][0:25]) + '_es_node'
 
 
-def get_file_md5_hash(fh):
+def get_file_md5_hash(fh: Union[BinaryIO, TextIO]) -> str:
+    """Given a file-like object return the md5 hash of that object
+    Args:
+        fh: file handle (file like object)
+    Returns:
+         the md5 hash of the file
     """
-    :param fh: file handle
-    :return: the md5 hash of the file
-    """
+
     block_size = 65536
     md5_hasher = md5()
     buf = fh.read(block_size)
@@ -303,19 +350,23 @@ def get_file_md5_hash(fh):
     return md5_hasher.hexdigest()
 
 
-def get_filepath_md5_hash(file_path):
-    """
-    :param file_path: path to the file being hashed
-    :return: the md5 hash of a file
+def get_filepath_md5_hash(file_path: str) -> str:
+    """Given a file-path to return the md5 hash of that file
+    Args:
+        file_path: path to the file being hashed
+    Returns:
+         the md5 hash of a file
     """
     with open(file_path, 'rb') as afile:
         return get_file_md5_hash(afile)
 
 
-def get_terminal_size():
-    """
-    Returns the width and height of the current terminal
-    :return: (width, height) of the current terminal
+def get_terminal_size() -> Optional[Tuple[int, int]]:
+    """Returns the width and height of the current terminal
+    Args:
+
+    Returns:
+         (width, height) of the current terminal
     """
     try:
         h, w, hp, wp = struct.unpack('HHHH',
@@ -326,20 +377,25 @@ def get_terminal_size():
     return w, h
 
 
-def generate_random_password(length=30):
-    """
-    Generate a random password containing alphanumeric and symbolic characters
-    :param length: The length of the password
-    :return: The string representation of the password
+def generate_random_password(length: int = 30) -> str:
+    """Generate a random password containing alphanumeric and symbolic characters
+    Args:
+        length: The length of the password
+    Returns:
+         The string representation of the password
     """
     tokens = string.ascii_lowercase + string.ascii_uppercase + '0123456789' + '!@#$%^&*()_+'
     return ''.join(random.choice(tokens) for i in range(length))
 
 
-def get_environment_file_str():
+def get_environment_file_str() -> str:
+    """Get the contents of the dynamite environment file as a string.
+    Args:
+
+    Returns:
+         The contents of the /etc/dynamite/environment file as a giant export string
     """
-    :return: The contents of the /etc/dynamite/environment file as a giant export string
-    """
+
     export_str = ''
     with open(os.path.join(const.CONFIG_PATH, 'environment')) as env_f:
         for line in env_f.readlines():
@@ -349,32 +405,40 @@ def get_environment_file_str():
     return export_str
 
 
-def get_environment_file_dict():
-    """
-    :return: The contents of the /etc/dynamite/environment file as a dictionary
+def get_environment_file_dict() -> Dict:
+    """Get the contents of the dynamite environment file as a dictionary.
+    Args:
+
+    Returns:
+         The contents of the /etc/dynamite/environment file as a dictionary
     """
     export_dict = {}
-    for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
-        if '=' in line:
-            key, value = line.strip().split('=')
-            export_dict[key] = value
+    try:
+        for line in open(os.path.join(const.CONFIG_PATH, 'environment')).readlines():
+            if '=' in line:
+                key, value = line.strip().split('=')
+                export_dict[key] = value
+    except PermissionError:
+        return {}
     return export_dict
 
 
-def get_memory_available_bytes():
-    """
-    Get the amount of RAM (in bytes) of the current system
+def get_memory_available_bytes() -> int:
+    """Get the amount of RAM (in bytes) of the current system
+    Args:
 
-    :return: The number of bytes available in memory
+    Returns:
+         The number of bytes available in memory
     """
     return os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
 
 
-def get_network_interface_names():
-    """
-    Returns a list of network interfaces available on the system
+def get_network_interface_names() -> List[str]:
+    """Returns a list of network interfaces available on the system
+    Args:
 
-    :return: A list of network interfaces
+    Returns:
+         A list of network interfaces
     """
     addresses = psutil.net_if_addrs()
     stats = psutil.net_if_stats()
@@ -390,12 +454,14 @@ def get_network_interface_names():
     return available_networks
 
 
-def get_network_interface_configurations():
-    """
-    Returns a list of network interface configurations available on the system
+def get_network_interface_configurations() -> List[Dict]:
+    """Returns a list of network interfaces available on the system
+    Args:
 
-    :return: A list of network interface configurations
+    Returns:
+         A list of network interfaces
     """
+
     addresses = psutil.net_if_addrs()
     stats = psutil.net_if_stats()
 
@@ -419,11 +485,12 @@ def get_network_interface_configurations():
     return available_networks
 
 
-def get_network_addresses():
-    """
-    Returns a list of valid IP addresses for the host
+def get_network_addresses() -> Tuple:
+    """Returns a list of valid IP addresses for the host
+    Args:
 
-    :return: A tuple containing the internal, and external IP address
+    Returns:
+         A tuple containing an internal, and external IP address
     """
     valid_addresses = []
     internal_address, external_address = None, None
@@ -441,7 +508,14 @@ def get_network_addresses():
     return tuple(valid_addresses)
 
 
-def get_primary_ip_address():
+def get_primary_ip_address() -> str:
+    """Get the IP address for the default route out.
+    Args:
+
+    Returns:
+        The IP address of the primary (default route) interface
+    """
+
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
@@ -454,30 +528,48 @@ def get_primary_ip_address():
     return IP
 
 
-def get_cpu_core_count():
-    """
-    :return: The count of CPU cores available on the system
+def get_cpu_core_count() -> int:
+    """Get the number of availble CPU cores
+    Args:
+
+    Returns:
+         The count of CPU cores available on the system
     """
     return multiprocessing.cpu_count()
 
 
-def is_root():
-    """
-    Determine whether or not the current user is root
+def is_root() -> bool:
+    """Determine whether or not the current user is root
+    Args:
 
-    :return: True, if the user is root
+    Returns:
+         True, if the user is root
     """
     return os.getuid() == 0
 
 
-def makedirs(path, exist_ok=True):
+def makedirs(path: str, exist_ok: Optional[bool] = True) -> None:
+    """Create directory(ies) at a given path
+    Args:
+        path: The path to the directories
+        exist_ok: If it exists, create anyway (Default value = True)
+    Returns:
+        None
+    """
     if exist_ok:
         os.makedirs(path, exist_ok=True)
     else:
         os.makedirs(path)
 
 
-def print_dynamite_lab_art():
+def print_dynamite_lab_art() -> None:
+    """Print the dynamite lab ascii art
+    Args:
+
+    Returns:
+        None
+    """
+
     try:
         lab_art = \
             """
@@ -494,9 +586,12 @@ def print_dynamite_lab_art():
         print()
 
 
-def print_dynamite_logo(version):
-    """
-    Print the dynamite logo!
+def print_dynamite_logo(version: str) -> None:
+    """Print the dynamite logo!
+    Args:
+
+    Returns:
+        None
     """
     try:
         dynamite_logo = \
@@ -534,9 +629,12 @@ def print_dynamite_logo(version):
         print('http://dynamite.ai\n\nVersion: {}\n'.format(version))
 
 
-def print_coffee_art():
-    """
-    Print coffee mug art!
+def print_coffee_art() -> None:
+    """Print the dynamite logo!
+    Args:
+
+    Returns:
+        None
     """
     try:
         coffee_icon = \
@@ -554,30 +652,26 @@ def print_coffee_art():
         pass
 
 
-def prompt_input(message):
+def prompt_input(message) -> str:
+    """Taking in input
+    Args:
+        message: The message appearing next to the input prompt.
+    Returns:
+         The inputted text
     """
-    Compatibility function for Python2/3 for taking in input
 
-    :param message: The message appearing next to the input prompt.
-    return: The inputted text
-    """
-
-    try:
-        res = raw_input(message)
-    except NameError:
-        res = input(message)
+    res = input(message)
     return res
 
 
-def prompt_password(prompt='[?] Enter a secure password: ', confirm_prompt='[?] Confirm Password: '):
+def prompt_password(prompt='[?] Enter a secure password: ', confirm_prompt='[?] Confirm Password: ') -> str:
+    """Prompt user for password, and confirm
+    Args:
+        prompt: The first password prompt
+        confirm_prompt: The confirmation prompt
+    Returns:
+         The password entered
     """
-    Prompt user for password, and confirm
-
-    :param prompt: The first password prompt
-    :param confirm_prompt: The confirmation prompt
-    :return: The password entered
-    """
-
     password = '0'
     confirm_password = '1'
     first_attempt = True
@@ -597,13 +691,13 @@ def prompt_password(prompt='[?] Enter a secure password: ', confirm_prompt='[?] 
     return password
 
 
-def run_subprocess_with_status(process, expected_lines=None):
-    """
-    Run a subprocess inside a wrapper, that hides the output, and replaces with a progressbar
-
-    :param process: The subprocess.Popen instance
-    :param expected_lines: The number of stdout lines to expect
-    :return: True, if exited with POSIX 0
+def run_subprocess_with_status(process: subprocess.Popen, expected_lines: Optional[int] = None) -> int:
+    """Run a subprocess inside a wrapper, that hides the output, and replaces with a progressbar
+    Args:
+        process: The subprocess.Popen instance
+        expected_lines: The number of stdout lines to expect
+    Returns:
+         The exit code.
     """
 
     i = 0
@@ -643,30 +737,19 @@ def run_subprocess_with_status(process, expected_lines=None):
     return process.poll()
 
 
-def safely_remove_file(path):
+def safely_remove_file(path: str) -> None:
+    """Remove a file if it exists at the given path
+    Args:
+        path: The path of the file to remove
+    Returns:
+        None
+    """
     if os.path.exists(path):
         os.remove(path)
 
 
-def setup_java():
-    """
-    Installs the latest version of OpenJDK
-    """
-
-    makedirs('/usr/lib/jvm', exist_ok=True)
-    try:
-        shutil.move(os.path.join(const.INSTALL_CACHE, 'jdk-11.0.2'), '/usr/lib/jvm/')
-    except shutil.Error:
-        pass
-    if 'JAVA_HOME' not in open(os.path.join(const.CONFIG_PATH, 'environment')).read():
-        subprocess.call(
-            'echo JAVA_HOME="/usr/lib/jvm/jdk-11.0.2/" >> {}'.format(os.path.join(const.CONFIG_PATH, 'environment')),
-            shell=True)
-
-
-def set_ownership_of_file(path, user='dynamite', group='dynamite'):
-    """
-    Set the ownership of a file given a user/group and a path
+def set_ownership_of_file(path: str, user: Optional[str] = 'dynamite', group: Optional[str] = 'dynamite') -> None:
+    """Set the ownership of a file given a user/group and a path
 
     :param path: The path to the file
     :param user: The name of the user
@@ -685,21 +768,23 @@ def set_ownership_of_file(path, user='dynamite', group='dynamite'):
             os.chown(os.path.join(root, momo), uid, group)
 
 
-def set_permissions_of_file(file_path, unix_permissions_integer):
-    """
-    Set the permissions of a file to unix_permissions_integer
-
-    :param file_path: The path to the file
-    :param unix_permissions_integer: The numeric representation of user/group/everyone permissions on a file
+def set_permissions_of_file(file_path: str, unix_permissions_integer: Union[str, int]) -> None:
+    """Set the permissions of a file to unix_permissions_integer
+    Args:
+        file_path: The path to the file
+        unix_permissions_integer: The numeric representation of user/group/everyone permissions on a file
+    Returns:
+        None
     """
     subprocess.call('chmod -R {} {}'.format(unix_permissions_integer, file_path), shell=True)
 
 
-def update_sysctl(verbose=False):
-    """
-    Updates the vm.max_map_count and fs.file-max count
-
-    :param verbose: Include output from system utilities
+def update_sysctl(verbose: Optional[bool] = False) -> None:
+    """Updates the vm.max_map_count and fs.file-max count
+    Args:
+        verbose: Include output from system utilities
+    Returns:
+        None
     """
 
     new_output = ''
@@ -730,11 +815,13 @@ def update_sysctl(verbose=False):
         subprocess.call('sysctl -p', shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
 
-def update_user_file_handle_limits():
-    """
-    Updates the max number of file handles the dynamite user can have open
-    """
+def update_user_file_handle_limits() -> None:
+    """Updates the max number of file handles the dynamite user can have open
+    Args:
 
+    Returns:
+        None
+    """
     new_output = ''
     limit_found = False
     for line in open('/etc/security/limits.conf').readlines():
@@ -750,37 +837,12 @@ def update_user_file_handle_limits():
         f.write(new_output)
 
 
-def tail_file(path, n=1, bs=1024):
-    """
-    Tail the last n lines of a file at a given path
-
-    :param path: The path to the file
-    :param n: The last n number of lines
-    :param bs: The block-size in bytes
-    :return: A list of lines
-    """
-
-    f = open(path)
-    f.seek(0, 2)
-    l = 1 - f.read(1).count('\n')
-    B = f.tell()
-    while n >= l and B > 0:
-        block = min(bs, B)
-        B -= block
-        f.seek(B, 0)
-        l += f.read(block).count('\n')
-    f.seek(B, 0)
-    l = min(l, n)
-    lines = f.readlines()[-l:]
-    f.close()
-    return lines
-
-
-def wrap_text(s):
-    """
-    Given a string adds newlines based on the current size of the terminal window (if one is found)
-    :param s: A string
-    :return: A new line deliminated string
+def wrap_text(s: str) -> str:
+    """Given a string adds newlines based on the current size of the terminal window (if one is found)
+    Args:
+        s: A string
+    Returns:
+         A new line deliminated string
     """
     if not s:
         return ""

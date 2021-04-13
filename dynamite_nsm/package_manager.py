@@ -18,6 +18,12 @@ class OSPackageManager:
     """
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False):
+        """
+
+        Args:
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
+        """
         self.package_manager = self.detect_package_manager(verbose=verbose)
         self.verbose = verbose
 
@@ -28,9 +34,11 @@ class OSPackageManager:
 
     @staticmethod
     def detect_package_manager(verbose: Optional[bool] = False) -> str:
-        """
-        Detect the POSIX package manager currently being used
-        :return: The package manager command (either apt-get or yum)
+        """Detect the POSIX package manager currently being used
+        Args:
+            verbose: Include detailed debug messages
+        Returns:
+             The package manager command (either apt-get or yum)
         """
         if verbose:
             apt_get_p = subprocess.Popen('apt-get -h &> /dev/null', shell=True)
@@ -51,10 +59,11 @@ class OSPackageManager:
             raise OsPackageManagerNotDetectedError()
 
     def install_packages(self, packages: List[str]) -> None:
-        """
-        Given a set of packages, installs the packages
-
-        :param packages: Name of binary packages to install
+        """Given a set of packages, installs the packages
+        Args:
+            packages: Name of binary packages to install
+        Returns:
+            None
         """
         flags = '-y'
         failed_packages = []
@@ -80,8 +89,11 @@ class OSPackageManager:
                 f'manually: {failed_packages}.')
 
     def refresh_package_indexes(self) -> None:
-        """
-        Refresh the package cache
+        """Refresh the package cache
+        Args:
+
+        Returns:
+            None
         """
         params = None
         if self.package_manager == 'apt-get':

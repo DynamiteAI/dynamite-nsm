@@ -13,15 +13,20 @@ COMPILE_PROCESS_EXPECTED_LINE_COUNT = 6779
 
 class InstallManager(install.BaseInstallManager):
 
+    """
+    Manage Zeek installation process
+    """
+
     def __init__(self, configuration_directory: str, install_directory: str,
                  download_zeek_archive: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
-        :param download_zeek_archive: If True, download the Zeek archive from a mirror
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Install Zeek
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek/)
+            install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
+            download_zeek_archive: If True, download the Zeek archive from a mirror
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
@@ -39,10 +44,11 @@ class InstallManager(install.BaseInstallManager):
             _, _, self.local_mirror_root = self.get_mirror_info(const.ZEEK_MIRRORS)
 
     def configure_compile_zeek(self, parallel_threads: Optional[int] = None) -> None:
-        """
-        Configure and build Zeek from source
-
-        :param parallel_threads: Number of parallel threads to use during the compiling process
+        """Configure and build Zeek from source
+        Args:
+            parallel_threads: Number of parallel threads to use during the compiling process
+        Returns:
+            None
         """
         zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
         configure_args = [f'--prefix={self.install_directory}', f'--scriptdir={self.configuration_directory}',
@@ -54,10 +60,11 @@ class InstallManager(install.BaseInstallManager):
                                     expected_lines_printed=COMPILE_PROCESS_EXPECTED_LINE_COUNT)
 
     def configure_compile_zeek_af_packet_plugin(self, parallel_threads: Optional[int] = None) -> None:
-        """
-        Configure and build AF_PACKET plugin
-
-        :param parallel_threads: Number of parallel threads to use during the compiling process
+        """Configure and build AF_PACKET plugin
+        Args:
+            parallel_threads: Number of parallel threads to use during the compiling process
+        Returns:
+            None
         """
         zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
         zeek_af_packet_plugin_source = f'{const.DEFAULT_CONFIGS}/zeek/uncompiled_scripts/zeek-af_packet-plugin'
@@ -70,10 +77,11 @@ class InstallManager(install.BaseInstallManager):
                                                    f'{self.install_directory}/lib/zeek/plugins/Zeek_AF_Packet')
 
     def configure_compile_zeek_community_id_plugin(self, parallel_threads: Optional[int] = None) -> None:
-        """
-        Configure and build Community_ID plugin
-
-        :param parallel_threads: Number of parallel threads to use during the compiling process
+        """Configure and build Community_ID plugin
+        Args:
+            parallel_threads: Number of parallel threads to use during the compiling process
+        Returns:
+            None
         """
         zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
         zeek_community_id_plugin_source = f'{const.DEFAULT_CONFIGS}/zeek/uncompiled_scripts/zeek-community-id'
@@ -86,22 +94,29 @@ class InstallManager(install.BaseInstallManager):
                                                    f'{self.install_directory}/lib/zeek/plugins/Corelight_CommunityID')
 
     def create_update_zeek_environment_variables(self) -> None:
-        """
-        Creates all the required Zeek environmental variables
+        """Creates all the required Zeek environmental variables
+        Args:
+
+        Returns:
+            None
         """
         self.create_update_env_variable('ZEEK_HOME', self.install_directory)
         self.create_update_env_variable('ZEEK_SCRIPTS', self.configuration_directory)
 
     def install_zeek_dependencies(self) -> None:
-        """
-        Install Zeek dependencies (And PowerTools repo if on redhat based distro)
+        """Install Zeek dependencies (And PowerTools repo if on redhat based distro)
+        Args:
+
+        Returns:
+            None
         """
 
         def install_powertools_rhel(pacman_type):
-            """
-            Workaround for RHEL based distros to ensure they have access to the powertools repo
+            """Install Zeek dependencies (And PowerTools repo if on redhat based distro)
+            Args:
 
-            :param pacman_type: yum or apt-get
+            Returns:
+                None
             """
             if pacman_type != 'yum':
                 self.logger.info('Skipping RHEL PowerTools install, as it is not needed on this distribution.')
@@ -125,10 +140,11 @@ class InstallManager(install.BaseInstallManager):
                                   pre_install_function=install_powertools_rhel)
 
     def setup(self, capture_network_interfaces: Optional[List[str]] = None):
-        """
-        Install Zeek
-
-        :param capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+        """Setup Zeek binary
+        Args:
+            capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+        Returns:
+            None
         """
         if not capture_network_interfaces:
             capture_network_interfaces = utilities.get_network_interface_names()
@@ -193,16 +209,18 @@ class InstallManager(install.BaseInstallManager):
 class UninstallManager(install.BaseUninstallManager):
 
     """
-    Uninstall Zeek
+    Manage Zeek uninstallation process
     """
 
     def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
+        """Uninstall Zeek
+        Args:
+            purge_config: If enabled, remove all the configuration files associated with this installation
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
-        :param purge_config: If enabled, remove all the configuration files associated with this installation
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
-        """
+
         from dynamite_nsm.services.zeek.process import ProcessManager
 
         env_vars = utilities.get_environment_file_dict()

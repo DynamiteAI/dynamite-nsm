@@ -17,6 +17,16 @@ from dynamite_nsm.services.base import logs
 
 
 def parse_filebeat_datetime(t: str) -> datetime:
+    """
+    Parse a common filebeat timestamp string
+
+    Args:
+        t: A '%Y-%m-%dT%H:%M:%S.%f' formatted string
+
+    Returns:
+        A datetime object
+
+    """
     ret = datetime.strptime(t[0:22], '%Y-%m-%dT%H:%M:%S.%f')
     if t[23] == '+':
         ret -= timedelta(hours=int(t[24:26]), minutes=int(t[27:]))
@@ -44,9 +54,10 @@ class MetricsEntry:
     """
 
     def __init__(self, monitoring_payload: Dict, time: datetime):
-        """
-        :param monitoring_payload: The serialized JSON for "monitoring" status types
-        :param time: A datetime object representing when the metrics entry was written
+        """A metrics entry
+        Args:
+            monitoring_payload: The serialized JSON for "monitoring" status types
+            time: A datetime object representing when the metrics entry was written
         """
 
         self.monitoring_payload = monitoring_payload
@@ -62,10 +73,11 @@ class MetricsEntry:
         self.published_events = metrics.get("libbeat", {}).get("pipeline", {}).get("events", {}).get("published", 0)
 
     def merge_metric_entry(self, metric_entry: MetricsEntry) -> None:
-        """
-        Merge another metrics entry into this one
-
-        :param metric_entry: The MetricsEntry you wish to merge in
+        """Merge another metrics entry into this one
+        Args:
+            metric_entry: The MetricsEntry you wish to merge in
+        Returns:
+            None
         """
 
         self.open_file_handles = math.ceil((self.open_file_handles + metric_entry.open_file_handles) / 2)
@@ -98,9 +110,10 @@ class StatusEntry:
     """
 
     def __init__(self, entry_raw: str, include_json_payload: Optional[bool] = False):
-        """
-        :param entry_raw: A line item representing a single entry within the Filebeat log
-        :param include_json_payload: If, True, then the metrics payload will be included in its raw JSON form
+        """A status entry
+        Args:
+            entry_raw: A line item representing a single entry within the Filebeat log
+            include_json_payload: If, True, then the metrics payload will be included in its raw JSON form
         """
 
         self.include_json_payload = include_json_payload
@@ -158,9 +171,10 @@ class StatusLog(logs.LogFile):
     """
 
     def __init__(self, log_sample_size: Optional[int] = 500, include_json_payloads: Optional[bool] = False):
-        """
-        :param log_sample_size: The maximum number of entries to parse
-        :param include_json_payloads: If, True, then metrics payloads will be included in their raw JSON form
+        """Work with Filebeat's filebeat.log
+        Args:
+            log_sample_size: The maximum number of entries to parse
+            include_json_payloads: If, True, then metrics payloads will be included in their raw JSON form
         """
 
         self.include_json_payloads = include_json_payloads
@@ -174,16 +188,15 @@ class StatusLog(logs.LogFile):
                               log_sample_size=log_sample_size)
 
     def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None, log_level=None,
-                     category=None) -> Generator[StatusEntry]:
-        """
-        Iterate through StatusEntries while providing some basic filtering options
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :param log_level: DEBUG, INFO, WARN, ERROR, CRITICAL
-        :param category: Defaults to all if none specified; valid categories are:
-                         beat, cfgwarn, crawler, harvester, monitoring, publisher, registrar, seccomp
-        :return: yields a StatusEntry for every iteration
+                     category=None):
+        """Iterate through StatusEntries while providing some basic filtering options
+        Args:
+            start: UTC start time
+            end: UTC end time
+            log_level: DEBUG, INFO, WARN, ERROR, CRITICAL
+            category: Defaults to all if none specified; valid categories are beat, cfgwarn, crawler, harvester, monitoring, publisher, registrar, seccomp
+        Returns:
+             yields a StatusEntry for every iteration
         """
 
         def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
@@ -208,28 +221,27 @@ class StatusLog(logs.LogFile):
                     continue
             yield log_entry
 
-    def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[MetricsEntry]:
-        """
-        Iterate through metrics entries individually
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :return: yields a MetricsEntry for every iteration
+    def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None):
+        """Iterate through metrics entries individually
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a MetricsEntry for every iteration
         """
         for entry in self.iter_entries(start, end):
             if entry.metrics:
                 yield entry.metrics
 
     def iter_aggregated_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None,
-                                tolerance_seconds: Optional[int] = 60) -> Generator[MetricsEntry]:
-        """
-        Iterates through metric entries, while aggregating entries together that are within the same tolerance_seconds
-        into a single MetricsEntry
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :param tolerance_seconds: Specifies the maximum numbers seconds between entries to consider them common,
-                                  and therefore aggregate.
+                                tolerance_seconds: Optional[int] = 60):
+        """Iterates through metric entries, while aggregating entries together that are within the same tolerance_seconds into a single MetricsEntry
+        Args:
+            start: UTC start time
+            end: UTC end time
+            tolerance_seconds: Specifies the maximum numbers seconds between entries to consider them common, and therefore aggregate.
+        Returns:
+             yields a MetricsEntry for every iteration
         """
 
         sorted_by_time = [metric for metric in self.iter_metrics(start, end)]
@@ -248,8 +260,11 @@ class StatusLog(logs.LogFile):
             yield aggregated_entry
 
     def tail_entries(self, pretty_print: Optional[bool] = True):
-        """
-        :param pretty_print: Print the log entry in a nice tabular view
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
         """
         visited = []
         start = datetime.utcnow() - timedelta(days=365)
@@ -276,8 +291,11 @@ class StatusLog(logs.LogFile):
             print('[+] Exited.')
 
     def tail_metrics(self, pretty_print: Optional[bool] = True):
-        """
-        :param pretty_print: Print the log entry in a nice tabular view
+        """Tail and follow a metrics log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
         """
         visited = []
         start = datetime.utcnow() - timedelta(days=365)

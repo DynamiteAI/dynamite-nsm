@@ -4,12 +4,20 @@ from typing import List, Optional
 
 
 class GenericItem(object):
+    """Empty Class"""
     pass
 
 
 class GenericItemGroup:
 
     def __init__(self, identifier_attribute: str, items: Optional[List[GenericItem]] = None, ):
+        """
+        A base class representing simple groups of configuration options, where each group is unique.
+
+        Args:
+            identifier_attribute: The name of an attribute found within the GenericItem list used for identification
+            items: A list of GenericItems
+        """
         self.identifier_attribute = identifier_attribute
         self.items = items
         if items is None:
@@ -50,8 +58,17 @@ class GenericItemGroup:
 
 
 class Analyzer(GenericItem):
-
+    """
+    Analyzers are objects used for identifying Zeek scripts and signatures as well as Suricata rule-sets
+    """
     def __init__(self, name: str, enabled: Optional[bool] = False):
+        """
+        Create a simple analyzer object
+
+        Args:
+            name: The name (or often path) to the the analyzer
+            enabled: True, if enabled
+        """
         self.name = name
         self.id = adler32(str(name).encode("utf-8")) % 15000
         self.enabled = enabled
@@ -66,16 +83,30 @@ class Analyzer(GenericItem):
 
 
 class Analyzers(GenericItemGroup):
+    """A Group of Analyzers; provides some basic methods for filtering and display"""
 
     def __init__(self, analyzers: Optional[List[Analyzer]] = None):
         super().__init__('name', analyzers)
         self.analyzers = self.items
 
     def get_disabled(self) -> List[Analyzer]:
+        """Get all analyzers that are disabled.
+        Returns:
+            A list of disabled `Analyzer` objects
+        """
         return [analyzer for analyzer in self.analyzers if not analyzer.enabled]
 
     def get_enabled(self) -> List[Analyzer]:
+        """Get all analyzers that are enabled.
+        Returns:
+            A list of enabled `Analyzer` objects
+        """
         return [analyzer for analyzer in self.analyzers if analyzer.enabled]
 
     def get_raw(self) -> List[str]:
+        """
+        Get the analyzers in a format that can be directly written to a corresponding configuration
+        Returns:
+            A list of analyzer names.
+        """
         return [analyzer.name for analyzer in self.analyzers if analyzer.enabled]

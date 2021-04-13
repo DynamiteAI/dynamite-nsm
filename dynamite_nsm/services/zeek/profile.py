@@ -7,6 +7,9 @@ from dynamite_nsm.services.zeek import process as zeek_process
 
 
 class ProcessProfiler(profile.BaseProcessProfiler):
+    """
+    Get information about Zeek processes
+    """
     def __init__(self):
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -19,6 +22,11 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              required_config_files=['site'])
 
     def is_running(self) -> bool:
+        """
+        Determine of Zeek is running
+        Returns:
+            True, if running
+        """
         if self.zeek_home:
             try:
                 return zeek_process.ProcessManager().status()['running']

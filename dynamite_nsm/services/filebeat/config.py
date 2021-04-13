@@ -24,8 +24,28 @@ class InvalidAgentTag(Exception):
 
 
 class ConfigManager(YamlConfigManager):
+    """Manage main Filebeat Configuration"""
 
     def __init__(self, install_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """
+        Configure Filebeat
+        Args:
+            install_directory: The path to the filebeat installation directory (E.G /opt/dynamite/filebeat)
+            verbose: Include detailed debug messages
+            stdout: Print output to console
+        ___
+
+        # Instance Variables
+        - `input_logs` - A `misc.InputLogs` instance representing the log paths to be monitored (if ECS is disabled)
+        - `field_processors` - A `misc.FieldProcessors` instance representing fields to be manipulated at parse time.
+        - `index_template_settings` - A `misc.IndexTemplateSettings` instance representing the Elasticsearch index
+        template settings to be used
+        - `elasticsearch_targets` - A `targets.ElasticsearchTargets` instance used when sending logs directly to
+        Elasticsearch.
+        - `logstash_targets` - A `targets.LogstashTargets` instance used when sending logs to Logstash.
+        - `kafka_targets` - A `targets.KafkaTargets` instance used when sending logs to Kafka.
+        - `redis_targets` - A `targets.RedisTargets` instance used when sending logs to Redis.
+        """
         extract_tokens = {
             '_inputs_raw': ('filebeat.inputs',),
             '_elasticsearch_targets_raw': ('output.elasticsearch',),
@@ -133,13 +153,12 @@ class ConfigManager(YamlConfigManager):
 
     @classmethod
     def from_raw_text(cls, raw_text: str, install_directory: Optional[str] = None):
-        """
-        Alternative method for creating configuration file from raw text
-
-        :param raw_text: The string representing the configuration file
-        :param install_directory: The install directory for Filebeat
-
-        :return: An instance of ConfigManager
+        """Alternative method for creating configuration file from raw text
+        Args:
+            raw_text: The string representing the configuration file
+            install_directory: The install directory for Filebeat
+        Returns:
+             An instance of ConfigManager
         """
         tmp_dir = '/tmp/dynamite/temp_configs/'
         tmp_config = f'{tmp_dir}/filebeat.yml'
@@ -152,8 +171,9 @@ class ConfigManager(YamlConfigManager):
         return c
 
     def enable_ecs_normalization(self) -> None:
-        """
-        Enable ECS normalization for Zeek/Suricata logs
+        """Enable ECS normalization for Zeek/Suricata logs
+        Returns:
+            None
         """
         modules_path = os.path.join(self.install_directory, 'modules.d')
         if not os.path.exists(modules_path):
@@ -167,6 +187,8 @@ class ConfigManager(YamlConfigManager):
     def disable_ecs_normalization(self) -> None:
         """
         Disable ECS normalization for Zeek/Suricata logs
+        Returns:
+            None
         """
         modules_path = os.path.join(self.install_directory, 'modules.d')
         if not os.path.exists(modules_path):
@@ -178,19 +200,18 @@ class ConfigManager(YamlConfigManager):
         self.input_logs.enabled = True
 
     def is_ecs_normalization_available(self) -> bool:
-        """
-        Check if the applicable modules (zeek/suricata) have been patched to point to the correct log locations
+        """Check if the applicable modules (zeek/suricata) have been patched to point to the correct log locations
 
-        :return: True, if ECS normalization is available (can be enabled)
+        Returns:
+             True, if ECS normalization is available (can be enabled)
         """
         modules_path = os.path.join(self.install_directory, 'modules.d')
         return os.path.exists(os.path.join(modules_path, '.patched'))
 
     def is_ecs_normalization_enabled(self) -> bool:
-        """
-        Check if ECS normalization is enabled over generic inputs
-
-        :return: True, if ECS normalization is enabled.
+        """Check if ECS normalization is enabled over generic inputs
+        Returns:
+             True, if ECS normalization is enabled.
         """
         modules_path = os.path.join(self.install_directory, 'modules.d')
         zeek_module_exists = os.path.exists(os.path.join(modules_path, 'zeek.yml'))
@@ -198,12 +219,12 @@ class ConfigManager(YamlConfigManager):
         return zeek_module_exists and suricata_module_exists
 
     def patch_modules(self, zeek_log_directory: str, suricata_log_directory: str) -> None:
-        """
-        Given the paths to Zeek log directory and suricata log directory attempts to locate the modules.d/ configuration
-        and patch the directory paths to point to the Dynamite configured paths
-
-        :param zeek_log_directory: The path to the Zeek current log directory
-        :param suricata_log_directory: The path to the Suricata log directory
+        """and patch the directory paths to point to the Dynamite configured paths
+        Args:
+            zeek_log_directory: The path to the Zeek current log directory
+            suricata_log_directory: The path to the Suricata log directory
+        Returns:
+            None
         """
 
         def write_module(path, data):
@@ -259,8 +280,9 @@ class ConfigManager(YamlConfigManager):
         patch_file.close()
 
     def switch_to_elasticsearch_target(self) -> None:
-        """
-        Convenience method that enables ElasticSearch, and disables all other targets
+        """Convenience method that enables ElasticSearch, and disables all other targets
+        Returns:
+            None
         """
         self.elasticsearch_targets.enabled = True
         self.kafka_targets.enabled = False
@@ -268,8 +290,9 @@ class ConfigManager(YamlConfigManager):
         self.redis_targets.enabled = False
 
     def switch_to_kafka_target(self) -> None:
-        """
-        Convenience method that enables Kafka, and disables all other targets
+        """Convenience method that enables Kafka, and disables all other targets
+        Returns:
+            None
         """
         self.elasticsearch_targets.enabled = False
         self.kafka_targets.enabled = True
@@ -277,8 +300,9 @@ class ConfigManager(YamlConfigManager):
         self.redis_targets.enabled = False
 
     def switch_to_logstash_target(self) -> None:
-        """
-        Convenience method that enables Logstash, and disables all other targets
+        """Convenience method that enables Logstash, and disables all other targets
+        Returns:
+            None
         """
         self.elasticsearch_targets.enabled = False
         self.kafka_targets.enabled = False
@@ -286,8 +310,9 @@ class ConfigManager(YamlConfigManager):
         self.redis_targets.enabled = False
 
     def switch_to_redis_target(self) -> None:
-        """
-        Convenience method that enables Redis, and disables all other targets
+        """Convenience method that enables Redis, and disables all other targets
+        Returns:
+            None
         """
         self.elasticsearch_targets.enabled = False
         self.kafka_targets.enabled = False
@@ -296,11 +321,13 @@ class ConfigManager(YamlConfigManager):
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:
-        """
-        Write out an updated configuration file, and optionally backup the old one.
-
-        :param out_file_path: The path to the output file; if none given overwrites existing
-        :param backup_directory: The path to the backup directory
+        """Write out an updated configuration file, and optionally backup the old one.
+        Args:
+            out_file_path: The path to the output file; if none given overwrites existing
+            backup_directory: The path to the backup directory
+            top_text: If specified, the first line of the configuration file will be set to the value of your choosing.
+        Returns:
+            None
         """
         if not out_file_path:
             out_file_path = self.filebeat_config_path

@@ -13,8 +13,21 @@ from dynamite_nsm.services.base.config_objects.zeek import bpf_filter
 
 
 class BpfConfigManager(GenericConfigManager):
-
+    """
+    Manage Berkley Packet Filters for Zeek
+    """
     def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """Configure Berkley Packet Filters for Zeek monitored interfaces.
+
+        Args:
+            configuration_directory: The path to the Zeek configuration directory (E.G /etc/dynamite/zeek)
+            verbose: Include detailed debug messages
+            stdout: Print output to console
+        ___
+
+        # Instance Variables:
+        - `bpf_filters` - A `bpf_filter.BpfFilters` instance.
+        """
         self.configuration_directory = configuration_directory
         self.bpf_filters = bpf_filter.BpfFilters()
 
@@ -35,6 +48,14 @@ class BpfConfigManager(GenericConfigManager):
         )
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        """Write the changes out to configuration file
+        Args:
+            out_file_path: The path to the configuration file to write (or overwrite)
+            backup_directory: The path to the backup directory
+
+        Returns:
+            None
+        """
         if not out_file_path:
             out_file_path = f'{self.configuration_directory}/bpf_map_file.input'
         self.formatted_data = '\n'.join(self.bpf_filters.get_raw())
@@ -42,7 +63,9 @@ class BpfConfigManager(GenericConfigManager):
 
 
 class SiteLocalConfigManager(GenericConfigManager):
-
+    """
+    Manage local/site.zeek file (contains scripts, definitions, and signatures to be loaded)
+    """
     @staticmethod
     def _line_denotes_script(line: str):
         return '@load' in line.replace(' ', '') and '@load-' not in line
@@ -55,7 +78,21 @@ class SiteLocalConfigManager(GenericConfigManager):
     def _line_denotes_definition(line):
         return 'redef' in line.replace(' ', '')
 
-    def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """
+        Configure Zeek scripts, signatures, and definitions
+
+        Args:
+            configuration_directory: The path to the Zeek configuration directory (E.G /etc/dynamite/zeek)
+            verbose: Include detailed debug messages
+            stdout: Print output to console
+        ___
+
+        # Instance Variables:
+        - `scripts` - A `local_site.Scripts` instance representing a set of enabled (and disabled) Zeek scripts.
+        - `signatures` A `local_site.Signatures` instance representing a set of signatures to load.
+        - `definitions` - A `local_site.Definitions` instance representing a set of script variables `redefs`.
+        """
         self.configuration_directory = configuration_directory
         self.scripts = local_site.Scripts()
         self.signatures = local_site.Signatures()
@@ -104,13 +141,12 @@ class SiteLocalConfigManager(GenericConfigManager):
 
     @classmethod
     def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None):
-        """
-        Alternative method for creating configuration file from raw text
-
-        :param raw_text: The string representing the configuration file
-        :param configuration_directory: The configuration directory for Zeek
-
-        :return: An instance of ConfigManager
+        """Alternative method for creating configuration file from raw text
+        Args:
+            raw_text: The string representing the configuration file
+            configuration_directory: The configuration directory for Zeek
+        Returns:
+             An instance of ConfigManager
         """
         tmp_dir = '/tmp/dynamite/temp_configs/'
         tmp_config = f'{tmp_dir}/local.zeek'
@@ -123,6 +159,14 @@ class SiteLocalConfigManager(GenericConfigManager):
         return c
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        """Write the changes out to configuration file
+        Args:
+            out_file_path: The path to the configuration file to write (or overwrite)
+            backup_directory: The path to the backup directory
+
+        Returns:
+            None
+        """
         if not out_file_path:
             out_file_path = f'{self.configuration_directory}/site/local.zeek'
         self.formatted_data = '\n'.join(
@@ -132,12 +176,22 @@ class SiteLocalConfigManager(GenericConfigManager):
 
 
 class NodeConfigManager(GenericConfigManager):
-
+    """
+    Manage Zeek node.cfg used to determine which network interfaces to monitor
+    """
     def __init__(self, install_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        """
-        Configuration Manager for node.cfg file
+        """Configuration Manager for node.cfg file
 
-        :param install_directory: The path to the Zeek installation directory
+        Args:
+            install_directory: The path to the Zeek installation directory
+        ___
+
+        # Instance Variables:
+        - `manager` - A basic `node.Manager` instance representing a manager configuration (one per cluster)
+        - `loggers` - A `node.Loggers` instance representing one or more loggers. Loggers alleviate manager load
+        - `proxies` A `node.Proxies` instance representing one or more proxies. Offload workloads.
+        - `workers` A `node.Workers` instance reprsenting one or more workers. The worker is the Zeek process that
+        sniffs network traffic and does protocol analysis on the reassembled traffic streams.
         """
         self.install_directory = install_directory
         self.manager = None
@@ -206,13 +260,12 @@ class NodeConfigManager(GenericConfigManager):
 
     @classmethod
     def from_raw_text(cls, raw_text: str, install_directory: Optional[str] = None):
-        """
-        Alternative method for creating configuration file from raw text
-
-        :param raw_text: The string representing the configuration file
-        :param install_directory: The install directory for Zeek
-
-        :return: An instance of ConfigManager
+        """Alternative method for creating configuration file from raw text
+        Args:
+            raw_text: The string representing the configuration file
+            install_directory: The install directory for Zeek
+        Returns:
+             An instance of ConfigManager
         """
         tmp_dir = '/tmp/dynamite/temp_configs/'
         tmp_config = f'{tmp_dir}/node.cfg'
@@ -227,16 +280,15 @@ class NodeConfigManager(GenericConfigManager):
     @staticmethod
     def get_optimal_zeek_worker_config(interface_names: List[str], strategy: Optional[str] = "aggressive",
                                        cpus: Optional[Tuple] = None) -> node.Workers:
+        """Algorithm for determining the assignment of CPUs for Zeek workers
+        Args:
+            interface_names: A list of network interface names
+            strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources; 'conservative', results in less CPUs pinned per interface, but never overshoots resources
+            cpus: If None, we'll derive this by looking at the cpu core count, otherwise a list of cpu cores (E.G [0, 1, 2])
+        Returns:
+             A dictionary containing Zeek worker configuration
         """
-        Algorithm for determining the assignment of CPUs for Zeek workers
 
-        :param interface_names: A list of network interface names
-        :param strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources
-                         'conservative', results in less CPUs pinned per interface, but never overshoots resources
-        :param cpus: If None, we'll derive this by looking at the cpu core count,
-                     otherwise a list of cpu cores (E.G [0, 1, 2])
-        :return: A dictionary containing Zeek worker configuration
-        """
         if not cpus:
             cpus = [c for c in range(0, utilities.get_cpu_core_count())]
 
@@ -307,6 +359,14 @@ class NodeConfigManager(GenericConfigManager):
         return zeek_workers
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        """Write the changes out to configuration file
+        Args:
+            out_file_path: The path to the configuration file to write (or overwrite)
+            backup_directory: The path to the backup directory
+
+        Returns:
+            None
+        """
         config_p = ConfigParser()
 
         def build_raw_component(components: node.BaseComponents):
@@ -333,7 +393,9 @@ class NodeConfigManager(GenericConfigManager):
 
 
 class LocalNetworksConfigManager(GenericConfigManager):
-
+    """
+    Manage the networks network.cfg for defining which networks Zeek will consider local
+    """
     @staticmethod
     def _parse_local_networks(data: Dict) -> local_network.LocalNetworks:
         local_networks = local_network.LocalNetworks()
@@ -356,7 +418,20 @@ class LocalNetworksConfigManager(GenericConfigManager):
             )
         return local_networks
 
-    def __init__(self, installation_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+    def __init__(self, installation_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """
+        Configure the networks Zeek will consider local to the monitoring environment
+
+        Args:
+            installation_directory: The path to the installation directory (E.G /opt/dynamite/zeek)
+            verbose: Include detailed debug messages
+            stdout: Print output to console
+        ___
+
+        # Instance Variables: 
+        - `local_networks` - A `local_network.LocalNetworks` instance representing a list of networks considered local 
+        by this cluster.
+        """
         self.installation_directory = installation_directory
         self.local_networks = local_network.LocalNetworks()
 
@@ -370,6 +445,14 @@ class LocalNetworksConfigManager(GenericConfigManager):
         )
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        """Write the changes out to configuration file
+        Args:
+            out_file_path: The path to the configuration file to write (or overwrite)
+            backup_directory: The path to the backup directory
+
+        Returns:
+            None
+        """
         if not out_file_path:
             out_file_path = f'{self.installation_directory}/etc/networks.cfg'
         self.formatted_data = '\n'.join(self.local_networks.get_raw())
