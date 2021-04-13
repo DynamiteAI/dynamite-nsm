@@ -25,7 +25,7 @@ class BaseTargets:
                  ssl_key: Optional[str] = None, ssl_verification_mode: Optional[str] = 'certificate',
                  enabled: Optional[bool] = False):
         self.target_strings = target_strings
-        self.ssl_certificate_authorities = ssl_certificate_authorities
+        self.ssl_certificate_authorities = ssl_certificate_authorities if None else []
         self.ssl_certificate = ssl_certificate
         self.ssl_key = ssl_key
         self.ssl_verification_mode = ssl_verification_mode
@@ -164,9 +164,9 @@ class LogstashTargets(BaseTargets):
         Logstash endpoint configuration where events should be sent
 
         :param target_strings: A list of Logstash hosts, and their service port (E.G ["192.168.0.9:5044"])
-        :param load_balance: If set to true and multiple Logstash hosts are configured, the output plugin load balances
+        :param load_balance: If included and multiple Logstash hosts are configured, the output plugin load balances
                published events onto all Logstash hosts.
-        :param index: The name of the index to include in the %{[@metadata][beat]} field
+        :param index: The name of the index to include in the @metadata.beat field
         :param socks_5_proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
         :param pipelines: Configures the number of batches to be sent asynchronously to Logstash
         :param max_batch_size: The maximum number of events to bulk in a single Logstash request.
@@ -180,19 +180,9 @@ class LogstashTargets(BaseTargets):
                ssl_certificate is specified.
         :param ssl_verification_mode: This option controls whether the client verifies server certificates and host
                names.
-                - full, which verifies that the provided certificate is signed by a trusted authority (CA)
-                  and also verifies that the server’s hostname (or IP address) matches the names identified within the
-                  certificate.
-                - certificate, which verifies that the provided certificate is signed by a trusted authority (CA),
-                  but does not perform any hostname verification.
-                - none, which performs no verification of the server’s certificate.
-                  This mode disables many of the security benefits of SSL/TLS and should only be used
-                  after very careful consideration.
-                  It is primarily intended as a temporary diagnostic mechanism when attempting to resolve TLS errors;
-                  its use in production environments is strongly discouraged.
         """
         self.index = index
-        self.load_balance = load_balance
+        self.load_balance = load_balance if None else False
         self.socks_5_proxy_url = socks_5_proxy_url
         self.pipelines = pipelines
         self.max_batch_size = max_batch_size
@@ -233,9 +223,9 @@ class RedisTargets(BaseTargets):
 
         :param target_strings: A list of Redis hosts, and their service port (E.G ["192.168.0.9:6379"]
         :param index: The key format string to use. If this string contains field references,
-               such as %{[fields.name]}, the fields must exist, or the rule fails.
-        :param load_balance: If set to true and multiple hosts or workers are configured, the output plugin load
-               balances published events onto all Redis hosts. If set to false, the output plugin sends all events to
+               such as fields.name, the fields must exist, or the rule fails.
+        :param load_balance: If included and multiple hosts or workers are configured, the output plugin load
+               balances published events onto all Redis hosts. Otherwise, the output plugin sends all events to
                only one host (determined at random) and will switch to another host if the currently selected one
                becomes unreachable. The default value is true.
         :param socks_5_proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
@@ -265,7 +255,7 @@ class RedisTargets(BaseTargets):
         self.workers = workers
         self.max_batch_size = max_batch_size
         self.db = db
-        self.load_balance = load_balance
+        self.load_balance = load_balance if None else False
         self.password = password
 
     def __str__(self) -> str:

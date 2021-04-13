@@ -13,6 +13,11 @@ COMPILE_PROCESS_EXPECTED_LINE_COUNT = 935
 
 def post_install_bootstrap_updater(suricata_install_directory: str, stdout: Optional[bool] = False,
                                    verbose: Optional[bool] = False):
+    """
+    :param suricata_install_directory: The location of the suricata root install directory (E.G /opt/dynamite/suricata)
+    :param stdout: Print the output to console
+    :param verbose: Include detailed debug messages
+    """
     from dynamite_nsm.services.suricata import oinkmaster as suricata_rule_updater
     from dynamite_nsm.services.suricata.oinkmaster import install as suricata_rule_updater_install
     suricata_rule_updater_install.InstallManager(

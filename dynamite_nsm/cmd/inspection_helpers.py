@@ -129,7 +129,11 @@ def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use
     interface_functions = {}
 
     # Enumerate the class instance methods as well as any parent classes instance methods
-    for c in cls.__mro__:
+    try:
+        method_resolution_order = cls.__mro__
+    except AttributeError:
+        method_resolution_order = cls.__class__.__mro__
+    for c in method_resolution_order:
         for callable in c.__dict__.values():
             func_def = get_function_definition(callable)
             if not func_def:
@@ -145,7 +149,7 @@ def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use
                     interface_functions[func_name] = get_argparse_parameters(func_def, defaults=defaults)
             # and parent class is selected
     try:
-        parent_class = cls.__mro__[1]
+        parent_class = method_resolution_order[1]
     except IndexError:
         parent_class = cls
     if use_parent_init:
@@ -169,7 +173,7 @@ def get_function_definition(func: Callable) -> Union[Tuple[str, dict, str], None
     if func.__name__ == '__init__':
         name = '__init__'
         annotations = dict(inspect.signature(func).parameters.items())
-        annotations.pop('self')
+        annotations.pop('self', None)
         docs = inspect.getdoc(func)
     else:
         try:

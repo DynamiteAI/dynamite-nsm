@@ -6,10 +6,12 @@ from tabulate import tabulate
 
 from dynamite_nsm.cmd import interface_operations
 from dynamite_nsm.cmd.base_interface import BaseInterface
-from dynamite_nsm.cmd.config_object_interfaces import AnalyzersInterface
+from dynamite_nsm.cmd.base_interface import RESERVED_VARIABLE_NAMES
+from dynamite_nsm.cmd.config_object_interfaces import AnalyzersInterface, FilebeatTargetsInterface
 from dynamite_nsm.cmd.inspection_helpers import ArgparseParameters
 from dynamite_nsm.cmd.inspection_helpers import get_class_instance_methods
 from dynamite_nsm.services.base import config
+from dynamite_nsm.services.base.config_objects.filebeat import targets
 from dynamite_nsm.services.base.config_objects.generic import Analyzers
 
 """
@@ -47,10 +49,9 @@ class MultipleResponsibilityInterface(BaseInterface):
         :param defaults: A dictionary where the key a parameter name and the value represents the value to default too.
         """
 
-        super().__init__(interface_name, interface_description)
+        super().__init__(interface_name, interface_description, defaults=defaults)
         self.cls = cls
         self.supported_method_names = supported_method_names
-        self.defaults = defaults
         if not interface_description:
             self.interfaceModuleType_description = inspect.getdoc(cls)
         self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
@@ -67,11 +68,12 @@ class MultipleResponsibilityInterface(BaseInterface):
             parser.add_argument(*params.flags, **params.kwargs)
         for method, params_group in self.interface_methods.items():
             if method in self.supported_method_names:
-                if not params_group:
-                    actions.append(method.replace('_', '-'))
-                else:
-                    for params in params_group:
+                actions.append(method.replace('_', '-'))
+                for params in params_group:
+                    try:
                         parser.add_argument(*params.flags, **params.kwargs)
+                    except argparse.ArgumentError:
+                        continue
         if actions:
             parser.add_argument('action', choices=actions)
         return parser
@@ -87,13 +89,10 @@ class MultipleResponsibilityInterface(BaseInterface):
         constructor_kwargs = dict()
         entry_method_kwargs = dict()
         for param, value in vars(args).items():
-            if param == 'action':
-                continue
             if param in [p.name for p in self.base_params]:
                 constructor_kwargs[param] = value
-            else:
+            elif param in [p.name for p in self.interface_methods[args.action.replace('-', '_')]]:
                 entry_method_kwargs[param] = value
-
         # Dynamically load our class
         klass = getattr(self, 'cls')
         # Instantiate it with the constructor kwargs
@@ -132,10 +131,12 @@ class SingleResponsibilityInterface(BaseInterface):
         :param defaults: A dictionary where the key a parameter name and the value represents the value to default too.
         """
 
-        super().__init__(interface_name, interface_description)
+        super().__init__(interface_name, interface_description, defaults=defaults)
         self.cls = cls
         self.entry_method_name = entry_method_name
         self.defaults = defaults
+        if not self.defaults:
+            self.defaults = dict()
         if not interface_description:
             self.interface_description = inspect.getdoc(cls)
         self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
@@ -186,9 +187,6 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
     Based upon the SingleResponsibilityInterface maps a class with only one responsibility to commandline interface,
     but also makes all the instance variables of the configuration class available as commandline arguments
     """
-    reserved_variable_names = ['config_data', 'extract_tokens', 'formatted_data', 'stdout', 'verbose', 'logger',
-                               'out_file_path', 'backup_directory', 'top_text', 'interface', 'sub_interface',
-                               'config_module']
 
     def __init__(self, config: Union[config.GenericConfigManager, config.YamlConfigManager], interface_name: str,
                  interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
@@ -207,7 +205,7 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         config_options = parser.add_argument_group('configuration options')
         config_objects_subparser = parser.add_subparsers()
         for var in vars(self.config):
-            if var in self.reserved_variable_names:
+            if var in RESERVED_VARIABLE_NAMES:
                 continue
             elif '_raw' in var:
                 continue
@@ -222,6 +220,15 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
                                                                             interface=AnalyzersInterface(complex_obj),
                                                                             interface_name=var,
                                                                             interface_group_name='config_module')
+                elif isinstance(complex_obj, targets.BaseTargets):
+                    config_module_interface = FilebeatTargetsInterface(complex_obj, defaults=self.defaults)
+                    self.config_module_map.update({var: config_module_interface})
+                    interface_operations.append_service_interface_to_parser(
+                        config_objects_subparser,
+                        interface=FilebeatTargetsInterface(complex_obj),
+                        interface_name=var,
+                        interface_group_name='config_module'
+                    )
             else:
                 args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config, var)))
                 try:
@@ -241,8 +248,9 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         changed_config = False
         if not getattr(args, 'config_module', None):
             args.config_module = None
-        table = [['Config Option', 'Value']]
-        changed_rows_only = [['Config Option', 'Value']]
+        headers = ['Config Option', 'Value']
+        table = [headers]
+        changed_rows_only = [headers]
 
         # In the scenario we have configuration modules include them as config options in our display table
         table.extend(
@@ -251,7 +259,7 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         for option, value in args.__dict__.items():
             if option in self.defaults:
                 continue
-            if option in self.reserved_variable_names:
+            if option in RESERVED_VARIABLE_NAMES:
                 continue
             if not value:
                 config_value = (option, getattr(self.config, option, None))
@@ -262,11 +270,21 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
                 changed_rows_only.append(changed_config_value)
                 setattr(self.config, option, value)
         if args.config_module:
+            # Configuration module interfaces need to pass through relevant commandline defaults from parent interface
+            self.config_module_map[args.config_module].defaults = self.defaults
+
             selected_config_module = self.config_module_map[args.config_module]
             res = selected_config_module.execute(args)
             if isinstance(res, Analyzers):
+                selected_analyzer_header = ['Id', 'Name', 'Enabled', 'Value']
                 setattr(self.config, args.config_module, res)
                 self.config.commit()
+                return tabulate(selected_config_module.changed_rows, headers=selected_analyzer_header,
+                                tablefmt='fancy_grid')
+            elif isinstance(res, targets.BaseTargets):
+                setattr(self.config, args.config_module, res)
+                self.config.commit()
+                return tabulate(selected_config_module.changed_rows, headers=headers, tablefmt='fancy_grid')
             else:
                 return res
         else:
@@ -284,11 +302,12 @@ def append_service_multiple_responsibility_interface_to_parser(parser: argparse.
         parser.add_argument(*params.flags, **params.kwargs)
     for method, params_group in interface.interface_methods.items():
         if method in interface.supported_method_names:
-            if not params_group:
-                actions.append(method.replace('_', '-'))
-            else:
-                for params in params_group:
+            actions.append(method.replace('_', '-'))
+            for params in params_group:
+                try:
                     parser.add_argument(*params.flags, **params.kwargs)
+                except argparse.ArgumentError:
+                    continue
     if actions:
         parser.add_argument('action', choices=actions)
     return parser
@@ -308,7 +327,7 @@ def append_service_simple_config_management_interface_to_parser(parser: argparse
     for params in interface.base_params + interface.interface_params:
         parser.add_argument(*params.flags, **params.kwargs)
     for var in vars(interface.config):
-        if var in interface.reserved_variable_names:
+        if var in RESERVED_VARIABLE_NAMES:
             continue
         elif '_raw' in var:
             continue
@@ -320,7 +339,14 @@ def append_service_simple_config_management_interface_to_parser(parser: argparse
                 config_module_interface = AnalyzersInterface(complex_obj)
                 interface.config_module_map.update({var: config_module_interface})
                 interface_operations.append_service_interface_to_parser(config_objects_subparser,
-                                                                        interface=AnalyzersInterface(complex_obj),
+                                                                        interface=config_module_interface,
+                                                                        interface_name=var,
+                                                                        interface_group_name='config_module')
+            elif isinstance(complex_obj, targets.BaseTargets):
+                config_module_interface = FilebeatTargetsInterface(complex_obj)
+                interface.config_module_map.update({var: config_module_interface})
+                interface_operations.append_service_interface_to_parser(config_objects_subparser,
+                                                                        interface=config_module_interface,
                                                                         interface_name=var,
                                                                         interface_group_name='config_module')
         else:

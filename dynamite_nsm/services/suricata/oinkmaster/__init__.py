@@ -1,12 +1,26 @@
 import logging
 import os
 import subprocess
+from typing import Optional
 
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 
 
-def update_suricata_rules(stdout=True, verbose=False):
+class UpdateSuricataRulesError(Exception):
+    """
+    Thrown when Suricata rules fail to update
+    """
+
+    def __init__(self, message):
+        """
+        :param message: A more specific error message
+        """
+        msg = "An error occurred while updating Suricata rule-sets: {}".format(message)
+        super(UpdateSuricataRulesError, self).__init__(msg)
+
+
+def update_suricata_rules(stdout: Optional[bool] = True, verbose: Optional[bool] = False):
     """
     Update Suricata rules specified in the oinkmaster.conf file
 
@@ -32,16 +46,3 @@ def update_suricata_rules(stdout=True, verbose=False):
     if p.returncode != 0:
         logger.error(f'Oinkmaster returned a non-zero exit-code: {p.returncode}.')
         raise UpdateSuricataRulesError(f'Oinkmaster returned a non-zero exit-code: {p.returncode}; err: {err}.')
-
-
-class UpdateSuricataRulesError(Exception):
-    """
-    Thrown when Suricata rules fail to update
-    """
-
-    def __init__(self, message):
-        """
-        :param message: A more specific error message
-        """
-        msg = "An error occurred while updating Suricata rule-sets: {}".format(message)
-        super(UpdateSuricataRulesError, self).__init__(msg)

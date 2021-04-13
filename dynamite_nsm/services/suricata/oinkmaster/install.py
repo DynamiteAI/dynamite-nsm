@@ -1,11 +1,9 @@
 import logging
 import os
-import subprocess
 from typing import Optional
 
 from dynamite_nsm import const
 from dynamite_nsm import utilities
-from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.base import install
 
 

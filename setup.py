@@ -8,7 +8,7 @@ setup(
     name='dynamite-nsm',
     version='0.8.0',
     packages=find_packages(),
-    #scripts=['scripts//'],
+    scripts=['scripts/dynamite'],
     url='http://dynamite.ai',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -25,7 +25,9 @@ setup(
         'pyyaml',
         'npyscreen',
         'psutil',
-        'docstring-parser==0.7.3'
+        'marshmallow==3.11.1',
+        'docstring-parser==0.7.3',
+        'marshmallow==3.11.1'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

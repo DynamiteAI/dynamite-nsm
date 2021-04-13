@@ -41,6 +41,7 @@ class BaseInstallManager:
         self.stdout = stdout
         self.verbose = verbose
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
+        self.dynamite_environ = utilities.get_environment_file_dict()
         utilities.makedirs(const.PID_PATH, exist_ok=True)
         utilities.set_ownership_of_file(const.PID_PATH, user='dynamite', group='dynamite')
 
