@@ -192,14 +192,13 @@ def create_dynamite_environment_file() -> None:
     set_permissions_of_file(env_file, 700)
 
 
-def create_dynamite_user(password: str) -> None:
+def create_dynamite_user() -> None:
     """Create the dynamite user and group
-    Args:
-        password: The password for the user
     Returns:
         None
     """
-    pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
+    password = salt = str(random.randint(10, 99))
+    pass_encry = crypt.crypt(password, salt)
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
