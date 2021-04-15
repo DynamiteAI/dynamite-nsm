@@ -19,8 +19,6 @@ from dynamite_nsm.services.kibana.package.schemas import ORPHAN_OBJECT_PACKAGE_M
                                                          PackageManifestSchema, \
                                                          SchemaToObject
 
-
-
 class InstalledObject(SchemaToObject):
     def __init__(self, json_data):
         super().__init__(json_data, InstalledObjectSchema())
@@ -31,21 +29,23 @@ class InstalledObject(SchemaToObject):
         data['title'] = kwargs.get('title')
         data['object_type'] = kwargs.get('object_type', None)
         data['object_id'] = kwargs.get('object_id', None)
+        data['space_id'] = kwargs.get('space_id', None)
         obj = InstalledObject(data)
         return obj
 
     @staticmethod
-    def from_installation_result(package, responsedata):
+    def from_installation_result(responsedata, **kwargs):
         data = {}
         data['title'] = responsedata.get('meta', {'title': 'untitled object'}).get('title')
         data['object_type'] = responsedata.get('type', None)
         # this is the id of the saved object, not the document for tracking
         data['object_id'] = responsedata.get('id', None)
-        obj = InstalledObject(data)
+        data.update(kwargs)
+        obj = InstalledObject.from_kwargs(**data)
         return obj
 
     def __repr__(self) -> str:
-        return f"<InstalledObect id: {self.object_id}, title: {self.title}, package: {self.package_name} >"
+        return f"<InstalledObect id: {self.object_id}, title: {self.title} >"
 
 class PackageManifest(SchemaToObject):
     def __init__(self, json_data):
@@ -127,28 +127,67 @@ class Package(object):
                 inputdict[arg] = val
         return inputdict
 
-    def result_to_object(self, result: dict) -> InstalledObject:
-        obj = InstalledObject.from_installation_result(self, result)
+    def result_to_object(self, result: dict, space_id: Optional[str] = None) -> InstalledObject:
+        obj = InstalledObject.from_installation_result(result, space_id=space_id)
+        if space_id:
+            obj.space_id = space_id
         return obj
     
-    def uninstall(self, kibana_url: str, space: Optional[str]) -> bool:
-        raise NotImplementedError()
+    def uninstall(self, kibana_url: str, auth: Tuple[str], force: Optional[bool] = False) -> bool:
+        """[summary]
+
+        Args:
+            kibana_url (str): url for kibana
+            auth (Tuple[str]): Authentication for kibana
+            force (Optional[bool], optional): If True, objects with matching ID is uninstalled from all spaces. Defaults to True.
+
+        Returns:
+            bool: success
+        """
+        statuses = []
+        for iobj in self.installed_objects:
+            
+            if iobj.space_id:
+                if not force:
+                    force = input(f"{iobj.title} was installed to a space. Do you want to remove it from all spaces? [y/n]") in "yY"
+                url = f'{kibana_url}/s/{iobj.space_id}/api/saved_objects'
+            else:
+                force = True
+                url = f'{kibana_url}/api/saved_objects'
+            delurl = f"{url}/{iobj.object_type}/{iobj.object_id}"
+            if force:
+                delurl += "?force=true"
+            resp = requests.delete(delurl, auth=auth, verify=False, headers={'kbn-xsrf': 'true'})
+            success = resp.status_code in range(200,299)
+            if success:
+                self.deregister()
+            statuses.append(success)
+        return all(statuses)
         
     def deregister(self) -> bool:
+        """
+        Deregisters a package from the dynamite-packages index
+
+        Returns:
+            bool: success
+        """
         exists = self._check_index_exists()
         if not exists:
             # Should this throw an error?
             return False
-        id = uuid4()
-        res = requests.delete(f"{self.es_url}/{self.package_index_name}/_doc/{id}",
+        res = requests.delete(f"{self.es_url}/{self.package_index_name}/_doc/{self.id}",
                       verify=False,
                       auth=self.auth)
         return res.status_code in range(200, 299)
 
     def register(self) -> bool:
-        exists = self._check_index_exists()
-        if not exists:
-            self.create_packages_index()
+        """
+        Registers a package in the dynamite-packages index
+
+        Returns:
+            bool: success
+        """
+        self.create_packages_index()
         id = uuid4()
         res = requests.post(f"{self.es_url}/{self.package_index_name}/_doc/{id}",
                       json=self.es_input(id=str(id)),
@@ -157,7 +196,16 @@ class Package(object):
         return res.status_code in range(200, 299)
     
     @staticmethod
-    def find_by_id(package_id):
+    def find_by_id(package_id: str):
+        """[summary]
+
+        Args:
+            package_id (str): uuid for package (source id, not document id.)
+
+        Raises:
+            ValueError: Something went wrong performing search. e.g: ES is down
+
+        """
         query = {
             "query": {
                 "match":{
@@ -185,18 +233,69 @@ class Package(object):
         if not num_returned:
              return None
         packagesdata = [r['_source'] for r in result.json()['hits']['hits']]
-        packages = []
         pkg = packagesdata[0]
         manifest = PackageManifest(pkg.get('manifest'))
         instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
-        package = Package(manifest, instobjs)
+        package = Package(manifest, instobjs, id=pkg.get('id'))
+        return package
+
+
+    @staticmethod
+    def find_by_slug(package_slug: str):
+        """
+
+        Args:
+            package_slug (str): slug for package
+
+        Raises:
+            ValueError: Something went wrong performing search. e.g: ES is down
+
+        """
+        query = {
+            "query": {
+                "match":{
+                    "manifest.slug":{
+                        "query": package_slug,
+                        "minimum_should_match": 1
+                    }
+                }
+            }
+        }
+        
+        result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
+                      json=query,
+                      verify=False,
+                      auth=Package.auth)
+        if result.status_code not in range(200,299):
+            raise ValueError(f"An error occured trying to fetch package with slug {package_slug}")
+        num_returned = result.json().get('hits', {
+            "total" : {
+                "value" : 0,
+            },
+            "hits" : []
+        }).get('total').get('value')
+
+        if not num_returned:
+             return None
+        packagesdata = [r['_source'] for r in result.json()['hits']['hits']]
+        pkg = packagesdata[0]
+        manifest = PackageManifest(pkg.get('manifest'))
+        instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
+        package = Package(manifest, instobjs, id=pkg.get('id'))
         return package
 
     @staticmethod
     def search_installed_packages(package_name=None) -> list:
         """
-            Gives basic information about installed packages
+        Returns Packages with wildcard search on provided package name string,
+            returns all packages if package name not supplied
 
+        Args:
+            package_name ([str], optional): UUID of the package. Defaults to None.
+
+
+        Returns:
+            list: List of Packages
         """
         query = {
             "aggs":{
@@ -240,7 +339,7 @@ class Package(object):
         for pkg in packagesdata:
             manifest = PackageManifest(pkg.get('manifest'))
             instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
-            package = Package(manifest, instobjs)
+            package = Package(manifest, instobjs, id=pkg.get('id'))
             packages.append(package)
         return packages
 
@@ -279,7 +378,6 @@ class SavedObjectsManager(object):
     def _process_package_installation_results(self, package: Package, kibana_response: dict) -> bool:
         success = kibana_response.get('success', False)
         errors = kibana_response.get('errors')
-
         if errors:
             for error in errors:
                 print(f"{error['title']} - {error.get('error', {'type': 'unknown'})['type']}")
@@ -300,7 +398,7 @@ class SavedObjectsManager(object):
         for package in installed_packages:
             idx = installed_packages.index(package)
             if package.manifest.description and len(package.manifest.description) > 50:
-                desc = f"{package.manifest.description[:50]}..."
+                desc = f"{package.manifest.description[:50]}.."
             else:
                 desc = package.manifest.description
             lbb = PD.colorize('[', 'bold')
@@ -319,7 +417,6 @@ class SavedObjectsManager(object):
                     if sel-1 not in range(0, len(installed_packages)):
                         raise ValueError(INVALID_SELECTION)
                     selections.append(sel)
-                 
             except ValueError as e:
                 if str(e) == INVALID_SELECTION:
                     numpkgs = len(installed_packages)
@@ -352,10 +449,10 @@ class SavedObjectsManager(object):
             # TODO raise exception
         return resp
 
-    def uninstall_kibana_saved_objects(self, packages: List[Package], username: str, password: str):
+    def uninstall_kibana_saved_objects(self, packages: List[Package], username: str, password: str, force: bool):
         print(f"Preparing {len(packages)} for uninstall..")
         for package in packages:
-            package.uninstall(self.kibana_url)
+            package.uninstall(self.kibana_url, auth=(username, password))
 
     def import_kibana_saved_objects(self, username: str, password: str, kibana_objects_file: IO[AnyStr],
                                     space: Optional[str] = None, overwrite: Optional[bool] = True,
@@ -399,6 +496,8 @@ class SavedObjectsManager(object):
         # default to orphan package in case of install from .ndjson
         manifest = PackageManifest(OrphanPackageData)
         package = Package(manifest)
+        
+
         if filetype == 'application/x-tar' or encoding == 'gzip':
             # handle tarfile
             tar = tarfile.open(package_install_path)
@@ -406,6 +505,15 @@ class SavedObjectsManager(object):
                 manifest = tar.extractfile('manifest.json')
                 manifest = PackageManifest(manifest.read().decode('utf8'))
                 package = Package(manifest)
+                package.create_packages_index()
+                # check if package exists already.
+                existing = Package.find_by_slug(package.manifest.create_slug())
+                if existing:
+                    rmexisting = input(f"A Package titled {existing.manifest.name} is already installed, do you want to uninstall it? [y/n]") in "yY"
+                    if rmexisting:
+                        rmsuccess = existing.uninstall(self.kibana_url, auth=(username, password), force=True)
+                        if rmsuccess:
+                            print(f"Successfully removed existing package {existing.manifest.name}.")
                 
             except KeyError:
                 print("Package must contain a manifest.json")
@@ -483,12 +591,15 @@ class SavedObjectsManager(object):
             item = f'[{kibana_object_type}][{kibana_object_id}] {kibana_object_title}'
             print(item)
 
-    
     def uninstall(self, username: Optional[str] = None,
                         password: Optional[str] = None,
-                        package_name: Optional[str] = None):
+                        package_name: Optional[str] = None,
+                        remove_from_all_spaces: Optional[bool] = False):
         to_uninstall = self._select_packages_for_uninstall(package_name)
-        raise NotImplementedError()
+        if not username or not password:
+            auth = self._get_kibana_auth_securely(username, password)
+        force = bool(remove_from_all_spaces)
+        self.uninstall_kibana_saved_objects(to_uninstall, *auth, force=force)
         
 
         

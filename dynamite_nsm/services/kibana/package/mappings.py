@@ -40,6 +40,15 @@ PACKAGES_INDEX_MAPPING = {
                                     "ignore_above": 256
                                 }
                         }
+                    },
+                    "space_id": {
+                        "type": "text",
+                        "fields": {
+                                "keyword": {
+                                    "type": "keyword",
+                                    "ignore_above": 256
+                                }
+                        }
                     }
                 }
             },
