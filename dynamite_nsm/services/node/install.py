@@ -41,12 +41,9 @@ class InstallManager(install.BaseInstallManager):
             None
         """
         sshd_config_location = None
-        sshd_config_addition = '''
-        
-        Match User dynamite-remote
-            PasswordAuthentication no
-            PubkeyAuthentication yes
-        '''
+        sshd_config_addition = '\nMatch User dynamite-remote' \
+                               '\n\tPasswordAuthentication no' \
+                               '\n\tPubkeyAuthentication yes\n'
 
         probable_sshd_locations = ['/etc/ssh/sshd_config']
         for loc in probable_sshd_locations:
@@ -66,7 +63,7 @@ class InstallManager(install.BaseInstallManager):
             None
         """
         sudoers_file_location = None
-        sudoers_file_addition = 'dynamite-remote ALL=(ALL) NOPASSWD: /usr/local/bin/dynamite'
+        sudoers_file_addition = '\ndynamite-remote ALL=(ALL) NOPASSWD: /usr/local/bin/dynamite\n'
         probable_sudoers_locations = ['/etc/sudoers']
         for loc in probable_sudoers_locations:
             if os.path.exists(loc):
