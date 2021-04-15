@@ -1,7 +1,7 @@
 import argparse
 from typing import Optional
 
-from dynamite_nsm.cmd import elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates
+from dynamite_nsm.cmd import elasticsearch, logstash, kibana, node, suricata, zeek, filebeat, updates
 from dynamite_nsm.cmd.kibana import package
 
 
@@ -24,7 +24,8 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
         zeek=zeek,
         suricata=suricata,
         filebeat=filebeat,
-        updates=updates
+        updates=updates,
+        node=node
     )
     component_interface = None
     try:

@@ -203,6 +203,18 @@ def create_dynamite_user(password: str) -> None:
     subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
+def create_dynamite_remote_user() -> None:
+    """Create the dynamite-remote user and group
+    Args:
+        password: The password for the user
+    Returns:
+        None
+    """
+    password = salt = str(random.randint(10, 99))
+    pass_encry = crypt.crypt(password, salt)
+    subprocess.call('useradd -p "{}" -s /bin/bash dynamite-remote'.format(pass_encry), shell=True)
+
+
 def create_jupyter_user(password: str) -> None:
     """Create the jupyter user w/ home
     Args:
@@ -213,6 +225,14 @@ def create_jupyter_user(password: str) -> None:
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
     subprocess.call('useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
                     shell=True)
+
+
+def delete_dynamite_remote_user() -> None:
+    """ Remove the dynamite-remote user
+    Returns:
+        None
+    """
+    subprocess.run(['userdel', 'dynamite-remote'])
 
 
 def download_file(url: str, filename: str, stdout: Optional[bool] = False) -> bool:
@@ -421,6 +441,14 @@ def get_environment_file_dict() -> Dict:
     except PermissionError:
         return {}
     return export_dict
+
+
+def get_epoch_time_seconds() -> int:
+    """Get the number of seconds since 01/01/1970
+
+    Returns: An integer representing the number of seconds between 01/01/1970 and now.
+    """
+    return int(time.time())
 
 
 def get_memory_available_bytes() -> int:
