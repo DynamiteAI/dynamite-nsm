@@ -137,8 +137,6 @@ class SingleResponsibilityInterface(BaseInterface):
         self.defaults = defaults
         if not self.defaults:
             self.defaults = dict()
-        if not self.required_arguments:
-            self.required_arguments = list
         if not interface_description:
             self.interface_description = inspect.getdoc(cls)
         self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
