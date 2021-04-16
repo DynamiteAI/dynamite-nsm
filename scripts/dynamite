@@ -5,7 +5,7 @@ import sys
 from dynamite_nsm.cmd import elasticsearch, logstash, kibana, remotes, zeek, suricata, filebeat, updates
 from dynamite_nsm.cmd import process_arguments
 from dynamite_nsm.const import VERSION
-from dynamite_nsm.utilities import print_dynamite_logo
+from dynamite_nsm.utilities import print_dynamite_logo, create_dynamite_environment_file
 
 
 def get_component(component_name: str):
@@ -37,6 +37,8 @@ def get_component_level_args(component_name: str):
 
 
 if __name__ == '__main__':
+    create_dynamite_environment_file()
+
     dynamite_dummy_parser = argparse.ArgumentParser(f'Dynamite Network Security Monitor [{VERSION}]')
     dynamite_dummy_parser.add_argument('component', help='A component within the Dynamite stack to manage.', choices=[
         'elasticsearch',
@@ -52,7 +54,7 @@ if __name__ == '__main__':
     dynamite_dummy_parser.add_argument('action',
                                        help='An action or set of actions that can be performed against a specified '
                                             'component.',
-                                       choices=['install', 'uninstall', 'config', 'logs', 'process', 'node'])
+                                       choices=['install', 'uninstall', 'config', 'logs', 'process'])
     try:
         component, interface, sub_interface = sys.argv[1], None, None
         if '--version' in sys.argv:
