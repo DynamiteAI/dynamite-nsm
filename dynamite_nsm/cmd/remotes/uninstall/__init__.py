@@ -1,5 +1,5 @@
 from dynamite_nsm.cmd.service_interfaces import SingleResponsibilityInterface
-from dynamite_nsm.services.node import install
+from dynamite_nsm.services.remotes import install
 
 interface = \
     SingleResponsibilityInterface(cls=install.UninstallManager,

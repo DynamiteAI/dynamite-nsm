@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from dynamite_nsm.cmd import elasticsearch, logstash, kibana, node, zeek, suricata, filebeat, updates
+from dynamite_nsm.cmd import elasticsearch, logstash, kibana, remotes, zeek, suricata, filebeat, updates
 from dynamite_nsm.cmd import process_arguments
 from dynamite_nsm.const import VERSION
 from dynamite_nsm.utilities import print_dynamite_logo
@@ -22,7 +22,7 @@ def get_component(component_name: str):
         suricata=suricata,
         filebeat=filebeat,
         updates=updates,
-        node=node
+        remotes=remotes
     )
     selected_component = component_map[component_name]
     return selected_component
@@ -45,8 +45,8 @@ if __name__ == '__main__':
         'zeek',
         'suricata',
         'filebeat',
-        'updates'
-        'node'
+        'updates',
+        'remotes'
     ])
 
     dynamite_dummy_parser.add_argument('action',
