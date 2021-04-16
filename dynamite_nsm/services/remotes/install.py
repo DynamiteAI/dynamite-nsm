@@ -104,8 +104,8 @@ class InstallManager(install.BaseInstallManager):
         self.logger.debug('Patching sshd_config')
         self.patch_sshd_config()
         self.logger.info(f'{metadata["hostname"]} has been installed as a remote on this node. '
-                         f'You can now access it via dynamite-remote via:'
-                         f' \'dynamite-remote execute {metadata["node_name"]} <dynamite command>')
+                         f'You can now access it via:'
+                         f' \'dynamite-remote execute {metadata["node_name"]} <dynamite command>\'.')
 
 
 class UninstallManager(install.BaseUninstallManager):
