@@ -99,8 +99,8 @@ class InstallManager(install.BaseInstallManager):
         filebeat_config.kibana_settings.enabled = True
         if not monitor_log_paths:
             environ = utilities.get_environment_file_dict()
-            zeek_log_root = f'{environ["ZEEK_HOME"]}/logs/current/'
-            suricata_log_root = environ["SURICATA_LOGS"]
+            zeek_log_root = f'{environ.get("ZEEK_HOME", "")}/logs/current/'
+            suricata_log_root = environ.get('SURICATA_LOGS', '')
             zeek_profiler = zeek_profile.ProcessProfiler()
             suricata_profiler = suricata_profile.ProcessProfiler()
             if zeek_profiler.is_installed():
