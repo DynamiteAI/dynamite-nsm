@@ -439,6 +439,8 @@ def get_environment_file_dict() -> Dict:
                 export_dict[key] = value
     except PermissionError:
         return {}
+    except FileNotFoundError:
+        return {}
     return export_dict
 
 
