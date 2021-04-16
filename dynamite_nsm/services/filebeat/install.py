@@ -150,6 +150,9 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/filebeat.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/filebeat.service')
 
+        # Update environment file
+        self.create_update_filebeat_environment_variables()
+
 
 class UninstallManager(install.BaseUninstallManager):
 
