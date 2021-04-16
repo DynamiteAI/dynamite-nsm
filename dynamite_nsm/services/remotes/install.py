@@ -72,9 +72,9 @@ class InstallManager(install.BaseInstallManager):
         tar = tarfile.open(archive)
         metadata = json.load(tar.extractfile('metadata.json'))
         utilities.create_dynamite_remote_user()
-        pub_key_root = f'/home/dynamite-remote/.ssh/'
-        pub_key_file_name = metadata['hostname'] + '.pub'
-        pub_key_file_path = f'{pub_key_root}/{pub_key_file_name}'
+        remote_user_root = '/home/dynamite-remote/'
+        pub_key_root = f'{remote_user_root}/.ssh/'
+        pub_key_file_path = f'{pub_key_root}/authorized_keys'
         pub_key_content = tar.extractfile('key.pub').read()
         self.logger.debug(f'Creating directory: {self.install_directory}')
         utilities.makedirs(self.install_directory)
@@ -82,19 +82,21 @@ class InstallManager(install.BaseInstallManager):
         utilities.makedirs(pub_key_root)
         self.logger.debug(f'Setting permissions of {pub_key_root} to 700.')
         utilities.set_permissions_of_file(pub_key_root, 700)
-        self.logger.debug(f'Setting up public key for {metadata}')
+        self.logger.debug(f'Setting up public key for {metadata["hostname"]}')
 
         # Install the public key
-        with open(pub_key_file_path, 'w') as pub_key_out:
-            pub_key_out.write(pub_key_content.decode('utf-8'))
+        with open(pub_key_file_path, 'a') as pub_key_out:
+            pub_key_out.write('\n' + pub_key_content.decode('utf-8'))
             self.logger.debug(f'Setting permissions of {pub_key_file_path} to 644.')
             utilities.set_permissions_of_file(pub_key_file_path, 644)
             self.logger.debug(f'Setting ownership of {pub_key_file_path} to dynamite-remote.')
-            utilities.set_ownership_of_file(self.install_directory, user='dynamite-remote', group='dynamite-remote')
 
         # Install the metadata file
         with open(f'{self.install_directory}/{metadata["hostname"]}', 'w') as metadata_out:
             metadata_out.write(json.dumps(metadata))
+
+        utilities.set_ownership_of_file(self.install_directory, user='dynamite-remote', group='dynamite-remote')
+        utilities.set_ownership_of_file(remote_user_root, user='dynamite-remote', group='dynamite-remote')
 
 
 class UninstallManager(install.BaseUninstallManager):
