@@ -85,18 +85,27 @@ class InstallManager(install.BaseInstallManager):
         self.logger.debug(f'Setting up public key for {metadata["hostname"]}')
 
         # Install the public key
+        self.logger.info(f'Installing public key for {metadata["hostname"]}')
         with open(pub_key_file_path, 'a') as pub_key_out:
             pub_key_out.write('\n' + pub_key_content.decode('utf-8'))
             self.logger.debug(f'Setting permissions of {pub_key_file_path} to 644.')
             utilities.set_permissions_of_file(pub_key_file_path, 644)
-            self.logger.debug(f'Setting ownership of {pub_key_file_path} to dynamite-remote.')
 
         # Install the metadata file
         with open(f'{self.install_directory}/{metadata["hostname"]}', 'w') as metadata_out:
             metadata_out.write(json.dumps(metadata))
 
+        self.logger.debug(f'Setting ownership of {self.install_directory} to dynamite-remote.')
         utilities.set_ownership_of_file(self.install_directory, user='dynamite-remote', group='dynamite-remote')
+        self.logger.debug(f'Setting ownership of {pub_key_file_path} to dynamite-remote.')
         utilities.set_ownership_of_file(remote_user_root, user='dynamite-remote', group='dynamite-remote')
+        self.logger.debug('Patching sudoers file.')
+        self.patch_sudoers_file()
+        self.logger.debug('Patching sshd_config')
+        self.patch_sshd_config()
+        self.logger.info(f'{metadata["hostname"]} has been installed as a remote on this node. '
+                         f'You can now access it via dynamite-remote via:'
+                         f' \'dynamite-remote execute {metadata["node_name"]} <dynamite command>')
 
 
 class UninstallManager(install.BaseUninstallManager):
