@@ -3,6 +3,7 @@ import mimetypes
 import tarfile
 import json
 import re
+import os
 import requests
 from getpass import getpass
 from collections import defaultdict
@@ -608,56 +609,68 @@ class SavedObjectsManager(object):
         """Install a package. A package can be given as an archive or directory. A package must contain one or more ndjson files and a manifest.json
 
         Args:
-            package_install_path (str): path to the file
+            package_install_path (str): path to the file or folder of files
             username (Optional[str], optional): kibana auth usrname. Defaults to None.
             password (Optional[str], optional): kibana auth password. Defaults to None.
         """
-
-        # check mimetype of the file to determine how to proceed
-        filetype, encoding = mimetypes.MimeTypes().guess_type(package_install_path)
-        installation_statuses = []
-        # default to orphan package in case of install from .ndjson
-        manifest = PackageManifest(OrphanPackageData)
-        package = Package(manifest)
-        
-
-        if filetype == 'application/x-tar' or encoding == 'gzip':
-            # handle tarfile
-            tar = tarfile.open(package_install_path)
-            try:
-                manifest = tar.extractfile('manifest.json')
-                manifest = PackageManifest(manifest.read().decode('utf8'))
-                package = Package(manifest)
-                package.create_packages_index()
-                # check if package exists already.
-                existing = Package.find_by_slug(package.manifest.create_slug())
-                if existing:
-                    rmexisting = input(f"A Package titled {existing.manifest.name} is already installed, do you want to uninstall it? [y/n]") in "yY"
-                    if rmexisting:
-                        rmsuccess = existing.uninstall(self.kibana_url, auth=(username, password), force=True)
-                        if rmsuccess:
-                            print(f"Successfully removed existing package {existing.manifest.name}.")
-                
-            except KeyError:
-                print("Package must contain a manifest.json")
-                exit(0)
-            for member in manifest.file_list:
-                # should we validate the json before sending it up to kibana?
-                kibana_objects_file = BytesIO(tar.extractfile(member).read())
-                result = self.import_kibana_saved_objects(username=username, password=password,
-                                                 kibana_objects_file=kibana_objects_file)
-                kibana_objects_file.close()
-                installation_statuses.append(self._process_package_installation_results(package, result))
-        # Should we remove this and ONLY install validatable packages?
-        elif filetype in ('application/json', 'text/plain') or any(
-                [package_install_path.endswith('ndjson'), package_install_path.endswith('json')]):
-            with open(package_install_path, 'r') as kibana_objects_file:
-                result = self.import_kibana_saved_objects(username=username, password=password,
-                                                 kibana_objects_file=kibana_objects_file)
-                installation_statuses.append(self._process_package_installation_results(package, result))
+        is_folder = os.path.isdir(package_install_path)
+        filepaths = []
+        if not is_folder:
+            filepaths = [package_install_path]
         else:
-            self.logger.error("Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
-            # TODO raise exception
+            # check for installable items by extension, they will be verified by mimetype later.
+            acceptable_extensions = ['tar.xz', 'tar.gz']
+            for itm in os.listdir(package_install_path):
+                for ex in acceptable_extensions:
+                    if itm.endswith(ex):
+                        filepaths.append(f"{package_install_path}{itm}")
+                        break
+            print(f"Found {len(filepaths)} packages to install.")
+        for _filepath in filepaths:
+            filepath = os.path.abspath(_filepath)
+            # check mimetype of the file to determine how to proceed
+            filetype, encoding = mimetypes.MimeTypes().guess_type(filepath)
+            installation_statuses = []
+            # default to orphan package in case of install from .ndjson
+            manifest = PackageManifest(OrphanPackageData)
+            package = Package(manifest)
+            print(filepath)
+            if filetype == 'application/x-tar' or encoding == 'gzip':
+                # handle tarfile
+                tar = tarfile.open(filepath)
+                try:
+                    manifest = tar.extractfile('manifest.json')
+                    manifest = PackageManifest(manifest.read().decode('utf8'))
+                    package = Package(manifest)
+                    package.create_packages_index()
+                    # check if package exists already.
+                    existing = Package.find_by_slug(package.manifest.create_slug())
+                    if existing:
+                        rmexisting = input(f"A Package titled {existing.manifest.name} is already installed, do you want to uninstall it? [y/n]") in "yY"
+                        if rmexisting:
+                            rmsuccess = existing.uninstall(self.kibana_url, auth=(username, password), force=True)
+                            if rmsuccess:
+                                print(f"Successfully removed existing package {existing.manifest.name}.")
+                    
+                except KeyError:
+                    print("Package must contain a manifest.json")
+                    exit(0)
+                for member in manifest.file_list:
+                    # should we validate the json before sending it up to kibana?
+                    kibana_objects_file = BytesIO(tar.extractfile(member).read())
+                    result = self.import_kibana_saved_objects(username=username, password=password,
+                                                    kibana_objects_file=kibana_objects_file)
+                    kibana_objects_file.close()
+                    installation_statuses.append(self._process_package_installation_results(package, result))
+            # Should we remove this and ONLY install validatable packages?
+            elif filetype in ('application/json', 'text/plain') and filepath.endswith('ndjson'):
+                with open(filepath, 'r') as kibana_objects_file:
+                    result = self.import_kibana_saved_objects(username=username, password=password,
+                                                    kibana_objects_file=kibana_objects_file)
+                    installation_statuses.append(self._process_package_installation_results(package, result))
+            else:
+                self.logger.error("Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
+                # TODO raise exception
         
         if not all(installation_statuses):
             print(f"\r\n{package.manifest.name} installation failed.")
