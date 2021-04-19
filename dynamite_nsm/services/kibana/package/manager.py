@@ -95,7 +95,7 @@ class Package(object):
             query (dict): ES DSL for the query
 
         Raises:
-            ValueError: If response from ES is nonsuccess (200 series)
+            ValueError: If response from ES is nonsuccess (not 200 series status)
 
         Returns:
             result: dict
