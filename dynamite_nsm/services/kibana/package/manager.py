@@ -88,7 +88,18 @@ class Package(object):
         self.slug = self.manifest.create_slug()
 
     @staticmethod
-    def es_search(query):
+    def es_search(query: dict) -> dict:
+        """Performs an elasticsearch query against the dynamite packages index.
+
+        Args:
+            query (dict): ES DSL for the query
+
+        Raises:
+            ValueError: If response from ES is nonsuccess (200 series)
+
+        Returns:
+            result: dict
+        """
         result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
                       json=query,
                       verify=False,
@@ -103,15 +114,19 @@ class Package(object):
         }).get('total').get('value')
 
         if not num_returned:
-             return None
+             return {}
         return result.json()
 
-    def reload_installed_objects(self):
-        """
-            Fetches Package information from  ES
-            matching the existing package manifest
-            and loads all installed objects 
-            into self._installed_objects
+    def reload_installed_objects(self) -> list:
+        """Fetches Package information from ES
+
+        Performs a query based on the existing package manifest
+        and loads all installed objects 
+        into self._installed_objects
+        
+
+        Returns:
+            list[InstalledObjects]: List of installed Objects
         """
         # should we instead perform inner hits query on nested object to get objects for current slug?
         query = {
@@ -130,7 +145,6 @@ class Package(object):
             return []
         packagesdata = [r['_source'] for r in result['hits']['hits']]
         pkg = packagesdata[0]
-        manifest = PackageManifest(pkg.get('manifest'))
         instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
         self._installed_objects = instobjs
         return self._installed_objects
@@ -143,12 +157,25 @@ class Package(object):
             self.reload_installed_objects()
         return self._installed_objects
 
-    def _check_index_exists(self):
+    def _check_index_exists(self) -> bool:
+        """Checks if the dynamite packages index exists in ES
+
+        Returns:
+            bool: success
+        """
         res = requests.head(f"{self.es_url}/{self.package_index_name}", verify=False, auth=self.auth)
         return res.status_code == 200
 
     @staticmethod
     def load_from_archive(package_path):
+        """[summary]
+
+        Args:
+            package_path (str): path to the archive on disk
+
+        Returns:
+            Package: a Package instance from the loaded package file.
+        """
         tar = tarfile.open(package_path)
         try:
             manifest = tar.extractfile('manifest.json')
@@ -160,6 +187,11 @@ class Package(object):
 
 
     def create_packages_index(self):
+        """Create the dynamite packages index if it does not already exist
+
+        Returns:
+            bool: success
+        """
         exists = self._check_index_exists()
         if not exists:
             res = requests.put(
@@ -183,8 +215,13 @@ class Package(object):
         return package_dict
 
     def es_input(self, **kwargs) -> dict:
-        """
-            friendly func name for __dict__
+        """prepares the ElasticSearch input for persisting package data/metadata
+
+        Raises:
+            ValueError: Something went wrong (eg. ES is down)
+
+        Returns:
+            dict: the ES input for the provided package, with any kwarg overrides provided.
         """
         if self.id is None and 'id' not in kwargs:
             raise ValueError("An ID must be supplied before saving to ElasticSearch")
@@ -196,13 +233,22 @@ class Package(object):
         return inputdict
 
     def result_to_object(self, result: dict, space_id: Optional[str] = None) -> InstalledObject:
+        """[summary]
+
+        Args:
+            result (dict): result from installation call to kibana
+            space_id (Optional[str], optional): set space ID for the installed object instance. Defaults to None.
+
+        Returns:
+            InstalledObject: Instance representing the object that was installed.
+        """
         obj = InstalledObject.from_installation_result(result, space_id=space_id)
         if space_id:
             obj.space_id = space_id
         return obj
     
     def uninstall(self, kibana_url: str, auth: Tuple[str], force: Optional[bool] = False) -> bool:
-        """[summary]
+        """uninstalls a package from kibana
 
         Args:
             kibana_url (str): url for kibana
@@ -233,8 +279,7 @@ class Package(object):
         return all(statuses)
         
     def deregister(self) -> bool:
-        """
-        Deregisters a package from the dynamite-packages index
+        """Deregisters a package from the dynamite-packages index
 
         Returns:
             bool: success
@@ -250,8 +295,7 @@ class Package(object):
         return res.status_code in range(200, 299)
 
     def register(self) -> bool:
-        """
-        Registers a package in the dynamite-packages index
+        """Registers a package in the dynamite-packages index
 
         Returns:
             bool: success
@@ -266,13 +310,15 @@ class Package(object):
     
     @staticmethod
     def find_by_id(package_id: str):
-        """[summary]
+        """fetches an installed package by their id
 
         Args:
             package_id (str): uuid for package (source id, not document id.)
 
         Raises:
             ValueError: Something went wrong performing search. e.g: ES is down
+        Returns:
+            Package: A Package instance fetched by id
 
         """
         query = {
@@ -299,7 +345,7 @@ class Package(object):
 
     @staticmethod
     def find_by_slug(package_slug: str):
-        """
+        """Find a package by its slug
 
         Args:
             package_slug (str): slug for package
@@ -379,10 +425,11 @@ class SavedObjectsManager(object):
     def __init__(self,
                  stdout: Optional[bool] = True,
                  verbose: Optional[bool] = False):
-        """
-        :param name: The name of the package you wish to install
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Initializes the SavedObjectsManager
+
+        Args:
+            stdout (Optional[bool], optional): [description]. Defaults to True.
+            verbose (Optional[bool], optional): [description]. Defaults to False.
         """
         self._api_auth_token = None
         log_level = logging.INFO
@@ -398,6 +445,15 @@ class SavedObjectsManager(object):
         
     @staticmethod
     def _get_kibana_auth_securely(username: Optional[str] = None, password: Optional[str] = None) -> Tuple[str, str]:
+        """Gets kibana auth info from user input
+
+        Args:
+            username (Optional[str], optional): the username. Defaults to None.
+            password (Optional[str], optional): the password. Defaults to None.
+
+        Returns:
+            Tuple[str, str]: auth tuple
+        """
         # need to be able to provide these as parameters to the cmd
         if not username:
             print()
@@ -408,6 +464,7 @@ class SavedObjectsManager(object):
         return username, password
 
     def _process_package_installation_results(self, package: Package, kibana_response: dict) -> bool:
+
         success = kibana_response.get('success', False)
         errors = kibana_response.get('errors')
         if errors:
@@ -464,6 +521,16 @@ class SavedObjectsManager(object):
 
     def browse_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
                              saved_object_type: Optional[str] = None) -> requests.Response:
+        """browse saved objects in kibana whether or not they are part of a dynamite package.
+
+        Args:
+            username (Optional[str], optional): kibana auth username, Defaults to None.
+            password (Optional[str], optional): kibana auth passwd. Defaults to None.
+            saved_object_type (Optional[str], optional): type of objects to limit the search to. Defaults to None.
+
+        Returns:
+            requests.Response: data returned from kibana
+        """
         auth = self._get_kibana_auth_securely(username, password)
         if saved_object_type:
             resp = requests.get(f'{self.kibana_url}/api/saved_objects/_find?type={saved_object_type}', auth=auth)
@@ -482,6 +549,14 @@ class SavedObjectsManager(object):
         return resp
 
     def uninstall_kibana_saved_objects(self, packages: List[Package], username: str, password: str, force: bool):
+        """uninstall packages and their saved objects from kibana
+
+        Args:
+            packages (List[Package]): A list of packages to uninstall
+            username (str): ES Auth username
+            password (str): ES Auth password
+            force (bool): force uninstall from all spaces?
+        """
         print(f"Preparing {len(packages)} for uninstall..")
         for package in packages:
             package.reload_installed_objects()
@@ -490,6 +565,22 @@ class SavedObjectsManager(object):
     def import_kibana_saved_objects(self, username: str, password: str, kibana_objects_file: IO[AnyStr],
                                     space: Optional[str] = None, overwrite: Optional[bool] = True,
                                     create_copies: Optional[bool] = False):
+        """Import saved objects into kibana from a package file
+
+        Args:
+            username (str): kibana auth usrname
+            password (str): kibana auth passwd
+            kibana_objects_file (IO[AnyStr]): the file to parse and install
+            space (Optional[str], optional): id of the space to install the object to. Defaults to None.
+            overwrite (Optional[bool], optional): overwrite existing ids?. Defaults to True.
+            create_copies (Optional[bool], optional): create copies if an object exists with the same id?. Defaults to False.
+
+        Raises:
+            ValueError: Something went wrong
+
+        Returns:
+            dict: Response from kibana
+        """
 
         auth = self._get_kibana_auth_securely(username, password)
 
@@ -514,13 +605,12 @@ class SavedObjectsManager(object):
         return resp.json()
 
     def install(self, package_install_path: str, username: Optional[str] = None, password: Optional[str] = None):
-        """
-        Install a package. A package can be given as an archive or directory. A package must contain one or more ndjson
-        files and a manifest.json file
+        """Install a package. A package can be given as an archive or directory. A package must contain one or more ndjson files and a manifest.json
 
-        :param package_install_path: The path to the package to install
-        :param username: The name of the Kibana user to authenticate with
-        :param password: The corresponding Kibana password
+        Args:
+            package_install_path (str): path to the file
+            username (Optional[str], optional): kibana auth usrname. Defaults to None.
+            password (Optional[str], optional): kibana auth password. Defaults to None.
         """
 
         # check mimetype of the file to determine how to proceed
@@ -578,11 +668,11 @@ class SavedObjectsManager(object):
             print(f"\r\n{package.manifest.name} installation succeeded!")
 
     def list(self, username: Optional[str] = None, password: Optional[str] = None):
-        """
-        List packages currently installed for this instance
+        """List packages currently installed for this instance
 
-        :param username: The name of the Kibana user to authenticate with
-        :param password: The corresponding Kibana password
+        Args:
+            username (Optional[str], optional): kibana auth username. Defaults to None.
+            password (Optional[str], optional): kibana auth passwd. Defaults to None.
         """
         packages = Package.search_installed_packages()
         if not packages:
@@ -606,14 +696,15 @@ class SavedObjectsManager(object):
 
     def list_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
                            saved_object_type: Optional[str] = None):
-        """
-        List the saved_objects currently installed irrespective of which "package" the belong too
+        """List the saved_objects currently installed irrespective of which "package" the belong too
 
-        :param username: The name of the Kibana user to authenticate with
-        :param password: The corresponding Kibana password
-        :param saved_object_type: One of the following supported saved_object types:
-                            ['config', 'dashboard', 'index-pattern', 'search', 'timelion-sheet', 'visualization']
+        Args:
+            username (Optional[str], optional): The name of the Kibana user to authenticate with. Defaults to None.
+            password (Optional[str], optional): The corresponding Kibana password. Defaults to None.
+            saved_object_type (Optional[str], optional): One of the following supported saved_object types:
+                            ['config', 'dashboard', 'index-pattern', 'search', 'timelion-sheet', 'visualization']. Defaults to None.
         """
+
 
         username, password = auth = self._get_kibana_auth_securely(username, password)
         fetched_data = self.browse_saved_objects(username, password, saved_object_type=saved_object_type).json()
@@ -628,6 +719,14 @@ class SavedObjectsManager(object):
                         password: Optional[str] = None,
                         package_name: Optional[str] = None,
                         remove_from_all_spaces: Optional[bool] = False):
+        """Uninstall packages from instance
+
+        Args:
+            username (Optional[str], optional): kibana auth usrname. Defaults to None.
+            password (Optional[str], optional): kibana auth passwd. Defaults to None.
+            package_name (Optional[str], optional): name of the package to search for. Defaults to None.
+            remove_from_all_spaces (Optional[bool], optional): force removal from all spaces. Defaults to False.
+        """
         to_uninstall = self._select_packages_for_uninstall(package_name)
         if not username or not password:
             auth = self._get_kibana_auth_securely(username, password)
