@@ -13,6 +13,7 @@ PACKAGES_INDEX_MAPPING = {
                 "type": "text"
             },
             "installed_objects": {
+                "type": "nested", 
                 "properties": {
                     "object_id": {
                         "type": "text",

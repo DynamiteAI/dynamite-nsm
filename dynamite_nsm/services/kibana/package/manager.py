@@ -74,7 +74,7 @@ class Package(object):
     package_index_name = PACKAGES_INDEX_NAME
     es_url = f'https://{get_primary_ip_address()}:9200'
     auth = ('admin', 'admin')
-    installed_objects = []
+    _installed_objects = []
     
     def __init__(self, manifest: PackageManifest,
                        installed_objects = None,
@@ -82,14 +82,82 @@ class Package(object):
                        id: Optional[str] = None) -> None:
         self.manifest = manifest
         if installed_objects:
-            self.installed_objects = installed_objects
+            self._installed_objects = installed_objects
         self.id = id
         self.auth = auth or Package.auth
         self.slug = self.manifest.create_slug()
 
+    @staticmethod
+    def es_search(query):
+        result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
+                      json=query,
+                      verify=False,
+                      auth=Package.auth)
+        if result.status_code not in range(200,299):
+            raise ValueError(f"Failed to fetch package data")
+        num_returned = result.json().get('hits', {
+            "total" : {
+                "value" : 0,
+            },
+            "hits" : []
+        }).get('total').get('value')
+
+        if not num_returned:
+             return None
+        return result.json()
+
+    def reload_installed_objects(self):
+        """
+            Fetches Package information from  ES
+            matching the existing package manifest
+            and loads all installed objects 
+            into self._installed_objects
+        """
+        # should we instead perform inner hits query on nested object to get objects for current slug?
+        query = {
+            "query": {
+                "match":{
+                    "manifest.slug":{
+                        "query": self.slug,
+                        "minimum_should_match": 1
+                    }
+                }
+            }
+        }
+        
+        result = Package.es_search(query)
+        if not result:
+            return []
+        packagesdata = [r['_source'] for r in result['hits']['hits']]
+        pkg = packagesdata[0]
+        manifest = PackageManifest(pkg.get('manifest'))
+        instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
+        self._installed_objects = instobjs
+        return self._installed_objects
+        
+
+        
+    @property
+    def installed_objects(self):
+        if not self._installed_objects:
+            self.reload_installed_objects()
+        return self._installed_objects
+
     def _check_index_exists(self):
         res = requests.head(f"{self.es_url}/{self.package_index_name}", verify=False, auth=self.auth)
         return res.status_code == 200
+
+    @staticmethod
+    def load_from_archive(package_path):
+        tar = tarfile.open(package_path)
+        try:
+            manifest = tar.extractfile('manifest.json')
+            manifest = PackageManifest(manifest.read().decode('utf8'))
+            package = Package(manifest)
+            return package
+        except KeyError:
+            print("Package must contain a manifest.json")
+
 
     def create_packages_index(self):
         exists = self._check_index_exists()
@@ -177,7 +245,8 @@ class Package(object):
             return False
         res = requests.delete(f"{self.es_url}/{self.package_index_name}/_doc/{self.id}",
                       verify=False,
-                      auth=self.auth)
+                      auth=self.auth,
+                      headers={'kbn-xsrf': 'true'})
         return res.status_code in range(200, 299)
 
     def register(self) -> bool:
@@ -217,22 +286,10 @@ class Package(object):
             }
         }
         
-        result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
-                      json=query,
-                      verify=False,
-                      auth=Package.auth)
-        if result.status_code not in range(200,299):
-            raise ValueError(f"An error occured trying to fetch package with id {package_id}")
-        num_returned = result.json().get('hits', {
-            "total" : {
-                "value" : 0,
-            },
-            "hits" : []
-        }).get('total').get('value')
-
-        if not num_returned:
-             return None
-        packagesdata = [r['_source'] for r in result.json()['hits']['hits']]
+        result = Package.es_search(query)
+        if not result:
+            return None
+        packagesdata = [r['_source'] for r in result['hits']['hits']]
         pkg = packagesdata[0]
         manifest = PackageManifest(pkg.get('manifest'))
         instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
@@ -262,22 +319,10 @@ class Package(object):
             }
         }
         
-        result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
-                      json=query,
-                      verify=False,
-                      auth=Package.auth)
-        if result.status_code not in range(200,299):
-            raise ValueError(f"An error occured trying to fetch package with slug {package_slug}")
-        num_returned = result.json().get('hits', {
-            "total" : {
-                "value" : 0,
-            },
-            "hits" : []
-        }).get('total').get('value')
-
-        if not num_returned:
-             return None
-        packagesdata = [r['_source'] for r in result.json()['hits']['hits']]
+        result = Package.es_search(query)
+        if not result:
+            return None
+        packagesdata = [r['_source'] for r in result['hits']['hits']]
         pkg = packagesdata[0]
         manifest = PackageManifest(pkg.get('manifest'))
         instobjs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
@@ -316,25 +361,12 @@ class Package(object):
                 }
             }
 
-        result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
-                      json=query,
-                      verify=False,
-                      auth=Package.auth)
-        if result.status_code not in range(200,299):
-            # TODO: log response details
-            raise ValueError("Something went wrong enumerating installed packages.")
-        num_returned = result.json().get('hits', {
-            "total" : {
-                "value" : 0,
-            },
-            "hits" : []
-        }).get('total').get('value')
-
-        if not num_returned:
-             return []
+        result = Package.es_search(query)
+        if not result:
+            return None
         
         # If we want to just display the titles and num packages, we can pull from aggs result instead.
-        packagesdata = [r['_source'] for r in result.json()['hits']['hits']]
+        packagesdata = [r['_source'] for r in result['hits']['hits']]
         packages = []
         for pkg in packagesdata:
             manifest = PackageManifest(pkg.get('manifest'))
@@ -452,6 +484,7 @@ class SavedObjectsManager(object):
     def uninstall_kibana_saved_objects(self, packages: List[Package], username: str, password: str, force: bool):
         print(f"Preparing {len(packages)} for uninstall..")
         for package in packages:
+            package.reload_installed_objects()
             package.uninstall(self.kibana_url, auth=(username, password))
 
     def import_kibana_saved_objects(self, username: str, password: str, kibana_objects_file: IO[AnyStr],
