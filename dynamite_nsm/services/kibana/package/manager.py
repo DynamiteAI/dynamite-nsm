@@ -7,6 +7,7 @@ import os
 import requests
 from getpass import getpass
 from collections import defaultdict
+from tabulate import tabulate
 from uuid import uuid4
 from unidecode import unidecode
 from io import BytesIO, IOBase
@@ -680,7 +681,7 @@ class SavedObjectsManager(object):
             package.register()
             print(f"\r\n{package.manifest.name} installation succeeded!")
 
-    def list(self, username: Optional[str] = None, password: Optional[str] = None):
+    def list(self, username: Optional[str] = None, password: Optional[str] = None, pretty: Optional[bool] = False):
         """List packages currently installed for this instance
 
         Args:
@@ -691,24 +692,34 @@ class SavedObjectsManager(object):
         if not packages:
             print("Could not find any installed packages")
             return None
-        print("\r\nInstalled Packages:\n")
-        for package in packages:
-            total = 0
-            numobjs = len(package.installed_objects)
-            print(f"Package Name:\n * {package.manifest.name}")
-            print(f"Description:\n * {package.manifest.description}")
-            objects_by_type = defaultdict(list)
-            print(f"Objects contained:")
-            for obj in package.installed_objects:
-                objects_by_type[obj.object_type].append(obj)
-            for object_type, objs in objects_by_type.items():
-                numobjs = len(objs)
-                total += numobjs
-                print(f" - {object_type}: {numobjs}")
-            print(f" Total Objects: {total}")
-
+        
+        if pretty:
+            print("\r\nInstalled Packages:\n")
+            headers = ["Package Name", "Description", "Author", "Objects Within", "Total Objects"]
+            table = []
+            for package in packages:
+                row = []
+                total = 0
+                numobjs = len(package.installed_objects)
+                row.append(package.manifest.name)
+                row.append(package.manifest.description)
+                row.append(package.manifest.author)
+                objlines = []
+                for obj in package.installed_objects:
+                    objlines.append(f"[{obj.object_type}] - {obj.title}")
+                    total += 1
+                row.append("\n".join(sorted(objlines)))
+                row.append(total)
+                table.append(row)
+            print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
+        else:
+            data = []
+            for package in packages:
+                data.append(package.es_input())
+            print(data)
+        
     def list_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
-                           saved_object_type: Optional[str] = None):
+                           saved_object_type: Optional[str] = None, pretty: Optional[bool] = False):
         """List the saved_objects currently installed irrespective of which "package" the belong too
 
         Args:
@@ -721,12 +732,24 @@ class SavedObjectsManager(object):
 
         username, password = auth = self._get_kibana_auth_securely(username, password)
         fetched_data = self.browse_saved_objects(username, password, saved_object_type=saved_object_type).json()
+        table = []
+        headers = ["Title", "Object Type",  "Object ID"]
         for obj in fetched_data.get('saved_objects', []):
             kibana_object_id = obj['id']
             kibana_object_type = obj['type']
             kibana_object_title = obj['attributes'].get('title', '')
-            item = f'[{kibana_object_type}][{kibana_object_id}] {kibana_object_title}'
-            print(item)
+            if pretty:
+                table.append([kibana_object_title, kibana_object_type, kibana_object_id])
+            else:
+                table.append({
+                    "title": kibana_object_title,
+                    "type": kibana_object_type,
+                    "id": kibana_object_id
+                })
+        if pretty:
+            print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
+        else:
+            print(table)
 
     def uninstall(self, username: Optional[str] = None,
                         password: Optional[str] = None,
