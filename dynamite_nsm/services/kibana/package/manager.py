@@ -695,13 +695,13 @@ class SavedObjectsManager(object):
         
         if pretty:
             print("\r\nInstalled Packages:\n")
-            headers = ["Package Name", "Description", "Author", "Objects Within", "Total Objects"]
+            headers = ["Package Name", "Package ID", "Description", "Author", "Objects Within", "Total Objects"]
             table = []
             for package in packages:
                 row = []
                 total = 0
-                numobjs = len(package.installed_objects)
                 row.append(package.manifest.name)
+                row.append(package.id)
                 row.append(package.manifest.description)
                 row.append(package.manifest.author)
                 objlines = []
@@ -754,6 +754,7 @@ class SavedObjectsManager(object):
     def uninstall(self, username: Optional[str] = None,
                         password: Optional[str] = None,
                         package_name: Optional[str] = None,
+                        package_id: Optional[str] = None,
                         remove_from_all_spaces: Optional[bool] = False):
         """Uninstall packages from instance
 
@@ -763,7 +764,15 @@ class SavedObjectsManager(object):
             package_name (Optional[str], optional): name of the package to search for. Defaults to None.
             remove_from_all_spaces (Optional[bool], optional): force removal from all spaces. Defaults to False.
         """
-        to_uninstall = self._select_packages_for_uninstall(package_name)
+        if package_id and package_name:
+            raise ValueError("Package Name and Package Id cannot be used together")
+        if not package_id:
+            to_uninstall = self._select_packages_for_uninstall(package_name)
+        else:
+            to_uninstall = Package.find_by_id(package_id)
+            if not to_uninstall:
+                raise ValueError(f"Could not find package with id {package_id}")
+            to_uninstall = [to_uninstall]
         if not username or not password:
             auth = self._get_kibana_auth_securely(username, password)
         force = bool(remove_from_all_spaces)
