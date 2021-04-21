@@ -1,8 +1,9 @@
 # These tests create, write and read from temporary files created specifically for the tests, for postinstallation tests use test_config_postinstall.py
 import yaml
 from dynamite_nsm.services.kibana.config import ConfigManager
+from dynamite_nsm.tests.fixtures import dynamite_environment
 
-def test_load_and_modify_fixture_file(kibana_test_dir, kibana_test_config_yaml, dynamite_environment):
+def test_load_and_modify_kibana_config_file(kibana_test_dir, kibana_test_config_yaml, dynamite_environment):
     cfg_mgr = ConfigManager(kibana_test_dir, verbose=True)
     fixtureyaml = {}
     with open(kibana_test_config_yaml, 'r') as yamlfile:
