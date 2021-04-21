@@ -28,7 +28,7 @@ setup(
         'docstring-parser==0.7.3',
         'marshmallow==3.11.1',
         'pytest==6.2.2',
-        'python-daemon==2.3.0'
+        'python-daemon==2.3.0',
         'requests==2.24.0',
         'sqlalchemy==1.3.18',
         'Unidecode==1.2.0',
