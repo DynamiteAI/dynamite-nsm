@@ -53,9 +53,8 @@ def kibana_test_config_yaml(kibana_test_dir):
     path = f"{ktd}/kibana.yml"
     if os.path.exists(path):
         os.remove(path)
-    else:
-        makedirs(ktd)
-        os.mknod(path)
+    makedirs(ktd)
+    os.mknod(path)
 
     with open(path, 'w') as yamlfile:
         yamlfile.write(yaml.dump(confdata))
