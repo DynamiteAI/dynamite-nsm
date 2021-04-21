@@ -13,3 +13,31 @@ def test_load_fixture_file(kibana_test_dir, kibana_test_config_yaml, dynamite_en
     assert cfg_mgr.elasticsearch_targets == fixtureyaml.get('elasticsearch.hosts')
     assert cfg_mgr.elasticsearch_password == fixtureyaml.get('elasticsearch.password')
     assert cfg_mgr.elasticsearch_username == fixtureyaml.get('elasticsearch.username')
+    changedport = "1.2.3.4"
+    changedhost = "5431"
+    changed_es_targs = ["http://1.2.3.4:9292"]
+    changed_es_pw = "whats!a*lucene?"
+    changed_es_usr = "searchymcsearchface"
+    cfg_mgr.host = changedhost
+    cfg_mgr.port = changedport
+    cfg_mgr.elasticsearch_password = changed_es_pw
+    cfg_mgr.elasticsearch_targets = changed_es_targs
+    cfg_mgr.elasticsearch_username = changed_es_usr
+    cfg_mgr.commit()
+    del cfg_mgr
+    del fixtureyaml
+    fixtureyaml = {}
+    with open(kibana_test_config_yaml, 'r') as yamlfile:
+        fixtureyaml = yaml.load(yamlfile)
+    assert fixtureyaml.get('server.host') == changedhost
+    assert fixtureyaml.get('server.port') == changedport
+    assert fixtureyaml.get('elasticsearch.hosts') == changed_es_targs
+    assert fixtureyaml.get('elasticsearch.password') == changed_es_pw
+    assert fixtureyaml.get('elasticsearch.username') == changed_es_usr
+    cfg_mgr = ConfigManager(kibana_test_dir, verbose=True)
+    assert cfg_mgr.host == changedhost
+    assert cfg_mgr.port == changedport
+    assert cfg_mgr.elasticsearch_targets == changed_es_targs
+    assert cfg_mgr.elasticsearch_password == changed_es_pw
+    assert cfg_mgr.elasticsearch_username == changed_es_usr
+
