@@ -60,7 +60,7 @@ class InstallManager(install.BaseInstallManager):
                     with open(sudoers_file_location, 'a') as sudoers_file_out:
                         sudoers_file_out.write(sudoers_file_addition)
 
-    def setup(self, archive: str) -> None:
+    def setup(self, archive: Optional[str] = None) -> None:
         """ Install node to remotely manage this instance of DynamiteNSM
 
         Args:
