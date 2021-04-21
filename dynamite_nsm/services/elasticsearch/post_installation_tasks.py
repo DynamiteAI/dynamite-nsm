@@ -156,7 +156,7 @@ def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 
         headers={'content-type': 'application/json'},
         verify=False
     )
-    logger.debug(r.json())
+    logger.debug(r.text)
     if r.status_code != 200:
         logger.warning(
             f"Cluster settings failed to update. "
