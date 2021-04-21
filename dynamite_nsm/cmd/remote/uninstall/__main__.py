@@ -1,4 +1,4 @@
-from dynamite_nsm.cmd.remotes.uninstall import interface as remotes_uninstaller_interface
+from dynamite_nsm.cmd.remote.uninstall import interface as remotes_uninstaller_interface
 
 if __name__ == '__main__':
     parser = remotes_uninstaller_interface.get_parser()

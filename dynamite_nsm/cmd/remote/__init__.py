@@ -1,12 +1,12 @@
 import argparse
 
 from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser
-from dynamite_nsm.cmd.remotes import install, uninstall
+from dynamite_nsm.cmd.remote import install, uninstall
 from dynamite_nsm.utilities import get_primary_ip_address
 
 
 def get_action_parser():
-    parser = argparse.ArgumentParser(description=f'Dynamite Remotes @ {get_primary_ip_address()}')
+    parser = argparse.ArgumentParser(description=f'Dynamite Remote Manager @ {get_primary_ip_address()}')
     subparsers = parser.add_subparsers()
 
     append_service_interface_to_parser(subparsers, 'install', install.interface, interface_group_name='interface')

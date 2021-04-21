@@ -6,6 +6,8 @@ from datetime import datetime
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 
+TODAY_FORMATTED_DATE = datetime.strftime(datetime.today(), '%d-%m-%Y')
+
 
 def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logger:
     """Get a pre-configured logging instance
@@ -24,11 +26,11 @@ def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logge
                                         'programname': {'color': 'blue'}, 'username': {'color': 'yellow'}}
 
     utilities.makedirs(const.LOG_PATH, exist_ok=True)
-    today_formatted_date = datetime.strftime(datetime.today(), '%d-%m-%Y')
+
     logger = logging.getLogger(component_name)
     logger.setLevel(level)
     if not len(logger.handlers):
-        fh = logging.FileHandler(os.path.join(const.LOG_PATH, 'dynamite-{}.log'.format(today_formatted_date)))
+        fh = logging.FileHandler(os.path.join(const.LOG_PATH, 'dynamite-{}.log'.format(TODAY_FORMATTED_DATE)))
         fformatter = logging.Formatter(
             '%(asctime)s | %(name)15s | %(module)20s | %(funcName)45s | %(lineno)4s | %(levelname)8s |  %(message)s')
         fh.setFormatter(fformatter)

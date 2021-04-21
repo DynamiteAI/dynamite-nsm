@@ -1,5 +1,5 @@
 from dynamite_nsm import utilities
-from dynamite_nsm.services.remotes import install
+from dynamite_nsm.services.remote import install
 from dynamite_nsm.cmd.service_interfaces import SingleResponsibilityInterface
 
 interface = \

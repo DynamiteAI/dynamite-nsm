@@ -4,7 +4,7 @@ import tarfile
 from typing import Optional
 
 from dynamite_nsm import utilities
-from dynamite_nsm.services.base import install, systemctl
+from dynamite_nsm.services.base import install
 
 
 class InstallManager(install.BaseInstallManager):

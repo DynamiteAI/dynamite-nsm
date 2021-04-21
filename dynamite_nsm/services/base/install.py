@@ -36,6 +36,7 @@ class BaseInstallManager:
     """
     An interface used to assist with a variety of common service installation tasks
     """
+
     def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
                  log_level=logging.INFO):
         """
@@ -332,11 +333,22 @@ class BaseInstallManager:
             self.logger.info(f'Installing {len(packages)} new packages.')
             pacman.install_packages(packages)
 
+    def setup(self, background: Optional[bool] = False) -> None:
+        """ Run all the setup tasks for this installation
+        Args:
+            background: Run the installation in the background (in invoked from commandline).
+        Returns:
+            None
+
+        """
+        raise NotImplementedError()
+
 
 class BaseUninstallManager:
     """
     An interface used to assist with a variety of common service uninstall tasks
     """
+
     def __init__(self, name: str, directories: List[str], process: Optional[process.BaseProcessManager] = None,
                  verbose: Optional[bool] = False, stdout: Optional[bool] = True, log_level=logging.INFO):
         """Remove installed files for a given service
