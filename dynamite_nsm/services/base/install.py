@@ -333,16 +333,6 @@ class BaseInstallManager:
             self.logger.info(f'Installing {len(packages)} new packages.')
             pacman.install_packages(packages)
 
-    def setup(self, background: Optional[bool] = False) -> None:
-        """ Run all the setup tasks for this installation
-        Args:
-            background: Run the installation in the background (in invoked from commandline).
-        Returns:
-            None
-
-        """
-        raise NotImplementedError()
-
 
 class BaseUninstallManager:
     """
