@@ -2,7 +2,7 @@
 import yaml
 from dynamite_nsm.services.kibana.config import ConfigManager
 
-def test_load_fixture_file(kibana_test_dir, kibana_test_config_yaml, dynamite_environment):
+def test_load_and_modify_fixture_file(kibana_test_dir, kibana_test_config_yaml, dynamite_environment):
     cfg_mgr = ConfigManager(kibana_test_dir, verbose=True)
     fixtureyaml = {}
     with open(kibana_test_config_yaml, 'r') as yamlfile:
