@@ -1,17 +1,17 @@
-import os
-
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
 
-from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import profile
 from dynamite_nsm.services.suricata import process as suricata_process
 
 
 class ProcessProfiler(profile.BaseProcessProfiler):
+    """
+    Get information about Suricata processes
+    """
     def __init__(self):
         self.env_dict = utilities.get_environment_file_dict()
         self.suricata_home = self.env_dict.get('SURICATA_HOME')
@@ -23,7 +23,12 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              required_install_files=['bin', 'include', 'lib'],
                                              required_config_files=['rules'])
 
-    def is_running(self):
+    def is_running(self) -> bool:
+        """
+        Determine of Suricata is running
+        Returns:
+            True, if running
+        """
         if self.suricata_home:
             try:
                 return suricata_process.ProcessManager().status()['running']

@@ -10,20 +10,22 @@ from dynamite_nsm.services.base import systemctl
 
 
 class BaseProcessManager:
-
+    """
+    A Systemd wrapper for process management
+    """
     def __init__(self, systemd_service: str, name: str, log_path: Optional[str] = None,
                  create_pid_file: Optional[bool] = False,
                  stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
-        """
-
-        :param systemd_service: The name of the systemd.service file
-        :param name: The name of the process manager
-        :param log_path: The path to where the process logs
-        :param create_pid_file: If true will attempt to create a PID file
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
-        :param pretty_print_status: If enabled, status will be printed in a tabulated style
+        """Manage a service process
+        Args:
+            systemd_service: The name of the systemd.service file
+            name: The name of the process manager
+            log_path: The path to where the process logs
+            create_pid_file: If true will attempt to create a PID file
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+            pretty_print_status: If enabled, status will be printed in a tabulated style
         """
         log_level = logging.INFO
         if verbose:
@@ -64,36 +66,41 @@ class BaseProcessManager:
         return pid
 
     def disable(self) -> bool:
-        """
-        Disable process
+        """Disable process
+        Returns:
+            True, if successfully disabled
         """
         self.logger.info('Disabling on startup: {}'.format(self.systemd_service))
         return self.sysctl.disable(self.systemd_service, daemon_reload=True)
 
     def enable(self) -> bool:
-        """
-        Enable process
+        """Enabled process
+        Returns:
+            True, if successfully enabled
         """
         self.logger.info('Enabling on startup: {}'.format(self.systemd_service))
         return self.sysctl.enable(self.systemd_service, daemon_reload=True)
 
     def start(self) -> bool:
-        """
-        Start Process
+        """Start process
+        Returns:
+            True, if successfully started
         """
         self.logger.info('Attempting to start {}'.format(self.systemd_service))
         return self.sysctl.start(self.systemd_service)
 
     def stop(self) -> bool:
-        """
-        Stop Process
+        """Stop process
+        Returns:
+            True, if successfully stopped
         """
         self.logger.info('Attempting to stop {}'.format(self.systemd_service))
         return self.sysctl.stop(self.systemd_service)
 
     def status(self) -> Union[Dict, str]:
-        """
-        Get Process Status
+        """Get the status of a process
+        Returns:
+            A dictionary containing process status or a string if `pretty_print` is True.
         """
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)
@@ -159,8 +166,9 @@ class BaseProcessManager:
         return status
 
     def restart(self) -> bool:
-        """
-        Restart Process
+        """Restart Process
+        Returns:
+            True, if the process was restarted
         """
         self.logger.info('Attempting to restart {}'.format(self.systemd_service))
         return self.sysctl.restart(self.systemd_service)

@@ -33,20 +33,43 @@ class NetworkInterfaceNotFound(Exception):
 
 
 class BaseInstallManager:
-
+    """
+    An interface used to assist with a variety of common service installation tasks
+    """
     def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
                  log_level=logging.INFO):
+        """
+        Build a custom service installer
+
+        Args:
+            name: The name of the service
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+            log_level: The minimum logging.LOG_LEVEL to be handled
+        """
         if verbose:
             log_level = logging.DEBUG
         self.stdout = stdout
         self.verbose = verbose
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
+        self.dynamite_environ = utilities.get_environment_file_dict()
         utilities.makedirs(const.PID_PATH, exist_ok=True)
         utilities.set_ownership_of_file(const.PID_PATH, user='dynamite', group='dynamite')
 
     def compile_source_package(self, source_root_directory: str, compile_args: Optional[List[str]] = None,
                                parallel_threads: Optional[int] = None,
                                expected_lines_printed: Optional[int] = None) -> None:
+        """A simple make; make install wrapper
+
+        Args:
+            source_root_directory: The directory containing the MAKEFILE
+            compile_args: make arguments
+            parallel_threads: The number of parallel threads to use during compilation (jemalloc)
+            expected_lines_printed: The number of lines produced by this process (used to generate a progressbar)
+
+        Returns: None
+
+        """
         if not parallel_threads:
             parallel_threads = get_parallel_threads()
         if compile_args:
@@ -80,6 +103,13 @@ class BaseInstallManager:
             raise exceptions.CallProcessError(f'Exited with {ret}')
 
     def configure_source_package(self, source_root_directory: str, configure_args: Optional[List[str]] = None) -> None:
+        """A configure wrapper for the build/make process
+        Args:
+            source_root_directory: A directory containing the configuration.in file
+            configure_args: configure arguments
+        Returns:
+            None
+        """
         temp_config_args = ['./configure']
         temp_config_args.extend(configure_args)
         temp_config_args = [str(a) for a in temp_config_args]
@@ -104,7 +134,16 @@ class BaseInstallManager:
             self.logger.error(f'Exited: {ret}; Process Info: {configure_args}')
             raise exceptions.CallProcessError(f'Exited with {ret}')
 
-    def create_update_env_variable(self, name: str, value: str):
+    def create_update_env_variable(self, name: str, value: str) -> None:
+        """Write the environment variable into our root owned environment file
+
+        Args:
+            name: The name of the variable
+            value: The value of the variable
+
+        Returns:
+            None
+        """
         name = str(name)
         value = str(value)
         env_file_path = f'{const.CONFIG_PATH}/environment'
@@ -133,7 +172,13 @@ class BaseInstallManager:
                 env_fw.writelines(read_lines)
 
     def download_from_mirror(self, mirror_path: str) -> Tuple[str, str, Optional[str]]:
+        """Download a Dynamite service from a mirror
+        Args:
+            mirror_path: The path to the mirror
 
+        Returns:
+            The mirror url, archive name, and directory name (once the archive has been extracted)
+        """
         with open(mirror_path) as mirror_f:
             res, err = None, None
             for mirror in mirror_f.readlines():
@@ -162,6 +207,13 @@ class BaseInstallManager:
 
     @staticmethod
     def extract_archive(archive_path: str) -> None:
+        """
+        Extract a tar.gz archive to disk
+        Args:
+            archive_path: The full path to the archive.
+        Returns:
+            None
+        """
         try:
             tf = tarfile.open(archive_path)
             tf.extractall(path=const.INSTALL_CACHE)
@@ -174,6 +226,14 @@ class BaseInstallManager:
 
     @staticmethod
     def get_mirror_info(mirror_path: str) -> Tuple[str, str, Optional[str]]:
+        """
+        Get information about a mirror
+        Args:
+            mirror_path: The path to the mirror
+        Returns:
+            The mirror url, archive name, and directory name (once the archive has been extracted)
+
+        """
         with open(mirror_path) as mirror_f:
             for mirror in mirror_f.readlines():
                 try:
@@ -187,12 +247,30 @@ class BaseInstallManager:
 
     @staticmethod
     def validate_capture_network_interfaces(network_interfaces: List[str]) -> bool:
+        """
+        Determine if one or more capture interface actually exists
+        Args:
+            network_interfaces: A list of network interface names to evaluate.
+
+        Returns:
+            True, if all interfaces are valid
+        """
         for interface in network_interfaces:
             if interface not in utilities.get_network_interface_names():
                 return False
         return True
 
-    def copy_file_or_directory_to_destination(self, file_or_dir: str, destination_file_or_dir: str):
+    def copy_file_or_directory_to_destination(self, file_or_dir: str, destination_file_or_dir: str) -> None:
+        """
+        Copy a file or directory to another file or directory
+
+        Args:
+            file_or_dir: The file or directory to copy
+            destination_file_or_dir: The file or directory destination
+
+        Returns:
+            None
+        """
         file_or_dir = file_or_dir.rstrip('/')
         destination_location = f'{destination_file_or_dir}/{os.path.basename(file_or_dir)}'
         if os.path.isdir(file_or_dir):
@@ -222,7 +300,18 @@ class BaseInstallManager:
                     raise e
 
     def install_dependencies(self, apt_get_packages: Optional[List] = None, yum_packages: Optional[List] = None,
-                             pre_install_function: Optional[Callable] = None):
+                             pre_install_function: Optional[Callable] = None) -> None:
+        """
+        Install OS dependencies through the package manager
+
+        Args:
+            apt_get_packages: The name of the packages available in apt-get supported repos
+            yum_packages: The name of the packages available in yum supported repos
+            pre_install_function: A Python function to run prior to installing these packages
+
+        Returns:
+            None
+        """
         pacman = package_manager.OSPackageManager(stdout=self.stdout, verbose=self.verbose)
         packages = []
         if pacman.package_manager == 'apt-get':
@@ -244,17 +333,19 @@ class BaseInstallManager:
 
 
 class BaseUninstallManager:
-
+    """
+    An interface used to assist with a variety of common service uninstall tasks
+    """
     def __init__(self, name: str, directories: List[str], process: Optional[process.BaseProcessManager] = None,
                  verbose: Optional[bool] = False, stdout: Optional[bool] = True, log_level=logging.INFO):
-        """
-
-        :param name: The name of the process
-        :param directories: The directories to be removed
-        :param process: The process to be terminated
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
-        :param log_level: The logging.LOG_LEVEL to use when logging
+        """Remove installed files for a given service
+        Args:
+            name: The name of the process
+            directories: The directories to be removed
+            process: The process to be terminated
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+            log_level: The logging.LOG_LEVEL to use when logging
         """
         self.name = name
         self.directories = directories
@@ -264,6 +355,10 @@ class BaseUninstallManager:
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
 
     def uninstall(self):
+        """Stop and uninstall the service
+        Returns:
+            None
+        """
         sysctl = systemctl.SystemCtl()
         if self.process:
             self.process.stop()

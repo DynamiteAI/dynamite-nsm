@@ -7,6 +7,9 @@ from dynamite_nsm.services.filebeat import process as filebeat_process
 
 
 class ProcessProfiler(profile.BaseProcessProfiler):
+    """
+    Get information about Filebeat processes
+    """
     def __init__(self):
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
@@ -19,6 +22,11 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              )
 
     def is_running(self) -> bool:
+        """
+        Determine of Filebeat is running
+        Returns:
+            True, if running
+        """
         if self.filebeat_home:
             try:
                 return filebeat_process.ProcessManager().status()['running']

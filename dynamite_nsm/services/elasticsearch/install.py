@@ -30,7 +30,11 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
         install.BaseInstallManager.__init__(self, 'elasticsearch', verbose=self.verbose, stdout=stdout)
-
+        java_home = self.dynamite_environ.get('JAVA_HOME')
+        if not java_home:
+            self.logger.info('Installing compatible version of Java.')
+            from dynamite_nsm.services.java import install as java_install
+            java_install.InstallManager(const.JVM_ROOT, stdout=stdout, verbose=verbose).setup()
         if download_elasticsearch_archive:
             self.logger.info("Attempting to download Elasticsearch (OpenDistro) archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.ELASTICSEARCH_MIRRORS)
