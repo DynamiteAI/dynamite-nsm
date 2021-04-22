@@ -506,8 +506,8 @@ class SavedObjectsManager():
         """Initializes the SavedObjectsManager
 
         Args:
-            stdout (Optional[bool], optional): [description]. Defaults to True.
-            verbose (Optional[bool], optional): [description]. Defaults to False.
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
         """
         self._api_auth_token = None
         log_level = logging.INFO
