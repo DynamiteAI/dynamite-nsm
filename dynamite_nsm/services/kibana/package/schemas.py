@@ -10,6 +10,7 @@ ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA = {
     'file_list': ['default.ndjson']
 }
 
+
 class SchemaToObject(object):
     def __init__(self, json_data, object_schema):
 
@@ -20,12 +21,12 @@ class SchemaToObject(object):
         else:
             raise ValidationError("Invalid input type. must be one of: str, dict")
 
-
         for key, value in self.data.items():
             setattr(self, key, value)
 
     def json(self) -> str:
         return json.dumps(self.data)
+
 
 class InstalledPackagesListSchema(Schema):
     installed_packages = fields.Dict(required=True)
@@ -44,13 +45,10 @@ class PackageManifestSchema(Schema):
     name = fields.String(required=True, validate=validate.Length(1))
     author = fields.String(required=False)
     package_type = fields.String(required=True, validate=validate.OneOf(['saved_objects', 'system']))
-    description = fields.String(required=True, validate=validate.Length(1,300))
+    description = fields.String(required=True, validate=validate.Length(1, 300))
     file_list = fields.List(fields.String,
                             required=True,
                             # TODO: Regex validation for supported filetypes
                             validate=validate.Length(1))
     author_email = fields.String(required=False, default="")
     slug = fields.String(required=False, default=None)
-    
-
-
