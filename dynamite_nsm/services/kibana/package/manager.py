@@ -119,7 +119,7 @@ class PackageManifest(SchemaToObject):
 class Package(object):
 
     package_index_name = PACKAGES_INDEX_NAME
-    es_url = f'https://{get_primary_ip_address()}:9200'
+    es_proxy_url = f'http://{get_primary_ip_address()}:5601/api/console/proxy'
     auth = ('admin', 'admin')
     _installed_objects = []
 
@@ -161,10 +161,11 @@ class Package(object):
         Returns:
             result: dict
         """
-        result = requests.get(f"{Package.es_url}/{Package.package_index_name}/_search/",
-                              json=query,
-                              verify=False,
-                              auth=Package.auth)
+        result = requests.post(f"{Package.es_proxy_url}?method=GET&path={Package.package_index_name}/_search",
+                               json=query,
+                               verify=False,
+                               auth=Package.auth,
+                               headers={'kbn-xsrf': 'true'})
         if result.status_code not in range(200, 299):
             raise PackageLoadError("Failed to fetch package data. You may not have any packages installed. "
                                    "Does the dynamite-packages index exist?")
@@ -223,8 +224,11 @@ class Package(object):
         Returns:
             bool: success
         """
-        res = requests.head(
-            f"{self.es_url}/{self.package_index_name}", verify=False, auth=self.auth)
+        res = requests.post(
+            f"{self.es_proxy_url}?method=HEAD&path={self.package_index_name}",
+            verify=False,
+            auth=self.auth,
+            headers={'kbn-xsrf': 'true'})
         return res.status_code == 200
 
     @staticmethod
@@ -254,8 +258,8 @@ class Package(object):
         """
         exists = self._check_index_exists()
         if not exists:
-            res = requests.put(
-                url=f"{self.es_url}/{self.package_index_name}",
+            res = requests.post(
+                url=f"{self.es_proxy_url}?method=PUT&path={self.package_index_name}",
                 data=json.dumps(PACKAGES_INDEX_MAPPING),
                 auth=self.auth,
                 headers={'content-type': 'application/json'},
@@ -357,10 +361,10 @@ class Package(object):
         if not exists:
             # Should this throw an error?
             return False
-        res = requests.delete(f"{self.es_url}/{self.package_index_name}/_doc/{self.id}",
-                              verify=False,
-                              auth=self.auth,
-                              headers={'kbn-xsrf': 'true'})
+        res = requests.post(f"{self.es_proxy_url}?method=DELETE&path={self.package_index_name}/_doc/{self.id}",
+                            verify=False,
+                            auth=self.auth,
+                            headers={'kbn-xsrf': 'true'})
         return res.status_code in range(200, 299)
 
     def register(self) -> bool:
@@ -371,10 +375,11 @@ class Package(object):
         """
         self.create_packages_index()
         id = uuid4()
-        res = requests.post(f"{self.es_url}/{self.package_index_name}/_doc/{id}",
+        res = requests.post(f"{self.es_proxy_url}?method=POST&path={self.package_index_name}/_doc/{id}",
                             json=self.es_input(id=str(id)),
                             verify=False,
-                            auth=self.auth)
+                            auth=self.auth,
+                            headers={'kbn-xsrf': 'true'})
         return res.status_code in range(200, 299)
 
     @staticmethod
@@ -789,7 +794,11 @@ class SavedObjectsManager(object):
             username (Optional[str], optional): kibana auth username. Defaults to None.
             password (Optional[str], optional): kibana auth passwd. Defaults to None.
         """
-        packages = Package.search_installed_packages()
+        try:
+            packages = Package.search_installed_packages()
+        except PackageLoadError as e:
+            self.logger.error(e)
+            exit(0)
         if not packages:
             self.logger.error("Could not find any installed packages")
             return None
@@ -882,7 +891,8 @@ class SavedObjectsManager(object):
                     self.logger.error(
                         f"Could not find package with id {package_id}")
                     exit(0)
-            to_uninstall = [to_uninstall]
+                to_uninstall = [to_uninstall]
+            
         except PackageLoadError as e:
             self.logger.error(e)
             exit(0)

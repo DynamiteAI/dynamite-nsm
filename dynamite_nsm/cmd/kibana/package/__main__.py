@@ -4,5 +4,5 @@ if __name__ == '__main__':
     parser = kibana_package_interface.get_parser()
     args = parser.parse_args()
     result = kibana_package_interface.execute(args)
-    if args.action in ['list', 'list-saved-objects']:
+    if result and args.entry_method_name in ['list', 'list_saved_objects']:
         print(result)
