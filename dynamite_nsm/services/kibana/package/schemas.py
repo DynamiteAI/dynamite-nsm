@@ -11,7 +11,7 @@ ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA = {
 }
 
 
-class SchemaToObject(object):
+class SchemaToObject():
     def __init__(self, json_data, object_schema):
 
         if type(json_data) == dict:

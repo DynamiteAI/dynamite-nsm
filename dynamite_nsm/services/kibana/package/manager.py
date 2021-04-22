@@ -116,7 +116,7 @@ class PackageManifest(SchemaToObject):
         return f"<PackageManifest(name={self.name}, author={self.author})>"
 
 
-class Package(object):
+class Package():
 
     package_index_name = PACKAGES_INDEX_NAME
     es_proxy_url = f'http://{get_primary_ip_address()}:5601/api/console/proxy'
@@ -499,7 +499,7 @@ class Package(object):
         return packages
 
 
-class SavedObjectsManager(object):
+class SavedObjectsManager():
     def __init__(self,
                  stdout: Optional[bool] = True,
                  verbose: Optional[bool] = False):
