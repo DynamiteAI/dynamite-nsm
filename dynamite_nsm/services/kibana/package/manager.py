@@ -13,7 +13,7 @@ from io import BytesIO, IOBase
 from typing import AnyStr, Optional, Tuple, IO, List, Union
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import get_primary_ip_address
-from dynamite_nsm.utilities import PrintDecorations as PD
+from dynamite_nsm.utilities import PrintDecorations
 from dynamite_nsm.services.kibana.package.mappings import PACKAGES_INDEX_MAPPING, \
                                                           PACKAGES_INDEX_NAME
 from dynamite_nsm.services.kibana.package.schemas import ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA \
@@ -37,7 +37,7 @@ class InstalledObject(SchemaToObject):
         super().__init__(json_data, InstalledObjectSchema())
 
     @classmethod
-    def from_kwargs(cls, **kwargs) -> 'InstalledObject':
+    def from_kwargs(cls, title, object_type, object_id, space_id) -> 'InstalledObject':
         """Create instance of InstalledObject from kwargs
            instead of a dict or json string.
 
@@ -46,10 +46,10 @@ class InstalledObject(SchemaToObject):
             with the properties supplied in kwargs.
         """
         data = {}
-        data['title'] = kwargs.get('title')
-        data['object_type'] = kwargs.get('object_type', None)
-        data['object_id'] = kwargs.get('object_id', None)
-        data['space_id'] = kwargs.get('space_id', None)
+        data['title'] = title
+        data['object_type'] = object_type
+        data['object_id'] = object_id
+        data['space_id'] = space_id
         obj = cls(data)
         return obj
 
@@ -522,6 +522,20 @@ class SavedObjectsManager():
     def kibana_url(self):
         return f'http://{get_primary_ip_address()}:5601'
 
+    def check_kibana_connection(self, username, password):
+        auth = (username, password)
+        try:
+            if self.verbose:
+                self.logger.info('Checking if kibana API is up..')
+            resp = requests.get(f'http://{get_primary_ip_address()}:5601/api/status', auth=auth)
+            if resp.status_code == 200:
+                statusstate = resp.json().get('status', {'overall': {'state': 'unknown'}}).get('overall').get('state')
+                if self.verbose:
+                    self.logger.info(f"Kibana status: {statusstate}")
+        except requests.exceptions.ConnectionError as e:
+            self.logger.error(e)
+            raise e
+
     @staticmethod
     def _get_kibana_auth_securely(username: Optional[str] = None, password: Optional[str] = None) -> Tuple[str, str]:
         """Gets kibana auth info from user input
@@ -573,9 +587,9 @@ class SavedObjectsManager():
                 desc = f"{package.manifest.description[:50]}.."
             else:
                 desc = package.manifest.description
-            lbb = PD.colorize('[', 'bold')
-            rbb = PD.colorize(']', 'bold')
-            packagename = PD.colorize(package.manifest.name, 'bold')
+            lbb = PrintDecorations.colorize('[', 'bold')
+            rbb = PrintDecorations.colorize(']', 'bold')
+            packagename = PrintDecorations.colorize(package.manifest.name, 'bold')
             packageline = f"{lbb}{idx+1}{rbb} {packagename}\n{' ' * (len(str(idx)) + 2)} - {desc}"
             print(packageline)
         print()
@@ -615,6 +629,7 @@ class SavedObjectsManager():
             requests.Response: data returned from kibana
         """
         auth = self._get_kibana_auth_securely(username, password)
+        self.check_kibana_connection(*auth)
         if saved_object_type:
             resp = requests.get(
                 f'{self.kibana_url}/api/saved_objects/_find?type={saved_object_type}', auth=auth)
@@ -677,6 +692,7 @@ class SavedObjectsManager():
             dict: Response from kibana
         """
         auth = self._get_kibana_auth_securely(username, password)
+        self.check_kibana_connection(*auth)
 
         if space:
             url = f'{self.kibana_url}/s/{space}/api/saved_objects/_import'
@@ -701,7 +717,8 @@ class SavedObjectsManager():
             # TODO raise exception
         return resp.json()
 
-    def install(self, package_install_path: str, username: Optional[str] = 'admin', password: Optional[str] = 'admin'):
+    def install(self, package_install_path: str, username: Optional[str] = 'admin',
+                password: Optional[str] = 'admin', ignore_warnings: Optional[bool] = False):
         """Install a package. A package can be given as an archive or directory.
             A package must contain one or more ndjson files and a manifest.json
 
@@ -710,6 +727,7 @@ class SavedObjectsManager():
             username (Optional[str], optional): kibana auth usrname. Defaults to None.
             password (Optional[str], optional): kibana auth password. Defaults to None.
         """
+        self.check_kibana_connection(username, password)
         is_folder = os.path.isdir(package_install_path)
         filepaths = []
         if not is_folder:
@@ -742,7 +760,7 @@ class SavedObjectsManager():
                     # check if package exists already.
                     existing = Package.find_by_slug(
                         package.manifest.create_slug())
-                    if existing:
+                    if existing and not ignore_warnings:
                         rmexisting = input(
                             f"A Package titled {existing.manifest.name} is already installed, "
                             "do you want to uninstall it? [y/n]") in "yY"
@@ -899,4 +917,5 @@ class SavedObjectsManager():
         if not username or not password:
             auth = self._get_kibana_auth_securely(username, password)
         force = bool(remove_from_all_spaces)
+        self.check_kibana_connection(username, password)
         self.uninstall_kibana_saved_objects(to_uninstall, *auth, force=force)
