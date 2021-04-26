@@ -579,7 +579,7 @@ class SavedObjectsManager():
         try:
             if self.verbose:
                 self.logger.info('Checking if kibana API is up..')
-            resp = requests.get(f'http://{self.kibana_url}:5601/api/status', auth=auth)
+            resp = requests.get(f'{self.kibana_url}/api/status', auth=auth)
             if resp.status_code == 200:
                 statusstate = resp.json().get('status', {'overall': {'state': 'unknown'}}).get('overall').get('state')
                 if self.verbose:
