@@ -792,6 +792,51 @@ class SavedObjectsManager():
         self.check_kibana_connection(username, password)
         is_folder = os.path.isdir(package_install_path)
         filepaths = []
+
+        def handle_archive(filepath, installation_statuses, username=None, password=None):
+            # handle tarfile
+            tar = tarfile.open(filepath)
+            try:
+                manifest = tar.extractfile('manifest.json')
+                manifest = PackageManifest(manifest.read().decode('utf8'))
+                package = Package(manifest, kibana_target=self.kibana_url)
+                package.create_packages_index()
+                # check if package exists already.
+                existing = Package.find_by_slug(
+                    package.manifest.create_slug(), kibana_target=self.kibana_url)
+                if existing and not ignore_warnings:
+                    rmexisting = input(
+                        f"A Package titled {existing.manifest.name} is already installed, "
+                        "do you want to uninstall it? [y/n]") in "yY"
+                    if rmexisting:
+                        if not username or not password:
+                            username, password = self._get_kibana_auth_securely(username, password)
+                        rmsuccess = existing.uninstall(
+                            self.kibana_url, auth=(username, password), force=True)
+                        if rmsuccess:
+                            self.logger.info(
+                                f"Successfully removed existing package {existing.manifest.name}.")
+
+            except (KeyError, PackageLoadError) as e:
+                self.logger.exception(e)
+                exit(0)
+            for member in manifest.file_list:
+                # should we validate the json before sending it up to kibana?
+                kibana_objects_file = BytesIO(
+                    tar.extractfile(member).read())
+                result = self.import_kibana_saved_objects(username=username, password=password,
+                                                          kibana_objects_file=kibana_objects_file)
+                kibana_objects_file.close()
+                installation_statuses.append(
+                    self._process_package_installation_results(package, result))
+
+        def handle_file(filepath, username, password):
+            with open(filepath, 'r') as kibana_objects_file:
+                result = self.import_kibana_saved_objects(username=username, password=password,
+                                                          kibana_objects_file=kibana_objects_file)
+                installation_statuses.append(
+                    self._process_package_installation_results(package, result))
+
         if not is_folder:
             filepaths = [package_install_path]
         else:
@@ -804,56 +849,20 @@ class SavedObjectsManager():
                         break
             self.logger.info(f"Found {len(filepaths)} packages to install.")
         for _filepath in filepaths:
+            installation_statuses = []
             filepath = os.path.abspath(_filepath)
             # check mimetype of the file to determine how to proceed
             filetype, encoding = mimetypes.MimeTypes().guess_type(filepath)
-            installation_statuses = []
             # default to orphan package in case of install from .ndjson
             manifest = PackageManifest(OrphanPackageData)
             package = Package(manifest, kibana_target=self.kibana_url)
             if filetype == 'application/x-tar' or encoding == 'gzip':
-                # handle tarfile
-                tar = tarfile.open(filepath)
-                try:
-                    manifest = tar.extractfile('manifest.json')
-                    manifest = PackageManifest(manifest.read().decode('utf8'))
-                    package = Package(manifest, kibana_target=self.kibana_url)
-                    package.create_packages_index()
-                    # check if package exists already.
-                    existing = Package.find_by_slug(
-                        package.manifest.create_slug(), kibana_target=self.kibana_url)
-                    if existing and not ignore_warnings:
-                        rmexisting = input(
-                            f"A Package titled {existing.manifest.name} is already installed, "
-                            "do you want to uninstall it? [y/n]") in "yY"
-                        if rmexisting:
-                            if not username or not password:
-                                username, password = self._get_kibana_auth_securely(username, password)
-                            rmsuccess = existing.uninstall(
-                                self.kibana_url, auth=(username, password), force=True)
-                            if rmsuccess:
-                                self.logger.info(
-                                    f"Successfully removed existing package {existing.manifest.name}.")
-
-                except (KeyError, PackageLoadError) as e:
-                    self.logger.exception(e)
-                    exit(0)
-                for member in manifest.file_list:
-                    # should we validate the json before sending it up to kibana?
-                    kibana_objects_file = BytesIO(
-                        tar.extractfile(member).read())
-                    result = self.import_kibana_saved_objects(username=username, password=password,
-                                                              kibana_objects_file=kibana_objects_file)
-                    kibana_objects_file.close()
-                    installation_statuses.append(
-                        self._process_package_installation_results(package, result))
+                filepath = os.path.abspath(_filepath)
+                # check mimetype of the file to determine how to proceed
+                handle_archive(_filepath, installation_statuses, username, password)
             # Should we remove this and ONLY install validatable packages?
             elif filetype in ('application/json', 'text/plain') and filepath.endswith('ndjson'):
-                with open(filepath, 'r') as kibana_objects_file:
-                    result = self.import_kibana_saved_objects(username=username, password=password,
-                                                              kibana_objects_file=kibana_objects_file)
-                    installation_statuses.append(
-                        self._process_package_installation_results(package, result))
+                handle_file(filepath, username, password)
             else:
                 self.logger.error(
                     "Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
