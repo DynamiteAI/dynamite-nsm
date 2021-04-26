@@ -5,15 +5,22 @@ import json
 import re
 import os
 import requests
+import urllib3
+
+from __future__ import annotations
 from getpass import getpass
 from tabulate import tabulate
 from uuid import uuid4
 from unidecode import unidecode
 from io import BytesIO, IOBase
 from typing import AnyStr, Optional, Tuple, IO, List, Union
+from urllib.parse import urlparse
+
+
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.utilities import get_primary_ip_address
-from dynamite_nsm.utilities import PrintDecorations
+from dynamite_nsm.utilities import PrintDecorations, get_environment_file_dict
+from dynamite_nsm.services.kibana.config import ConfigManager as KibanaConfigManager
 from dynamite_nsm.services.kibana.package.mappings import PACKAGES_INDEX_MAPPING, \
                                                           PACKAGES_INDEX_NAME
 from dynamite_nsm.services.kibana.package.schemas import ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA \
@@ -21,6 +28,21 @@ from dynamite_nsm.services.kibana.package.schemas import ORPHAN_OBJECT_PACKAGE_M
                                                         InstalledObjectSchema, \
                                                         PackageManifestSchema, \
                                                         SchemaToObject
+
+
+def _get_kibana_url() -> str:
+    """tries to pull from local kibana configs for kibana url, falling back to primary ip addr.
+
+    Returns:
+        str: the inferred kibana url
+    """
+    env_dict = get_environment_file_dict()
+    kibana_conf_dir = env_dict.get('KIBANA_PATH_CONF')
+    if not kibana_conf_dir:
+        return f'http://{get_primary_ip_address()}:5601'
+    else:
+        confman = KibanaConfigManager(kibana_conf_dir)
+        return f'http://{confman.host}:{confman.port}'
 
 
 class PackageLoadError(Exception):
@@ -33,11 +55,11 @@ class PackageUninstallationError(Exception):
 
 class InstalledObject(SchemaToObject):
 
-    def __init__(self, json_data):
+    def __init__(self, json_data) -> None:
         super().__init__(json_data, InstalledObjectSchema())
 
     @classmethod
-    def from_kwargs(cls, title, object_type, object_id, space_id) -> 'InstalledObject':
+    def from_kwargs(cls, title, object_type, object_id, space_id) -> InstalledObject:
         """Create instance of InstalledObject from kwargs
            instead of a dict or json string.
 
@@ -54,7 +76,7 @@ class InstalledObject(SchemaToObject):
         return obj
 
     @classmethod
-    def from_installation_result(cls, responsedata, **kwargs) -> 'InstalledObject':
+    def from_installation_result(cls, responsedata, **kwargs) -> InstalledObject:
         """Automatically parses the output from installing
            a Saved Object in Kibana and returns an instance of InstalledObject
 
@@ -119,14 +141,17 @@ class PackageManifest(SchemaToObject):
 class Package():
 
     package_index_name = PACKAGES_INDEX_NAME
-    es_proxy_url = f'http://{get_primary_ip_address()}:5601/api/console/proxy'
+    # assume we're operating locally by default if nothing supplied for kibana target
+    
+    es_proxy_url = f"{_get_kibana_url()}/api/console/proxy"
     auth = ('admin', 'admin')
     _installed_objects = []
 
     def __init__(self, manifest: PackageManifest,
                  installed_objects: Optional[list] = None,
                  auth: Optional[tuple] = ('admin', 'admin'),
-                 id: Optional[str] = None) -> None:
+                 id: Optional[str] = None,
+                 kibana_target: Optional[str] = None) -> None:
         """Initializes a Package object with a provided manifest, optional
 
         Args:
@@ -147,9 +172,17 @@ class Package():
         self.id = id
         self.auth = auth or Package.auth
         self.slug = self.manifest.create_slug()
+        if not kibana_target:
+            kibana_target = _get_kibana_url()
+        self.es_proxy_url = self.build_proxy_url_from_target(kibana_target)
 
     @staticmethod
-    def es_search(query: dict) -> dict:
+    def build_proxy_url_from_target(kibana_target: str) -> str:
+        url = urlparse(kibana_target)
+        return f"{url.scheme}://{url.netloc}/api/console/proxy"
+
+    @staticmethod
+    def es_search(query: dict, kibana_target: Optional[str] = None) -> dict:
         """Performs an elasticsearch query against the dynamite packages index.
 
         Args:
@@ -161,7 +194,8 @@ class Package():
         Returns:
             result: dict
         """
-        result = requests.post(f"{Package.es_proxy_url}?method=GET&path={Package.package_index_name}/_search",
+        proxyurl = Package.build_proxy_url_from_target(kibana_target) if kibana_target else Package.es_proxy_url
+        result = requests.post(f"{proxyurl}?method=GET&path={Package.package_index_name}/_search",
                                json=query,
                                verify=False,
                                auth=Package.auth,
@@ -202,7 +236,7 @@ class Package():
             }
         }
 
-        result = Package.es_search(query)
+        result = self.es_search(query, kibana_target=self.es_proxy_url)
         if not result:
             return []
         packagesdata = [r['_source'] for r in result['hits']['hits']]
@@ -213,7 +247,7 @@ class Package():
         return self._installed_objects
 
     @property
-    def installed_objects(self):
+    def installed_objects(self) -> list:
         if not self._installed_objects:
             self.reload_installed_objects()
         return self._installed_objects
@@ -232,7 +266,7 @@ class Package():
         return res.status_code == 200
 
     @staticmethod
-    def load_from_archive(package_path) -> 'Package':
+    def load_from_archive(package_path, kibana_target: Optional[str] = None) -> Package:
         """Loads a package from disk
 
         Args:
@@ -245,7 +279,7 @@ class Package():
         try:
             manifest = tar.extractfile('manifest.json')
             manifest = PackageManifest(manifest.read().decode('utf8'))
-            package = Package(manifest)
+            package = Package(manifest, kibana_target=kibana_target)
             return package
         except KeyError:
             raise PackageLoadError("Package must contain a manifest.json")
@@ -298,7 +332,7 @@ class Package():
         return inputdict
 
     def result_to_object(self, result: dict, space_id: Optional[str] = None) -> InstalledObject:
-        """[summary]
+        """Takes an installation result output from kiban API and returns an InstalledObject
 
         Args:
             result (dict): result from installation call to kibana
@@ -383,7 +417,7 @@ class Package():
         return res.status_code in range(200, 299)
 
     @staticmethod
-    def find_by_id(package_id: str) -> Union['Package', None]:
+    def find_by_id(package_id: str, kibana_target: Optional[str] = None) -> Union['Package', None]:
         """fetches an installed package by their id
 
         Args:
@@ -407,7 +441,7 @@ class Package():
             }
         }
 
-        result = Package.es_search(query)
+        result = Package.es_search(query, kibana_target=kibana_target)
         if not result:
             return None
         packagesdata = [r['_source'] for r in result['hits']['hits']]
@@ -415,11 +449,11 @@ class Package():
         manifest = PackageManifest(pkg.get('manifest'))
         instobjs = [InstalledObject.from_kwargs(
             **iobj) for iobj in pkg.get('installed_objects')]
-        package = Package(manifest, instobjs, id=pkg.get('id'))
+        package = Package(manifest, instobjs, id=pkg.get('id'), kibana_target=kibana_target)
         return package
 
     @staticmethod
-    def find_by_slug(package_slug: str) -> 'Package':
+    def find_by_slug(package_slug: str, kibana_target: Optional[str] = None) -> Package:
         """Find a package by its slug
 
         Args:
@@ -440,7 +474,7 @@ class Package():
             }
         }
 
-        result = Package.es_search(query)
+        result = Package.es_search(query, kibana_target)
         if not result:
             return None
         packagesdata = [r['_source'] for r in result['hits']['hits']]
@@ -448,11 +482,11 @@ class Package():
         manifest = PackageManifest(pkg.get('manifest'))
         instobjs = [InstalledObject.from_kwargs(
             **iobj) for iobj in pkg.get('installed_objects')]
-        package = Package(manifest, instobjs, id=pkg.get('id'))
+        package = Package(manifest, instobjs, id=pkg.get('id'), kibana_target=kibana_target)
         return package
 
     @staticmethod
-    def search_installed_packages(package_name=None) -> list:
+    def search_installed_packages(package_name=None, kibana_target: Optional[str] = None) -> list:
         """
         Returns Packages with wildcard search on provided package name string,
             returns all packages if package name not supplied
@@ -483,7 +517,7 @@ class Package():
                 }
             }
 
-        result = Package.es_search(query)
+        result = Package.es_search(query, kibana_target)
         if not result:
             return None
 
@@ -494,7 +528,7 @@ class Package():
             manifest = PackageManifest(pkg.get('manifest'))
             instobjs = [InstalledObject.from_kwargs(
                 **iobj) for iobj in pkg.get('installed_objects')]
-            package = Package(manifest, instobjs, id=pkg.get('id'))
+            package = Package(manifest, instobjs, id=pkg.get('id'), kibana_target=kibana_target)
             packages.append(package)
         return packages
 
@@ -502,14 +536,14 @@ class Package():
 class SavedObjectsManager():
     def __init__(self,
                  stdout: Optional[bool] = True,
-                 verbose: Optional[bool] = False):
+                 verbose: Optional[bool] = False,
+                 target: Optional[str] = None) -> None:
         """Initializes the SavedObjectsManager
 
         Args:
             stdout: Print the output to console
             verbose: Include detailed debug messages
         """
-        self._api_auth_token = None
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -517,23 +551,39 @@ class SavedObjectsManager():
             str('KIBANA.PACKAGE_MANAGER'), level=log_level, stdout=stdout)
         self.verbose = verbose
         self._installed_packages = None
+        self._kibana_url = target
+        self._validate_kibana_target(target)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     @property
-    def kibana_url(self):
-        return f'http://{get_primary_ip_address()}:5601'
+    def kibana_url(self) -> str:
+        if not self._kibana_url:
+            self._kibana_url = _get_kibana_url()
+        return self._kibana_url
 
-    def check_kibana_connection(self, username, password):
+    def _validate_kibana_target(self, target: Optional[str] = None) -> bool:
+        try:
+            targ = target or self.kibana_url
+            result = urlparse(targ)
+            return all([result.scheme, result.netloc])
+        except Exception as e:
+            self.logger.error(f"Could not validate kibana target url {self.kibana_url}")
+            if self.verbose:
+                self.logger.exception(e)
+            exit(0)
+
+    def check_kibana_connection(self, username, password) -> bool:
         auth = (username, password)
         try:
             if self.verbose:
                 self.logger.info('Checking if kibana API is up..')
-            resp = requests.get(f'http://{get_primary_ip_address()}:5601/api/status', auth=auth)
+            resp = requests.get(f'http://{self.kibana_url}:5601/api/status', auth=auth)
             if resp.status_code == 200:
                 statusstate = resp.json().get('status', {'overall': {'state': 'unknown'}}).get('overall').get('state')
                 if self.verbose:
                     self.logger.info(f"Kibana status: {statusstate}")
         except requests.exceptions.ConnectionError as e:
-            self.logger.error(e)
+            self.logger.exception(e)
             raise e
 
     @staticmethod
@@ -573,11 +623,11 @@ class SavedObjectsManager():
             package.installed_objects.append(installed_obj)
         return success
 
-    def _select_packages_for_uninstall(self, package_name):
+    def _select_packages_for_uninstall(self, package_name) -> List[Package]:
         INVALID_SELECTION = "Not a valid selection"
         NONINT_SELECTION = "Selections must be integers"
         print("\n\nSelect a package to uninstall:")
-        installed_packages = Package.search_installed_packages(package_name)
+        installed_packages = Package.search_installed_packages(package_name, kibana_target=self.kibana_url)
         if not installed_packages:
             self.logger.error("Could not find any packages to uninstall.")
             exit(0)
@@ -648,7 +698,8 @@ class SavedObjectsManager():
             # TODO raise exception
         return resp
 
-    def uninstall_kibana_saved_objects(self, packages: List[Package], username: str, password: str, force: bool):
+    def uninstall_kibana_saved_objects(self,
+                                       packages: List[Package], username: str, password: str, force: bool) -> None:
         """uninstall packages and their saved objects from kibana
 
         Args:
@@ -665,7 +716,7 @@ class SavedObjectsManager():
                 if uninstalled:
                     self.logger.info(f"Uninstalled {package.manifest.name} successfully..")
             except PackageUninstallationError as e:
-                self.logger.error(e)
+                self.logger.exception(e)
                 self.logger.error(f"Could not uninstall package {package.id} ({package.manifest.name})")
 
     def import_kibana_saved_objects(self, kibana_objects_file: IO[AnyStr],
@@ -673,7 +724,7 @@ class SavedObjectsManager():
                                     password: str = 'admin',
                                     space: Optional[str] = None,
                                     overwrite: Optional[bool] = True,
-                                    create_copies: Optional[bool] = False):
+                                    create_copies: Optional[bool] = False) -> dict:
         """Import saved objects into kibana from a package file
 
         Args:
@@ -718,7 +769,7 @@ class SavedObjectsManager():
         return resp.json()
 
     def install(self, package_install_path: str, username: Optional[str] = 'admin',
-                password: Optional[str] = 'admin', ignore_warnings: Optional[bool] = False):
+                password: Optional[str] = 'admin', ignore_warnings: Optional[bool] = False) -> None:
         """Install a package. A package can be given as an archive or directory.
             A package must contain one or more ndjson files and a manifest.json
 
@@ -748,18 +799,18 @@ class SavedObjectsManager():
             installation_statuses = []
             # default to orphan package in case of install from .ndjson
             manifest = PackageManifest(OrphanPackageData)
-            package = Package(manifest)
+            package = Package(manifest, kibana_target=self.kibana_url)
             if filetype == 'application/x-tar' or encoding == 'gzip':
                 # handle tarfile
                 tar = tarfile.open(filepath)
                 try:
                     manifest = tar.extractfile('manifest.json')
                     manifest = PackageManifest(manifest.read().decode('utf8'))
-                    package = Package(manifest)
+                    package = Package(manifest, kibana_target=self.kibana_url)
                     package.create_packages_index()
                     # check if package exists already.
                     existing = Package.find_by_slug(
-                        package.manifest.create_slug())
+                        package.manifest.create_slug(), kibana_target=self.kibana_url)
                     if existing and not ignore_warnings:
                         rmexisting = input(
                             f"A Package titled {existing.manifest.name} is already installed, "
@@ -774,7 +825,7 @@ class SavedObjectsManager():
                                     f"Successfully removed existing package {existing.manifest.name}.")
 
                 except (KeyError, PackageLoadError) as e:
-                    self.logger.error(e)
+                    self.logger.exception(e)
                     exit(0)
                 for member in manifest.file_list:
                     # should we validate the json before sending it up to kibana?
@@ -805,7 +856,8 @@ class SavedObjectsManager():
                 package.register()
                 self.logger.info(f"{package.manifest.name} installation succeeded!")
 
-    def list(self, username: Optional[str] = None, password: Optional[str] = None, pretty: Optional[bool] = False):
+    def list(self, username: Optional[str] = None,
+             password: Optional[str] = None, pretty: Optional[bool] = False) -> Union[str, dict]:
         """List packages currently installed for this instance
 
         Args:
@@ -813,9 +865,9 @@ class SavedObjectsManager():
             password (Optional[str], optional): kibana auth passwd. Defaults to None.
         """
         try:
-            packages = Package.search_installed_packages()
+            packages = Package.search_installed_packages(kibana_target=self.kibana_url)
         except PackageLoadError as e:
-            self.logger.error(e)
+            self.logger.exception(e)
             exit(0)
         if not packages:
             self.logger.error("Could not find any installed packages")
@@ -848,7 +900,7 @@ class SavedObjectsManager():
             return data
 
     def list_saved_objects(self, username: Optional[str] = None, password: Optional[str] = None,
-                           saved_object_type: Optional[str] = None, pretty: Optional[bool] = False):
+                           saved_object_type: Optional[str] = None, pretty: Optional[bool] = False) -> Union[str, dict]:
         """List the saved_objects currently installed irrespective of which "package" the belong too
 
         Args:
@@ -887,7 +939,7 @@ class SavedObjectsManager():
                   password: Optional[str] = None,
                   package_name: Optional[str] = None,
                   package_id: Optional[str] = None,
-                  remove_from_all_spaces: Optional[bool] = False):
+                  remove_from_all_spaces: Optional[bool] = False) -> None:
         """Uninstall packages from instance
 
         Args:
@@ -904,7 +956,7 @@ class SavedObjectsManager():
             if not package_id:
                 to_uninstall = self._select_packages_for_uninstall(package_name)    
             else:
-                to_uninstall = Package.find_by_id(package_id)
+                to_uninstall = Package.find_by_id(package_id, kibana_target=self.kibana_url)
                 if not to_uninstall:
                     self.logger.error(
                         f"Could not find package with id {package_id}")
@@ -912,7 +964,7 @@ class SavedObjectsManager():
                 to_uninstall = [to_uninstall]
             
         except PackageLoadError as e:
-            self.logger.error(e)
+            self.logger.exception(e)
             exit(0)
         if not username or not password:
             auth = self._get_kibana_auth_securely(username, password)
