@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import mimetypes
 import tarfile
@@ -7,7 +9,7 @@ import os
 import requests
 import urllib3
 
-from __future__ import annotations
+
 from getpass import getpass
 from tabulate import tabulate
 from uuid import uuid4
