@@ -197,24 +197,31 @@ class Package():
             result: dict
         """
         proxyurl = Package.build_proxy_url_from_target(kibana_target) if kibana_target else Package.es_proxy_url
-        result = requests.post(f"{proxyurl}?method=GET&path={Package.package_index_name}/_search",
-                               json=query,
-                               verify=False,
-                               auth=Package.auth,
-                               headers={'kbn-xsrf': 'true'})
-        if result.status_code not in range(200, 299):
-            raise PackageLoadError("Failed to fetch package data. You may not have any packages installed. "
-                                   "Does the dynamite-packages index exist?")
-        num_returned = result.json().get('hits', {
-            "total": {
-                "value": 0,
-            },
-            "hits": []
-        }).get('total').get('value')
+        try:
+            result = requests.post(f"{proxyurl}?method=GET&path={Package.package_index_name}/_search",
+                                   json=query,
+                                   verify=False,
+                                   auth=Package.auth,
+                                   headers={'kbn-xsrf': 'true'})
+            if result.status_code not in range(200, 299):
+                raise PackageLoadError("Failed to fetch package data. You may not have any packages installed. "
+                                       "Does the dynamite-packages index exist?")
+            num_returned = result.json().get('hits', {
+                "total": {
+                    "value": 0,
+                },
+                "hits": []
+            }).get('total').get('value')
 
-        if not num_returned:
-            return {}
-        return result.json()
+            if not num_returned:
+                return {}
+            return result.json()
+        except (requests.exceptions.ConnectionError) as e:
+            global pkgman_logger
+            if pkgman_logger:
+                pkgman_logger.exception(e)
+                pkgman_logger.error("Could not establish a connection to kibana")
+            exit(0)
 
     def reload_installed_objects(self) -> list:
         """Fetches Package information from ES
@@ -551,6 +558,8 @@ class SavedObjectsManager():
             log_level = logging.DEBUG
         self.logger = get_logger(
             str('KIBANA.PACKAGE_MANAGER'), level=log_level, stdout=stdout)
+        global pkgman_logger
+        pkgman_logger = self.logger
         self.verbose = verbose
         self._installed_packages = None
         self._kibana_url = target
@@ -956,7 +965,7 @@ class SavedObjectsManager():
             exit(0)
         try:
             if not package_id:
-                to_uninstall = self._select_packages_for_uninstall(package_name)    
+                to_uninstall = self._select_packages_for_uninstall(package_name)
             else:
                 to_uninstall = Package.find_by_id(package_id, kibana_target=self.kibana_url)
                 if not to_uninstall:
