@@ -400,6 +400,11 @@ class LocalNetworksConfigManager(GenericConfigManager):
     def _parse_local_networks(data: Dict) -> local_network.LocalNetworks:
         local_networks = local_network.LocalNetworks()
         for line in data['data']:
+            if any([not line,
+                    line.strip().startswith('#'),
+                    len(line) == 0,
+                    len(line.split(" ")) == 1]):
+                continue
             ip_and_cidr, description = None, None
             ipv4_match = findall(local_network.IPV4_AND_CIDR_PATTERN, line)
             ipv6_match = findall(local_network.IPV6_AND_CIDR_PATTERN, line)
