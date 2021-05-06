@@ -1,3 +1,5 @@
+from dynamite_nsm.logger import get_logger
+import logging
 import os
 from typing import List, Optional
 
@@ -51,6 +53,38 @@ class InstallManager(install.BaseInstallManager):
         for inst in install_paths:
             self.copy_file_or_directory_to_destination(f'{filebeat_tarball_extracted}/{inst}',
                                                        self.install_directory)
+    @staticmethod
+    def validate_targets(targets, stdout=True, verbose=False):
+        """
+        Ensures that targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
+        :param targets: A list of IP/host port pair
+        :param stdout: Print the output to console
+        :param verbose: Include detailed debug messages
+        :return: True if valid
+        """
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
+        if isinstance(targets, list) or isinstance(targets, tuple):
+            protocol_tokens = ['http://', 'https://', 'plain://', 'sasl://', 'redis://']
+            for i, target in enumerate(targets):
+                target = str(target).lower()
+                for token in protocol_tokens:
+                    target = target.replace(token, '')
+                try:
+                    host, port = target.split(':')
+                    if not str(port).isdigit():
+                        logger.warning(
+                            'Target Invalid: {} port must be numeric at position {}'.format(target, i))
+                        return False
+                except ValueError:
+                    logger.warning('Target Invalid: {} expected host:port at position {}'.format(target, i))
+                    return False
+        else:
+            logger.warning('Target Invalid: {}; must be a enumerable (list, tuple)'.format(targets))
+            return False
+        return True
 
     def create_update_filebeat_environment_variables(self) -> None:
         """Creates all the required Filebeat environmental variables
