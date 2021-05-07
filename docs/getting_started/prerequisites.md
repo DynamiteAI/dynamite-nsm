@@ -23,6 +23,6 @@ sudo apt-get install python3-pip
 
 ### CentOS 7/ RHEL 7
 ```bash
-yum install https://centos7.iuscommunity.org/ius-release.rpm
+yum install https://repo.ius.io/ius-release-el7.rpm
 yum install python36u python36u-devel python36u-pip
 ```
