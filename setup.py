@@ -25,7 +25,6 @@ setup(
         'PyYAML==5.3.1',
         'npyscreen==4.10.5',
         'psutil==5.8.0',
-        'marshmallow==3.11.1',
         'docstring-parser==0.7.3',
         'marshmallow==3.11.1',
         'pytest==6.2.2',
