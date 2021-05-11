@@ -13,6 +13,7 @@ PACKAGES_INDEX_MAPPING = {
                 "type": "text"
             },
             "installed_objects": {
+                "type": "nested",
                 "properties": {
                     "object_id": {
                         "type": "text",
@@ -33,6 +34,15 @@ PACKAGES_INDEX_MAPPING = {
                         }
                     },
                     "title": {
+                        "type": "text",
+                        "fields": {
+                                "keyword": {
+                                    "type": "keyword",
+                                    "ignore_above": 256
+                                }
+                        }
+                    },
+                    "space_id": {
                         "type": "text",
                         "fields": {
                                 "keyword": {
