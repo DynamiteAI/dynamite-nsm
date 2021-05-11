@@ -32,9 +32,39 @@ import psutil
 from dynamite_nsm import const
 from dynamite_nsm import exceptions
 
-"""
-General purpose utility methods used by a variety of services.
-"""
+class PrintDecorations:
+
+   @staticmethod
+   def _get_colormap():
+    pddict = PrintDecorations.__dict__
+    colormap = {}
+    for key, val in pddict.items():
+        if not key.startswith("_COLOR"):
+            continue
+        colormap[key] = val
+    return colormap
+            
+   @staticmethod
+   def colorize(strinput, _color):
+       colormap = PrintDecorations._get_colormap()
+       avail_colors = [c.replace("_COLOR_", "").lower() for c in colormap.keys()]
+       if _color not in avail_colors:
+           raise ValueError(f"Not a valid color, must be one of: {avail_colors}")
+       color = colormap[f"_COLOR_{_color.upper()}"]
+       print(color)
+       return f"{color}{strinput}{PrintDecorations._COLOR_END}"
+
+   _COLOR_CYAN = '\033[96m'
+   _COLOR_DARKCYAN = '\033[36m'
+   _COLOR_BLUE = '\033[94m'
+   _COLOR_GREEN = '\033[92m'
+   _COLOR_YELLOW = '\033[93m'
+   _COLOR_RED = '\033[91m'
+   _COLOR_BOLD = '\033[1m'
+   _COLOR_UNDERLINE = '\033[4m'
+   _COLOR_END = '\033[0m'
+
+
 
 
 def backup_configuration_file(source_file: str, configuration_backup_directory: str,
@@ -192,15 +222,26 @@ def create_dynamite_environment_file() -> None:
     set_permissions_of_file(env_file, 700)
 
 
-def create_dynamite_user(password: str) -> None:
+def create_dynamite_user() -> None:
     """Create the dynamite user and group
+    Returns:
+        None
+    """
+    password = salt = str(random.randint(10, 99))
+    pass_encry = crypt.crypt(password, salt)
+    subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
+
+
+def create_dynamite_remote_user() -> None:
+    """Create the dynamite-remote user and group
     Args:
         password: The password for the user
     Returns:
         None
     """
-    pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
-    subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
+    password = salt = str(random.randint(10, 99))
+    pass_encry = crypt.crypt(password, salt)
+    subprocess.call('useradd -p "{}" -s /bin/bash dynamite-remote'.format(pass_encry), shell=True)
 
 
 def create_jupyter_user(password: str) -> None:
@@ -213,6 +254,14 @@ def create_jupyter_user(password: str) -> None:
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
     subprocess.call('useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
                     shell=True)
+
+
+def delete_dynamite_remote_user() -> None:
+    """ Remove the dynamite-remote user
+    Returns:
+        None
+    """
+    subprocess.run(['userdel', 'dynamite-remote'])
 
 
 def download_file(url: str, filename: str, stdout: Optional[bool] = False) -> bool:
@@ -420,7 +469,17 @@ def get_environment_file_dict() -> Dict:
                 export_dict[key] = value
     except PermissionError:
         return {}
+    except FileNotFoundError:
+        return {}
     return export_dict
+
+
+def get_epoch_time_seconds() -> int:
+    """Get the number of seconds since 01/01/1970
+
+    Returns: An integer representing the number of seconds between 01/01/1970 and now.
+    """
+    return int(time.time())
 
 
 def get_memory_available_bytes() -> int:

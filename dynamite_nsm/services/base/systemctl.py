@@ -287,6 +287,16 @@ class SystemCtl:
 
         return self.stop(svc) and self.start(svc)
 
+    def reload(self, svc: str) -> None:
+        """Reload the service
+        Args:
+            svc: The name of the service or target
+
+        Returns:
+            None
+        """
+        self._exec('reload', svc)
+
     def uninstall(self, svc: str) -> None:
         """
         Uninstall a systemd service

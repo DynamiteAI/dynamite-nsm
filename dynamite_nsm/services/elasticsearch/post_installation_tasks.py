@@ -156,12 +156,12 @@ def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 
         headers={'content-type': 'application/json'},
         verify=False
     )
-    logger.debug(r.json())
+    logger.debug(r.text)
     if r.status_code != 200:
         logger.warning(
             f"Cluster settings failed to update. "
             f"You can install these settings yourself via: curl -X PUT --insecure {es_url}/_cluster/settings "
-            f"--user: admin:admin -d '{json.dumps(es_cluster_data)}'"
+            f"-u admin:admin -d '{json.dumps(es_cluster_data)}' -H \'Content-Type: application/json\'"
         )
     else:
         logger.info(f'Bootstrapping cluster settings successful.')
@@ -205,8 +205,8 @@ def post_install_bootstrap_index_aliases(bootstrap_attempts: Optional[int] = 10,
         headers={'content-type': 'application/json'},
         verify=False
     )
-    logger.debug(r.json())
-    if r.status_code != 201:
+    logger.debug(r.text)
+    if r.status_code not in [200, 201]:
         logger.warning(
             f"Index settings failed to update. "
             f"You can install these settings yourself via: curl -X POST --insecure {es_url}/_aliases "

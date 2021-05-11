@@ -11,20 +11,23 @@ class InstallManager(install.BaseInstallManager):
     def __init__(self, configuration_directory: str, install_directory: str, log_directory: str,
                  download_logstash_archive: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
-        :param download_logstash_archive: If True, download the Logstash archive from a mirror
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Install Logstash
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
+            install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
+            log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
+            download_logstash_archive: If True, download the Logstash archive from a mirror
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
-        super().__init__('logstash', verbose, stdout)
+        super().__init__('logstash', stdout=self.stdout, verbose=self.verbose)
         java_home = self.dynamite_environ.get('JAVA_HOME')
         if not java_home:
             self.logger.info('Installing compatible version of Java.')

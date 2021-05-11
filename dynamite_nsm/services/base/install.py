@@ -36,6 +36,7 @@ class BaseInstallManager:
     """
     An interface used to assist with a variety of common service installation tasks
     """
+
     def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
                  log_level=logging.INFO):
         """
@@ -53,6 +54,7 @@ class BaseInstallManager:
         self.verbose = verbose
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
         self.dynamite_environ = utilities.get_environment_file_dict()
+        utilities.create_dynamite_user()
         utilities.makedirs(const.PID_PATH, exist_ok=True)
         utilities.set_ownership_of_file(const.PID_PATH, user='dynamite', group='dynamite')
 
@@ -336,6 +338,7 @@ class BaseUninstallManager:
     """
     An interface used to assist with a variety of common service uninstall tasks
     """
+
     def __init__(self, name: str, directories: List[str], process: Optional[process.BaseProcessManager] = None,
                  verbose: Optional[bool] = False, stdout: Optional[bool] = True, log_level=logging.INFO):
         """Remove installed files for a given service
@@ -354,6 +357,20 @@ class BaseUninstallManager:
         self.stdout = stdout
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
 
+    @staticmethod
+    def delete_env_variable(name: str):
+        env_file_path = f'{const.CONFIG_PATH}/environment'
+        new_lines = []
+        with open(env_file_path, 'r') as env_in:
+            for line in env_in.readlines():
+                var, value = line.split('=')
+                var = var.strip()
+                if name == var:
+                    continue
+                new_lines.append(line.strip() + '\n')
+        with open(env_file_path, 'w') as env_out:
+            env_out.writelines(new_lines)
+
     def uninstall(self):
         """Stop and uninstall the service
         Returns:
@@ -365,6 +382,9 @@ class BaseUninstallManager:
         for dir in self.directories:
             self.logger.debug(f'Removing {dir}')
             shutil.rmtree(dir, ignore_errors=True)
-        self.logger.debug(f'Uninstalling {self.name}.service')
-        sysctl.uninstall_and_disable(f'{self.name}.service')
+        try:
+            self.logger.debug(f'Uninstalling {self.name}.service')
+            sysctl.uninstall_and_disable(f'{self.name}.service')
+        except FileNotFoundError:
+            self.logger.debug('Skipping service uninstallation as systemd was not implemented in this setup.')
         self.logger.info(f'Successfully uninstalled {self.name}')
