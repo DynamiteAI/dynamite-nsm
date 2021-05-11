@@ -18,7 +18,7 @@ To install the Monitor on a single instance, simply ensure that you have at leas
 Set the heap-space for both LogStash and ElasticSearch to below `8GB` total `(available RAM / 2)`.
 
 ```
-[root@sensor]$ dynamite install monitor --es-heap-size=5 --ls-heap-size=3
+[root@sensor]$ dynamite monitor install --es-heap-size=5 --ls-heap-size=3
 ```
 
 ### Split Instance Monitor Deployment
@@ -46,7 +46,7 @@ And Install Kibana on `Machine_C`
 ## Validating your Deployment
 
 ```
-[root@sensor] dynamite status monitor
+[root@sensor] dynamite monitor status
 ```
 
 Relevant logs default locations are listed below, and are useful for troubleshooting.
