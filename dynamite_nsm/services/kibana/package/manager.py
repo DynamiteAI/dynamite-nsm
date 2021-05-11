@@ -69,11 +69,7 @@ class InstalledObject(SchemaToObject):
             InstalledObject: an InstalledObject instance
             with the properties supplied in kwargs.
         """
-        data = {}
-        data['title'] = title
-        data['object_type'] = object_type
-        data['object_id'] = object_id
-        data['space_id'] = space_id
+        data = {'title': title, 'object_type': object_type, 'object_id': object_id, 'space_id': space_id}
         obj = cls(data)
         return obj
 
@@ -113,6 +109,7 @@ class PackageManifest(SchemaToObject):
             or dictionary format.
         """
         super().__init__(json_data, PackageManifestSchema())
+        self.name = None
         self.data['slug'] = self.create_slug()
 
     def create_slug(self) -> str:

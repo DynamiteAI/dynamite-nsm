@@ -19,7 +19,6 @@ class OSPackageManager:
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False):
         """
-
         Args:
             stdout: Print the output to console
             verbose: Include detailed debug messages

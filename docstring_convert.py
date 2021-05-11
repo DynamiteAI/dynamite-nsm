@@ -1,10 +1,9 @@
 text = '''
-    """
-    Given a callable function returns a three part definition for that function
-
-    :param func: A callable function
-    :return: A tuple with the (function.__name__, function.__annotations__, inspect.getdoc(function))
-    """
+        """
+        Thrown when an archive fails to extract
+        
+        :param message: A more specific error message
+        """
 '''
 params = []
 return_val = 'None'
