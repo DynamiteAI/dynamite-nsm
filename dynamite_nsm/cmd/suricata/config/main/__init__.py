@@ -15,5 +15,7 @@ except KeyError:
     interface = None
 except FileNotFoundError:
     interface = None
+"""
 if not interface:
     print(f'Skipping suricata.config.main as it was never retrieved successfully')
+"""

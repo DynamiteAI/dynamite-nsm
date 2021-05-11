@@ -2,6 +2,7 @@ import argparse
 import inspect
 from typing import Any, Dict, List, Optional, Union
 
+import daemon
 from tabulate import tabulate
 
 from dynamite_nsm.cmd import interface_operations
@@ -148,7 +149,6 @@ class SingleResponsibilityInterface(BaseInterface):
         parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
         for params in self.base_params:
             parser.add_argument(*params.flags, **params.kwargs)
-
         for params in self.interface_params:
             parser.add_argument(*params.flags, **params.kwargs)
         return parser
@@ -159,6 +159,10 @@ class SingleResponsibilityInterface(BaseInterface):
 
         :param args: The output of argparse.ArgumentParser.parse_args() function
         """
+        if getattr(args, 'background', None):
+            setattr(args, 'background', None)
+            return self.execute_in_background(args)
+
         constructor_kwargs = dict()
         entry_method_kwargs = dict()
         for param, value in vars(args).items():
@@ -169,6 +173,8 @@ class SingleResponsibilityInterface(BaseInterface):
         entry_method_kwargs.pop('component', None)
         entry_method_kwargs.pop('interface', None)
         entry_method_kwargs.pop('sub_interface', None)
+
+        entry_method_kwargs.pop('background', None)
         # Dynamically load our class
         klass = getattr(self, 'cls')
         # Instantiate it with the constructor kwargs
@@ -177,6 +183,12 @@ class SingleResponsibilityInterface(BaseInterface):
         exec_entry_method = getattr(exec_inst, self.entry_method_name)
         # Call the entry method
         return exec_entry_method(**entry_method_kwargs)
+
+    def execute_in_background(self, args: argparse.Namespace):
+        args.verbose = True
+        args.stdout = False
+        with daemon.DaemonContext():
+            self.execute(args)
 
 
 class SimpleConfigManagerInterface(SingleResponsibilityInterface):
