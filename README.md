@@ -1,5 +1,9 @@
  ## *DISCOVER YOUR NETWORK*
 
+<p align="center">
+ <a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_analytics.png" width="450" height="auto"></a>
+</p>
+
 ### What is Dynamite Network Security Monitor?
 
 Dynamite Network Security Monitor is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive. With DynamiteNSM you can deploy only the sensor and monitoring components you need without having to download and install a dedicated operating system. Everything in DynamiteNSM is backed up by a well-documented SDK, providing unlimted opportunities for extension and integration.
