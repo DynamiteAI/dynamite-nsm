@@ -4,3 +4,6 @@
 [submodule "jobs"]
 	path = jobs
 	url = https://github.com/DynamiteAI/jobs
+[submodule "utilities"]
+	path = utilities
+	url = https://github.com/DynamiteAI/utilities
