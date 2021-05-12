@@ -1,4 +1,6 @@
  ## *DISCOVER YOUR NETWORK*
+ 
+<a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_analytics.png" width="450" height="auto"></a>
 
 ### What is Dynamite Network Security Monitor?
 
