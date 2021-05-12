@@ -1,0 +1,6 @@
+[submodule "dynamite-nsm-configurations"]
+	path = dynamite-nsm-configurations
+	url = https://github.com/DynamiteAI/dynamite-nsm-configurations
+[submodule "configurations"]
+	path = configurations
+	url = https://github.com/DynamiteAI/configurations

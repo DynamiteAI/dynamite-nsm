@@ -140,7 +140,7 @@ class InstallManager(install.BaseInstallManager):
                                   pre_install_function=install_powertools_rhel)
 
     def setup(self, capture_network_interfaces: Optional[List[str]] = None):
-        """Setup Zeek binary
+        """Setup Zeek
         Args:
             capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         Returns:

@@ -1,8 +1,10 @@
 text = '''
         """
-        Thrown when an archive fails to extract
+        Manage an Elasticsearch configuration
         
-        :param message: A more specific error message
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
         """
 '''
 params = []
