@@ -1,7 +1,0 @@
-[AWS]
-aws_access_key_id = <AWS_KEY_ID>
-aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
-
-[S3]
-staging_bucket=<config-staging-bucket>
-staging_prefix=<config-staging-prefix>
