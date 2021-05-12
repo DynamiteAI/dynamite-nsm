@@ -1,0 +1,31 @@
+[Service]
+EnvironmentFile=/etc/dynamite/environment
+
+Restart=always
+
+User=dynamite
+Group=dynamite
+
+ExecStart=/opt/dynamite/logstash/bin/logstash --path.settings $LS_PATH_CONF
+
+# Connects standard output to /dev/null
+
+# Connects standard error to journal
+StandardError=journal
+
+# When a JVM receives a SIGTERM signal it exits with code 143
+SuccessExitStatus=143
+
+# Specifies the maximum file descriptor number that can be opened by this process
+LimitNOFILE=65535
+
+# Specifies the maximum number of bytes of memory that may be locked into RAM
+# Set to "infinity" if you use the 'bootstrap.mlockall: true' option
+# in elasticsearch.yml and 'MAX_LOCKED_MEMORY=unlimited' in /etc/default/elasticsearch
+LimitMEMLOCK=infinity
+
+# Shutdown delay in seconds, before process is tried to be killed with KILL (if configured)
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

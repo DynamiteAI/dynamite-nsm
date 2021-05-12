@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+
+plugin_usage() {
+    cat <<EOF
+    --with-kernel=DIR          Path to kernel sources
+    --with-latest-kernel       Use latest kernel sources available
+EOF
+}
+
+plugin_option() {
+
+    case "$1" in
+        --with-kernel=*)
+            append_cache_entry KERNELHEADERS_ROOT_DIR PATH $optarg
+            return 0
+            ;;
+
+        --with-latest-kernel*)
+            append_cache_entry KERNELHEADERS_LATEST BOOL ON
+            return 0
+            ;;
+
+        *)
+            return 1;
+            ;;
+    esac
+}

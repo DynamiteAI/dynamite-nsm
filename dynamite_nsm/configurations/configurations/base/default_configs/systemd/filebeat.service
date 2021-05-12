@@ -1,0 +1,20 @@
+[Unit]
+Description=Filebeat Log Collector
+Wants=network-online.target
+After=network-online.target
+PartOf=dynamite-agent.target
+
+[Service]
+EnvironmentFile=/etc/dynamite/environment
+Environment=PIDFILE=/var/run/dynamite/filebeat/filebeat.pid
+PIDFile=/var/run/dynamite/filebeat/filebeat.pid
+ExecStartPre=/bin/mkdir -p /var/run/dynamite/filebeat/
+ExecStart=/bin/bash -c "${FILEBEAT_HOME}/filebeat -c ${FILEBEAT_HOME}/filebeat.yml"
+ExecStartPost=/bin/bash -c "umask 022; pgrep filebeat > ${PIDFILE}"
+Restart=always
+RestartSec=10s
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=dynamite-agent.target

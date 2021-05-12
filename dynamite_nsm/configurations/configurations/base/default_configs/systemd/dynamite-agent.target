@@ -1,0 +1,9 @@
+[Unit]
+Description=Dynamite Agent Service
+Requires=multi-user.target
+After=multi-user.target
+Wants=suricata.service zeek.service filebeat.service
+
+
+[Install]
+WantedBy=multi-user.target

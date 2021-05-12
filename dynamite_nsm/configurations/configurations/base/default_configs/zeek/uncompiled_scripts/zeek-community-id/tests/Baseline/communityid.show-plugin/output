@@ -1,0 +1,3 @@
+Corelight::CommunityID - "Community ID" flow hash support in the connection log (dynamic, version)
+    [Function] CommunityID::hash_conn
+

@@ -1,0 +1,9 @@
+[CONSTANTS]
+VERSION=1.0.0
+ELASTICSEARCH_MIRRORS=/etc/dynamite/mirrors/elasticsearch
+FILE_BEAT_MIRRORS=/etc/dynamite/mirrors/filebeat
+LOGSTASH_MIRRORS=/etc/dynamite/mirrors/logstash
+KIBANA_MIRRORS=/etc/dynamite/mirrors/kibana
+JAVA_MIRRORS=/etc/dynamite/mirrors/java
+OINKMASTER_MIRRORS=/etc/dynamite/mirrors/oinkmaster_nightly
+ZEEK_MIRRORS=/etc/dynamite/mirrors/zeek

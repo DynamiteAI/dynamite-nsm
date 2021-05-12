@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# Hooks to add custom options to the configure script.
+#
+
+plugin_usage()
+{
+    : # Do nothing
+#    cat <<EOF
+#    --with-foo=DIR          Path to foo
+# EOF
+}
+
+plugin_option()
+{
+    case "$1" in
+#        --with-foo=*)
+#            append_cache_entry FOO_DIR PATH $optarg
+#            return 0
+#            ;;
+
+        *)
+            return 1;
+            ;;
+    esac
+}
+
+# Not a custom option, but we need a way to configure the plugin to
+# build with the old or new digest functions. --cpk
+
+is_new_digest_code()
+{
+    local path="$1"
+    grep -q HashAlgorithm "$path" 2>&1
+}
+
+plugin_addl()
+{
+    local old_digest=true
+
+    if [ -n "$brodist" ]; then
+        if is_new_digest_code "$brodist/src/digest.h"; then
+            old_digest=false
+        fi
+    elif type bro-config >/dev/null 2>&1 && bro-config --cmake_dir >/dev/null 2>&1; then
+        if is_new_digest_code "$(bro-config --include_dir)/digest.h"; then
+            old_digest=false
+        fi
+    fi
+
+    append_cache_entry BRO_HAS_OLD_DIGEST_CODE BOOL $old_digest
+    echo "Old Digest Codebase    : $old_digest"
+}

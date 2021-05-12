@@ -1,0 +1,21 @@
+[Unit]
+Description=Suricata IDS
+After=network.target
+Requires=network.target
+PartOf=dynamite-agent.target
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/dynamite/environment
+Environment=SURI_PID=/var/run/dynamite/suricata/suricata.pid
+PIDFile=/var/run/dynamite/suricata/suricata.pid
+ExecStartPre=/bin/mkdir -p /var/run/dynamite/suricata/
+ExecStart=/bin/bash -c "${SURICATA_HOME}/bin/suricata -c ${SURICATA_CONFIG}/suricata.yaml --af-packet -D --pidfile ${SURI_PID}"
+ExecReload=/bin/kill -SIGHUP $MAINPID
+ExecStop=/bin/kill -SIGTERM $MAINPID
+PrivateTmp=yes
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=dynamite-agent.target
