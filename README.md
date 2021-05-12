@@ -1,51 +1,33 @@
  ## *DISCOVER YOUR NETWORK*
 
-<a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_analytics.png" width="350" height="auto"></a>
-## Dynamite Network Security Monitor
-<!--- ### ***Discover your network*** --->
-[DynamiteNSM](http://dynamite.ai) is a free Network Security Monitor (NSM), built on top of several leading, enterprise-grade technologies. The tool provides network and cybersecurity operators with holistic insights into their networks while giving them the ability to deep-dive into lower-level activities.
+### What is Dynamite Network Security Monitor?
 
-### Why DynamiteNSM?
-- ***Start monitoring your network in minutes.*** Let DynamiteNSM handle all the complexities of setting up *Zeek*, *Suricata*, and *ElasticStack*. 
-- ***Manage through a single commandline utility***. DynamiteNSM is written in Python, and provides a single [commandline](https://github.com/DynamiteAI/dynamite-nsm/tree/master/scripts) utility for managing all the components of the NSM.
-- ***Handle massive volumes of network traffic.*** DynamiteNSM will automatically detect the best agent configuration for your environment. 
-- ***Deploy in a variety of environments.*** DynamiteNSM can be easily deployed in different environments including high-speed data centers, small-to-large enterprises, IoT & industrial networks, and even at home.
-- ***Discover your network through powerful Kibana Dashboards.*** DynamiteNSM presents powerful dashboards, giving comprehensive view into performance and threat-based metrics. 
-- ***Explore your network in JupyterNotebooks.*** DynmiateNSM includes the `lab` component which integrates our SDK with JupyterHub environment, an incredibly powerful way to explore your network.
-- ***"The quieter you become, the more you can hear."*** DynamiteNSM is inherently passive and works without disruption to the network. 
+DynamiteNSM is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive.
 
-<p align="center"float="center">
-    <img src="https://github.com/DynamiteAI/dynamite-nsm/raw/master/img/architechture-demo.gif"  width="90%" height="auto">
-    <br>
-    <i style="color:grey">Installation examples are accelerated for the sake of demo.</i>
+<p style="text-align: right;">
+    <a href="/about"> Read More »</a>
 </p>
 
-### Documentation
-Want to learn how to install DynamiteNSM in your own environment?
-Check out the [ReadTheDocs](https://dynamite-nsm.readthedocs.io/en/stable/).
+### Watch the demo.
 
-### Installation
-
-DynamiteNSM has been extensively tested on the following [Linux distributions](https://dynamite-nsm.readthedocs.io/en/stable/introduction/supported_operating_systems/).
-
-Packages are available for `Python2.7+.`
-```bash
-pip install dynamite-nsm
-```
-
-### External Configurations
-
-DynamiteNSM depends heavily on a set of default configurations that are updated in parallel with every release.
-
-Dynamite hosts these configurations iin a publically accessible S3 bucket, and the utility will check this location to retrieve the latest configs and mirrors.
-
-***Optionally***, you can host your own configurations/mirrors for custom deployments.
-
-- https://github.com/DynamiteAI/dynamite-nsm-configurations
+<center>
+    <img src="docs/data/img/youtube_placeholder.png">
+</center>
+<p style="text-align: right;">
+    <a href="https://youtube.com"> Demo »</a>
+</p>
 
 
-### Feedback
-Let us know what you think! We're constantly looking to improve our software.
-- <a href="https://form.asana.com?hash=8ba73263c69e9e1669984cd54c2a53f5cc3912fc3f97ebdf8a1236fe5895563f&id=1174202259248192"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/bug.png" width="20" height="auto"> Report a Bug</a>
+### Checkout our documentation.
 
-- <a href="https://form.asana.com?hash=ab1ed5270731e938e5e19386e526c1dd7aba912ffc1a2dbd2ca18855cebbd08f&id=1174344134673446"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/story.png" width="20" height="auto"> Request a Feature</a>
+| For Security Engineers                           | For Threat Hunters                           | For Security Analysts                           | For Data Scientists                         | For Software Engineers                      |
+|--------------------------------------------------|----------------------------------------------|-------------------------------------------------|---------------------------------------------|---------------------------------------------|
+| ![img.png](docs/data/img/security_engineers_icon.png) | ![img.png](docs/data/img/threat_hunting_icon.png) | ![img.png](docs/data/img/security_analysts_icon.png) | ![img.png](data/img/datascientist_icon.png) | ![img.png](docs/data/img/developers_icon.png)    |
+| [Read the docs »](guides/for_security_engineers/)       | [Read the docs »](for_threat_hunters/)       | [Read the docs »](guides/for_security_analysts/)       | [Read the docs »](for_data_scientists/)     | [Read the docs »](guides/for_software_developers/) |
+
+### Contribute
+
+You don't have to be a software developer to contribute. 
+Whether you have a cool detection, visualisation, or SDK contribution we welcome collaboration!
+
+Checkout our contribution guidelines and pull request guide here.
