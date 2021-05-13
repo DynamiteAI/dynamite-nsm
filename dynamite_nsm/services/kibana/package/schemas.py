@@ -2,16 +2,17 @@ from marshmallow import Schema, fields, validate, ValidationError
 import json
 
 INSTALLED_KIBANA_PACKAGES_FILE_BASE = {'installed_packages': {}}
+
 ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA = {
     'name': 'Orphaned Objects',
     'author': 'dynamite.ai',
     'package_type': 'system',
-    'description': 'This package contains all orphaned objects installed directly from a file.',
+    'description': 'This package contains all orphaned packages installed directly from a file.',
     'file_list': ['default.ndjson']
 }
 
 
-class SchemaToObject():
+class SchemaToObject:
     def __init__(self, json_data, object_schema):
 
         if type(json_data) == dict:
