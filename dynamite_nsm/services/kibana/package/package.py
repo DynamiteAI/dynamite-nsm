@@ -4,16 +4,33 @@ import json
 import logging
 import tarfile
 from uuid import uuid4
+from datetime import datetime
 from unidecode import unidecode
 from urllib.parse import urlparse
 from typing import Dict, Optional, Tuple, List
 
 import requests
+import progressbar
 
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.kibana.package import mappings, schemas
 from dynamite_nsm.services.kibana.config import ConfigManager as KibanaConfigManager
+
+
+PROGRESS_BAR_UNINSTALL_WIDGETS = [
+        '\033[92m',
+        '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
+        '\033[0m',
+        '\033[0;36m',
+        'UNINSTALL_TRACKER ',
+        '\033[0m',
+        '         | ',
+        progressbar.Percentage(),
+        ' ', progressbar.Bar(),
+        ' ', progressbar.FormatLabel(''),
+        ' ', progressbar.ETA()
+    ]
 
 
 def get_kibana_url() -> str:
@@ -42,9 +59,11 @@ class PackageUninstallationError(Exception):
 class InstalledObject(schemas.SchemaToObject):
 
     def __init__(self, json_data) -> None:
-        super().__init__(json_data, schemas.InstalledObjectSchema())
         self.title = None
+        self.object_type = None
         self.object_id = None
+
+        super().__init__(json_data, schemas.InstalledObjectSchema())
 
     @classmethod
     def from_kwargs(cls, title, object_type, object_id, space_id) -> InstalledObject:
@@ -72,10 +91,11 @@ class InstalledObject(schemas.SchemaToObject):
             InstalledObject: an InstalledObject instance
             representing the recently installed saved object.
         """
-        data = {'title': response_data.get(
-            'meta', {'title': 'untitled object'}).get('title'), 'object_type': response_data.get('type', None),
+        data = {'title': response_data.get('meta', {}).get('title', 'Untitled'),
+                'object_type': response_data.get('type', None),
                 'object_id': response_data.get('id', None)}
         data.update(kwargs)
+        # print(data)
         obj = cls.from_kwargs(**data)
         return obj
 
@@ -91,11 +111,11 @@ class PackageManifest(schemas.SchemaToObject):
             json_data (dict or str): the JSON Data matching the PackageManifest schema to be validated in string
             or dictionary format.
         """
-        super().__init__(json_data, schemas.PackageManifestSchema())
-        self.file_list = None
+        self.file_list = []
         self.author = None
         self.slug = None
         self.name = None
+        super().__init__(json_data, schemas.PackageManifestSchema())
         self.data['slug'] = self.create_slug()
 
     def create_slug(self) -> str:
@@ -161,7 +181,10 @@ class Package:
     @staticmethod
     def _parse_package_metadata(es_query_result: Dict):
         packages_data = [r['_source'] for r in es_query_result['hits']['hits']]
-        pkg = packages_data[0]
+        try:
+            pkg = packages_data[0]
+        except IndexError:
+            return None
         return pkg
 
     @staticmethod
@@ -190,7 +213,7 @@ class Package:
                                    verify=False,
                                    auth=auth,
                                    headers={'kbn-xsrf': 'true'})
-            if result.status_code not in range(200, 299):
+            if int(result.status_code) not in range(200, 299):
                 raise PackageLoadError("Failed to fetch package data. You may not have any packages installed. "
                                        "Does the dynamite-packages index exist?")
             return result.json()
@@ -225,8 +248,9 @@ class Package:
             self.logger.error(str(e))
         if not result:
             return []
-        packages_data = [r['_source'] for r in result['hits']['hits']]
-        pkg = packages_data[0]
+        pkg = Package._parse_package_metadata(result)
+        if not pkg:
+            return []
         instobjs = [InstalledObject.from_kwargs(
             **iobj) for iobj in pkg.get('installed_objects')]
         self._installed_objects = instobjs
@@ -283,7 +307,7 @@ class Package:
                 url=f"{self.es_proxy_url}?method=PUT&path={self.package_index_name}",
                 data=json.dumps(mappings.PACKAGES_INDEX_MAPPING),
                 auth=self.auth,
-                headers={'content-type': 'application/json'},
+                headers={'content-type': 'application/json', 'kbn-xsrf': 'dynamite-nsm'},
                 verify=False
             )
             return res.status_code == 200
@@ -348,8 +372,10 @@ class Package:
             True, if successfully uninstalled
         """
         statuses = []
-        for iobj in self.installed_objects:
-
+        pb = progressbar.ProgressBar(widgets=PROGRESS_BAR_UNINSTALL_WIDGETS, maxval=len(self.installed_objects))
+        pb.start()
+        for i, iobj in enumerate(self.installed_objects):
+            pb.update(i+1)
             if iobj.space_id:
                 if not force:
                     force = input(
@@ -364,7 +390,7 @@ class Package:
                 del_url += "?force=true"
             resp = requests.delete(del_url, auth=auth, verify=False, headers={
                 'kbn-xsrf': 'true'})
-            success = resp.status_code in range(200, 299)
+            success = resp.status_code in range(200, 299) or resp.status_code == 404
             if success:
                 self.deregister()
             else:
@@ -433,8 +459,9 @@ class Package:
             }
         }
         result = Package.package_index_search(query, kibana_target, auth=(username, password))
-        packages_data = [r['_source'] for r in result['hits']['hits']]
-        pkg = packages_data[0]
+        pkg = Package._parse_package_metadata(result)
+        if not pkg:
+            return
         manifest = PackageManifest(pkg.get('manifest'))
         inst_objs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
         package = Package(manifest, installed_objects=inst_objs, package_id=pkg.get('id'), kibana_target=kibana_target,
@@ -443,7 +470,7 @@ class Package:
 
     @staticmethod
     def find_by_slug(package_slug: str, kibana_target: Optional[str] = None, username: Optional[str] = None,
-                     password: Optional[str] = None) -> Package:
+                     password: Optional[str] = None) -> Optional[Package]:
         """Find a package by its slug
 
         Args:
@@ -466,7 +493,8 @@ class Package:
         }
         result = Package.package_index_search(query, kibana_target, auth=(username, password))
         pkg = Package._parse_package_metadata(result)
-
+        if not pkg:
+            return
         manifest = PackageManifest(pkg.get('manifest'))
         inst_objs = [InstalledObject.from_kwargs(**iobj) for iobj in pkg.get('installed_objects')]
         package = Package(manifest, inst_objs, package_id=pkg.get('id'), kibana_target=kibana_target)

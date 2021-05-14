@@ -46,7 +46,7 @@ class PackageManifestSchema(Schema):
     name = fields.String(required=True, validate=validate.Length(1))
     author = fields.String(required=False)
     package_type = fields.String(required=True, validate=validate.OneOf(['saved_objects', 'system']))
-    description = fields.String(required=True, validate=validate.Length(1, 300))
+    description = fields.String(required=True, validate=validate.Length(1, 512))
     file_list = fields.List(fields.String,
                             required=True,
                             # TODO: Regex validation for supported filetypes

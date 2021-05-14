@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import os
 import logging
 import mimetypes
 import tarfile
-import os
 import requests
-
 from getpass import getpass
-from tabulate import tabulate
+from datetime import datetime
 from io import BytesIO, IOBase
 from typing import AnyStr, Dict, Optional, Tuple, IO, List, Union
 from urllib.parse import urlparse
+
+import progressbar
+from tabulate import tabulate
 
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
@@ -89,10 +91,8 @@ class SavedObjectsManager:
         """
         # need to be able to provide these as parameters to the cmd
         if not username:
-            print()
             username = input("Kibana Username: ")
         if not password:
-            print()
             password = getpass("Kibana Password: ")
         return username, password
 
@@ -113,12 +113,14 @@ class SavedObjectsManager:
             package.installed_objects.append(installed_obj)
         return success
 
-    def _select_packages_for_uninstall(self, package_name) -> List[package_objects.Package]:
+    def _select_packages_for_uninstall(self, package_name, username: Optional[str] = None,
+                                       password: Optional[str] = None) -> List[package_objects.Package]:
         invalid_selection_msg = "Not a valid selection"
         non_integer_selection_msg = "Selections must be integers"
-        print("\n\nSelect a package to uninstall:")
+        print("Select a package to uninstall: ")
         installed_packages = package_objects.Package.search_installed_packages(package_name,
-                                                                               kibana_target=self.kibana_url)
+                                                                               kibana_target=self.kibana_url,
+                                                                               username=username, password=password)
         if not installed_packages:
             self.logger.error("Could not find any packages to uninstall.")
             exit(0)
@@ -201,7 +203,7 @@ class SavedObjectsManager:
             force: force uninstall from all spaces?
         """
         self.logger.info(f"Preparing {len(packages)} for uninstall.")
-        for package in packages:
+        for i, package in enumerate(packages):
             package.reload_installed_objects()
             try:
                 uninstalled = package.uninstall(self.kibana_url, auth=(username, password))
@@ -247,6 +249,7 @@ class SavedObjectsManager:
         params = {'overwrite': overwrite, 'createNewCopies': create_copies}
 
         # TODO: Catch connection denied when kibana is down and handle/inform user gracefully
+        kibana_objects_file.seek(0)
         if isinstance(kibana_objects_file, IOBase):
             req_data = {'file': ('dynamite_import.ndjson', kibana_objects_file)}
         else:
@@ -271,16 +274,8 @@ class SavedObjectsManager:
         Returns:
             None
         """
-        if not path:
-            self.logger.error('You must enter a path to the package you wish to install.')
-            return
-        elif not os.path.exists(path):
-            self.logger.error(f'This path does not exist: {path}')
-            return
-        self.check_kibana_connection(username, password)
-        is_folder = os.path.isdir(path)
 
-        def handle_archive(fp: str, user: str, passwd: str) -> None:
+        def handle_archive(fp: str, user: str, passwd: str) -> package_objects.Package:
             """
             Handle Kibana package encapsulated within a tar.gz archive
             Args:
@@ -297,7 +292,8 @@ class SavedObjectsManager:
             _package.create_packages_index()
             # check if package exists already.
             existing = package_objects.Package.find_by_slug(
-                package_slug=_package.manifest.create_slug(), kibana_target=self.kibana_url)
+                package_slug=_package.manifest.create_slug(), kibana_target=self.kibana_url, username=user,
+                password=passwd)
             if existing and not ignore_warnings:
                 rm_existing = input(
                     f"A Package titled {existing.manifest.name} is already installed, "
@@ -320,6 +316,7 @@ class SavedObjectsManager:
                 if not self._process_package_installation_results(_package, result):
                     self.logger.debug(_package, result)
                     raise generic_exceptions.InstallError(f'{_package.id} failed to install.')
+            return _package
 
         def handle_file(fp, user: str, passwd: str) -> None:
             with open(fp, 'r') as kibana_objects_file:
@@ -327,6 +324,16 @@ class SavedObjectsManager:
                                                           kibana_objects_file=kibana_objects_file)
                 installation_statuses.append(
                     self._process_package_installation_results(package, result))
+
+        if not path:
+            self.logger.error('You must enter a path to the package you wish to install.')
+            return
+        elif not os.path.exists(path):
+            self.logger.error(f'This path does not exist: {path}')
+            return
+        self.logger.info('Checking connection to Kibana.')
+        self.check_kibana_connection(username, password)
+        is_folder = os.path.isdir(path)
 
         file_paths = []
         if not is_folder:
@@ -342,19 +349,20 @@ class SavedObjectsManager:
             self.logger.info(f"Found {len(file_paths)} packages to install.")
         for file_path in file_paths:
             installation_statuses = []
-            filepath = os.path.abspath(file_path)
+            file_path = os.path.abspath(file_path)
             # check mimetype of the file to determine how to proceed
-            filetype, encoding = mimetypes.MimeTypes().guess_type(filepath)
+            filetype, encoding = mimetypes.MimeTypes().guess_type(file_path)
             # default to orphan package in case of install from .ndjson
             manifest = package_objects.PackageManifest(schemas.ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA)
             package = package_objects.Package(manifest, kibana_target=self.kibana_url)
             if filetype == 'application/x-tar' or encoding == 'gzip':
                 file_path = os.path.abspath(file_path)
                 # check mimetype of the file to determine how to proceed
-                handle_archive(file_path, username, password)
+                self.logger.info(f'Installing from TAR archive: {file_path}.')
+                package = handle_archive(file_path, username, password)
             # Should we remove this and ONLY install validatable packages?
-            elif filetype in ('application/json', 'text/plain') and filepath.endswith('ndjson'):
-                handle_file(filepath, username, password)
+            elif filetype in ('application/json', 'text/plain') and file_path.endswith('ndjson'):
+                handle_file(file_path, username, password)
             else:
                 self.logger.error(
                     "Files must be one of: .ndjson, .json, .tar.xz, .tar.gz")
@@ -388,22 +396,18 @@ class SavedObjectsManager:
             return None
 
         if pretty:
-            headers = ["Package Name", "Package ID", "Description",
-                       "Author", "Objects Within", "Total Objects"]
+            headers = ["Package Id", "Package Name", "Package Author", "Objects"]
             table = []
             for package in packages:
-                row = []
-                total = 0
-                row.append(package.manifest.name)
-                row.append(package.id)
-                row.append(package.manifest.description)
-                row.append(package.manifest.author)
-                obj_lines = []
+                row = [package.id, package.manifest.name, package.manifest.author]
+                object_table_headers = ['Object Name', 'Object Type']
+                object_table = []
                 for obj in package.installed_objects:
-                    obj_lines.append(f"[{obj.object_type}] - {obj.title}")
-                    total += 1
-                row.append("\n".join(sorted(obj_lines)))
-                row.append(total)
+                    if not isinstance(obj, package_objects.InstalledObject):
+                        continue
+                    obj_tbl_row = [obj.title, obj.object_type]
+                    object_table.append(obj_tbl_row)
+                row.append(tabulate(object_table, headers=object_table_headers, tablefmt="fancy_grid"))
                 table.append(row)
             return tabulate(table, headers=headers, tablefmt="fancy_grid")
         else:
@@ -468,7 +472,8 @@ class SavedObjectsManager:
             if not package_id:
                 to_uninstall = self._select_packages_for_uninstall(package_name)
             else:
-                to_uninstall = package_objects.Package.find_by_id(package_id, kibana_target=self.kibana_url)
+                to_uninstall = package_objects.Package.find_by_id(package_id, kibana_target=self.kibana_url,
+                                                                  username=username, password=password)
                 if not to_uninstall:
                     self.logger.error(
                         f"Could not find package with id {package_id}")
