@@ -54,7 +54,7 @@ def append_service_interfaces_to_parser(
     Append multiple service interfaces to a single parser
 
     :param parent_parser:
-    :param interfaces: A dictionary service interface objects where the key is the name of that interface,
+    :param interfaces: A dictionary service interface packages where the key is the name of that interface,
                     and the value is the interface object itself.
     :param interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy these
                                  service_interfaces should be placed

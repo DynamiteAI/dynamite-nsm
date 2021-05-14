@@ -42,8 +42,7 @@ class ConfigManager(YamlConfigManager):
         Args:
             out_file_path: The path to the output file; if none given overwrites existing
             backup_directory: The path to the backup directory
-            top_text: Optional text that is included at the very top of the configuration file
-            (usually used for YAML %VERSION% section.)
+            top_text: The text to be appended at the top of the config file (typically used for YAML version header)
         Returns:
             None
         """

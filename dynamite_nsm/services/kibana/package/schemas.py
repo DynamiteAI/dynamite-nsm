@@ -2,16 +2,17 @@ from marshmallow import Schema, fields, validate, ValidationError
 import json
 
 INSTALLED_KIBANA_PACKAGES_FILE_BASE = {'installed_packages': {}}
+
 ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA = {
     'name': 'Orphaned Objects',
     'author': 'dynamite.ai',
     'package_type': 'system',
-    'description': 'This package contains all orphaned objects installed directly from a file.',
+    'description': 'This package contains all orphaned packages installed directly from a file.',
     'file_list': ['default.ndjson']
 }
 
 
-class SchemaToObject():
+class SchemaToObject:
     def __init__(self, json_data, object_schema):
 
         if type(json_data) == dict:
@@ -45,7 +46,7 @@ class PackageManifestSchema(Schema):
     name = fields.String(required=True, validate=validate.Length(1))
     author = fields.String(required=False)
     package_type = fields.String(required=True, validate=validate.OneOf(['saved_objects', 'system']))
-    description = fields.String(required=True, validate=validate.Length(1, 300))
+    description = fields.String(required=True, validate=validate.Length(1, 512))
     file_list = fields.List(fields.String,
                             required=True,
                             # TODO: Regex validation for supported filetypes

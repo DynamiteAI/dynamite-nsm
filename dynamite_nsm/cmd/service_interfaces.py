@@ -56,6 +56,7 @@ class MultipleResponsibilityInterface(BaseInterface):
         if not interface_description:
             self.interfaceModuleType_description = inspect.getdoc(cls)
         self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
+        # print(self.cls, [(item.name, item.flags, item.kwargs) for item in self.base_params])
 
     def get_parser(self) -> argparse.ArgumentParser:
         """
@@ -65,12 +66,12 @@ class MultipleResponsibilityInterface(BaseInterface):
         """
         parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
         actions_subparsers = parser.add_subparsers()
-        for params in self.base_params:
-            parser.add_argument(*params.flags, **params.kwargs)
         for method, params_group in self.interface_methods.items():
             if method in self.supported_method_names:
                 action_parser = actions_subparsers.add_parser(method.replace('_', '-'))
                 action_parser.set_defaults(entry_method_name=method)
+                for params in self.base_params:
+                    action_parser.add_argument(*params.flags, **params.kwargs)
                 for params in params_group:
                     try:
                         action_parser.add_argument(*params.flags, **params.kwargs)
@@ -83,6 +84,7 @@ class MultipleResponsibilityInterface(BaseInterface):
         Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
         :param args: The output of argparse.ArgumentParser.parse_args() function
         """
+
         constructor_kwargs = dict()
         entry_method_kwargs = dict()
         for param, value in vars(args).items():
@@ -307,12 +309,12 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
 def append_service_multiple_responsibility_interface_to_parser(parser: argparse.ArgumentParser,
                                                                interface: MultipleResponsibilityInterface):
     actions_subparsers = parser.add_subparsers()
-    for params in interface.base_params:
-        parser.add_argument(*params.flags, **params.kwargs)
     for method, params_group in interface.interface_methods.items():
         if method in interface.supported_method_names:
             action_parser = actions_subparsers.add_parser(method.replace('_', '-'))
             action_parser.set_defaults(entry_method_name=method)
+            for params in interface.base_params:
+                action_parser.add_argument(*params.flags, **params.kwargs)
             for params in params_group:
                 try:
                     action_parser.add_argument(*params.flags, **params.kwargs)

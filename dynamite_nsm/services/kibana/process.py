@@ -30,12 +30,13 @@ class ProcessManager(process.BaseProcessManager):
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
-        """
-        Manage Kibana Process
-
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
-        :param pretty_print_status: If enabled, status will be printed in a tabulated style
+        """Manage Kibana Process
+        Args:
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+            pretty_print_status: If enabled, status will be printed in a tabulated style
+        Returns:
+            None
         """
         environ = utilities.get_environment_file_dict()
         process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana', log_path=environ.get('KIBANA_LOGS'),
@@ -61,34 +62,3 @@ class ProcessManager(process.BaseProcessManager):
         # Pass permissions back to dynamite user
         utilities.set_ownership_of_file(environ['KIBANA_LOGS'], user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(environ['KIBANA_HOME'], user='dynamite', group='dynamite')
-
-
-def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-          pretty_print_status: Optional[bool] = False) -> Dict:
-    p = ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
-    p.start()
-
-    # Let's block for a few seconds to allow kibana time to create a PID
-    i = 0
-    while not p.pid:
-        # If after 10 seconds we don't detect a PID we return status of potentially dead process
-        if i > 10:
-            break
-        time.sleep(1)
-        i += 1
-    return p.status()
-
-
-def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-         pretty_print_status: Optional[bool] = False) -> bool:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
-
-
-def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-            pretty_print_status: Optional[bool] = False) -> bool:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
-
-
-def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-           pretty_print_status: Optional[bool] = False) -> Dict:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

@@ -1,10 +1,10 @@
 text = '''
         """
-        Manage an Elasticsearch configuration
-        
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        Manage Kibana Process
+
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
+        :param pretty_print_status: If enabled, status will be printed in a tabulated style
         """
 '''
 params = []

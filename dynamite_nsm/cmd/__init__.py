@@ -2,7 +2,6 @@ import argparse
 from typing import Optional
 
 from dynamite_nsm.cmd import elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates, remote
-from dynamite_nsm.cmd.kibana import package
 
 
 def process_arguments(args: argparse.Namespace, component: Optional[str], interface: Optional[str] = None,
@@ -20,7 +19,7 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
         elasticsearch=elasticsearch,
         logstash=logstash,
         kibana=kibana,
-        package=package,
+        package=kibana.package,
         zeek=zeek,
         suricata=suricata,
         filebeat=filebeat,
@@ -41,6 +40,7 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
 
     try:
         return component_interface.interface.execute(args)
-    except AttributeError:
+    except AttributeError as e:
+        print(e)
         component_modules[component].get_action_parser().print_help()
 
