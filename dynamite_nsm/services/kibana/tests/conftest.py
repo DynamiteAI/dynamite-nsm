@@ -11,7 +11,7 @@ def basic_manifest_data():
         "name": "Package Name",
         "author": "Author McAuthorface",
         "author_email": "a.mcauthorface@dynamitepackagers.co",
-        "description": "A saved objects package",
+        "description": "A saved packages package",
         "package_type": "saved_objects",
         "file_list": ["traffic_by_protocol.ndjson"]
     }

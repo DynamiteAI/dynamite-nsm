@@ -1,8 +1,8 @@
 ```bash
-usage: kibana package [-h] [--stdout] [--verbose] [--package-install-path PACKAGE_INSTALL_PATH] [--username USERNAME] [--password PASSWORD] [--saved-object-type SAVED_OBJECT_TYPE] {install,list,list-saved-objects,uninstall}
+usage: kibana package [-h] [--stdout] [--verbose] [--package-install-path PACKAGE_INSTALL_PATH] [--username USERNAME] [--password PASSWORD] [--saved-object-type SAVED_OBJECT_TYPE] {install,list,list-saved-packages,uninstall}
 
 positional arguments:
-  {install,list,list-saved-objects,uninstall}
+  {install,list,list-saved-packages,uninstall}
 
 optional arguments:
   -h, --help            show this help message and exit
