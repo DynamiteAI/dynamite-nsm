@@ -11,7 +11,6 @@ Dynamite Network Security Monitor is a lightweight, versatile network security m
  <img src="img/arch_monitor.png" width="auto" height="auto">
 </p>
 
-![img.png](img/arch_monitor.png)
 
 ### Checkout our documentation.
 
