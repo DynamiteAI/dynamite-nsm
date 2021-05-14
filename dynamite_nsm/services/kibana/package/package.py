@@ -213,9 +213,11 @@ class Package:
                                    verify=False,
                                    auth=auth,
                                    headers={'kbn-xsrf': 'true'})
-            if int(result.status_code) not in range(200, 299):
+            if result.status_code not in range(200, 299):
                 raise PackageLoadError("Failed to fetch package data. You may not have any packages installed. "
                                        "Does the dynamite-packages index exist?")
+            elif result.status_code == 401:
+                raise PackageLoadError("Authentication failed. Check your username/password combination.")
             return result.json()
         except requests.exceptions.ConnectionError:
             raise PackageLoadError('Failed to connect to Elasticsearch through Kibana proxy. Is it up?')
