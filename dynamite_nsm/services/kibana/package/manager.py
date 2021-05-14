@@ -394,6 +394,30 @@ class SavedObjectsManager:
                 data.append(package.es_input())
             return data
 
+    def list_spaces(self, pretty: Optional[bool] = False) -> Union[str, List]:
+        url = f'{package_objects.Package.build_proxy_url_from_target(self.kibana_url)}'\
+               '?path=_opendistro/_security/api/tenants&method=GET'
+        resp = requests.post(url, auth=(self.username, self.password), headers={'kbn-xsrf': 'true'})
+        fetched_data = resp.json()
+        table = []
+        headers = ["Name", "Description", "Reserved", "Hidden", "Static"]
+        for tenant_name, tenant_data in fetched_data.items():
+            if pretty:
+                table.append([
+                    tenant_name,
+                    tenant_data.get('description'),
+                    tenant_data.get('reserved'),
+                    tenant_data.get('hidden'),
+                    tenant_data.get('static')
+                ])
+            else:
+                tenant_data.update({"name": tenant_name})
+                table.append(tenant_data)
+        if pretty:
+            return tabulate(table, headers=headers, tablefmt="fancy_grid")
+        else:
+            return table
+    
     def list_saved_objects(self, saved_object_type: Optional[str] = None,
                            pretty: Optional[bool] = False) -> Union[str, List]:
         """List the saved_objects currently installed irrespective of which "package" the belong too
