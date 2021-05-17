@@ -14,6 +14,12 @@ The monitor is responsible for collecting these events, enriching and normalizin
     <img src="img/arch_agent.png" width="50%" height="auto">
 </p>
 
+### Components
+<p align="center">
+    <img src="img/arch_agent.png" width="80%" height="auto">
+    <img src="img/arch_monitor.png" width="80%" height="auto">
+</p>
+
 
 ### Checkout our documentation.
 
