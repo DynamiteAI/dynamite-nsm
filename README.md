@@ -7,19 +7,29 @@
 ### What is Dynamite Network Security Monitor?
 
 Dynamite Network Security Monitor is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive. With DynamiteNSM you can deploy only the sensor and monitoring components you need without having to download and install a dedicated operating system. Everything in DynamiteNSM is backed up by a well-documented SDK, providing unlimted opportunities for extension and integration.
-<p align="center">
-The agent (sensor) is responsible for generating JSON events from raw network packets and forwarding these events to a monitor.
-    <img src="img/arch_monitor.png" width="50%" height="auto">
-The monitor is responsible for collecting these events, enriching and normalizing them, and presenting them to the end-user through intuitive visualizations and a powerful search user interface.
-    <img src="img/arch_agent.png" width="50%" height="auto">
-</p>
+
+**To get started. Simply install via PIP:**
+
+```
+sudo pip3 install dynamite-nsm
+```
 
 ### Components
 <p align="center">
-    <img src="img/arch_agent.png" width="80%" height="auto">
-    <img src="img/arch_monitor.png" width="80%" height="auto">
+ <img src="img/arch_agent.png" width="80%" height="auto"></img>
 </p>
 
+***The agent (sensor) is responsible for generating JSON events from raw network packets and forwarding these events to a monitor.***
+
+[**More Info »**]()
+
+<p align="center">
+ <img src="img/arch_monitor.png" width="80%" height="auto"></img>
+</p>
+
+***The monitor is responsible for collecting these events, enriching and normalizing them, and presenting them to the end-user through intuitive visualizations and a powerful search user interface.***
+
+[**More Info »**]()
 
 ### Checkout our documentation.
 
