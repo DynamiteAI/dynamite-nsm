@@ -8,7 +8,9 @@
 
 Dynamite Network Security Monitor is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive. With DynamiteNSM you can deploy only the sensor and monitoring components you need without having to download and install a dedicated operating system. Everything in DynamiteNSM is backed up by a well-documented SDK, providing unlimted opportunities for extension and integration.
 <p align="center">
+The agent (sensor) is responsible for generating JSON events from raw network packets and forwarding these events to a monitor.
     <img src="img/arch_monitor.png" width="50%" height="auto">
+The monitor is responsible for collecting these events, enriching and normalizing them, and presenting them to the end-user through intuitive visualizations and a powerful search user interface.
     <img src="img/arch_agent.png" width="50%" height="auto">
 </p>
 
