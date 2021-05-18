@@ -66,7 +66,7 @@ class InstalledObject(schemas.SchemaToObject):
         super().__init__(json_data, schemas.InstalledObjectSchema())
 
     @classmethod
-    def from_kwargs(cls, title, object_type, object_id, space_id) -> InstalledObject:
+    def from_kwargs(cls, title, object_type, object_id, tenant) -> InstalledObject:
         """Create instance of InstalledObject from kwargs
            instead of a dict or json string.
 
@@ -74,7 +74,7 @@ class InstalledObject(schemas.SchemaToObject):
             InstalledObject: an InstalledObject instance
             with the properties supplied in kwargs.
         """
-        data = {'title': title, 'object_type': object_type, 'object_id': object_id, 'space_id': space_id}
+        data = {'title': title, 'object_type': object_type, 'object_id': object_id, 'tenant': tenant}
         obj = cls(data)
         return obj
 
@@ -345,7 +345,7 @@ class Package:
         return input_dict
 
     @staticmethod
-    def result_to_object(result: dict, space_id: Optional[str] = None) -> InstalledObject:
+    def result_to_object(result: dict, tenant: Optional[str] = None) -> InstalledObject:
         """Takes an installation result output from Kibana API and returns an InstalledObject
 
         Args:
@@ -356,9 +356,9 @@ class Package:
             InstalledObject: Instance representing the object that was installed.
         """
         obj = InstalledObject.from_installation_result(
-            result, space_id=space_id)
-        if space_id:
-            obj.space_id = space_id
+            result, tenant=tenant)
+        if tenant:
+            obj.tenant= tenant
         return obj
 
     def uninstall(self, kibana_target: str, auth: Tuple[str, str], force: Optional[bool] = False) -> bool:
@@ -378,15 +378,7 @@ class Package:
         pb.start()
         for i, iobj in enumerate(self.installed_objects):
             pb.update(i+1)
-            if iobj.space_id:
-                if not force:
-                    force = input(
-                        f"{iobj.title} was installed to a space. Do you want to remove it from all spaces? [y/n]") in \
-                            "yY"
-                url = f'{kibana_target}/s/{iobj.space_id}/api/saved_objects'
-            else:
-                force = True
-                url = f'{kibana_target}/api/saved_objects'
+            url = f'{kibana_target}/api/saved_objects'
             del_url = f"{url}/{iobj.object_type}/{iobj.object_id}"
             if force:
                 del_url += "?force=true"

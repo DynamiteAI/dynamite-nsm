@@ -206,6 +206,49 @@ class SavedObjectsManager:
                 self.logger.exception(e)
                 self.logger.error(f"Could not uninstall package {package.id} ({package.manifest.name})")
 
+    def logout_authenticated_session(self, authenticated_session):
+        authenticated_session.post(f'{self.kibana_url}/auth/logout', headers={'kbn-xsrf': 'true'})
+
+    def get_authenticated_session(self, username, password):
+        session = requests.Session()
+        login_resp = session.post(f'{self.kibana_url}/auth/login', data={
+                'username': username,
+                'password': password
+            }, headers={'kbn-xsrf': 'true'})
+        if login_resp.status_code not in range(200, 299):
+            self.logger.error("Failed to authenticate to kibana with provided credentials.")
+            return None
+        return session
+
+    def get_current_tenant(self, authenticated_session):
+        session = authenticated_session
+        if not session:
+            return None
+        resp = session.get(f"{self.kibana_url}/api/v1/multitenancy/tenant")
+        return resp.text
+
+    def switch_tenant(self, tenant_name, username, authenticated_session):
+        tenant_name = self.parse_tenant(tenant_name)
+        authenticated_session.post(f"{self.kibana_url}/api/v1/multitenancy/tenant", data={
+            "tenant": tenant_name,
+            "username": username
+        }, headers={'kbn-xsrf': 'true'})
+        # things get weird without this GET.
+        curtenant = authenticated_session.get(f"{self.kibana_url}/api/v1/multitenancy/tenant")
+        return curtenant.text == tenant_name
+
+    def parse_tenant(self, tenant: str):
+        GLOBAL_TENANT = ""
+        PRIVATE_TENANT = "__user__"
+        if tenant:
+            if tenant.lower() in ["private", "private_tenant", "user"]:
+                tenant = PRIVATE_TENANT
+            if tenant.lower() in ["global", "global_tenant"]:
+                tenant = GLOBAL_TENANT
+        else:
+            tenant = GLOBAL_TENANT
+        return tenant
+
     def import_kibana_saved_objects(self, kibana_objects_file: IO[AnyStr],
                                     tenant: Optional[str] = None,
                                     overwrite: Optional[bool] = True,
@@ -226,31 +269,16 @@ class SavedObjectsManager:
         """
         auth = self.get_kibana_auth_securely(self.username, self.password)
         self.check_kibana_connection(*auth)
+        session = self.get_authenticated_session(*auth)
+        originaltenant = self.get_current_tenant(session)
+
         #  unsure why, but when you select the global tenant it just sends an empty string.
-        GLOBAL_TENANT = ""
-        PRIVATE_TENANT = "__user__"
-        session = requests.Session()
+        
         if tenant:
-            if tenant.lower() in ["private", "private_tenant", "user"]:
-                tenant = PRIVATE_TENANT
-            if tenant.lower() in ["global", "global_tenant"]:
-                tenant = GLOBAL_TENANT
-            login_resp = session.post(f'{self.kibana_url}/auth/login', data={
-                'username': auth[0],
-                'password': auth[1]
-            }, headers={'kbn-xsrf': 'true'})
-            if login_resp.status_code not in range(200, 299):
-                self.logger.error("Failed to authenticate to kibana with provided credentials.")
-        else:
-            tenant = GLOBAL_TENANT
+            tenant = self.parse_tenant(tenant)
         url = f'{self.kibana_url}/api/saved_objects/_import'
         # switch our session to the appropriate tenant.
-        session.post(f"{self.kibana_url}/api/v1/multitenancy/tenant", data={
-            "tenant": tenant,
-            "username": auth[0]
-        }, headers={'kbn-xsrf': 'true'})
-        # things get weird without this GET.
-        session.get(f"{self.kibana_url}/api/v1/multitenancy/tenant")
+        self.switch_tenant(tenant, auth[0], session)
         if all([overwrite, create_copies]):
             raise ValueError(
                 "createNewCopies and overwrite cannot be used together.")
@@ -267,7 +295,7 @@ class SavedObjectsManager:
         if resp.status_code not in range(200, 299):
             self.logger.error(f'Kibana endpoint returned a {resp.status_code} - {resp.text}')
             # TODO raise exception
-        session.post(f'{self.kibana_url}/auth/logout', headers={'kbn-xsrf': 'true'})
+        self.switch_tenant(originaltenant, auth[0], session)
         return resp.json()
 
     def install(self, path: str, ignore_warnings: Optional[bool] = False, tenant: Optional[str] = "") -> None:
@@ -297,7 +325,15 @@ class SavedObjectsManager:
             _manifest = tar.extractfile('manifest.json')
             _manifest = package_objects.PackageManifest(_manifest.read().decode('utf8'))
             _package = package_objects.Package(_manifest, kibana_target=self.kibana_url)
-            _package.create_packages_index()
+            if tenant:
+                sess = self.get_authenticated_session(user, passwd)
+                preseltenant = self.get_current_tenant(sess)
+                self.switch_tenant(tenant, user, sess)
+                _package.create_packages_index()
+                self.switch_tenant(preseltenant, user, sess)
+
+            else:
+                _package.create_packages_index()
             # check if package exists already.
             existing = package_objects.Package.find_by_slug(
                 package_slug=_package.manifest.create_slug(), kibana_target=self.kibana_url, username=user,
