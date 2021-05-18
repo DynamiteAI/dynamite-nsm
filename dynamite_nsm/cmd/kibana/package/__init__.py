@@ -6,7 +6,7 @@ interface = \
                                     supported_method_names=["install",
                                                             "uninstall", "list",
                                                             'list_saved_objects',
-                                                            'list_spaces'],
+                                                            'list_tenants'],
                                     interface_name='Kibana Package Manager',
                                     interface_description='Add, remove, and manage packages '
                                                           'created for Dynamite Kibana.',

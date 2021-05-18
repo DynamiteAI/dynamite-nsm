@@ -207,14 +207,14 @@ class SavedObjectsManager:
                 self.logger.error(f"Could not uninstall package {package.id} ({package.manifest.name})")
 
     def import_kibana_saved_objects(self, kibana_objects_file: IO[AnyStr],
-                                    space: Optional[str] = None,
+                                    tenant: Optional[str] = None,
                                     overwrite: Optional[bool] = True,
                                     create_copies: Optional[bool] = False) -> Dict:
         """Import saved packages into kibana from a package file
 
         Args:
             kibana_objects_file: the file to parse and install
-            space: id of the space to install the object to. Defaults to None.
+            tenant: name of the tenant to install the package(s) to. Defaults to None.
             overwrite: If True, overwrite existing ids. Defaults to True.
             create_copies: create copies if an object exists with the same id?. Defaults to False.
 
@@ -226,11 +226,31 @@ class SavedObjectsManager:
         """
         auth = self.get_kibana_auth_securely(self.username, self.password)
         self.check_kibana_connection(*auth)
-
-        if space:
-            url = f'{self.kibana_url}/s/{space}/api/saved_objects/_import'
+        #  unsure why, but when you select the global tenant it just sends an empty string.
+        GLOBAL_TENANT = ""
+        PRIVATE_TENANT = "__user__"
+        session = requests.Session()
+        if tenant:
+            if tenant.lower() in ["private", "private_tenant", "user"]:
+                tenant = PRIVATE_TENANT
+            if tenant.lower() in ["global", "global_tenant"]:
+                tenant = GLOBAL_TENANT
+            login_resp = session.post(f'{self.kibana_url}/auth/login', data={
+                'username': auth[0],
+                'password': auth[1]
+            }, headers={'kbn-xsrf': 'true'})
+            if login_resp.status_code not in range(200, 299):
+                self.logger.error("Failed to authenticate to kibana with provided credentials.")
         else:
-            url = f'{self.kibana_url}/api/saved_objects/_import'
+            tenant = GLOBAL_TENANT
+        url = f'{self.kibana_url}/api/saved_objects/_import'
+        # switch our session to the appropriate tenant.
+        session.post(f"{self.kibana_url}/api/v1/multitenancy/tenant", data={
+            "tenant": tenant,
+            "username": auth[0]
+        }, headers={'kbn-xsrf': 'true'})
+        # things get weird without this GET.
+        session.get(f"{self.kibana_url}/api/v1/multitenancy/tenant")
         if all([overwrite, create_copies]):
             raise ValueError(
                 "createNewCopies and overwrite cannot be used together.")
@@ -243,25 +263,27 @@ class SavedObjectsManager:
             req_data = {'file': ('dynamite_import.ndjson', kibana_objects_file)}
         else:
             req_data = {'file': kibana_objects_file}
-        resp = requests.post(url, params=params, auth=auth, files=req_data, headers={'kbn-xsrf': 'true'})
+        resp = session.post(url, params=params, auth=auth, files=req_data, headers={'kbn-xsrf': 'true'})
         if resp.status_code not in range(200, 299):
             self.logger.error(f'Kibana endpoint returned a {resp.status_code} - {resp.text}')
             # TODO raise exception
+        session.post(f'{self.kibana_url}/auth/logout', headers={'kbn-xsrf': 'true'})
         return resp.json()
 
-    def install(self, path: str, ignore_warnings: Optional[bool] = False) -> None:
+    def install(self, path: str, ignore_warnings: Optional[bool] = False, tenant: Optional[str] = "") -> None:
         """Install a package. A package can be given as an archive or directory.
             A package must contain one or more ndjson files and a manifest.json
 
         Args:
             ignore_warnings: If True, the user won't be given a warning prompt if package will be overwritten.
             path: path to the file or folder of files
+            tenant: The name of the tenant to install the package to.
 
         Returns:
             None
         """
 
-        def handle_archive(fp: str, user: str, passwd: str) -> package_objects.Package:
+        def handle_archive(fp: str, user: str, passwd: str, tenant: Optional[str] = "") -> package_objects.Package:
             """
             Handle Kibana package encapsulated within a tar.gz archive
             Args:
@@ -296,7 +318,7 @@ class SavedObjectsManager:
                 # should we validate the json before sending it up to kibana?
                 kibana_objects_file = BytesIO(
                     tar.extractfile(member).read())
-                result = self.import_kibana_saved_objects(kibana_objects_file=kibana_objects_file)
+                result = self.import_kibana_saved_objects(kibana_objects_file=kibana_objects_file, tenant=tenant)
                 kibana_objects_file.close()
                 if not self._process_package_installation_results(_package, result):
                     self.logger.debug(_package, result)
@@ -343,7 +365,7 @@ class SavedObjectsManager:
                 file_path = os.path.abspath(file_path)
                 # check mimetype of the file to determine how to proceed
                 self.logger.info(f'Installing from TAR archive: {file_path}.')
-                package = handle_archive(file_path, self.username, self.password)
+                package = handle_archive(file_path, self.username, self.password, tenant=tenant)
             # Should we remove this and ONLY install validatable packages?
             elif filetype in ('application/json', 'text/plain') and file_path.endswith('ndjson'):
                 handle_file(file_path, self.username, self.password)
@@ -394,7 +416,7 @@ class SavedObjectsManager:
                 data.append(package.es_input())
             return data
 
-    def list_spaces(self, pretty: Optional[bool] = False) -> Union[str, List]:
+    def list_tenants(self, pretty: Optional[bool] = False) -> Union[str, List]:
         url = f'{package_objects.Package.build_proxy_url_from_target(self.kibana_url)}'\
                '?path=_opendistro/_security/api/tenants&method=GET'
         resp = requests.post(url, auth=(self.username, self.password), headers={'kbn-xsrf': 'true'})
