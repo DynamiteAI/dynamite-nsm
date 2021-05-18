@@ -339,8 +339,10 @@ class BaseUninstallManager:
     An interface used to assist with a variety of common service uninstall tasks
     """
 
-    def __init__(self, name: str, directories: List[str], process: Optional[process.BaseProcessManager] = None,
-                 verbose: Optional[bool] = False, stdout: Optional[bool] = True, log_level=logging.INFO):
+    def __init__(self, name: str, directories: List[str], environ_vars: Optional[List[str]] = None,
+                 process: Optional[process.BaseProcessManager] = None,
+                 sysctl_service_name: Optional[str] = None, verbose: Optional[bool] = False,
+                 stdout: Optional[bool] = True, log_level=logging.INFO):
         """Remove installed files for a given service
         Args:
             name: The name of the process
@@ -352,8 +354,10 @@ class BaseUninstallManager:
         """
         self.name = name
         self.directories = directories
+        self.environ_vars = environ_vars
         self.process = process
         self.verbose = verbose
+        self.sysctl_service_name = sysctl_service_name
         self.stdout = stdout
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
 
@@ -382,9 +386,14 @@ class BaseUninstallManager:
         for dir in self.directories:
             self.logger.debug(f'Removing {dir}')
             shutil.rmtree(dir, ignore_errors=True)
-        try:
-            self.logger.debug(f'Uninstalling {self.name}.service')
-            sysctl.uninstall_and_disable(f'{self.name}.service')
-        except FileNotFoundError:
-            self.logger.debug('Skipping service uninstallation as systemd was not implemented in this setup.')
+        if self.environ_vars:
+            for var in self.environ_vars:
+                self.delete_env_variable(var)
+        if self.sysctl_service_name:
+            try:
+                self.logger.debug(f'Uninstalling {self.sysctl_service_name}')
+                sysctl.uninstall_and_disable(self.sysctl_service_name)
+            except FileNotFoundError:
+                self.logger.debug('Skipping service uninstallation as systemd was not implemented in this setup.')
+
         self.logger.info(f'Successfully uninstalled {self.name}')

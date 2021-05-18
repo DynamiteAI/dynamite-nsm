@@ -30,7 +30,7 @@ class BaseProcessManager:
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
+        self.logger = get_logger(name, level=log_level, stdout=stdout)
         self.pid_file = None
         self.pid = None
         self.systemd_service = systemd_service

@@ -56,7 +56,7 @@ class ConfigManager(YamlConfigManager):
 
         with open(self.elasticsearch_config_path) as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
-        super().__init__(self.config_data_raw, name='ELASTICCFG', verbose=verbose, stdout=stdout, **extract_tokens)
+        super().__init__(self.config_data_raw, name='elasticsearch.config', verbose=verbose, stdout=stdout, **extract_tokens)
         self.parse_yaml_file()
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
@@ -85,7 +85,7 @@ class JavaHeapOptionsConfigManager(JavaOptionsConfigManager):
         self.elasticsearch_jvm_config_path = f'{self.configuration_directory}/jvm.options'
         with open(self.elasticsearch_jvm_config_path) as jvm_config:
             data = {'data': jvm_config.readlines()}
-        super().__init__(data, name='ELASTICJAVA', verbose=verbose, stdout=stdout)
+        super().__init__(data, name='elasticsearch.java', verbose=verbose, stdout=stdout)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """

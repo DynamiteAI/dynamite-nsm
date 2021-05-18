@@ -40,7 +40,7 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
     log_level = logging.INFO
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('ELASTICSEARCH_TLS_BOOTSTRAPPER', level=log_level, stdout=stdout)
+    logger = get_logger('elasticsearch.tls_setup', level=log_level, stdout=stdout)
 
     utilities.makedirs(f'{cert_directory}')
     openssl_commands = [
@@ -79,7 +79,7 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
                                       unix_permissions_integer=600)
     utilities.set_permissions_of_file(file_path=f'{cert_directory}/{trusted_ca_key_name}', unix_permissions_integer=600)
     logger.info('Starting ElasticSearch process to install our security index configuration.')
-    process.start(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).start()
 
     es_main_config = config.ConfigManager(configuration_directory)
     network_host = es_main_config.network_host
@@ -137,9 +137,9 @@ def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 
     es_cluster_data = {'persistent': {'script.max_compilations_rate': '500/5m'}}
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('ELASTICSEARCH_CLUSTER_BOOTSTRAPPER', level=log_level, stdout=stdout)
+    logger = get_logger('elasticsearch.cluster_setup', level=log_level, stdout=stdout)
     logger.info('Starting ElasticSearch process to update cluster settings.')
-    process.start(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).start()
     attempts = 0
     if not es_process_profile.is_running():
         logger.warning(f'Could not start Elasticsearch cluster. Check the Elasticsearch cluster log.')
@@ -166,7 +166,7 @@ def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 
     else:
         logger.info(f'Bootstrapping cluster settings successful.')
     logger.info('Shutting down ElasticSearch service.')
-    process.stop(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).stop()
 
 
 def post_install_bootstrap_index_aliases(bootstrap_attempts: Optional[int] = 10, stdout: Optional[bool] = False,
@@ -186,9 +186,9 @@ def post_install_bootstrap_index_aliases(bootstrap_attempts: Optional[int] = 10,
     es_index_data = {'actions': {'add': {'index': 'filebeat-*', 'alias': 'dynamite-*'}}}
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('ELASTICSEARCH_INDEX_ALIAS_BOOTSTRAPPER', level=log_level, stdout=stdout)
+    logger = get_logger('elasticsearch.index_setup', level=log_level, stdout=stdout)
     logger.info('Starting ElasticSearch process to update index aliases.')
-    process.start(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).start()
     attempts = 0
     if not es_process_profile.is_running():
         logger.warning(f'Could not start Elasticsearch cluster. Check the Elasticsearch cluster log.')
@@ -215,4 +215,4 @@ def post_install_bootstrap_index_aliases(bootstrap_attempts: Optional[int] = 10,
     else:
         logger.info(f'Bootstrapping index settings successful.')
     logger.info('Shutting down ElasticSearch service.')
-    process.stop(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).stop()

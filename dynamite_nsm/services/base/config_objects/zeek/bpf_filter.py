@@ -6,7 +6,13 @@ from dynamite_nsm.services.base.config_objects.generic import GenericItem, Gener
 
 class BpfFilter(GenericItem):
 
-    def __init__(self, interface_name, pattern):
+    def __init__(self, interface_name: str, pattern: str):
+        """
+        Represents a BPF filter applied to a single network interface.
+        Args:
+            interface_name: The name of the network interface (E.G eth0, en0, mon0)
+            pattern: A valid BPF filter (E.G udp dst port not 53)
+        """
         self.interface = interface_name
         self.pattern = pattern
 
@@ -20,6 +26,10 @@ class BpfFilter(GenericItem):
         )
 
     def get_raw(self) -> str:
+        """Get the representation of the value as it would appear the config.
+
+        Returns: A line containing both the network interface and pattern associated with it.
+        """
         return f'{self.interface}\t{self.pattern}'
 
 

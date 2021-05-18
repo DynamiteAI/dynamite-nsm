@@ -26,7 +26,7 @@ class ProcessManager(process.BaseProcessManager):
         """
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('ZEEK_HOME')
-        process.BaseProcessManager.__init__(self, 'zeek.service', 'zeek', log_path=None,
+        process.BaseProcessManager.__init__(self, 'zeek.service', 'zeek.process', log_path=None,
                                             stdout=stdout, verbose=verbose,
                                             pretty_print_status=pretty_print_status)
 
@@ -127,65 +127,4 @@ class ProcessManager(process.BaseProcessManager):
                     'STDERR', zeek_status['info'].get('stderr')
                 ])
             return tabulate.tabulate(status_tbl, tablefmt='fancy_grid')
-
         return zeek_status
-
-
-def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-          pretty_print_status: Optional[bool] = False) -> bool:
-    """
-    Start Zeek process
-    Args:
-        stdout: Print output to console
-        verbose: Include detailed debug messages
-        pretty_print_status: If true, status will be printed in a tabular form
-
-    Returns:
-        True, if succeeded
-    """
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).start()
-
-
-def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-         pretty_print_status: Optional[bool] = False) -> bool:
-    """
-    Stop Zeek process
-    Args:
-        stdout: Print output to console
-        verbose: Include detailed debug messages
-        pretty_print_status: If true, status will be printed in a tabular form
-
-    Returns:
-        True, if succeeded
-    """
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
-
-
-def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-            pretty_print_status: Optional[bool] = False) -> bool:
-    """
-    Restart Zeek process
-    Args:
-        stdout: Print output to console
-        verbose: Include detailed debug messages
-        pretty_print_status: If true, status will be printed in a tabular form
-
-    Returns:
-        True, if succeeded
-    """
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
-
-
-def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-           pretty_print_status: Optional[bool] = False) -> Union[Dict, str]:
-    """
-    Get status of Zeek processes
-    Args:
-        stdout: Print output to console
-        verbose: Include detailed debug messages
-        pretty_print_status: If true, status will be printed in a tabular form
-
-    Returns:
-        A dictionary or string depending on the value of pretty_print_status
-    """
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

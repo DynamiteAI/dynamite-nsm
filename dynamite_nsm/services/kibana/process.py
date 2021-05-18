@@ -39,7 +39,7 @@ class ProcessManager(process.BaseProcessManager):
             None
         """
         environ = utilities.get_environment_file_dict()
-        process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana', log_path=environ.get('KIBANA_LOGS'),
+        process.BaseProcessManager.__init__(self, 'kibana.service', 'kibana.process', log_path=environ.get('KIBANA_LOGS'),
                                             stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
         if not kibana_profile.ProcessProfiler().is_installed():
             self.logger.error("Kibana is not installed. Install it with 'dynamite kibana install -h'")

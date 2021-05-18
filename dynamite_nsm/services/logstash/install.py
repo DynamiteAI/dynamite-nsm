@@ -27,7 +27,7 @@ class InstallManager(install.BaseInstallManager):
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
-        super().__init__('logstash', stdout=self.stdout, verbose=self.verbose)
+        super().__init__('logstash.process', stdout=self.stdout, verbose=self.verbose)
         java_home = self.dynamite_environ.get('JAVA_HOME')
         if not java_home:
             self.logger.info('Installing compatible version of Java.')
@@ -149,7 +149,6 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-
     """
     Uninstall Logstash
     """
@@ -169,8 +168,10 @@ class UninstallManager(install.BaseUninstallManager):
         ls_directories = [env_vars.get('LS_HOME'), ls_config.path_logs]
         if purge_config:
             ls_directories.append(env_vars.get('LS_PATH_CONF'))
-        super().__init__('logstash', directories=ls_directories,
-                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+        super().__init__('logstash.process', directories=ls_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), sysctl_service_name='logstash.service',
+                         environ_vars=['LS_HOME', 'LS_PATH_CONF'],
+                         stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':

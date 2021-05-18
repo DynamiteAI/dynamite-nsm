@@ -27,7 +27,7 @@ def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logge
 
     utilities.makedirs(const.LOG_PATH, exist_ok=True)
 
-    logger = logging.getLogger(component_name)
+    logger = logging.getLogger(component_name.upper())
     logger.setLevel(level)
     if not len(logger.handlers):
         fh = logging.FileHandler(os.path.join(const.LOG_PATH, 'dynamite-{}.log'.format(TODAY_FORMATTED_DATE)))

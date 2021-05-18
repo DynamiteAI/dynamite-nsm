@@ -11,7 +11,7 @@ class RuleUpdateManager(BaseInstallManager):
         :param stdout: Print the output to console
         :param verbose: Include detailed debug messages
         """
-        super().__init__('suricata', stdout=stdout, verbose=verbose)
+        super().__init__('suricata.update', stdout=stdout, verbose=verbose)
 
     def update(self):
         update_suricata_rules(stdout=self.stdout, verbose=self.verbose)

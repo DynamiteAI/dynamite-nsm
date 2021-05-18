@@ -16,7 +16,7 @@ class InstallManager(install.BaseInstallManager):
             stdout: Print output to console
             verbose: Include detailed debug messages
         """
-        super().__init__('node', verbose, stdout)
+        super().__init__('remote.install', verbose, stdout)
         self.install_directory = install_directory
 
     @staticmethod
@@ -120,5 +120,5 @@ class UninstallManager(install.BaseUninstallManager):
         :param verbose: Include detailed debug messages
         """
 
-        super().__init__('node', ['/home/dynamite-remote/.ssh'], stdout=stdout, verbose=verbose)
+        super().__init__('remote.uninstall', ['/home/dynamite-remote/.ssh'], stdout=stdout, verbose=verbose)
         utilities.delete_dynamite_remote_user()

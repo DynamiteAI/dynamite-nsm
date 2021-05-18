@@ -79,7 +79,6 @@ class MetricsEntry:
         Returns:
             None
         """
-
         self.open_file_handles = math.ceil((self.open_file_handles + metric_entry.open_file_handles) / 2)
         self.memory_allocated = math.ceil((self.memory_allocated + metric_entry.memory_allocated) / 2)
         self.harvester_open_files = math.ceil((self.harvester_open_files + metric_entry.harvester_open_files) / 2)

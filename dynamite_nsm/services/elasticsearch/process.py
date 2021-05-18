@@ -36,7 +36,7 @@ class ProcessManager(process.BaseProcessManager):
         """
 
         environ = utilities.get_environment_file_dict()
-        process.BaseProcessManager.__init__(self, 'elasticsearch.service', 'elasticsearch',
+        process.BaseProcessManager.__init__(self, 'elasticsearch.service', 'elasticsearch.process',
                                             log_path=environ.get('ES_LOGS'),
                                             create_pid_file=True,
                                             stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
@@ -60,18 +60,3 @@ def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
         time.sleep(1)
         i += 1
     return p.status()
-
-
-def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-         pretty_print_status: Optional[bool] = False) -> bool:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
-
-
-def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-            pretty_print_status: Optional[bool] = False) -> bool:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
-
-
-def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-           pretty_print_status: Optional[bool] = False) -> Dict:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()

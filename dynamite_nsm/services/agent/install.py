@@ -1,0 +1,67 @@
+from typing import List, Optional
+
+from dynamite_nsm.services.base import install
+from dynamite_nsm.services.zeek import install as zeek_install
+from dynamite_nsm.services.filebeat import install as filebeat_install
+from dynamite_nsm.services.suricata import install as suricata_install
+
+
+class InstallManager(install.BaseInstallManager):
+
+    def __init__(self, filebeat_install_directory: str,
+                 suricata_configuration_directory: Optional[str] = None,
+                 suricata_install_directory: Optional[str] = None,
+                 suricata_log_directory: Optional[str] = None,
+                 zeek_configuration_directory: Optional[str] = None, zeek_install_directory: Optional[str] = None,
+                 stdout: Optional[bool] = False, verbose: Optional[bool] = False
+                 ):
+        super().__init__('agent.install', stdout=stdout, verbose=verbose)
+        self.filebeat_install_directory = filebeat_install_directory
+        self.suricata_configuration_directory = suricata_configuration_directory
+        self.suricata_log_directory = suricata_log_directory
+        self.suricata_install_directory = suricata_install_directory
+        self.zeek_configuration_directory = zeek_configuration_directory
+        self.zeek_install_directory = zeek_install_directory
+
+    def setup(self, capture_network_interfaces: Optional[List[str]]):
+
+        if self.suricata_install_directory or self.suricata_configuration_directory or self.suricata_log_directory:
+            if not (
+                    self.suricata_install_directory and self.suricata_configuration_directory
+                    and self.suricata_log_directory
+            ):
+                self.logger.error(
+                    'You must specify suricata-configuration-directory, suricata-install-directory, '
+                    'and suricata-log-directory.')
+                return None
+            suricata_install.InstallManager(configuration_directory=self.suricata_configuration_directory,
+                                            install_directory=self.suricata_install_directory,
+                                            log_directory=self.suricata_log_directory, download_suricata_archive=True,
+                                            stdout=self.stdout, verbose=self.verbose).setup(capture_network_interfaces)
+        if self.zeek_install_directory or self.zeek_install_directory:
+            if not (self.zeek_install_directory and self.zeek_configuration_directory):
+                self.logger.error(
+                    'You must specify both the zeek-configuration-directory and zeek-install-directory.')
+                return None
+            zeek_install.InstallManager(configuration_directory=self.zeek_configuration_directory,
+                                        install_directory=self.zeek_install_directory, download_zeek_archive=True,
+                                        stdout=self.stdout, verbose=self.verbose).setup(capture_network_interfaces)
+        filebeat_install.InstallManager(install_directory=self.filebeat_install_directory,
+                                        download_filebeat_archive=True, stdout=self.stdout,
+                                        verbose=self.verbose).setup()
+
+
+class UninstallManager(install.BaseUninstallManager):
+
+    def __init__(self, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
+        super().__init__(directories=[], name='agent.uninstall', stdout=stdout, verbose=verbose)
+
+    def uninstall(self):
+        from dynamite_nsm.services.zeek import profile as zeek_profile
+        from dynamite_nsm.services.suricata import profile as suricata_profile
+
+        filebeat_install.UninstallManager(self.stdout, self.verbose).uninstall()
+        if zeek_profile.ProcessProfiler().is_installed():
+            zeek_install.UninstallManager(purge_config=True, stdout=self.stdout, verbose=self.verbose).uninstall()
+        if suricata_profile.ProcessProfiler().is_installed():
+            suricata_install.UninstallManager(purge_config=True, stdout=self.stdout, verbose=self.verbose).uninstall()

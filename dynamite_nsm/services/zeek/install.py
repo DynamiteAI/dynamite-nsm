@@ -12,7 +12,6 @@ COMPILE_PROCESS_EXPECTED_LINE_COUNT = 6779
 
 
 class InstallManager(install.BaseInstallManager):
-
     """
     Manage Zeek installation process
     """
@@ -33,7 +32,7 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
 
-        super(InstallManager, self).__init__(name='zeek', verbose=verbose, stdout=stdout)
+        super(InstallManager, self).__init__(name='zeek.install', verbose=verbose, stdout=stdout)
         if download_zeek_archive:
             self.logger.info("Attempting to download Zeek archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.ZEEK_MIRRORS)
@@ -207,7 +206,6 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-
     """
     Manage Zeek uninstallation process
     """
@@ -227,7 +225,8 @@ class UninstallManager(install.BaseUninstallManager):
         zeek_directories = [env_vars.get('ZEEK_HOME')]
         if purge_config:
             zeek_directories.append(env_vars.get('ZEEK_SCRIPTS'))
-        super().__init__('zeek', directories=zeek_directories,
+        super().__init__('zeek.uninstall', directories=zeek_directories, sysctl_service_name='zeek.service',
+                         environ_vars=['ZEEK_HOME', 'ZEEK_SCRIPTS'],
                          process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
 
 

@@ -14,7 +14,7 @@ from dynamite_nsm.utilities import makedirs
 class InstallManager(install.BaseInstallManager):
 
     def __init__(self, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        super().__init__('updates', verbose, stdout)
+        super().__init__('updates.install', verbose, stdout)
         self.stdout = stdout
         self.verbose = verbose
 

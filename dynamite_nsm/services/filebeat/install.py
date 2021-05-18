@@ -12,6 +12,7 @@ class InstallManager(install.BaseInstallManager):
     """
     Manage Filebeat installation process
     """
+
     def __init__(self, install_directory: str, download_filebeat_archive: Optional[bool] = True,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False):
         """Install Filebeat
@@ -27,7 +28,7 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
 
-        super().__init__('filebeat', verbose, stdout)
+        super().__init__('filebeat.install', verbose, stdout)
         if download_filebeat_archive:
             self.logger.info('Attempting to download Filebeat OSS archive.')
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.FILE_BEAT_MIRRORS)
@@ -155,7 +156,6 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-
     """
     Manage Filebeat uninstall process
     """
@@ -170,8 +170,9 @@ class UninstallManager(install.BaseUninstallManager):
 
         env_vars = utilities.get_environment_file_dict()
         fb_directories = [env_vars.get('FILEBEAT_HOME'), ]
-        super().__init__('filebeat', directories=fb_directories,
-                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+        super().__init__('filebeat.uninstall', directories=fb_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), sysctl_service_name='filebeat.service',
+                         environ_vars=['FILEBEAT_HOME'], stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':

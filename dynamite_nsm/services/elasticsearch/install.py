@@ -29,7 +29,7 @@ class InstallManager(install.BaseInstallManager):
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
-        install.BaseInstallManager.__init__(self, 'elasticsearch', verbose=self.verbose, stdout=stdout)
+        install.BaseInstallManager.__init__(self, 'elasticsearch.install', verbose=self.verbose, stdout=stdout)
         java_home = self.dynamite_environ.get('JAVA_HOME')
         if not java_home:
             self.logger.info('Installing compatible version of Java.')
@@ -192,17 +192,18 @@ class UninstallManager(install.BaseUninstallManager):
         es_directories = [env_vars.get('ES_HOME'), es_config.path_logs]
         if purge_config:
             es_directories.append(env_vars.get('ES_PATH_CONF'))
-        super().__init__('elasticsearch', directories=es_directories,
-                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+        super().__init__('elasticsearch.uninstall', directories=es_directories,
+                         environ_vars=['ES_PATH_CONF', 'ES_HOME', 'ES_LOG'],
+                         process=ProcessManager(stdout=stdout, verbose=verbose),
+                         sysctl_service_name='elasticsearch.service', stdout=stdout, verbose=verbose)
 
-
-if __name__ == '__main__':
-    install_mngr = InstallManager(
-        install_directory=f'{const.INSTALL_PATH}/elasticsearch',
-        configuration_directory=f'{const.CONFIG_PATH}/elasticsearch',
-        log_directory=f'{const.LOG_PATH}/elasticsearch',
-        download_elasticsearch_archive=True,
-        stdout=True,
-        verbose=True
-    )
-    install_mngr.setup()
+    if __name__ == '__main__':
+        install_mngr = InstallManager(
+            install_directory=f'{const.INSTALL_PATH}/elasticsearch',
+            configuration_directory=f'{const.CONFIG_PATH}/elasticsearch',
+            log_directory=f'{const.LOG_PATH}/elasticsearch',
+            download_elasticsearch_archive=True,
+            stdout=True,
+            verbose=True
+        )
+        install_mngr.setup()

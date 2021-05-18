@@ -35,8 +35,7 @@ class SavedObjectsManager:
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        self.logger = get_logger(
-            str('kibana.package'), level=log_level, stdout=stdout)
+        self.logger = get_logger('kibana.package', level=log_level, stdout=stdout)
         self.verbose = verbose
         self._installed_packages = None
         self._kibana_url = target

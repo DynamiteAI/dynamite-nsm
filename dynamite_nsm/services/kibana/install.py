@@ -25,7 +25,7 @@ class InstallManager(install.BaseInstallManager):
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
-        super().__init__('kibana', verbose, stdout)
+        super().__init__('kibana.install', verbose, stdout)
         if download_kibana_archive:
             self.logger.info("Attempting to download Kibana (OpenDistro) archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.KIBANA_MIRRORS)
@@ -136,8 +136,10 @@ class UninstallManager(install.BaseUninstallManager):
         kb_directories = [env_vars.get('KIBANA_HOME'), env_vars.get('KIBANA_LOGS')]
         if purge_config:
             kb_directories.append(env_vars.get('KIBANA_PATH_CONF'))
-        super().__init__('kibana', directories=kb_directories,
-                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+        super().__init__('kibana.uninstall', directories=kb_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), sysctl_service_name='kibana.service',
+                         environ_vars=['KIBANA_HOME', 'KIBANA_LOGS', 'KIBANA_PATH_CONF'],
+                         stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':
