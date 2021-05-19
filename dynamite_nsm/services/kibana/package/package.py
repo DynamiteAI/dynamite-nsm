@@ -223,7 +223,8 @@ class Package:
                                    headers={'kbn-xsrf': 'true'})
             if result.status_code not in range(200, 299):
                 raise PackageLoadError("Failed to fetch package data. You may not have any packages installed. "
-                                       "Does the dynamite-packages index exist?")
+                                       "Does the dynamite-packages index exist, "
+                                       f"and does the user '{auth[0]}' have access?")
             elif result.status_code == 401:
                 raise PackageLoadError("Authentication failed. Check your username/password combination.")
             return result.json()

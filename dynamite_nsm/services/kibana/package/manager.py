@@ -432,7 +432,6 @@ class SavedObjectsManager:
                 if not self.verbose:
                     self.logger.info('Use --verbose flag to see more error detail.')
             else:
-                
                 package.register()
                 self.logger.info(f"{package.manifest.name} installation succeeded!")
 
@@ -475,6 +474,9 @@ class SavedObjectsManager:
         url = f'{package_objects.Package.build_proxy_url_from_target(self.kibana_url)}'\
                '?path=_opendistro/_security/api/tenants&method=GET'
         resp = requests.post(url, auth=(self.username, self.password), headers={'kbn-xsrf': 'true'})
+        if resp.status_code == 403:
+            self.logger.error(resp.json().get('message'))
+            exit(0)
         fetched_data = resp.json()
         table = []
         headers = ["Name", "Description", "Reserved", "Hidden", "Static"]
