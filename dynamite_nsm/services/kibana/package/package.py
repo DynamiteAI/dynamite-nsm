@@ -62,6 +62,7 @@ class InstalledObject(schemas.SchemaToObject):
         self.title = None
         self.object_type = None
         self.object_id = None
+        self.tenant = None
 
         super().__init__(json_data, schemas.InstalledObjectSchema())
 
@@ -100,7 +101,12 @@ class InstalledObject(schemas.SchemaToObject):
         return obj
 
     def __repr__(self) -> str:
-        return f"<InstalledObject id: {self.object_id}, title: {self.title} >"
+        reprstr = f"<InstalledObject id: {self.object_id}, title: {self.title} "
+        if self.tenant:
+            reprstr += f"tenant: {self.tenant} "
+        reprstr += ">"
+
+        return reprstr
 
 
 class PackageManifest(schemas.SchemaToObject):
@@ -153,7 +159,8 @@ class Package:
                  installed_objects: Optional[list] = None,
                  auth: Optional[tuple] = ('admin', 'admin'), package_id: Optional[str] = None,
                  kibana_target: Optional[str] = None, stdout: Optional[bool] = True,
-                 verbose: Optional[bool] = False) -> None:
+                 verbose: Optional[bool] = False,
+                 autoload_installed_objects: Optional[bool] = True) -> None:
         """Initializes a Package object with a provided manifest, optional
 
         Args:
@@ -177,6 +184,7 @@ class Package:
         if not kibana_target:
             kibana_target = get_kibana_url()
         self.es_proxy_url = self.build_proxy_url_from_target(kibana_target)
+        self.autoload_installed_objects = autoload_installed_objects
 
     @staticmethod
     def _parse_package_metadata(es_query_result: Dict):
@@ -235,10 +243,9 @@ class Package:
         # should we instead perform inner hits query on nested object to get packages for current slug?
         query = {
             "query": {
-                "match": {
-                    "manifest.slug": {
-                        "query": self.slug,
-                        "minimum_should_match": 1
+                "term": {
+                    "manifest.slug.keyword": {
+                        "value": self.slug
                     }
                 }
             }
@@ -260,7 +267,7 @@ class Package:
 
     @property
     def installed_objects(self) -> list:
-        if not self._installed_objects:
+        if not self._installed_objects and self.autoload_installed_objects:
             self.reload_installed_objects()
         return self._installed_objects
 
@@ -350,7 +357,7 @@ class Package:
 
         Args:
             result (dict): result from installation call to kibana
-            space_id (Optional[str], optional): set space ID for the installed object instance. Defaults to None.
+            tenant (Optional[str], optional): set space ID for the installed object instance. Defaults to None.
 
         Returns:
             InstalledObject: Instance representing the object that was installed.
@@ -358,9 +365,9 @@ class Package:
         obj = InstalledObject.from_installation_result(
             result, tenant=tenant)
         if tenant:
-            obj.tenant= tenant
+            obj.tenant = tenant
         return obj
-
+    
     def uninstall(self, kibana_target: str, auth: Tuple[str, str], force: Optional[bool] = False) -> bool:
         """uninstalls a package from kibana
 
@@ -477,10 +484,9 @@ class Package:
         """
         query = {
             "query": {
-                "match": {
-                    "manifest.slug": {
-                        "query": package_slug,
-                        "minimum_should_match": 1
+                "term": {
+                    "manifest.slug.keyword": {
+                        "value": package_slug,
                     }
                 }
             }

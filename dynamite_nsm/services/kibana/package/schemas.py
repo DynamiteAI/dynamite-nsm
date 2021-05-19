@@ -39,7 +39,7 @@ class InstalledObjectSchema(Schema):
     title = fields.String(required=True)
     overwrite = fields.Boolean(required=False, default=False, allow_none=True)
     destination_id = fields.String(required=False, default=None, allow_none=True)
-    space_id = fields.String(required=False, default=None, allow_none=True)
+    tenant = fields.String(required=False, default=None, allow_none=True)
 
 
 class PackageManifestSchema(Schema):

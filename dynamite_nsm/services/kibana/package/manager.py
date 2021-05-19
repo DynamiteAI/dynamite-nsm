@@ -95,7 +95,10 @@ class SavedObjectsManager:
             password = getpass("Kibana Password: ")
         return username, password
 
-    def _process_package_installation_results(self, package: package_objects.Package, kibana_response: dict) -> bool:
+    def _process_package_installation_results(self,
+                                              package: package_objects.Package,
+                                              kibana_response: dict,
+                                              tenant: Optional[str] = "") -> bool:
 
         success = kibana_response.get('success', False)
         errors = kibana_response.get('errors')
@@ -108,7 +111,7 @@ class SavedObjectsManager:
         for installed in kibana_response.get('successResults', []):
             if self.verbose:
                 self.logger.info(installed)
-            installed_obj = package.result_to_object(installed)
+            installed_obj = package.result_to_object(installed, tenant=tenant)
             package.installed_objects.append(installed_obj)
         return success
 
@@ -273,7 +276,6 @@ class SavedObjectsManager:
         originaltenant = self.get_current_tenant(session)
 
         #  unsure why, but when you select the global tenant it just sends an empty string.
-        
         if tenant:
             tenant = self.parse_tenant(tenant)
         url = f'{self.kibana_url}/api/saved_objects/_import'
@@ -324,16 +326,10 @@ class SavedObjectsManager:
             tar = tarfile.open(fp)
             _manifest = tar.extractfile('manifest.json')
             _manifest = package_objects.PackageManifest(_manifest.read().decode('utf8'))
-            _package = package_objects.Package(_manifest, kibana_target=self.kibana_url)
-            if tenant:
-                sess = self.get_authenticated_session(user, passwd)
-                preseltenant = self.get_current_tenant(sess)
-                self.switch_tenant(tenant, user, sess)
-                _package.create_packages_index()
-                self.switch_tenant(preseltenant, user, sess)
-
-            else:
-                _package.create_packages_index()
+            _package = package_objects.Package(_manifest,
+                                               kibana_target=self.kibana_url,
+                                               autoload_installed_objects=False)
+            _package.create_packages_index()
             # check if package exists already.
             existing = package_objects.Package.find_by_slug(
                 package_slug=_package.manifest.create_slug(), kibana_target=self.kibana_url, username=user,
@@ -356,7 +352,12 @@ class SavedObjectsManager:
                     tar.extractfile(member).read())
                 result = self.import_kibana_saved_objects(kibana_objects_file=kibana_objects_file, tenant=tenant)
                 kibana_objects_file.close()
-                if not self._process_package_installation_results(_package, result):
+                if tenant:
+                    if tenant == "__user__":
+                        tenant = f"private: {user}"
+                else:
+                    tenant = "global"
+                if not self._process_package_installation_results(_package, result, tenant):
                     self.logger.debug(_package, result)
                     raise generic_exceptions.InstallError(f'{_package.id} failed to install.')
             return _package
@@ -376,7 +377,8 @@ class SavedObjectsManager:
         self.logger.info('Checking connection to Kibana.')
         self.check_kibana_connection(self.username, self.password)
         is_folder = os.path.isdir(path)
-
+        if tenant:
+            tenant = self.parse_tenant(tenant)
         file_paths = []
         if not is_folder:
             file_paths = [path]
@@ -397,6 +399,7 @@ class SavedObjectsManager:
             # default to orphan package in case of install from .ndjson
             manifest = package_objects.PackageManifest(schemas.ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA)
             package = package_objects.Package(manifest, kibana_target=self.kibana_url)
+            
             if filetype == 'application/x-tar' or encoding == 'gzip':
                 file_path = os.path.abspath(file_path)
                 # check mimetype of the file to determine how to proceed
@@ -415,6 +418,7 @@ class SavedObjectsManager:
                 if not self.verbose:
                     self.logger.info('Use --verbose flag to see more error detail.')
             else:
+                
                 package.register()
                 self.logger.info(f"{package.manifest.name} installation succeeded!")
 
@@ -436,12 +440,13 @@ class SavedObjectsManager:
             table = []
             for package in packages:
                 row = [package.id, package.manifest.name, package.manifest.author]
-                object_table_headers = ['Object Name', 'Object Type']
+                object_table_headers = ['Object Name', 'Object Type', 'Tenant']
                 object_table = []
                 for obj in package.installed_objects:
                     if not isinstance(obj, package_objects.InstalledObject):
                         continue
-                    obj_tbl_row = [obj.title, obj.object_type]
+
+                    obj_tbl_row = [obj.title, obj.object_type, obj.tenant]
                     object_table.append(obj_tbl_row)
                 row.append(tabulate(object_table, headers=object_table_headers, tablefmt="fancy_grid"))
                 table.append(row)
