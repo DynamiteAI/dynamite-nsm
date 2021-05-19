@@ -54,7 +54,6 @@ class PrintDecorations:
         if _color not in avail_colors:
             raise ValueError(f"Not a valid color, must be one of: {avail_colors}")
         color = colormap[f"_COLOR_{_color.upper()}"]
-        print(color)
         return f"{color}{strinput}{PrintDecorations._COLOR_END}"
 
     _COLOR_CYAN = '\033[96m'

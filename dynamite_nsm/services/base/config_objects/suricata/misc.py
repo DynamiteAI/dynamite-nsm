@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Set
 
 AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP = dict(
     FANOUT_HASH='cluster_flow',
@@ -40,7 +40,7 @@ class AfPacketInterface:
             if self.cluster_type in AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.keys():
                 self.cluster_type = AF_PACKET_FANOUT_MODE_TO_CLUSTER_TYPE_MAP.get(self.cluster_type)
         else:
-            self.cluster_type = 'cluster_flow'
+            self.cluster_type = 'cluster_qm'
 
         self.bpf_filter = bpf_filter
         self.threads = threads
@@ -118,3 +118,47 @@ class AfPacketInterfaces:
 
     def get_raw(self) -> List[Dict]:
         return [interface.get_raw() for interface in self.interfaces]
+
+
+class Threading:
+
+    def __init__(self, management_cpu_set: Optional[Set] = None, receive_cpu_set: Optional[Set] = None,
+                 worker_cpu_set: Optional[Set] = None):
+        self.management_cpu_set = management_cpu_set
+        self.receive_cpu_set = receive_cpu_set
+        self.worker_cpu_set = worker_cpu_set
+
+    def get_raw(self):
+        thread_families = []
+        if self.management_cpu_set:
+            thread_families.append(
+                {
+                    'management-cpu-set': {
+                        'cpu': list(self.management_cpu_set)
+                    }
+                }
+            )
+        if self.receive_cpu_set:
+            thread_families.append(
+                {
+                    'receive-cpu-set': {
+                        'cpu': list(self.receive_cpu_set)
+                    }
+                }
+            )
+        if self.worker_cpu_set:
+            thread_families.append(
+                {
+                    'worker-cpu-set': {
+                        'cpu': list(self.worker_cpu_set),
+                        'mode': 'exclusive',
+                        'threads': len(self.worker_cpu_set)
+                    }
+                }
+            )
+        return {
+            'threading': {
+                'set-cpu-affinity': True,
+                'cpu-affinity': thread_families
+            }
+        }

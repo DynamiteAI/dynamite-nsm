@@ -174,9 +174,10 @@ class InstallManager(install.BaseInstallManager):
             suricata_config.af_packet_interfaces.add(
                 misc.AfPacketInterface(
                     interface_name=interface, threads='auto', cluster_id=random.randint(1, 50000),
-                    cluster_type='cluster_flow'
+                    cluster_type='cluster_qm'
                 )
             )
+
         suricata_config.commit()
         self.logger.info('Applying Suricata configuration.')
         self.logger.debug(suricata_config.af_packet_interfaces)

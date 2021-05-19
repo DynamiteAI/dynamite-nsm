@@ -359,6 +359,8 @@ class BaseUninstallManager:
         self.verbose = verbose
         self.sysctl_service_name = sysctl_service_name
         self.stdout = stdout
+        if verbose:
+            log_level = logging.DEBUG
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
 
     @staticmethod
