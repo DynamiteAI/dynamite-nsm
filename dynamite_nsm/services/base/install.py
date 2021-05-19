@@ -248,16 +248,16 @@ class BaseInstallManager:
         return url, archive_name, dir_name
 
     @staticmethod
-    def validate_capture_network_interfaces(network_interfaces: List[str]) -> bool:
+    def validate_inspect_interfaces(inspect_interfaces: List[str]) -> bool:
         """
         Determine if one or more capture interface actually exists
         Args:
-            network_interfaces: A list of network interface names to evaluate.
+            inspect_interfaces: A list of network interface names to evaluate.
 
         Returns:
             True, if all interfaces are valid
         """
-        for interface in network_interfaces:
+        for interface in inspect_interfaces:
             if interface not in utilities.get_network_interface_names():
                 return False
         return True

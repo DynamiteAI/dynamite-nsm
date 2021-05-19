@@ -292,7 +292,8 @@ class NodeConfigManager(GenericConfigManager):
         """
         zeek_worker_configs = node.Workers()
         if not available_cpus:
-            available_cpus = [c for c in range(0, utilities.get_cpu_core_count())]
+            # Reserve CPU 0 for KERNEL operations
+            available_cpus = [c for c in range(1, utilities.get_cpu_core_count())]
 
         for cpu_affinity_group in utilities.get_optimal_cpu_interface_config(interface_names=interface_names,
                                                                              available_cpus=available_cpus):

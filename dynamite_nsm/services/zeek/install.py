@@ -138,17 +138,17 @@ class InstallManager(install.BaseInstallManager):
         self.install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
                                   pre_install_function=install_powertools_rhel)
 
-    def setup(self, capture_network_interfaces: Optional[List[str]] = None):
+    def setup(self, inspect_interfaces: Optional[List[str]] = None):
         """Setup Zeek
         Args:
-            capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         Returns:
             None
         """
-        if not capture_network_interfaces:
-            capture_network_interfaces = utilities.get_network_interface_names()
-        if not self.validate_capture_network_interfaces(capture_network_interfaces):
-            raise install.NetworkInterfaceNotFound(capture_network_interfaces)
+        if not inspect_interfaces:
+            inspect_interfaces = utilities.get_network_interface_names()
+        if not self.validate_inspect_interfaces(inspect_interfaces):
+            raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()
         self.install_zeek_dependencies()
         self.create_update_zeek_environment_variables()
@@ -177,7 +177,7 @@ class InstallManager(install.BaseInstallManager):
                                                           verbose=self.verbose)
         node_config = config.NodeConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
         node_config.workers = node.Workers()
-        for worker in node_config.get_optimal_zeek_worker_config(capture_network_interfaces):
+        for worker in node_config.get_optimal_zeek_worker_config(inspect_interfaces):
             node_config.workers.add_worker(
                 worker=worker
             )

@@ -2,6 +2,7 @@ import os
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
+from dynamite_nsm.jobs import events_to_hosts
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.elasticsearch import config
 from dynamite_nsm.services.elasticsearch.post_installation_tasks import post_install_bootstrap_tls_certificates, \
@@ -170,6 +171,10 @@ class InstallManager(install.BaseInstallManager):
                                                 verbose=self.verbose)
         self.logger.info('Begin cluster settings bootstrapping process.')
         post_install_bootstrap_cluster_settings(stdout=self.stdout, verbose=self.verbose)
+        self.logger.info('Install events_to_hosts job.')
+        event_to_host_job = events_to_hosts.EventsToHostsJob('admin', 'admin', target=f'https://{network_host}:{port}')
+        event_to_host_job.download_and_install()
+        event_to_host_job.create_cronjob()
 
 
 class UninstallManager(install.BaseUninstallManager):

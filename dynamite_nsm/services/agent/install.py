@@ -23,7 +23,7 @@ class InstallManager(install.BaseInstallManager):
         self.zeek_configuration_directory = zeek_configuration_directory
         self.zeek_install_directory = zeek_install_directory
 
-    def setup(self, capture_network_interfaces: Optional[List[str]]):
+    def setup(self, inspect_interfaces: Optional[List[str]]):
 
         if self.suricata_install_directory or self.suricata_configuration_directory or self.suricata_log_directory:
             if not (
@@ -37,7 +37,7 @@ class InstallManager(install.BaseInstallManager):
             suricata_install.InstallManager(configuration_directory=self.suricata_configuration_directory,
                                             install_directory=self.suricata_install_directory,
                                             log_directory=self.suricata_log_directory, download_suricata_archive=True,
-                                            stdout=self.stdout, verbose=self.verbose).setup(capture_network_interfaces)
+                                            stdout=self.stdout, verbose=self.verbose).setup(inspect_interfaces)
         if self.zeek_install_directory or self.zeek_install_directory:
             if not (self.zeek_install_directory and self.zeek_configuration_directory):
                 self.logger.error(
@@ -45,7 +45,7 @@ class InstallManager(install.BaseInstallManager):
                 return None
             zeek_install.InstallManager(configuration_directory=self.zeek_configuration_directory,
                                         install_directory=self.zeek_install_directory, download_zeek_archive=True,
-                                        stdout=self.stdout, verbose=self.verbose).setup(capture_network_interfaces)
+                                        stdout=self.stdout, verbose=self.verbose).setup(inspect_interfaces)
         filebeat_install.InstallManager(install_directory=self.filebeat_install_directory,
                                         download_filebeat_archive=True, stdout=self.stdout,
                                         verbose=self.verbose).setup()

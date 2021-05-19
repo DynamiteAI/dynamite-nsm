@@ -131,17 +131,17 @@ class InstallManager(install.BaseInstallManager):
             self.copy_file_or_directory_to_destination(f'{suricata_tarball_extracted}/{conf}',
                                                        self.configuration_directory)
 
-    def setup(self, capture_network_interfaces: Optional[List[str]] = None):
+    def setup(self, inspect_interfaces: Optional[List[str]] = None):
         """Install Suricata
         Args:
-            capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         Returns:
             None
         """
-        if not capture_network_interfaces:
-            capture_network_interfaces = utilities.get_network_interface_names()
-        if not self.validate_capture_network_interfaces(capture_network_interfaces):
-            raise install.NetworkInterfaceNotFound(capture_network_interfaces)
+        if not inspect_interfaces:
+            inspect_interfaces = utilities.get_network_interface_names()
+        if not self.validate_inspect_interfaces(inspect_interfaces):
+            raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()
         self.install_suricata_dependencies()
         self.create_update_suricata_environment_variables()
@@ -170,7 +170,7 @@ class InstallManager(install.BaseInstallManager):
         suricata_config.classification_file = os.path.join(self.configuration_directory, 'rules',
                                                            'classification.config')
         suricata_config.af_packet_interfaces = misc.AfPacketInterfaces()
-        for interface in capture_network_interfaces:
+        for interface in inspect_interfaces:
             suricata_config.af_packet_interfaces.add(
                 misc.AfPacketInterface(
                     interface_name=interface, threads='auto', cluster_id=random.randint(1, 50000),

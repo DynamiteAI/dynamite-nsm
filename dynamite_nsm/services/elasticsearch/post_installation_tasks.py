@@ -117,7 +117,7 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
     else:
         logger.info(f'Bootstrapping security successful. You can find the current certs/keys here: {cert_directory}')
     logger.info('Shutting down ElasticSearch service.')
-    process.stop(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).stop()
 
 
 def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 10, stdout: Optional[bool] = False,

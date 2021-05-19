@@ -157,8 +157,6 @@ class Threading:
                 }
             )
         return {
-            'threading': {
-                'set-cpu-affinity': True,
-                'cpu-affinity': thread_families
-            }
+            'set-cpu-affinity': True,
+            'cpu-affinity': thread_families
         }
