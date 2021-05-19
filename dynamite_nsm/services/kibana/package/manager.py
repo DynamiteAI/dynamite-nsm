@@ -132,10 +132,14 @@ class SavedObjectsManager:
                 desc = f"{package.manifest.description[:50]}.."
             else:
                 desc = package.manifest.description
+            tenants = set([iobj.tenant for iobj in package.installed_objects])
+            if tenants:
+                tenants = ", ".join(tenants)
             lbb = utilities.PrintDecorations.colorize('[', 'bold')
             rbb = utilities.PrintDecorations.colorize(']', 'bold')
             package_name = utilities.PrintDecorations.colorize(package.manifest.name, 'bold')
-            package_line = f"{lbb}{idx + 1}{rbb} {package_name}\n{' ' * (len(str(idx)) + 2)} - {desc}"
+            plinepadding = ' ' * (len(str(idx)) + 2)
+            package_line = f"{lbb}{idx + 1}{rbb} {package_name}\n{plinepadding} [{tenants}]\n{plinepadding} - {desc}"
             print(package_line)
         print()
         selections = []
