@@ -9,6 +9,7 @@ from getpass import getpass
 from datetime import datetime
 from io import BytesIO, IOBase
 from typing import AnyStr, Dict, Optional, Tuple, IO, List, Union
+from itertools import chain
 from urllib.parse import urlparse
 
 import progressbar
@@ -139,7 +140,7 @@ class SavedObjectsManager:
             rbb = utilities.PrintDecorations.colorize(']', 'bold')
             package_name = utilities.PrintDecorations.colorize(package.manifest.name, 'bold')
             plinepadding = ' ' * (len(str(idx)) + 2)
-            package_line = f"{lbb}{idx + 1}{rbb} {package_name}\n{plinepadding} [{tenants}]\n{plinepadding} - {desc}"
+            package_line = f"{lbb}{idx + 1}{rbb} {package_name} - [{tenants}]\n{plinepadding} * {desc}"
             print(package_line)
         print()
         selections = []
@@ -316,6 +317,15 @@ class SavedObjectsManager:
         Returns:
             None
         """
+        if tenant:
+            available_tenants = self.list_tenants()
+            at_names = [t['name'] for t in available_tenants]
+            convenience_tenants = ["private", "global"]
+            tenants = set(chain(at_names, convenience_tenants))
+
+            if tenant not in tenants:
+                self.logger.error(f'Tenant "{tenant}" is not a valid tenant, choose from: [{", ".join(tenants)}]')
+                exit(0)
 
         def handle_archive(fp: str, user: str, passwd: str, tenant: Optional[str] = "") -> package_objects.Package:
             """
