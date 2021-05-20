@@ -65,6 +65,9 @@ class PrintDecorations:
     _COLOR_BOLD = '\033[1m'
     _COLOR_UNDERLINE = '\033[4m'
     _COLOR_END = '\033[0m'
+    # convenience/code legibility:
+    _COLOR_RESET = _COLOR_END
+
 
 
 def backup_configuration_file(source_file: str, configuration_backup_directory: str,

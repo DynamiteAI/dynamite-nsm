@@ -118,7 +118,7 @@ class SavedObjectsManager:
     def _select_packages_for_uninstall(self, package_name) -> Optional[List[package_objects.Package]]:
         invalid_selection_msg = "Not a valid selection"
         non_integer_selection_msg = "Selections must be integers"
-        print("Select a package to uninstall: ")
+        
         installed_packages = package_objects.Package.search_installed_packages(package_name,
                                                                                kibana_target=self.kibana_url,
                                                                                username=self.username,
@@ -126,23 +126,33 @@ class SavedObjectsManager:
         if not installed_packages:
             self.logger.error("Could not find any packages to uninstall.")
             return
-        for package in installed_packages:
-            idx = installed_packages.index(package)
-            if package.manifest.description and len(package.manifest.description) > 50:
-                desc = f"{package.manifest.description[:50]}.."
+        else:
+            if len(installed_packages) > 1 and package_name:
+                print("Select a package to uninstall: ")
+
+                for package in installed_packages:
+                    idx = installed_packages.index(package)
+                    if package.manifest.description and len(package.manifest.description) > 50:
+                        desc = f"{package.manifest.description[:50]}.."
+                    else:
+                        desc = package.manifest.description
+                    tenants = set([iobj.tenant for iobj in package.installed_objects])
+                    if tenants:
+                        tenants = ", ".join(tenants)
+                    lbb = utilities.PrintDecorations.colorize('[', 'bold')
+                    rbb = utilities.PrintDecorations.colorize(']', 'bold')
+                    package_name = utilities.PrintDecorations.colorize(package.manifest.name, 'bold')
+                    plinepadding = ' ' * (len(str(idx)) + 2)
+                    package_line = f"{lbb}{idx + 1}{rbb} {package_name} - [{tenants}]\n{plinepadding} * {desc}"
+                    print(package_line)
             else:
-                desc = package.manifest.description
-            tenants = set([iobj.tenant for iobj in package.installed_objects])
-            if tenants:
-                tenants = ", ".join(tenants)
-            lbb = utilities.PrintDecorations.colorize('[', 'bold')
-            rbb = utilities.PrintDecorations.colorize(']', 'bold')
-            package_name = utilities.PrintDecorations.colorize(package.manifest.name, 'bold')
-            plinepadding = ' ' * (len(str(idx)) + 2)
-            package_line = f"{lbb}{idx + 1}{rbb} {package_name} - [{tenants}]\n{plinepadding} * {desc}"
-            print(package_line)
+                pkg = installed_packages[0]
+                package_name = utilities.PrintDecorations.colorize(pkg.manifest.name, 'bold')
+                print(f"{utilities.PrintDecorations._COLOR_RESET}Preparing package {package_name} for uninstall..")
         print()
         selections = []
+        if package_name and len(installed_packages) < 2:
+            selections = ['1']
         while not bool(selections):
             _selections = input('Select package(s) to uninstall (For example: "1 2 3 5 8"): ')
             _selections = _selections.split(" ")
@@ -162,7 +172,7 @@ class SavedObjectsManager:
                 else:
                     self.logger.error(non_integer_selection_msg)
                 continue
-        packages = [installed_packages[selection - 1] for selection in selections]
+        packages = [installed_packages[int(selection) - 1] for selection in selections]
         return packages
 
     def browse_saved_objects(self, saved_object_type: Optional[str] = None) -> requests.Response:
@@ -538,6 +548,8 @@ class SavedObjectsManager:
             package_id: A unique identifier associated with the package
             remove_from_all_spaces: force removal from all spaces. Defaults to False.
         """
+        if not self.username or not self.password:
+            self.username, self.password = self.get_kibana_auth_securely(username, password)
         if package_id and package_name:
             self.logger.error(
                 "Package Name and Package Id cannot be used together")
@@ -546,9 +558,12 @@ class SavedObjectsManager:
         try:
             if not package_id:
                 to_uninstall = self._select_packages_for_uninstall(package_name)
+                if not to_uninstall:
+                    self.logger.error(f"Could not find any packages for query: {package_name}")
+                    return
             else:
                 to_uninstall = package_objects.Package.find_by_id(package_id, kibana_target=self.kibana_url,
-                                                                  username=username, password=password)
+                                                                  username=self.username, password=self.password)
                 if not to_uninstall:
                     self.logger.error(
                         f"Could not find package with id {package_id}")
@@ -557,8 +572,7 @@ class SavedObjectsManager:
         except package_objects.PackageLoadError as e:
             self.logger.error(e)
             return
-        if not username or not password:
-            username, password = self.get_kibana_auth_securely(username, password)
+        
         force = bool(remove_from_all_spaces)
         self.check_kibana_connection(username, password)
         self.uninstall_kibana_saved_objects(to_uninstall, force=force)
