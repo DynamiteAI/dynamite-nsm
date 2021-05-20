@@ -529,13 +529,13 @@ class Package:
 
         if package_name:
             query["query"] = {
-                "wildcard": {
-                    "package_name": {
-                        "wildcard": f"*{package_name}*",
+                "match": {
+                    "manifest.name": {
+                        "query": package_name,
+                        "minimum_should_match": 1
                     }
                 }
             }
-
         result = Package.package_index_search(query, kibana_target, auth=(username, password))
         if not result:
             return None
