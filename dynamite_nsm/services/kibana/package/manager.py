@@ -9,6 +9,7 @@ from getpass import getpass
 from datetime import datetime
 from io import BytesIO, IOBase
 from typing import AnyStr, Dict, Optional, Tuple, IO, List, Union
+from itertools import chain
 from urllib.parse import urlparse
 
 import progressbar
@@ -94,7 +95,10 @@ class SavedObjectsManager:
             password = getpass("Kibana Password: ")
         return username, password
 
-    def _process_package_installation_results(self, package: package_objects.Package, kibana_response: dict) -> bool:
+    def _process_package_installation_results(self,
+                                              package: package_objects.Package,
+                                              kibana_response: dict,
+                                              tenant: Optional[str] = "") -> bool:
 
         success = kibana_response.get('success', False)
         errors = kibana_response.get('errors')
@@ -107,7 +111,7 @@ class SavedObjectsManager:
         for installed in kibana_response.get('successResults', []):
             if self.verbose:
                 self.logger.info(installed)
-            installed_obj = package.result_to_object(installed)
+            installed_obj = package.result_to_object(installed, tenant=tenant)
             package.installed_objects.append(installed_obj)
         return success
 
@@ -128,10 +132,14 @@ class SavedObjectsManager:
                 desc = f"{package.manifest.description[:50]}.."
             else:
                 desc = package.manifest.description
+            tenants = set([iobj.tenant for iobj in package.installed_objects])
+            if tenants:
+                tenants = ", ".join(tenants)
             lbb = utilities.PrintDecorations.colorize('[', 'bold')
             rbb = utilities.PrintDecorations.colorize(']', 'bold')
             package_name = utilities.PrintDecorations.colorize(package.manifest.name, 'bold')
-            package_line = f"{lbb}{idx + 1}{rbb} {package_name}\n{' ' * (len(str(idx)) + 2)} - {desc}"
+            plinepadding = ' ' * (len(str(idx)) + 2)
+            package_line = f"{lbb}{idx + 1}{rbb} {package_name} - [{tenants}]\n{plinepadding} * {desc}"
             print(package_line)
         print()
         selections = []
@@ -205,15 +213,58 @@ class SavedObjectsManager:
                 self.logger.exception(e)
                 self.logger.error(f"Could not uninstall package {package.id} ({package.manifest.name})")
 
+    def logout_authenticated_session(self, authenticated_session):
+        authenticated_session.post(f'{self.kibana_url}/auth/logout', headers={'kbn-xsrf': 'true'})
+
+    def get_authenticated_session(self, username, password):
+        session = requests.Session()
+        login_resp = session.post(f'{self.kibana_url}/auth/login', data={
+                'username': username,
+                'password': password
+            }, headers={'kbn-xsrf': 'true'})
+        if login_resp.status_code not in range(200, 299):
+            self.logger.error("Failed to authenticate to kibana with provided credentials.")
+            return None
+        return session
+
+    def get_current_tenant(self, authenticated_session):
+        session = authenticated_session
+        if not session:
+            return None
+        resp = session.get(f"{self.kibana_url}/api/v1/multitenancy/tenant")
+        return resp.text
+
+    def switch_tenant(self, tenant_name, username, authenticated_session):
+        tenant_name = self.parse_tenant(tenant_name)
+        authenticated_session.post(f"{self.kibana_url}/api/v1/multitenancy/tenant", data={
+            "tenant": tenant_name,
+            "username": username
+        }, headers={'kbn-xsrf': 'true'})
+        # things get weird without this GET.
+        curtenant = authenticated_session.get(f"{self.kibana_url}/api/v1/multitenancy/tenant")
+        return curtenant.text == tenant_name
+
+    def parse_tenant(self, tenant: str):
+        GLOBAL_TENANT = ""
+        PRIVATE_TENANT = "__user__"
+        if tenant:
+            if tenant.lower() in ["private", "private_tenant", "user"]:
+                tenant = PRIVATE_TENANT
+            if tenant.lower() in ["global", "global_tenant"]:
+                tenant = GLOBAL_TENANT
+        else:
+            tenant = GLOBAL_TENANT
+        return tenant
+
     def import_kibana_saved_objects(self, kibana_objects_file: IO[AnyStr],
-                                    space: Optional[str] = None,
+                                    tenant: Optional[str] = None,
                                     overwrite: Optional[bool] = True,
                                     create_copies: Optional[bool] = False) -> Dict:
         """Import saved packages into kibana from a package file
 
         Args:
             kibana_objects_file: the file to parse and install
-            space: id of the space to install the object to. Defaults to None.
+            tenant: name of the tenant to install the package(s) to. Defaults to None.
             overwrite: If True, overwrite existing ids. Defaults to True.
             create_copies: create copies if an object exists with the same id?. Defaults to False.
 
@@ -225,11 +276,15 @@ class SavedObjectsManager:
         """
         auth = self.get_kibana_auth_securely(self.username, self.password)
         self.check_kibana_connection(*auth)
+        session = self.get_authenticated_session(*auth)
+        originaltenant = self.get_current_tenant(session)
 
-        if space:
-            url = f'{self.kibana_url}/s/{space}/api/saved_objects/_import'
-        else:
-            url = f'{self.kibana_url}/api/saved_objects/_import'
+        #  unsure why, but when you select the global tenant it just sends an empty string.
+        if tenant:
+            tenant = self.parse_tenant(tenant)
+        url = f'{self.kibana_url}/api/saved_objects/_import'
+        # switch our session to the appropriate tenant.
+        self.switch_tenant(tenant, auth[0], session)
         if all([overwrite, create_copies]):
             raise ValueError(
                 "createNewCopies and overwrite cannot be used together.")
@@ -242,25 +297,36 @@ class SavedObjectsManager:
             req_data = {'file': ('dynamite_import.ndjson', kibana_objects_file)}
         else:
             req_data = {'file': kibana_objects_file}
-        resp = requests.post(url, params=params, auth=auth, files=req_data, headers={'kbn-xsrf': 'true'})
+        resp = session.post(url, params=params, auth=auth, files=req_data, headers={'kbn-xsrf': 'true'})
         if resp.status_code not in range(200, 299):
             self.logger.error(f'Kibana endpoint returned a {resp.status_code} - {resp.text}')
             # TODO raise exception
+        self.switch_tenant(originaltenant, auth[0], session)
         return resp.json()
 
-    def install(self, path: str, ignore_warnings: Optional[bool] = False) -> None:
+    def install(self, path: str, ignore_warnings: Optional[bool] = False, tenant: Optional[str] = "") -> None:
         """Install a package. A package can be given as an archive or directory.
             A package must contain one or more ndjson files and a manifest.json
 
         Args:
             ignore_warnings: If True, the user won't be given a warning prompt if package will be overwritten.
             path: path to the file or folder of files
+            tenant: The name of the tenant to install the package to.
 
         Returns:
             None
         """
+        if tenant:
+            available_tenants = self.list_tenants()
+            at_names = [t['name'] for t in available_tenants]
+            convenience_tenants = ["private", "global"]
+            tenants = set(chain(at_names, convenience_tenants))
 
-        def handle_archive(fp: str, user: str, passwd: str) -> package_objects.Package:
+            if tenant not in tenants:
+                self.logger.error(f'Tenant "{tenant}" is not a valid tenant, choose from: [{", ".join(tenants)}]')
+                exit(0)
+
+        def handle_archive(fp: str, user: str, passwd: str, tenant: Optional[str] = "") -> package_objects.Package:
             """
             Handle Kibana package encapsulated within a tar.gz archive
             Args:
@@ -273,7 +339,9 @@ class SavedObjectsManager:
             tar = tarfile.open(fp)
             _manifest = tar.extractfile('manifest.json')
             _manifest = package_objects.PackageManifest(_manifest.read().decode('utf8'))
-            _package = package_objects.Package(_manifest, kibana_target=self.kibana_url)
+            _package = package_objects.Package(_manifest,
+                                               kibana_target=self.kibana_url,
+                                               autoload_installed_objects=False)
             _package.create_packages_index()
             # check if package exists already.
             existing = package_objects.Package.find_by_slug(
@@ -295,9 +363,14 @@ class SavedObjectsManager:
                 # should we validate the json before sending it up to kibana?
                 kibana_objects_file = BytesIO(
                     tar.extractfile(member).read())
-                result = self.import_kibana_saved_objects(kibana_objects_file=kibana_objects_file)
+                result = self.import_kibana_saved_objects(kibana_objects_file=kibana_objects_file, tenant=tenant)
                 kibana_objects_file.close()
-                if not self._process_package_installation_results(_package, result):
+                if tenant:
+                    if tenant == "__user__":
+                        tenant = f"private: {user}"
+                else:
+                    tenant = "global"
+                if not self._process_package_installation_results(_package, result, tenant):
                     self.logger.debug(_package, result)
                     raise generic_exceptions.InstallError(f'{_package.id} failed to install.')
             return _package
@@ -317,7 +390,8 @@ class SavedObjectsManager:
         self.logger.info('Checking connection to Kibana.')
         self.check_kibana_connection(self.username, self.password)
         is_folder = os.path.isdir(path)
-
+        if tenant:
+            tenant = self.parse_tenant(tenant)
         file_paths = []
         if not is_folder:
             file_paths = [path]
@@ -338,11 +412,12 @@ class SavedObjectsManager:
             # default to orphan package in case of install from .ndjson
             manifest = package_objects.PackageManifest(schemas.ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA)
             package = package_objects.Package(manifest, kibana_target=self.kibana_url)
+            
             if filetype == 'application/x-tar' or encoding == 'gzip':
                 file_path = os.path.abspath(file_path)
                 # check mimetype of the file to determine how to proceed
                 self.logger.info(f'Installing from TAR archive: {file_path}.')
-                package = handle_archive(file_path, self.username, self.password)
+                package = handle_archive(file_path, self.username, self.password, tenant=tenant)
             # Should we remove this and ONLY install validatable packages?
             elif filetype in ('application/json', 'text/plain') and file_path.endswith('ndjson'):
                 handle_file(file_path, self.username, self.password)
@@ -377,12 +452,13 @@ class SavedObjectsManager:
             table = []
             for package in packages:
                 row = [package.id, package.manifest.name, package.manifest.author]
-                object_table_headers = ['Object Name', 'Object Type']
+                object_table_headers = ['Object Name', 'Object Type', 'Tenant']
                 object_table = []
                 for obj in package.installed_objects:
                     if not isinstance(obj, package_objects.InstalledObject):
                         continue
-                    obj_tbl_row = [obj.title, obj.object_type]
+
+                    obj_tbl_row = [obj.title, obj.object_type, obj.tenant]
                     object_table.append(obj_tbl_row)
                 row.append(tabulate(object_table, headers=object_table_headers, tablefmt="fancy_grid"))
                 table.append(row)
@@ -393,6 +469,33 @@ class SavedObjectsManager:
                 data.append(package.es_input())
             return data
 
+    def list_tenants(self, pretty: Optional[bool] = False) -> Union[str, List]:
+        url = f'{package_objects.Package.build_proxy_url_from_target(self.kibana_url)}'\
+               '?path=_opendistro/_security/api/tenants&method=GET'
+        resp = requests.post(url, auth=(self.username, self.password), headers={'kbn-xsrf': 'true'})
+        if resp.status_code == 403:
+            self.logger.error(resp.json().get('message'))
+            exit(0)
+        fetched_data = resp.json()
+        table = []
+        headers = ["Name", "Description", "Reserved", "Hidden", "Static"]
+        for tenant_name, tenant_data in fetched_data.items():
+            if pretty:
+                table.append([
+                    tenant_name,
+                    tenant_data.get('description'),
+                    tenant_data.get('reserved'),
+                    tenant_data.get('hidden'),
+                    tenant_data.get('static')
+                ])
+            else:
+                tenant_data.update({"name": tenant_name})
+                table.append(tenant_data)
+        if pretty:
+            return tabulate(table, headers=headers, tablefmt="fancy_grid")
+        else:
+            return table
+    
     def list_saved_objects(self, saved_object_type: Optional[str] = None,
                            pretty: Optional[bool] = False) -> Union[str, List]:
         """List the saved_objects currently installed irrespective of which "package" the belong too

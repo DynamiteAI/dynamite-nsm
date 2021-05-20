@@ -42,7 +42,7 @@ PACKAGES_INDEX_MAPPING = {
                                 }
                         }
                     },
-                    "space_id": {
+                    "tenant": {
                         "type": "text",
                         "fields": {
                                 "keyword": {
