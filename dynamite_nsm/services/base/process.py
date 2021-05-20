@@ -13,6 +13,7 @@ class BaseProcessManager:
     """
     A Systemd wrapper for process management
     """
+
     def __init__(self, systemd_service: str, name: str, log_path: Optional[str] = None,
                  create_pid_file: Optional[bool] = False,
                  stdout: Optional[bool] = True, verbose: Optional[bool] = False,
@@ -125,19 +126,12 @@ class BaseProcessManager:
 
         status.update({'info': info_dict})
         if self.pretty_print_status:
-            status_tbl = [
-                [
-                    'Service', self.name,
-                ]
-            ]
-            if status['running']:
-                status_tbl.append([
-                    'Running', '\033[92myes\033[0m'
-                ])
-            else:
-                status_tbl.append([
-                    'Running', '\033[91mno\033[0m'
-                ])
+            colorize = utilities.PrintDecorations.colorize
+            status_tbl = [[
+                'Service', self.name,
+            ], ['Running', colorize('yes', 'green') if status['running'] else colorize('no', 'red')],
+                ['Enabled on Startup',
+                 colorize('yes', 'green') if status['enabled_on_startup'] else colorize('no', 'red')]]
             if status.get('pid'):
                 status_tbl.append([
                     'PID', status['pid']

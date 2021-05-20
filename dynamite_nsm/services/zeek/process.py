@@ -87,19 +87,12 @@ class ProcessManager(process.BaseProcessManager):
             zeek_status.update({'logs': self.log_path})
         zeek_status['info'] = systemd_info_dict
         if self.pretty_print_status:
-            status_tbl = [
-                [
-                    'Service', self.name,
-                ]
-            ]
-            if zeek_status['running']:
-                status_tbl.append([
-                    'Running', '\033[92myes\033[0m'
-                ])
-            else:
-                status_tbl.append([
-                    'Running', '\033[91mno\033[0m'
-                ])
+            colorize = utilities.PrintDecorations.colorize
+            status_tbl = [[
+                'Service', self.name,
+            ], ['Running', colorize('yes', 'green') if zeek_status['running'] else colorize('no', 'red')],
+                ['Enabled on Startup',
+                 colorize('yes', 'green') if zeek_status['enabled_on_startup'] else colorize('no', 'red')]]
             if self.verbose:
                 for sp in zeek_subprocesses:
                     status_tbl.append(

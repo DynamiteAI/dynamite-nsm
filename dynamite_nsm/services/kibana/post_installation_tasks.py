@@ -18,12 +18,15 @@ def kibana_api_up(kibana_url, username: Optional[str] = 'admin', password: Optio
     :param username: The username for logging into Kibana instance
     :param password: The password for logging into Kibana instance
     """
-    r = requests.get(
-        url=f'{kibana_url}/api',
-        auth=(username, password),
-        headers={'kbn-xsrf': 'true'},
-        verify=False
-    )
+    try:
+        r = requests.get(
+            url=f'{kibana_url}/api',
+            auth=(username, password),
+            headers={'kbn-xsrf': 'true'},
+            verify=False
+        )
+    except requests.ConnectionError:
+        return False
     return r.status_code == 404
 
 

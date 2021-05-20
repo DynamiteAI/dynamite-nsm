@@ -81,7 +81,7 @@ class InstallManager(install.BaseInstallManager):
         self.create_update_env_variable('LS_LOGS', self.log_directory)
 
     def setup(self, node_name: Optional[str] = None, host: Optional[str] = None,
-              elasticsearch_host: Optional[str] = None, elasticsearch_port: Optional[str] = None,
+              elasticsearch_host: Optional[str] = None, elasticsearch_port: Optional[int] = None,
               pipeline_batch_size: Optional[int] = None, pipeline_batch_delay: Optional[int] = None,
               heap_size_gigs: Optional[int] = None):
 

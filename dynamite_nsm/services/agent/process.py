@@ -1,6 +1,9 @@
 import logging
-from typing import Optional
+from typing import Dict, Optional, Union
 
+import tabulate
+
+from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.zeek import process as zeek_process
 from dynamite_nsm.services.filebeat import process as filebeat_process
@@ -13,12 +16,12 @@ from dynamite_nsm.services.suricata import profile as suricata_profile
 
 class ProcessManager:
     """
-    FileBeat Process Manager
+    Agent Process Manager
     """
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
-        """Manage Filebeat Process
+        """Manage Agent Processes
         Args:
             stdout: Print output to console
             verbose: Include detailed debug messages
@@ -57,6 +60,46 @@ class ProcessManager:
         if zeek_profile.ProcessProfiler().is_installed():
             zeek_res = zeek_process.ProcessManager().stop()
         return filebeat_res and zeek_res and suricata_res
+
+    def status(self) -> Optional[Union[Dict, str]]:
+        if not filebeat_profile.ProcessProfiler().is_installed():
+            self.logger.error('You must install filebeat to run this command.')
+            return None
+        agent_status = {}
+        filebeat_status, zeek_status, suricata_status = {}, {}, {}
+        filebeat_status = filebeat_process.ProcessManager().status()
+        agent_status.update({'filebeat': {'running': filebeat_status.get('running'),
+                                          'enabled_on_startup': filebeat_status.get('enabled_on_startup')}})
+        if zeek_profile.ProcessProfiler().is_installed():
+            zeek_status = zeek_process.ProcessManager().status()
+            agent_status.update({'zeek': {'running': zeek_status.get('running'),
+                                          'enabled_on_startup': zeek_status.get('enabled_on_startup')}})
+        if suricata_profile.ProcessProfiler().is_installed():
+            suricata_status = suricata_process.ProcessManager().status()
+            agent_status.update({'suricata': {'running': suricata_status.get('running'),
+                                              'enabled_on_startup': suricata_status.get('enabled_on_startup')}})
+        if self.pretty_print_status:
+            colorize = utilities.PrintDecorations.colorize
+            child_services = [
+                ['Service', 'Running', 'Enabled on Startup'],
+                ['Filebeat',
+                 colorize('yes', 'green') if filebeat_status.get('running') else colorize('no', 'red'),
+                 colorize('yes', 'green') if filebeat_status.get('enabled_on_startup') else colorize('no', 'red')
+                 ]
+            ]
+            if zeek_status:
+                child_services.append(
+                    ['Zeek', colorize('yes', 'green') if zeek_status.get('running') else colorize('no', 'red'),
+                     colorize('yes', 'green') if zeek_status.get('enabled_on_startup') else colorize('no', 'red')]
+                )
+            if suricata_status:
+                child_services.append(
+                    ['Suricata', colorize('yes', 'green') if zeek_status.get('running') else colorize('no', 'red'),
+                     colorize('yes', 'green') if zeek_status.get('enabled_on_startup') else colorize('no', 'red')]
+                )
+
+            return tabulate.tabulate(child_services, tablefmt='fancy_grid')
+        return agent_status
 
     def restart(self) -> bool:
         return self.stop() and self.start()
