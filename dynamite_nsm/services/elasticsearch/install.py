@@ -198,6 +198,7 @@ class UninstallManager(install.BaseUninstallManager):
         es_directories = [env_vars.get('ES_HOME'), es_config.path_logs]
         if purge_config:
             es_directories.append(env_vars.get('ES_PATH_CONF'))
+        install_events_to_hosts.EventsToHostsTask().remove_cronjob()
         super().__init__('elasticsearch.uninstall', directories=es_directories,
                          environ_vars=['ES_PATH_CONF', 'ES_HOME', 'ES_LOG'],
                          process=ProcessManager(stdout=stdout, verbose=verbose),

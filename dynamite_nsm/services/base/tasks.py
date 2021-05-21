@@ -64,8 +64,11 @@ class BasePythonPackageInstallTask(BaseShellCommandTask):
 
 class BaseKibanaPackageInstallTask(BaseTask):
 
-    def __init__(self, name: str, kibana_package_link: str, username: str, password: str, target: str, tenant: str,
-                 description: Optional[str]):
+    def __init__(self, name: str, kibana_package_link: Optional[str] = None, username: Optional[str] = 'admin',
+                 password: Optional[str] = 'admin',
+                 target: Optional[str] = f'http://{utilities.get_primary_ip_address()}:5601',
+                 tenant: Optional[str] = '',
+                 description: Optional[str] = ''):
         super().__init__(name, kibana_package_link, description)
         self.username = username
         self.password = password

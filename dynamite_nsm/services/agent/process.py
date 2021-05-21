@@ -82,19 +82,19 @@ class ProcessManager:
             colorize = utilities.PrintDecorations.colorize
             child_services = [
                 ['Service', 'Running', 'Enabled on Startup'],
-                ['Filebeat',
+                ['filebeat',
                  colorize('yes', 'green') if filebeat_status.get('running') else colorize('no', 'red'),
                  colorize('yes', 'green') if filebeat_status.get('enabled_on_startup') else colorize('no', 'red')
                  ]
             ]
             if zeek_status:
                 child_services.append(
-                    ['Zeek', colorize('yes', 'green') if zeek_status.get('running') else colorize('no', 'red'),
+                    ['zeek', colorize('yes', 'green') if zeek_status.get('running') else colorize('no', 'red'),
                      colorize('yes', 'green') if zeek_status.get('enabled_on_startup') else colorize('no', 'red')]
                 )
             if suricata_status:
                 child_services.append(
-                    ['Suricata', colorize('yes', 'green') if zeek_status.get('running') else colorize('no', 'red'),
+                    ['suricata', colorize('yes', 'green') if zeek_status.get('running') else colorize('no', 'red'),
                      colorize('yes', 'green') if zeek_status.get('enabled_on_startup') else colorize('no', 'red')]
                 )
 
