@@ -314,7 +314,7 @@ class SavedObjectsManager:
         self.switch_tenant(originaltenant, auth[0], session)
         return resp.json()
 
-    def install(self, path: str, ignore_warnings: Optional[bool] = False, tenant: Optional[str] = "") -> None:
+    def install(self, path: str, ignore_warnings: Optional[bool] = False, tenant: Optional[str] = "") -> bool:
         """Install a package. A package can be given as an archive or directory.
             A package must contain one or more ndjson files and a manifest.json
 
@@ -334,7 +334,7 @@ class SavedObjectsManager:
 
             if tenant not in tenants:
                 self.logger.error(f'Tenant "{tenant}" is not a valid tenant, choose from: [{", ".join(tenants)}]')
-                exit(0)
+                return False
 
         def handle_archive(fp: str, user: str, passwd: str, tenant: Optional[str] = "") -> package_objects.Package:
             """
@@ -422,7 +422,7 @@ class SavedObjectsManager:
             # default to orphan package in case of install from .ndjson
             manifest = package_objects.PackageManifest(schemas.ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA)
             package = package_objects.Package(manifest, kibana_target=self.kibana_url)
-            
+
             if filetype == 'application/x-tar' or encoding == 'gzip':
                 file_path = os.path.abspath(file_path)
                 # check mimetype of the file to determine how to proceed
@@ -443,6 +443,7 @@ class SavedObjectsManager:
             else:
                 package.register()
                 self.logger.info(f"{package.manifest.name} installation succeeded!")
+        return True
 
     def list(self, pretty: Optional[bool] = True) -> Optional[Union[str, List]]:
         """List packages currently installed for this instance

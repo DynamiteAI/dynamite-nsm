@@ -138,15 +138,13 @@ class InstallManager(install.BaseInstallManager):
         self.install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
                                   pre_install_function=install_powertools_rhel)
 
-    def setup(self, inspect_interfaces: Optional[List[str]] = None):
+    def setup(self, inspect_interfaces: List[str]):
         """Setup Zeek
         Args:
             inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         Returns:
             None
         """
-        if not inspect_interfaces:
-            inspect_interfaces = utilities.get_network_interface_names()
         if not self.validate_inspect_interfaces(inspect_interfaces):
             raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()

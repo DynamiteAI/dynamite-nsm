@@ -13,6 +13,7 @@ interface = \
                                                 suricata_configuration_directory='/etc/dynamite/suricata/',
                                                 suricata_log_directory='/opt/dynamite/suricata/logs/',
                                                 zeek_install_directory='/opt/dynamite/zeek/',
-                                                zeek_configuration_directory='/etc/dynamite/zeek/'
+                                                zeek_configuration_directory='/etc/dynamite/zeek/',
+                                                target_type='elasticsearch'
                                                 )
                                   )

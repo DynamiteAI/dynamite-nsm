@@ -138,7 +138,8 @@ class FilebeatTargetsInterface(BaseInterface):
         parser = argparse.ArgumentParser()
         target_options = parser.add_argument_group('target options')
         for var in vars(self.config_obj):
-            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config_obj, var)))
+            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config_obj, var)),
+                                                                    required=False)
             if var != 'enabled':
                 arg_description = self._get_description_for_instance_var(var).replace('\n', ' ')
             else:
@@ -214,7 +215,8 @@ def append_config_object_filebeat_targets_to_parser(parser: argparse.ArgumentPar
     """
     target_options = parser.add_argument_group('target options')
     for var in vars(interface.config_obj):
-        args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)))
+        args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)),
+                                                                required=False)
         arg_description = interface._get_description_for_instance_var(var).replace('\n', ' ')
         args.add_description(arg_description)
         try:

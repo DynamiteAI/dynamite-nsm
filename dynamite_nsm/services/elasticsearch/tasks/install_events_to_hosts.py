@@ -1,12 +1,11 @@
-from dynamite_nsm.jobs import base
+from dynamite_nsm.services.base import tasks
 
 
-class EventsToHostsJob(base.JobBase):
+class EventsToHostsTask(tasks.BasePythonPackageInstallTask):
     def __init__(self, username: str, password: str, target: str):
-        super().__init__(name='events_to_hosts',
+        super().__init__(name='install_events_to_hosts',
                          package_link='https://github.com/DynamiteAI/jobs/blob/master/events-to-hosts/dist/'
                                       'events_to_hosts-0.1.0-py3-none-any.whl?raw=true',
-                         interval_minutes=5,
                          command='/usr/local/bin/events-to-hosts',
                          args=['--username', username, '--password', password, '--target', target],
                          description='a standalone commandline utility that will derive host information from Zeek and '
@@ -16,7 +15,7 @@ class EventsToHostsJob(base.JobBase):
 if __name__ == '__main__':
     from dynamite_nsm import utilities
 
-    job = EventsToHostsJob(username='admin', password='admin',
+    job = EventsToHostsTask(username='admin', password='admin',
                            target=f'https://{utilities.get_primary_ip_address()}:9200')
     job.download_and_install()
-    job.create_cronjob()
+    job.create_cronjob(interval_minutes=5)

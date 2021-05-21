@@ -131,15 +131,13 @@ class InstallManager(install.BaseInstallManager):
             self.copy_file_or_directory_to_destination(f'{suricata_tarball_extracted}/{conf}',
                                                        self.configuration_directory)
 
-    def setup(self, inspect_interfaces: Optional[List[str]] = None):
+    def setup(self, inspect_interfaces: List[str]):
         """Install Suricata
         Args:
             inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         Returns:
             None
         """
-        if not inspect_interfaces:
-            inspect_interfaces = utilities.get_network_interface_names()
         if not self.validate_inspect_interfaces(inspect_interfaces):
             raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()

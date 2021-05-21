@@ -9,6 +9,7 @@ class ArgparseParameters:
     """
     Represent the **kwargs that can be provided to the `argparse.ArgumentParser` class
     """
+
     def __init__(self, name, **kwargs):
         """Setup from a dictionary
         Args:
@@ -26,7 +27,7 @@ class ArgparseParameters:
 
     @classmethod
     def create_from_typing_annotation(cls, name, python_type, default: Optional[Any] = None,
-                                      required: Optional[bool] = False):
+                                      required: Optional[bool] = True):
         """Convenience method for creating argparse parameters from a python <class type>
         Args:
             name: The name of the commandline parameter
@@ -41,7 +42,7 @@ class ArgparseParameters:
 
     @staticmethod
     def derive_params_from_type_annotation(python_type: Any, default: Optional[Any] = None,
-                                           required: Optional[bool] = False) -> Dict:
+                                           required: Optional[bool] = True) -> Dict:
         """Convert from a typing annotation string to an `argparse.ArgumentParser` `type`
         Args:
             python_type: A <class 'type'> or typing derived class

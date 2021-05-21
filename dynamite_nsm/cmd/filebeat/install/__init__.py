@@ -9,5 +9,6 @@ interface = \
                                   defaults=dict(download_filebeat_archive=True,
                                                 install_directory='/opt/dynamite/filebeat',
                                                 stdout=True,
+                                                target_type='elasticsearch'
                                                 )
                                   )

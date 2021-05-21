@@ -241,7 +241,8 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
                         interface_group_name='config_module'
                     )
             else:
-                args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config, var)))
+                args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config, var)),
+                                                                        required=False)
                 try:
                     config_options.add_argument(*args.flags, **args.kwargs)
                 except argparse.ArgumentError:
@@ -360,7 +361,8 @@ def append_service_simple_config_management_interface_to_parser(parser: argparse
                                                                         interface_name=var,
                                                                         interface_group_name='config_module')
         else:
-            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config, var)))
+            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config, var)),
+                                                                    required=False)
             try:
                 config_options.add_argument(*args.flags, **args.kwargs)
             except argparse.ArgumentError:

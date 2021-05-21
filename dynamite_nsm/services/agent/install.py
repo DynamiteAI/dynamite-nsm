@@ -23,8 +23,17 @@ class InstallManager(install.BaseInstallManager):
         self.zeek_configuration_directory = zeek_configuration_directory
         self.zeek_install_directory = zeek_install_directory
 
-    def setup(self, inspect_interfaces: Optional[List[str]]):
+    def setup(self, inspect_interfaces: List[str], targets: List[str],
+              target_type: Optional[str] = 'elasticsearch') -> None:
+        """
 
+        Args:
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+            targets: One or more URLs to send event/alerts to (E.G https://my_elasticsearch_collector.local:9200)
+            target_type: The target type; current supported: elasticsearch (default), logstash, kafka, redis
+
+        Returns: None
+        """
         if self.suricata_install_directory or self.suricata_configuration_directory or self.suricata_log_directory:
             if not (
                     self.suricata_install_directory and self.suricata_configuration_directory
@@ -34,6 +43,7 @@ class InstallManager(install.BaseInstallManager):
                     'You must specify suricata-configuration-directory, suricata-install-directory, '
                     'and suricata-log-directory.')
                 return None
+            
             suricata_install.InstallManager(configuration_directory=self.suricata_configuration_directory,
                                             install_directory=self.suricata_install_directory,
                                             log_directory=self.suricata_log_directory, download_suricata_archive=True,
@@ -48,7 +58,7 @@ class InstallManager(install.BaseInstallManager):
                                         stdout=self.stdout, verbose=self.verbose).setup(inspect_interfaces)
         filebeat_install.InstallManager(install_directory=self.filebeat_install_directory,
                                         download_filebeat_archive=True, stdout=self.stdout,
-                                        verbose=self.verbose).setup()
+                                        verbose=self.verbose).setup(targets=targets, target_type=target_type)
 
 
 class UninstallManager(install.BaseUninstallManager):
