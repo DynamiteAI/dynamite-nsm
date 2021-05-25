@@ -70,6 +70,7 @@ class InstallManager(install.BaseInstallManager):
             monitor_log_paths: A tuple of log paths to monitor
             agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
             kibana_target_str: The Kibana host where the dashboards will be loaded. The default is 127.0.0.1 5601.
+
         Returns:
             None
         """

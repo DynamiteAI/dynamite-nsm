@@ -82,7 +82,7 @@ if __name__ == '__main__':
     dynamite_dummy_parser = argparse.ArgumentParser(f'Dynamite Network Security Monitor [{VERSION}]')
     dynamite_dummy_parser.add_argument('component', help='A component within the Dynamite stack to manage.', choices=[
         'agent',
-        'monitor'
+        'monitor',
         'zeek',
         'suricata',
         'filebeat',

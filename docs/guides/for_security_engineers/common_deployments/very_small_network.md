@@ -17,38 +17,11 @@ management and one for receiving monitor traffic (sniffing).
 
 Be sure to check out the examples in our [network configuration](/network_interface_configuration) documentation.
 
-## Setup DynamiteNSM
-
-1. Install DynamiteNSM libraries and command-line utilities.
-
-```bash
-pip3 install dynamite-nsm==1.0.0
-```
-
-2. Download any default configuration or mirror updates.
-```bash
-sudo dynamite updates install
-```
 
 3. Install the **OpenDistro Elasticsearch** for data retention.
 
 ```bash
-sudo dynamite elasticsearch install
-```
-
-4. Install **OpenDistro Kibana** for data visualisation.
-```bash
-sudo dynamite kibana install
-```
-
-5. Install **Zeek** for network metadata collection.
-```bash
-sudo dynamite zeek install --network-capture-interface=mon0
-```
-
-6. Install **Suricata** for suspicious network alerts
-```bash
-sudo dynamite suricata install --network-capture-interfaces=mon0
+sudo dynamite monitor install
 ```
 
 ## Start the Monitor
