@@ -1,7 +1,5 @@
 import json
 
-from typing import Optional
-
 
 class StatusEntry:
     """
@@ -10,7 +8,8 @@ class StatusEntry:
 
     def __init__(self, entry_raw: str):
         """
-        :param entry_raw: A line item representing a single entry within the Filebeat log
+        Args:
+            entry_raw: A line item representing a single entry within the Filebeat log
         """
 
         self.entry_raw = entry_raw
@@ -33,6 +32,3 @@ class StatusEntry:
             message=self.message,
         )
         return json.dumps(log_entry)
-
-
-StatusEntry('[2021-04-02T00:48:48,136][INFO ][c.a.o.j.s.JobSweeper     ] [dynamite_node] Running full sweep')

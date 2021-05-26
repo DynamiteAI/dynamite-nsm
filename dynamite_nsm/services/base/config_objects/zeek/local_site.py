@@ -46,6 +46,7 @@ class Definitions(Analyzers):
 class Script(Analyzer):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
+        self.value = None
         super().__init__(name, enabled)
 
     def get_raw(self) -> str:
@@ -76,6 +77,7 @@ class Scripts(Analyzers):
 class Signature(Analyzer):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
+        self.value = None
         super().__init__(name, enabled)
 
     def get_raw(self) -> str:

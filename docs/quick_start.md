@@ -18,13 +18,13 @@ This setup will work with small lab environments, but is not suggested for scena
 
 ## Setup DynamiteNSM SDKs and utilities.
 
-1. Install DynamiteNSM libraries and command-line utilities.
+- Install DynamiteNSM libraries and command-line utilities.
 
 ```bash
 pip install dynamite-nsm
 ```
 
-2. Download any default configuration or mirror updates.
+- Download any default configuration or mirror updates.
 ```bash
 sudo dynamite updates install
 ```
@@ -34,19 +34,19 @@ sudo dynamite updates install
 The monitor consists of the services which receive network events/alerts from the agent(s), and normalize/visualize 
 them in ways that can be useful for security and operational use-cases.
 
-3. **On your first computer, that you will use for monitoring,** run the below command.
+- **On your first computer, that you will use for monitoring,** run the below command.
 
 ```bash
 sudo dynamite monitor install
 ```
 
-4. Once installed, you may start the monitor.
+- Once installed, you may start the monitor.
 
 ```bash
 sudo dynamite monitor process start
 ```
 
-5. Verify services are running.
+- Verify services are running.
 
 ```bash
 sudo dynamite monitor process status
@@ -62,9 +62,11 @@ sudo dynamite monitor process status
 ╘═══════════════╧═════════╧════════════════════╛
 ```
 
-6. Log into Elasticsearch/Kibana. The default credentials for both are `admin/admin`. 
+- Log into Elasticsearch/Kibana. The default credentials for both are `admin/admin`. 
    Be sure to select the `global` tenant when prompted, as we install several default dashboards and visualizations to this space.
 > Note that you it takes time to start these services. You may get connection timeouts initially. 
+
+You can access `elasticsearch` and `kibana` at the below URLs.
 
 | Monitor Tool  | URL                            |
 |---------------|--------------------------------|
@@ -77,22 +79,22 @@ sudo dynamite monitor process status
 The agent is responsible for acquiring network packets off one or more SPAN/TAP interface and distilling these packets into meaningful 
 events and alerts that can be sent to a Dynamite Monitor or supported collector.
 
-7. On the computer dedicated to packet acquisition determine which network interface you wish to use to monitor traffic. 
+- On the computer dedicated to packet acquisition determine which network interface you wish to use to monitor traffic. 
    `ifconfig` and `ip addr` are useful commands for enumerating the interfaces you have available.
 
-8. Begin the agent installation
+- Begin the agent installation
 
 ```bash
 sudo dynamite agent install --target-type=elasticsearch --targets=https://<monitor-ip-address>:9200 --inspect-interfaces=<mon_iface0> <mon_iface1>
 ```
 
-9. Start the agent.
+- Start the agent.
 
 ```bash
 sudo dynamite agent process start
 ```
 
-10. Confirm the agent is running as expected
+- Confirm the agent is running as expected
 
 ```bash
 sudo dynamite agent process status
@@ -110,7 +112,7 @@ sudo dynamite agent process status
 ╘══════════╧═════════╧════════════════════╛
 ```
 
-11. Confirm that we were able to connect to Elasticsearch
+- Confirm that we were able to connect to Elasticsearch
 
 ```bash
 sudo dynamite filebeat logs main --pretty
@@ -124,4 +126,8 @@ sudo dynamite filebeat logs main --pretty
 ╘════════════════════════════╧═══════════╧═══════════════════════════╧════════════════════════════════════════════════════════════════════════════════╛
 ```
 
-12. If you ever change the hardware specifications or wish to monitor an additional network interface be sure to run the below command, which will automatically recalibrate `zeek` and `suricata` for efficient resource utilization.
+- If you ever change the hardware specifications or wish to monitor an additional network interface be sure to run the below command, which will automatically recalibrate `zeek` and `suricata` for efficient resource utilization.
+
+```bash
+sudo dynamite agent optimize --inspect-interfaces=<mon_iface0> <mon_iface1>
+```

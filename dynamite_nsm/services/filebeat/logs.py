@@ -287,7 +287,7 @@ class StatusLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
 
     def tail_metrics(self, pretty_print: Optional[bool] = True):
         """Tail and follow a metrics log to console
@@ -321,4 +321,4 @@ class StatusLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))

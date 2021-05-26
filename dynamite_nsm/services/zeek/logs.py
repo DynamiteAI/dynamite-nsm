@@ -26,7 +26,8 @@ class InvalidZeekStatusLogEntry(Exception):
 
     def __init__(self, message):
         """
-        :param message: A more specific error message
+        Args:
+            message: A more specific error message
         """
         msg = f'Zeek status log entry is invalid: {message}'
         super(InvalidZeekStatusLogEntry, self).__init__(msg)
@@ -39,7 +40,8 @@ class InvalidZeekBrokerLogEntry(Exception):
 
     def __init__(self, message):
         """
-        :param message: A more specific error message
+        Args:
+            message: A more specific error message
         """
         msg = f'Zeek broker log entry is invalid: {message}'
         super(InvalidZeekBrokerLogEntry, self).__init__(msg)
@@ -52,7 +54,8 @@ class InvalidZeekClusterLogEntry(Exception):
 
     def __init__(self, message):
         """
-        :param message: A more specific error message
+        Args:
+            message: A more specific error message
         """
         msg = f'Zeek cluster log entry is invalid: {message}'
         super(InvalidZeekClusterLogEntry, self).__init__(msg)
@@ -65,7 +68,8 @@ class InvalidZeekReporterLogEntry(Exception):
 
     def __init__(self, message):
         """
-        :param message: A more specific error message
+        Args:
+            message: A more specific error message
         """
         msg = f'Zeek reporter log entry is invalid: {message}'
         super(InvalidZeekReporterLogEntry, self).__init__(msg)
@@ -349,6 +353,7 @@ class ZeekLogsProxy:
     def load_all_logs(self) -> None:
         """
         Load all logs into memory up to self.log_sample_size
+        
         Returns:
             None
         """
@@ -466,7 +471,7 @@ class BrokerLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
 
 
 class ClusterLog(logs.LogFile):
@@ -541,7 +546,7 @@ class ClusterLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
 
 
 class StatusLog(logs.LogFile):
@@ -648,7 +653,7 @@ class StatusLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
 
 
 class ReporterLog(logs.LogFile):
@@ -726,4 +731,4 @@ class ReporterLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))

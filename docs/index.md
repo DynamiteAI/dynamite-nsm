@@ -19,7 +19,8 @@ DynamiteNSM is a lightweight, versatile network security monitor designed to mak
 
 ### Dive Right In.
 
-Learn by doing. Read our [quick-start guide](/quick_start).
+Learn by doing. Read our [quick-start guide](/quick_start), and quickly setup a working environment perfect for 
+monitoring a home network or lab environment.
 
 
 ### Checkout our documentation.
