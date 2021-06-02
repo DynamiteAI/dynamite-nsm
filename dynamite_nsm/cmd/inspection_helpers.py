@@ -26,7 +26,7 @@ class ArgparseParameters:
         return json.dumps({k: str(v) for k, v in args.items()})
 
     @classmethod
-    def create_from_typing_annotation(cls, name, python_type, default: Optional[Any] = None,
+    def create_from_typing_annotation(cls, name: str, python_type: type, default: Optional[Any] = None,
                                       required: Optional[bool] = True):
         """Convenience method for creating argparse parameters from a python <class type>
         Args:
@@ -47,6 +47,7 @@ class ArgparseParameters:
         Args:
             python_type: A <class 'type'> or typing derived class
             default: The default value for the parameter being evaluated
+            required: If true, the `required` parameter will be added to the parameter dictionary
         Returns:
              A dictionary of supported **kwargs used to instantiate an `argparse.ArgumentParser` object
         """

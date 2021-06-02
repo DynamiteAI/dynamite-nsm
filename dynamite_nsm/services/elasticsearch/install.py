@@ -14,16 +14,14 @@ class InstallManager(install.BaseInstallManager):
     def __init__(self, configuration_directory: str, install_directory: str, log_directory: str,
                  download_elasticsearch_archive: Optional[bool] = True,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        """
-        Install Elasticsearch
-
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
-        :param download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
-
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Install Elasticsearch
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+            install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
+            log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
+            download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
@@ -81,16 +79,18 @@ class InstallManager(install.BaseInstallManager):
 
     def setup(self, node_name: Optional[str] = None, network_host: Optional[str] = None, port: Optional[int] = None,
               initial_master_nodes: Optional[List[str]] = None, discover_seed_hosts: Optional[List[str]] = None,
-              tls_cert_subject: Optional[str] = None, heap_size_gigs: Optional[int] = None):
-        """
-        :param node_name: The name of this elasticsearch node
-        :param network_host: The IP address to listen on (E.G "0.0.0.0")
-        :param port: The port that the ES API is bound to (E.G 9200)
-        :param initial_master_nodes: A list of nodes representing master (and master-eligible) nodes in this cluster
-        :param discover_seed_hosts: A list of IPs on other hosts you wish to form a cluster with
-        :param tls_cert_subject: Denotes the thing being secured;
-                                 E.G (/C=US/ST=GA/L=Atlanta/O=Dynamite Analytics/OU=R&D/CN=dynamite.ai)
-        :param heap_size_gigs: The initial/max java heap space to allocate
+              tls_cert_subject: Optional[str] = None, heap_size_gigs: Optional[int] = None) -> None:
+        """Setup Elasticsearch
+        Args:
+            node_name: The name of this elasticsearch node
+            network_host: The IP address to listen on (E.G "0.0.0.0")
+            port: The port that the ES API is bound to (E.G 9200)
+            initial_master_nodes: A list of nodes representing master (and master-eligible) nodes in this cluster
+            discover_seed_hosts: A list of IPs on other hosts you wish to form a cluster with
+            tls_cert_subject: Denotes the thing being secured; E.G (/C=US/ST=GA/L=Atlanta/O=Dynamite Analytics/OU=R&D/CN=dynamite.ai)
+            heap_size_gigs: The initial/max java heap space to allocate
+        Returns:
+            None
         """
         sysctl = systemctl.SystemCtl()
 
@@ -179,16 +179,16 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-    """
-    Uninstall Elasticsearch
-    """
 
     def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param purge_config: If enabled, remove all the configuration files associated with this installation
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Uninstall Elasticsearch
+        Args:
+            purge_config: If enabled, remove all the configuration files associated with this installation
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         from dynamite_nsm.services.elasticsearch.config import ConfigManager
         from dynamite_nsm.services.elasticsearch.process import ProcessManager

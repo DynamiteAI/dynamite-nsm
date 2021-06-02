@@ -23,11 +23,7 @@ Commandline interface wrappers for services
 class MultipleResponsibilityInterface(BaseInterface):
     """
     Maps a class with several responsibilities to commandline interface
-    For example ProcessManager's provides multiple methods that can be invoked to perform various tasks:
-    - start
-    - stop
-    - restart
-    - status
+    For example ProcessManager's provides multiple methods that can be invoked to perform various tasks.
 
     MultipleResponsibilityInterface:
 
@@ -42,12 +38,13 @@ class MultipleResponsibilityInterface(BaseInterface):
 
     def __init__(self, cls: object, supported_method_names: List[str], interface_name: str,
                  interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
-        """
-        :param cls: The class we wish to turn into a commandline utility
-        :param supported_method_names: A list of methods to create interfaces for
-        :param interface_name: The name of this commandline interface
-        :param interface_description: A description of what this interface is supposed to do
-        :param defaults: A dictionary where the key a parameter name and the value represents the value to default too.
+        """Initialize the interface
+        Args:
+            cls: The class we wish to turn into a commandline utility
+            supported_method_names: A list of methods to create interfaces for
+            interface_name: The name of this commandline interface
+            interface_description: A description of what this interface is supposed to do
+            defaults: A dictionary where the key a parameter name and the value represents the value to default too.
         """
 
         super().__init__(interface_name, interface_description, defaults=defaults)
@@ -59,10 +56,11 @@ class MultipleResponsibilityInterface(BaseInterface):
         # print(self.cls, [(item.name, item.flags, item.kwargs) for item in self.base_params])
 
     def get_parser(self) -> argparse.ArgumentParser:
-        """
-        Returns an argparse.ArgumentParser instance before parse_args has been called.
+        """Returns an argparse.ArgumentParser instance before parse_args has been called.
+        Args:
 
-        :return: argparse.ArgumentParser instance
+        Returns:
+             argparse.ArgumentParser instance
         """
         parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
         actions_subparsers = parser.add_subparsers()
@@ -80,9 +78,11 @@ class MultipleResponsibilityInterface(BaseInterface):
         return parser
 
     def execute(self, args: argparse.Namespace) -> Any:
-        """
-        Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
-        :param args: The output of argparse.ArgumentParser.parse_args() function
+        """Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
+        Args:
+            args: The output of argparse.ArgumentParser.parse_args() function
+        Returns:
+            Any value
         """
 
         constructor_kwargs = dict()
@@ -123,12 +123,13 @@ class SingleResponsibilityInterface(BaseInterface):
 
     def __init__(self, cls: object, entry_method_name: str, interface_name: str,
                  interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
-        """
-        :param cls: The class we wish to turn into a commandline utility
-        :param entry_method_name: The name of the method inside the above class we wish to call at execution time
-        :param interface_name: The name of this commandline interface
-        :param interface_description: A description of what this interface is supposed to do
-        :param defaults: A dictionary where the key a parameter name and the value represents the value to default too.
+        """Initialize the interface
+        Args:
+            cls: The class we wish to turn into a commandline utility
+            entry_method_name: The name of the method inside the above class we wish to call at execution time
+            interface_name: The name of this commandline interface
+            interface_description: A description of what this interface is supposed to do
+            defaults: A dictionary where the key a parameter name and the value represents the value to default too.
         """
 
         super().__init__(interface_name, interface_description, defaults=defaults)
@@ -143,10 +144,10 @@ class SingleResponsibilityInterface(BaseInterface):
         self.interface_params = self.interface_methods[self.entry_method_name]
 
     def get_parser(self) -> argparse.ArgumentParser:
-        """
-        Returns an argparse.ArgumentParser instance before parse_args has been called.
+        """Returns an argparse.ArgumentParser instance before parse_args has been called.
 
-        :return: argparse.ArgumentParser instance
+        Returns:
+             argparse.ArgumentParser instance
         """
         parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
         for params in self.base_params:
@@ -156,10 +157,11 @@ class SingleResponsibilityInterface(BaseInterface):
         return parser
 
     def execute(self, args: argparse.Namespace) -> Any:
-        """
-        Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
-
-        :param args: The output of argparse.ArgumentParser.parse_args() function
+        """Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
+        Args:
+            args: The output of argparse.ArgumentParser.parse_args() function
+        Returns:
+            None
         """
         if getattr(args, 'background', None):
             setattr(args, 'background', None)
@@ -187,6 +189,12 @@ class SingleResponsibilityInterface(BaseInterface):
         return exec_entry_method(**entry_method_kwargs)
 
     def execute_in_background(self, args: argparse.Namespace):
+        """Provides the ability to run a method as a POSIX compliant daemon
+        Args:
+            args: The output of argparse.ArgumentParser.parse_args() function
+        Returns:
+            None
+        """
         args.verbose = True
         args.stdout = False
         with daemon.DaemonContext():
@@ -201,17 +209,23 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
 
     def __init__(self, config: Union[config.GenericConfigManager, config.YamlConfigManager], interface_name: str,
                  interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
-        """
-        :param config: The class we wish to turn into a commandline utility
-        :param interface_name: The name of this commandline interface
-        :param interface_description: A description of what this interface is supposed to do
-        :param defaults: A dictionary where the key a parameter name and the value represents the value to default too.
+        """Initialize the interface
+        Args:
+            config: The class we wish to turn into a commandline utility
+            interface_name: The name of this commandline interface
+            interface_description: A description of what this interface is supposed to do
+            defaults: A dictionary where the key a parameter name and the value represents the value to default too.
         """
         self.config = config
         self.config_module_map = {}
         super().__init__(self.config.__class__, 'commit', interface_name, interface_description, defaults)
 
     def get_parser(self) -> argparse.ArgumentParser:
+        """Returns an argparse.ArgumentParser instance before parse_args has been called.
+
+        Returns:
+             argparse.ArgumentParser instance
+        """
         parser = super().get_parser()
         config_options = parser.add_argument_group('configuration options')
         config_objects_subparser = parser.add_subparsers()
@@ -250,12 +264,11 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         return parser
 
     def execute(self, args: argparse.Namespace) -> Any:
-        """
-        Given a set of parsed arguments execute those arguments using services.base.BaseConfigManager.commit()
-
-        Also handles config_module interfaces (interfaces compatible with services.base.config_objects's)
-
-        :param args: The output of argparse.ArgumentParser.parse_args() function
+        """Also handles config_module interfaces (interfaces compatible with services.base.config_objects's)
+        Args:
+            args: The output of argparse.ArgumentParser.parse_args() function
+        Returns:
+            Any Value
         """
         changed_config = False
         if not getattr(args, 'config_module', None):
@@ -307,9 +320,19 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
                 return tabulate(table, tablefmt='fancy_grid')
 
 
-def append_service_multiple_responsibility_interface_to_parser(parser: argparse.ArgumentParser,
-                                                               interface: MultipleResponsibilityInterface):
+def append_service_multiple_responsibility_interface_to_parser(
+        parser: argparse.ArgumentParser, interface: MultipleResponsibilityInterface) -> argparse.ArgumentParser:
+    """
+    Append an `MultipleResponsibilityInterface` to an existing parser as a sub-parser.
+    Args:
+        parser: The parser to append our interface too
+        interface: The new interface to add to the parser
+
+    Returns:
+        A new parser
+    """
     actions_subparsers = parser.add_subparsers()
+
     for method, params_group in interface.interface_methods.items():
         if method in interface.supported_method_names:
             action_parser = actions_subparsers.add_parser(method.replace('_', '-'))
@@ -326,6 +349,15 @@ def append_service_multiple_responsibility_interface_to_parser(parser: argparse.
 
 def append_service_single_responsibility_interface_to_parser(parser: argparse.ArgumentParser,
                                                              interface: SingleResponsibilityInterface):
+    """
+    Append an `SingleResponsibilityInterface` to an existing parser as a sub-parser.
+    Args:
+        parser: The parser to append our interface too
+        interface: The new interface to add to the parser
+
+    Returns:
+        A new parser
+    """
     for params in interface.base_params + interface.interface_params:
         parser.add_argument(*params.flags, **params.kwargs)
     return parser
@@ -333,6 +365,15 @@ def append_service_single_responsibility_interface_to_parser(parser: argparse.Ar
 
 def append_service_simple_config_management_interface_to_parser(parser: argparse.ArgumentParser,
                                                                 interface: SimpleConfigManagerInterface):
+    """
+    Append an `SimpleConfigManagerInterface` to an existing parser as a sub-parser.
+    Args:
+        parser: The parser to append our interface too
+        interface: The new interface to add to the parser
+
+    Returns:
+        A new parser
+    """
     config_options = parser.add_argument_group('configuration options')
     config_objects_subparser = parser.add_subparsers()
     for params in interface.base_params + interface.interface_params:

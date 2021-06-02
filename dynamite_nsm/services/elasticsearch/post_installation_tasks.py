@@ -16,19 +16,20 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
                                             bootstrap_attempts: Optional[int] = 10,
                                             stdout: Optional[bool] = False,
                                             verbose: Optional[bool] = False) -> None:
-    """
-    Used to setup self-signed node-node dnd REST API TLS encryption after installation
-
-    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-    :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
-    :param cert_name: The name of the certificate file
-    :param key_name: The name of the key file
-    :param subj: The certificate subj parameters section (E.G '/C=US/ST=GA/L=Atlanta/O=Dynamite/OU=R&D/CN=dynamite.ai')
-    :param trusted_ca_cert_name: The name of the trusted CA cert
-    :param trusted_ca_key_name: The name of the trusted CA key
-    :param bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
-    :param stdout: Print output to console
-    :param verbose: Include detailed debug messages
+    """Used to setup self-signed node-node dnd REST API TLS encryption after installation
+    Args:
+        configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
+        cert_name: The name of the certificate file
+        key_name: The name of the key file
+        subj: The certificate subj parameters section (E.G '/C=US/ST=GA/L=Atlanta/O=Dynamite/OU=R&D/CN=dynamite.ai')
+        trusted_ca_cert_name: The name of the trusted CA cert
+        trusted_ca_key_name: The name of the trusted CA key
+        bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
+        stdout: Print output to console
+        verbose: Include detailed debug messages
+    Returns:
+        None
     """
     from dynamite_nsm.services.elasticsearch import config, process, profile
     es_process_profile = profile.ProcessProfiler()
@@ -122,12 +123,13 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
 
 def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 10, stdout: Optional[bool] = False,
                                             verbose: Optional[bool] = False):
-    """
-    Updates various settings in the _cluster API
-
-    :param bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
-    :param stdout: Print output to console
-    :param verbose: Include detailed debug messages
+    """Updates various settings in the _cluster API
+    Args:
+        bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
+        stdout: Print output to console
+        verbose: Include detailed debug messages
+    Returns:
+        None
     """
     import json, requests
     from dynamite_nsm.services.elasticsearch import process, profile

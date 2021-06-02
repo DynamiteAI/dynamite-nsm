@@ -61,21 +61,18 @@ class InstallManager(install.BaseInstallManager):
         self.create_update_env_variable('FILEBEAT_HOME', self.install_directory)
 
     def setup(self, targets: List[str], target_type: Optional[str] = 'elasticsearch',
-              monitor_log_paths: Optional[List[str]] = None, agent_tag: Optional[str] = None,
-              kibana_target_str: Optional[str] = None) -> None:
+              monitor_log_paths: Optional[List[str]] = None, agent_tag: Optional[str] = None) -> None:
         """Setup Filebeat
         Args:
             targets: A list of Elasticsearch/Kafka/Logstash targets to forward events to (E.G ["192.168.0.9 5044", ...])
             target_type: The target type; current supported: elasticsearch (default), logstash, kafka, redis
             monitor_log_paths: A tuple of log paths to monitor
             agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
-            kibana_target_str: The Kibana host where the dashboards will be loaded. The default is 127.0.0.1 5601.
 
         Returns:
             None
         """
         from dynamite_nsm.services.zeek import profile as zeek_profile
-        from dynamite_nsm.services.kibana import profile as kibana_profile
         from dynamite_nsm.services.suricata import profile as suricata_profile
 
         sysctl = systemctl.SystemCtl()
@@ -187,4 +184,4 @@ if __name__ == '__main__':
         stdout=True,
         verbose=True
     )
-    install_mngr.setup()
+    install_mngr.setup(targets=[f'https://{utilities.get_primary_ip_address()}:9200'])

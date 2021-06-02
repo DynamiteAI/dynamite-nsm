@@ -7,7 +7,7 @@ import time
 import os
 from datetime import datetime
 from datetime import timedelta
-from typing import Dict, Generator, Optional
+from typing import Dict, Optional
 
 import tabulate
 

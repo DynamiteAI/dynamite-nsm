@@ -48,8 +48,6 @@ class InstallManager(install.BaseInstallManager):
             download_suricata_archive: If True, download the Suricata archive from a mirror
             stdout: Print the output to console
             verbose: Include detailed debug messages
-        Returns:
-            None
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory

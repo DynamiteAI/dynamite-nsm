@@ -1,6 +1,6 @@
 text = '''
         """
-        Manage Kibana Process
+        Manage Elasticsearch Process
 
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages

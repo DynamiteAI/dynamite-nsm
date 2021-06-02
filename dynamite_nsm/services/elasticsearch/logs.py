@@ -8,6 +8,7 @@ class StatusEntry:
 
     def __init__(self, entry_raw: str):
         """
+        Initialize Status Entry
         Args:
             entry_raw: A line item representing a single entry within the Filebeat log
         """
