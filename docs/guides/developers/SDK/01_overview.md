@@ -86,8 +86,3 @@ commandline utilities that are invokable under the `dynamite` utility.
 | config_object_interfaces | Provides commandline wrappers for complex config objects.                                     |
 | inspection_helpers       | Provides a set of utility functions and classes for building commandline parsers dynamically. |
 | interface_operations     | Provides a set of utility functions for combining commandline interfaces.                     |
-
-
-## Example Service Architecture
-
-![img.png](../../../data/img/service_architechture.png)

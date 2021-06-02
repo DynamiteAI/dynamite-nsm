@@ -48,14 +48,15 @@ nav:
       - Working with Kibana Package Manager: guides/02_using_kibana_package.md
       - Software Developer Guides:
           - Overview: guides/developers/01_overview.md
+          - Create a Commandline Utility: guides/developers/02_build_a_commandline_utility.md
           - Create a Kibana Package: guides/developers/02_create_a_kibana_package.md
           - Software Development Kit:
               - Overview: guides/developers/SDK/01_overview.md
               - cmd:
-                - base_interface: guides/developers/SDK/cmd/base_interface.py.md
-                - inspection_helpers: guides/developers/SDK/cmd/inspection_helpers.py.md
-                - config_object_interfaces: guides/developers/SDK/cmd/config_object_interfaces.py.md
-                - service_interfaces: guides/developers/SDK/cmd/service_interfaces.py.md
+                - base_interface: guides/developers/SDK/cmd/base_interface.md
+                - inspection_helpers: guides/developers/SDK/cmd/inspection_helpers.md
+                - config_object_interfaces: guides/developers/SDK/cmd/config_object_interfaces.md
+                - service_interfaces: guides/developers/SDK/cmd/service_interfaces.md
               - services:
                 - base:
                       - install: guides/developers/SDK/services/base/install.md
