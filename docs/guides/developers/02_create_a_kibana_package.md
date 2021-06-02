@@ -69,7 +69,8 @@ some additional metadata as well as a list of files to be installed via Kibana's
 ### manifest.json
 
 ```json5
-{	"name": "Baselines",
+{
+	"name": "Baselines",
 	"author": "John Doe",
 	"author_email": "jdoe@example.com",
 	"description": "Includes several base-lining techniques useful for identifying anomalies on small networks",
@@ -78,6 +79,9 @@ some additional metadata as well as a list of files to be installed via Kibana's
 
 }
 ```
+> **Important!**: The order of appearance in the file_list is important, dependencies should precede their dependants.  
+
+> In the example above `searches.ndjson` relies on or references the data from `index_patterns.ndjson` to be available at installation time, otherwise errors and unexpected behavior may arise.
 
 ## Create an Archive
 
