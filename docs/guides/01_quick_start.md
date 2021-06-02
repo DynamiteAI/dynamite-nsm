@@ -1,7 +1,7 @@
 # Quick Start
 
 This document will walk you through getting DynamiteNSM up in running in a small environment.
-This setup will work with small lab environments, but is not suggested for scenarios where over 500MiBs throughput is expected.
+This setup will work with small lab environments, but is not suggested for scenarios where over 300MiBs of sustained throughput is expected.
 
 ## Pre-requisites
 
@@ -11,6 +11,12 @@ This setup will work with small lab environments, but is not suggested for scena
 |---------|-----|------|---------------------|
 | Monitor | 8   | 4    | 1                   |
 | Agent   | 16   | 8    | 2                  |
+
+> ⓘ For the sake of testing your RAM and CPU can be decreased below the above small-network recommendation,
+> however this may result in dropped packets depending on your average throughput.
+
+> ⓘ `dynamite zeek logs metrics --pretty` and `dynamite suricata logs metrics --pretty` can be used to watch for dropped packets.
+
 
 - A physical or virtual switch capable of [SPANing or a dedicated TAP](for_security_engineers/technical_documents/span_vs_tap).
 - [Python 3.8+](https://www.python.org/downloads/).

@@ -6,6 +6,25 @@ useful for exploring your network from a variety of different perspectives.
 
 Additional packages can be installed via the `kibana package` utility.
 
+```bash
+dynamite kibana -h
+usage: dynamite [-h] {install,uninstall,process,config,package} ...
+
+Kibana @ 192.168.194.143
+
+positional arguments:
+  {install,uninstall,process,config,package}
+    install             Install Kibana as a standalone component.
+    uninstall           Uninstall Kibana on this machine.
+    process             Manage local Kibana node processes.
+    config              Modify Kibana configurations.
+    package             Add, remove, and manage packages created for Dynamite Kibana.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+```
+
 ## Installation
 ```bash
 sudo dynamite kibana install -h

@@ -1,4 +1,4 @@
-# Data-model Overview
+# Data Model Overview
 
 Agents provide two primary kinds of normalized output: events and alerts. In the context of this guide an event is a 
 completely neutral transaction that by itself is neither malicious nor benign.
