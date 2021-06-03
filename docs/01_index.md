@@ -25,7 +25,6 @@ monitoring a home network or lab environment.
 
 ### Contribute
 
-You don't have to be a software developer to contribute. 
 Whether you have a cool detection, visualisation, or SDK contribution we welcome collaboration!
 
-Checkout our contribution guidelines and pull request guide here.
+Checkout our contributing guidelines [here](/resources/contributing_guide).
