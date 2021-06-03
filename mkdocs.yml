@@ -92,7 +92,7 @@ nav:
                     - config: guides/developers/SDK/services/elasticsearch/config.md
                     - process: guides/developers/SDK/services/elasticsearch/process.md
                     - profile: guides/developers/SDK/services/elasticsearch/profile.md
-  - Troubleshooting:
-    - Elasticsearch: troubleshooting/elasticsearch.md
+  - Resources:
+      - Contributing Guide: resources/contributing_guide.md
 
 

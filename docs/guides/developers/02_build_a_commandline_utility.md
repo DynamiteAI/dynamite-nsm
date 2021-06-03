@@ -9,9 +9,12 @@ for `service` classes.
 ![img.png](../../data/img/service_architechture.png)
 
 Services have three primary design principles:
+
 1. Must provide a consistent layer of abstraction above a set of common `actions`. In doing so we maintain 
    *least-surprise* in keeping the development experience relatively consistent across all services.
+
 2. Must be self-contained. Each `service` is a dedicated module with individual `action` sub-modules. 
+
 3. Must expose classes that fit into one of the following paradigms: single-responsibility or multi-responsibility.
 
 ## Single Responsibility Class

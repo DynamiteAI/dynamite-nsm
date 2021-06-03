@@ -23,7 +23,7 @@ sudo pip3 install dynamite-nsm
 
 **To install on your sensor hardware (or VM):**
 ```
-sudo dynamite agent install --capture-interfaces=<iface1> <iface2> <iface3>
+sudo dynamite agent install --inspect-interfaces=<iface1> <iface2> <iface3>
 ```
 
 [**More Info »**]()
@@ -39,18 +39,8 @@ sudo dynamite agent install --capture-interfaces=<iface1> <iface2> <iface3>
 sudo dynamite monitor install
 ```
 
-[**More Info »**]()
-
-### Checkout our Guides.
-
-| For Security Engineers                            | For Security Analysts & Threat Hunters           | For Developers                                     |
-|---------------------------------------------------|--------------------------------------------------|----------------------------------------------------|
-| ![img.png](data/img/security_engineers_icon.png)  | ![img.png](data/img/security_analysts_icon.png)  | ![img.png](data/img/developers_icon.png)           |
-| [Read the docs »](guides/for_security_engineers/) | [Read the docs »](guides/for_security_analysts/) | [Read the docs »](guides/for_software_developers/) |
-
 ### Contribute
 
-You don't have to be a software developer to contribute. 
 Whether you have a cool detection, visualisation, or SDK contribution we welcome collaboration!
 
-Checkout our contribution guidelines and pull request guide here.
+Checkout our contributing guidelines [here](docs/resources/contributing_guide.md).
