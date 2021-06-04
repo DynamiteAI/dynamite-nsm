@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import math
 import crypt
 import fcntl
 import getpass
@@ -18,6 +19,7 @@ import tarfile
 import termios
 import textwrap
 import time
+from itertools import zip_longest
 from contextlib import closing
 from datetime import datetime
 from hashlib import md5
@@ -52,8 +54,7 @@ class PrintDecorations:
         if _color not in avail_colors:
             raise ValueError(f"Not a valid color, must be one of: {avail_colors}")
         color = colormap[f"_COLOR_{_color.upper()}"]
-        print(color)
-        return f"{PrintDecorations._COLOR_END}{color}{strinput}{PrintDecorations._COLOR_END}"
+        return f"{color}{strinput}{PrintDecorations._COLOR_END}"
 
     _COLOR_CYAN = '\033[96m'
     _COLOR_DARKCYAN = '\033[36m'
@@ -236,8 +237,6 @@ def create_dynamite_user() -> None:
 
 def create_dynamite_remote_user() -> None:
     """Create the dynamite-remote user and group
-    Args:
-        password: The password for the user
     Returns:
         None
     """
@@ -292,7 +291,7 @@ def download_file(url: str, filename: str, stdout: Optional[bool] = False) -> bo
         '\033[0;36m'
         'DOWNLOAD_MANAGER ',
         '\033[0m',
-        '          | ',
+        '                    | ',
         progressbar.FileTransferSpeed(),
         ' ', progressbar.Bar(),
         ' ', '({})'.format(filename),
@@ -363,8 +362,54 @@ def extract_archive(archive_path: str, destination_path: str) -> None:
         pass
 
 
+def get_optimal_cpu_interface_config(interface_names: List[str], available_cpus: Union[Tuple, List[Tuple]],
+                                     custom_ratio: Optional[int] = None):
+    cpu_network_interface_config = None
+
+    def grouper(n, iterable):
+        args = [iter(iterable)] * n
+        return zip_longest(*args)
+
+    def create_thread_groups(iface_names: List[str], avail_cpus: Tuple):
+        idx = 0
+        avail_cpus = list(avail_cpus)
+        thread_worker_configs = []
+        if not avail_cpus:
+            return thread_worker_configs
+        for iface_name in iface_names:
+            if idx >= len(avail_cpus):
+                idx = 0
+            if isinstance(avail_cpus[idx], int):
+                avail_cpus[idx] = [avail_cpus[idx]]
+
+            thread_worker_configs.append(
+                dict(
+                    interface_name=iface_name,
+                    pin_cpus=avail_cpus[idx],
+                    thread_count=len(avail_cpus[idx])
+                )
+            )
+            idx += 1
+        return thread_worker_configs
+
+    if len(available_cpus) <= len(interface_names):
+        cpu_network_interface_config = create_thread_groups(interface_names, available_cpus)
+    else:
+        ratio = custom_ratio
+        if not custom_ratio:
+            ratio = int(math.ceil(len(available_cpus) / float(len(interface_names))))
+        cpu_groups = grouper(ratio, available_cpus)
+        temp_cpu_groups = []
+        for cpu_group in cpu_groups:
+            cpu_group = [c for c in cpu_group if c]
+            temp_cpu_groups.append(tuple(cpu_group))
+        cpu_groups = temp_cpu_groups
+        cpu_network_interface_config = create_thread_groups(interface_names, cpu_groups)
+    return cpu_network_interface_config
+
+
 def get_default_agent_tag() -> str:
-    """:return: The agent tag
+    """Get the agent tag
     Args:
 
     Returns:

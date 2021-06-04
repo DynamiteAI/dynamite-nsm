@@ -18,18 +18,21 @@ def kibana_api_up(kibana_url, username: Optional[str] = 'admin', password: Optio
     :param username: The username for logging into Kibana instance
     :param password: The password for logging into Kibana instance
     """
-    r = requests.get(
-        url=f'{kibana_url}/api',
-        auth=(username, password),
-        headers={'kbn-xsrf': 'true'},
-        verify=False
-    )
+    try:
+        r = requests.get(
+            url=f'{kibana_url}/api',
+            auth=(username, password),
+            headers={'kbn-xsrf': 'true'},
+            verify=False
+        )
+    except requests.ConnectionError:
+        return False
     return r.status_code == 404
 
 
 def import_saved_object(file_path: Union[str, TextIO], kibana_url: str, import_attempts: Optional[int] = 10,
-                        username: Optional[str] = 'admin', password: Optional
-        [str] = 'admin', stdout: Optional[bool] = False, verbose: Optional[bool] = False) -> List[str]:
+                        username: Optional[str] = 'admin', password: Optional[str] = 'admin', 
+                        stdout: Optional[bool] = False, verbose: Optional[bool] = False) -> List[str]:
     """
     Install a Kibana Saved Object from Kibana's _export API (Installs to default tenant [space])
 
@@ -46,7 +49,7 @@ def import_saved_object(file_path: Union[str, TextIO], kibana_url: str, import_a
     log_level = logging.INFO
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('KIBANA_SAVED_OBJECT_LOADER', level=log_level, stdout=stdout)
+    logger = get_logger('kibana.saved_objects_setup', level=log_level, stdout=stdout)
     obj_keys = []
     if not isinstance(file_path, TextIO):
         import_fh = open(file_path, 'r')
@@ -97,14 +100,14 @@ def post_install_saved_objects(saved_objects_directory: str, bootstrap_attempts:
     kibana_url = f'http://{utilities.get_primary_ip_address()}:5601'
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('KIBANA_SAVED_OBJECTS_BOOTSTRAPPER', level=log_level, stdout=stdout)
+    logger = get_logger('kibana.saved_objects_setup', level=log_level, stdout=stdout)
     from dynamite_nsm.services.kibana import process, profile
     kibana_process_profile = profile.ProcessProfiler()
-    process.start(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).start()
     if not kibana_process_profile.is_running():
         logger.warning(f'Could not start Kibana instance. Check the Kibana log.')
     for import_file in os.listdir(saved_objects_directory):
         full_path = f'{saved_objects_directory}/{import_file}'
         import_saved_object(file_path=full_path, kibana_url=kibana_url, import_attempts=bootstrap_attempts,
                             stdout=stdout, verbose=verbose)
-    process.stop(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).stop()

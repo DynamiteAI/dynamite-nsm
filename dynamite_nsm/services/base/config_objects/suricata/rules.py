@@ -33,6 +33,7 @@ def list_available_rule_names():
 class Rule(Analyzer):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
+        self.value = None
         super().__init__(name, enabled)
 
 

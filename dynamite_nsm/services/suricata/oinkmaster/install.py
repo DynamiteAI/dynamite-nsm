@@ -24,7 +24,7 @@ class InstallManager(install.BaseInstallManager):
         self.install_directory = install_directory
         self.stdout = stdout
         self.verbose = verbose
-        install.BaseInstallManager.__init__(self, 'oinkmaster', stdout=self.stdout, verbose=self.verbose)
+        install.BaseInstallManager.__init__(self, 'oinkmaster.install', stdout=self.stdout, verbose=self.verbose)
 
         if download_oinkmaster_archive:
             self.logger.info("Attempting to download Oinkmaster archive.")

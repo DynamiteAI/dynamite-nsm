@@ -22,7 +22,12 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              required_config_files=['elasticsearch.yml', 'jvm.options']
                                              )
 
-    def is_running(self):
+    def is_running(self) -> bool:
+        """Check if Elasticsearch is running
+        Returns:
+            True, if running
+
+        """
         if self.elasticsearch_home:
             try:
                 return elastic_process.ProcessManager().status()['running']
@@ -30,7 +35,12 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                 return elastic_process.ProcessManager().status()['RUNNING']
         return False
 
-    def is_listening(self):
+    def is_listening(self) -> bool:
+        """ Check if Elasticsearch is listening
+        Returns:
+            True, if Elasticsearch HTTP service is listening
+
+        """
         if not self.elasticsearch_config:
             return False
         if not os.path.exists(self.elasticsearch_config):
@@ -39,6 +49,4 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         es_config_obj = elastic_configs.ConfigManager(configuration_directory=self.elasticsearch_config)
         host = es_config_obj.network_host
         port = es_config_obj.http_port
-        if host.strip() == '0.0.0.0':
-            host = 'localhost'
         return utilities.check_socket(host, port)

@@ -12,6 +12,7 @@ class InstallManager(install.BaseInstallManager):
     """
     Manage Filebeat installation process
     """
+
     def __init__(self, install_directory: str, download_filebeat_archive: Optional[bool] = True,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False):
         """Install Filebeat
@@ -27,7 +28,7 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
 
-        super().__init__('filebeat', verbose, stdout)
+        super().__init__('filebeat.install', verbose, stdout)
         if download_filebeat_archive:
             self.logger.info('Attempting to download Filebeat OSS archive.')
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.FILE_BEAT_MIRRORS)
@@ -59,21 +60,20 @@ class InstallManager(install.BaseInstallManager):
         """
         self.create_update_env_variable('FILEBEAT_HOME', self.install_directory)
 
-    def setup(self, monitor_log_paths: Optional[List[str]] = None, targets: Optional[List[str]] = None,
-              agent_tag: Optional[str] = None, kibana_target_str: Optional[str] = None) -> None:
-        """Setup Kibana
+    def setup(self, targets: List[str], target_type: Optional[str] = 'elasticsearch',
+              monitor_log_paths: Optional[List[str]] = None, agent_tag: Optional[str] = None) -> None:
+        """Setup Filebeat
         Args:
+            targets: A list of Elasticsearch/Kafka/Logstash targets to forward events to (E.G ["192.168.0.9 5044", ...])
+            target_type: The target type; current supported: elasticsearch (default), logstash, kafka, redis
             monitor_log_paths: A tuple of log paths to monitor
-            targets: A tuple of Logstash/Kafka targets to forward events to (E.G ["192.168.0.9 5044", ...])
             agent_tag: A friendly name for the agent (defaults to the hostname with no spaces and _agt suffix)
-            kibana_target_str: The Kibana host where the dashboards will be loaded. The default is 127.0.0.1 5601.
+
         Returns:
             None
         """
         from dynamite_nsm.services.zeek import profile as zeek_profile
-        from dynamite_nsm.services.kibana import profile as kibana_profile
         from dynamite_nsm.services.suricata import profile as suricata_profile
-        from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
 
         sysctl = systemctl.SystemCtl()
         zeek_log_root, suricata_log_root = None, None
@@ -91,7 +91,20 @@ class InstallManager(install.BaseInstallManager):
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/filebeat/modules.d/',
                                                    self.install_directory)
         filebeat_config = config.ConfigManager(self.install_directory, verbose=self.verbose, stdout=self.stdout)
-        filebeat_config.elasticsearch_targets.enabled = True
+        if target_type == 'elasticsearch':
+            filebeat_config.switch_to_elasticsearch_target()
+            filebeat_config.elasticsearch_targets.target_strings = targets
+            self.logger.info(f'Enabling Elasticsearch connector: '
+                             f'{filebeat_config.elasticsearch_targets.target_strings}')
+        elif target_type == 'logstash':
+            filebeat_config.switch_to_logstash_target()
+            filebeat_config.logstash_targets.target_strings = targets
+        elif target_type == 'kafka':
+            filebeat_config.switch_to_kafka_target()
+            filebeat_config.kafka_targets.target_strings = targets
+        elif target_type == 'redis':
+            filebeat_config.switch_to_redis_target()
+            filebeat_config.redis_targets.target_strings = targets
         filebeat_config.input_logs = misc_filebeat_objs.InputLogs(
             monitor_log_paths=[]
         )
@@ -114,21 +127,11 @@ class InstallManager(install.BaseInstallManager):
                 monitor_log_paths=monitor_log_paths
             )
         self.logger.info(f'Monitoring Paths = {filebeat_config.input_logs.monitor_log_paths}')
-        if not targets:
-            elasticsearch_profiler = elasticsearch_profile.ProcessProfiler()
-            if elasticsearch_profiler.is_installed():
-                filebeat_config.elasticsearch_targets.target_strings = [
-                    f'https://{utilities.get_primary_ip_address()}:9200']
-        if not kibana_target_str:
-            kibana_profiler = kibana_profile.ProcessProfiler()
-            if kibana_profiler.is_installed():
-                filebeat_config.kibana_settings.kibana_target_str = f'{utilities.get_primary_ip_address()}:5601'
 
         if not agent_tag:
             filebeat_config.field_processors.originating_agent_tag = utilities.get_default_agent_tag()
         self.logger.info(f'Agent Tag = {filebeat_config.field_processors.originating_agent_tag}')
-        self.logger.info('Enabling Elasticsearch connector by default.')
-        filebeat_config.switch_to_elasticsearch_target()
+        self.logger.debug(filebeat_config.elasticsearch_targets.get_raw())
         filebeat_config.commit()
         self.logger.info('Applying configuration.')
         # Fix Permissions
@@ -155,7 +158,6 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-
     """
     Manage Filebeat uninstall process
     """
@@ -170,8 +172,9 @@ class UninstallManager(install.BaseUninstallManager):
 
         env_vars = utilities.get_environment_file_dict()
         fb_directories = [env_vars.get('FILEBEAT_HOME'), ]
-        super().__init__('filebeat', directories=fb_directories,
-                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+        super().__init__('filebeat.uninstall', directories=fb_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), sysctl_service_name='filebeat.service',
+                         environ_vars=['FILEBEAT_HOME'], stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':
@@ -181,4 +184,4 @@ if __name__ == '__main__':
         stdout=True,
         verbose=True
     )
-    install_mngr.setup()
+    install_mngr.setup(targets=[f'https://{utilities.get_primary_ip_address()}:9200'])

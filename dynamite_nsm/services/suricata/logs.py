@@ -473,7 +473,7 @@ class MainLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
 
 
 class StatusLogEve(logs.LogFile):
@@ -761,4 +761,4 @@ class StatsLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))

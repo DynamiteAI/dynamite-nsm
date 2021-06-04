@@ -12,7 +12,6 @@ COMPILE_PROCESS_EXPECTED_LINE_COUNT = 6779
 
 
 class InstallManager(install.BaseInstallManager):
-
     """
     Manage Zeek installation process
     """
@@ -33,7 +32,7 @@ class InstallManager(install.BaseInstallManager):
         self.stdout = stdout
         self.verbose = verbose
 
-        super(InstallManager, self).__init__(name='zeek', verbose=verbose, stdout=stdout)
+        super(InstallManager, self).__init__(name='zeek.install', verbose=verbose, stdout=stdout)
         if download_zeek_archive:
             self.logger.info("Attempting to download Zeek archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.ZEEK_MIRRORS)
@@ -139,17 +138,15 @@ class InstallManager(install.BaseInstallManager):
         self.install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
                                   pre_install_function=install_powertools_rhel)
 
-    def setup(self, capture_network_interfaces: Optional[List[str]] = None):
+    def setup(self, inspect_interfaces: List[str]):
         """Setup Zeek
         Args:
-            capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         Returns:
             None
         """
-        if not capture_network_interfaces:
-            capture_network_interfaces = utilities.get_network_interface_names()
-        if not self.validate_capture_network_interfaces(capture_network_interfaces):
-            raise install.NetworkInterfaceNotFound(capture_network_interfaces)
+        if not self.validate_inspect_interfaces(inspect_interfaces):
+            raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()
         self.install_zeek_dependencies()
         self.create_update_zeek_environment_variables()
@@ -178,7 +175,7 @@ class InstallManager(install.BaseInstallManager):
                                                           verbose=self.verbose)
         node_config = config.NodeConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
         node_config.workers = node.Workers()
-        for worker in node_config.get_optimal_zeek_worker_config(capture_network_interfaces):
+        for worker in node_config.get_optimal_zeek_worker_config(inspect_interfaces):
             node_config.workers.add_worker(
                 worker=worker
             )
@@ -207,7 +204,6 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-
     """
     Manage Zeek uninstallation process
     """
@@ -227,7 +223,8 @@ class UninstallManager(install.BaseUninstallManager):
         zeek_directories = [env_vars.get('ZEEK_HOME')]
         if purge_config:
             zeek_directories.append(env_vars.get('ZEEK_SCRIPTS'))
-        super().__init__('zeek', directories=zeek_directories,
+        super().__init__('zeek.uninstall', directories=zeek_directories, sysctl_service_name='zeek.service',
+                         environ_vars=['ZEEK_HOME', 'ZEEK_SCRIPTS'],
                          process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
 
 

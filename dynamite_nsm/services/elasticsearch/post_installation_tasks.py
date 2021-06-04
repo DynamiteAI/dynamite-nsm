@@ -16,19 +16,20 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
                                             bootstrap_attempts: Optional[int] = 10,
                                             stdout: Optional[bool] = False,
                                             verbose: Optional[bool] = False) -> None:
-    """
-    Used to setup self-signed node-node dnd REST API TLS encryption after installation
-
-    :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-    :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
-    :param cert_name: The name of the certificate file
-    :param key_name: The name of the key file
-    :param subj: The certificate subj parameters section (E.G '/C=US/ST=GA/L=Atlanta/O=Dynamite/OU=R&D/CN=dynamite.ai')
-    :param trusted_ca_cert_name: The name of the trusted CA cert
-    :param trusted_ca_key_name: The name of the trusted CA key
-    :param bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
-    :param stdout: Print output to console
-    :param verbose: Include detailed debug messages
+    """Used to setup self-signed node-node dnd REST API TLS encryption after installation
+    Args:
+        configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+        install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
+        cert_name: The name of the certificate file
+        key_name: The name of the key file
+        subj: The certificate subj parameters section (E.G '/C=US/ST=GA/L=Atlanta/O=Dynamite/OU=R&D/CN=dynamite.ai')
+        trusted_ca_cert_name: The name of the trusted CA cert
+        trusted_ca_key_name: The name of the trusted CA key
+        bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
+        stdout: Print output to console
+        verbose: Include detailed debug messages
+    Returns:
+        None
     """
     from dynamite_nsm.services.elasticsearch import config, process, profile
     es_process_profile = profile.ProcessProfiler()
@@ -40,7 +41,7 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
     log_level = logging.INFO
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('ELASTICSEARCH_TLS_BOOTSTRAPPER', level=log_level, stdout=stdout)
+    logger = get_logger('elasticsearch.tls_setup', level=log_level, stdout=stdout)
 
     utilities.makedirs(f'{cert_directory}')
     openssl_commands = [
@@ -79,7 +80,7 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
                                       unix_permissions_integer=600)
     utilities.set_permissions_of_file(file_path=f'{cert_directory}/{trusted_ca_key_name}', unix_permissions_integer=600)
     logger.info('Starting ElasticSearch process to install our security index configuration.')
-    process.start(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).start()
 
     es_main_config = config.ConfigManager(configuration_directory)
     network_host = es_main_config.network_host
@@ -117,17 +118,18 @@ def post_install_bootstrap_tls_certificates(configuration_directory: str, instal
     else:
         logger.info(f'Bootstrapping security successful. You can find the current certs/keys here: {cert_directory}')
     logger.info('Shutting down ElasticSearch service.')
-    process.stop(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).stop()
 
 
 def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 10, stdout: Optional[bool] = False,
                                             verbose: Optional[bool] = False):
-    """
-    Updates various settings in the _cluster API
-
-    :param bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
-    :param stdout: Print output to console
-    :param verbose: Include detailed debug messages
+    """Updates various settings in the _cluster API
+    Args:
+        bootstrap_attempts: The maximum number attempts before giving up on bootstrapping
+        stdout: Print output to console
+        verbose: Include detailed debug messages
+    Returns:
+        None
     """
     import json, requests
     from dynamite_nsm.services.elasticsearch import process, profile
@@ -137,9 +139,9 @@ def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 
     es_cluster_data = {'persistent': {'script.max_compilations_rate': '500/5m'}}
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('ELASTICSEARCH_CLUSTER_BOOTSTRAPPER', level=log_level, stdout=stdout)
+    logger = get_logger('elasticsearch.cluster_setup', level=log_level, stdout=stdout)
     logger.info('Starting ElasticSearch process to update cluster settings.')
-    process.start(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).start()
     attempts = 0
     if not es_process_profile.is_running():
         logger.warning(f'Could not start Elasticsearch cluster. Check the Elasticsearch cluster log.')
@@ -166,7 +168,7 @@ def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 
     else:
         logger.info(f'Bootstrapping cluster settings successful.')
     logger.info('Shutting down ElasticSearch service.')
-    process.stop(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).stop()
 
 
 def post_install_bootstrap_index_aliases(bootstrap_attempts: Optional[int] = 10, stdout: Optional[bool] = False,
@@ -186,9 +188,9 @@ def post_install_bootstrap_index_aliases(bootstrap_attempts: Optional[int] = 10,
     es_index_data = {'actions': {'add': {'index': 'filebeat-*', 'alias': 'dynamite-*'}}}
     if verbose:
         log_level = logging.DEBUG
-    logger = get_logger('ELASTICSEARCH_INDEX_ALIAS_BOOTSTRAPPER', level=log_level, stdout=stdout)
+    logger = get_logger('elasticsearch.index_setup', level=log_level, stdout=stdout)
     logger.info('Starting ElasticSearch process to update index aliases.')
-    process.start(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).start()
     attempts = 0
     if not es_process_profile.is_running():
         logger.warning(f'Could not start Elasticsearch cluster. Check the Elasticsearch cluster log.')
@@ -215,4 +217,4 @@ def post_install_bootstrap_index_aliases(bootstrap_attempts: Optional[int] = 10,
     else:
         logger.info(f'Bootstrapping index settings successful.')
     logger.info('Shutting down ElasticSearch service.')
-    process.stop(stdout=stdout, verbose=verbose)
+    process.ProcessManager(stdout=stdout, verbose=verbose).stop()

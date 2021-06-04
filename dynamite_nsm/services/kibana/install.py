@@ -5,6 +5,7 @@ from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.kibana import config
 from dynamite_nsm.services.kibana.post_installation_tasks import post_install_saved_objects
+from dynamite_nsm.services.kibana.tasks import install_dynamite_investigator
 
 
 class InstallManager(install.BaseInstallManager):
@@ -25,7 +26,7 @@ class InstallManager(install.BaseInstallManager):
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
-        super().__init__('kibana', verbose, stdout)
+        super().__init__('kibana.install', verbose, stdout)
         if download_kibana_archive:
             self.logger.info("Attempting to download Kibana (OpenDistro) archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.KIBANA_MIRRORS)
@@ -114,8 +115,11 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/kibana.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/kibana.service')
 
-        self.logger.info('Importing Kibana saved packages.')
-        post_install_saved_objects(f'{const.DEFAULT_CONFIGS}/kibana/packages', stdout=self.stdout, verbose=self.verbose)
+        self.logger.info('Installing "Dynamite Investigator" Kibana package')
+        task = install_dynamite_investigator.InstallKibanaDynamiteInvestigatorPackage(username='admin',
+                                                                                      password='admin',
+                                                                                      target=f"http://{host}:{port}")
+        task.download_and_install()
 
 
 class UninstallManager(install.BaseUninstallManager):
@@ -136,8 +140,10 @@ class UninstallManager(install.BaseUninstallManager):
         kb_directories = [env_vars.get('KIBANA_HOME'), env_vars.get('KIBANA_LOGS')]
         if purge_config:
             kb_directories.append(env_vars.get('KIBANA_PATH_CONF'))
-        super().__init__('kibana', directories=kb_directories,
-                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+        super().__init__('kibana.uninstall', directories=kb_directories,
+                         process=ProcessManager(stdout=stdout, verbose=verbose), sysctl_service_name='kibana.service',
+                         environ_vars=['KIBANA_HOME', 'KIBANA_LOGS', 'KIBANA_PATH_CONF'],
+                         stdout=stdout, verbose=verbose)
 
 
 if __name__ == '__main__':

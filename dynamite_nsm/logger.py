@@ -27,16 +27,16 @@ def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logge
 
     utilities.makedirs(const.LOG_PATH, exist_ok=True)
 
-    logger = logging.getLogger(component_name)
+    logger = logging.getLogger(component_name.upper())
     logger.setLevel(level)
     if not len(logger.handlers):
         fh = logging.FileHandler(os.path.join(const.LOG_PATH, 'dynamite-{}.log'.format(TODAY_FORMATTED_DATE)))
         fformatter = logging.Formatter(
-            '%(asctime)s | %(name)15s | %(module)20s | %(funcName)45s | %(lineno)4s | %(levelname)8s |  %(message)s')
+            '%(asctime)s | %(name)25s | %(module)20s | %(funcName)45s | %(lineno)4s | %(levelname)8s |  %(message)s')
         fh.setFormatter(fformatter)
         logger.addHandler(fh)
     if stdout:
         coloredlogs.install(level=level, logger=logger,
-                            fmt='%(asctime)s %(name)-15s %(levelname)-10s | %(message)s')
+                            fmt='%(asctime)s %(name)-25s %(levelname)-10s | %(message)s')
     logger.propagate = False
     return logger

@@ -1,18 +1,51 @@
 #!/usr/bin/python
-
-
-import argparse
+import json
 import sys
+import argparse
+
+import tabulate
 
 from dynamite_nsm import utilities
 
-if not utilities.get_environment_file_dict():
+if utilities.is_root() and not utilities.get_environment_file_dict():
     utilities.create_dynamite_environment_file()
 
 from dynamite_nsm.const import VERSION
 from dynamite_nsm.cmd import process_arguments
 from dynamite_nsm.utilities import print_dynamite_logo
-from dynamite_nsm.cmd import elasticsearch, logstash, kibana, remote, zeek, suricata, filebeat, updates
+from dynamite_nsm.cmd import agent, monitor, elasticsearch, logstash, kibana, remote, zeek, suricata, filebeat, updates
+
+
+def print_service_statuses():
+    from dynamite_nsm.services.zeek import profile as zeek_profile
+    from dynamite_nsm.services.suricata import profile as suricata_profile
+    from dynamite_nsm.services.filebeat import profile as filebeat_profile
+
+    from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
+    from dynamite_nsm.services.logstash import profile as logstash_profile
+    from dynamite_nsm.services.kibana import profile as kibana_profile
+    if not utilities.is_root():
+        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))
+        exit(0)
+    profiler_map = dict(
+        elasticsearch=elasticsearch_profile.ProcessProfiler(),
+        logstash=logstash_profile.ProcessProfiler(),
+        kibana=kibana_profile.ProcessProfiler(),
+        zeek=zeek_profile.ProcessProfiler(),
+        suricata=suricata_profile.ProcessProfiler(),
+        filebeat=filebeat_profile.ProcessProfiler()
+    )
+    headers = ['Service', 'Installed', 'Running', 'Service Role']
+    rows = []
+    colorize = utilities.PrintDecorations.colorize
+    for k, v in profiler_map.items():
+        rows.append([k,
+                     colorize('✓', 'green') if v.is_installed() else colorize('X', 'red'),
+                     colorize('✓', 'green') if v.is_running() else colorize('X', 'red'),
+                     colorize('Agent', 'blue') if k in ['zeek', 'suricata', 'filebeat'] else colorize('Monitor',
+                                                                                                      'darkcyan')
+                     ])
+    print(tabulate.tabulate(rows, headers=headers, tablefmt='fancy_grid'))
 
 
 def get_component(component_name: str):
@@ -22,6 +55,8 @@ def get_component(component_name: str):
     :param component_name: The name of the component
     """
     component_map = dict(
+        agent=agent,
+        monitor=monitor,
         elasticsearch=elasticsearch,
         logstash=logstash,
         kibana=kibana,
@@ -46,12 +81,14 @@ def get_component_level_args(component_name: str):
 if __name__ == '__main__':
     dynamite_dummy_parser = argparse.ArgumentParser(f'Dynamite Network Security Monitor [{VERSION}]')
     dynamite_dummy_parser.add_argument('component', help='A component within the Dynamite stack to manage.', choices=[
-        'elasticsearch',
-        'logstash',
-        'kibana',
+        'agent',
+        'monitor',
         'zeek',
         'suricata',
         'filebeat',
+        'elasticsearch',
+        'logstash',
+        'kibana',
         'updates',
         'remote'
     ])
@@ -65,7 +102,6 @@ if __name__ == '__main__':
         if '--version' in sys.argv:
             print_dynamite_logo(VERSION)
             sys.exit(0)
-
         if len(sys.argv[1:]) == 1:
             get_component(sys.argv[1]).get_action_parser().print_help()
             sys.exit(0)
@@ -82,12 +118,27 @@ if __name__ == '__main__':
             # Delete the 'component' from sys.sys.argv as process_arguments does not know how to handle it when it's
             # ingested into a child argparse.Namespace
             del sys.argv[1]
-            print(process_arguments(args=get_component_level_args(component), component=component, interface=interface,
-                                    sub_interface=sub_interface, print_help_on_error=False))
+            res = process_arguments(args=get_component_level_args(component), component=component, interface=interface,
+                                    sub_interface=sub_interface, print_help_on_error=False)
+            if res:
+                print(res)
         except ModuleNotFoundError:
-            print(process_arguments(args=get_component_level_args(component), component=component, interface=interface,
-                                    print_help_on_error=True))
+            res = process_arguments(args=get_component_level_args(component), component=component, interface=interface,
+                                    print_help_on_error=True)
+            if isinstance(res, bool):
+                if res:
+                    print(utilities.PrintDecorations.colorize('OK', _color='green'))
+                else:
+                    print(utilities.PrintDecorations.colorize('FAIL', _color='red'))
+            elif isinstance(res, str):
+                print(res)
+            elif isinstance(res, list):
+                print(json.dumps(res, indent=1))
+            elif isinstance(res, dict):
+                print(json.dumps(res, indent=1))
     except IndexError:
-        dynamite_dummy_parser.print_help()
+        print_service_statuses()
     except KeyError:
         dynamite_dummy_parser.print_help()
+    except PermissionError:
+        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))

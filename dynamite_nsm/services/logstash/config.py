@@ -32,7 +32,7 @@ class ConfigManager(YamlConfigManager):
 
         with open(self.logstash_config_path) as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
-        super().__init__(self.config_data_raw, name='LOGSTASHCFG', verbose=verbose, stdout=stdout, **extract_tokens)
+        super().__init__(self.config_data_raw, name='logstash.config', verbose=verbose, stdout=stdout, **extract_tokens)
         self.parse_yaml_file()
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
@@ -42,6 +42,9 @@ class ConfigManager(YamlConfigManager):
 
         :param out_file_path: The path to the output file; if none given overwrites existing
         :param backup_directory: The path to the backup directory
+
+        Args:
+            top_text:
         """
         if not out_file_path:
             out_file_path = self.logstash_config_path
@@ -61,7 +64,7 @@ class JavaHeapOptionsConfigManager(JavaOptionsConfigManager):
         self.logstash_jvm_config_path = f'{self.configuration_directory}/jvm.options'
         with open(self.logstash_jvm_config_path) as jvm_config:
             data = {'data': jvm_config.readlines()}
-        super().__init__(data, name='LOGSTASHJAVA', verbose=verbose, stdout=stdout)
+        super().__init__(data, name='logstash.java', verbose=verbose, stdout=stdout)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """

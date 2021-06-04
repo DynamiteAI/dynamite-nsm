@@ -2,6 +2,7 @@ import os
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
+from dynamite_nsm.services.elasticsearch.tasks import install_events_to_hosts
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.elasticsearch import config
 from dynamite_nsm.services.elasticsearch.post_installation_tasks import post_install_bootstrap_tls_certificates, \
@@ -13,23 +14,21 @@ class InstallManager(install.BaseInstallManager):
     def __init__(self, configuration_directory: str, install_directory: str, log_directory: str,
                  download_elasticsearch_archive: Optional[bool] = True,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        """
-        Install Elasticsearch
-
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
-        :param download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
-
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Install Elasticsearch
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+            install_directory: Path to the install directory (E.G /opt/dynamite/elasticsearch/)
+            log_directory: Path to the log directory (E.G /var/log/dynamite/elasticsearch/)
+            download_elasticsearch_archive: If True, download the ElasticSearch archive from a mirror
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
         self.log_directory = log_directory
         self.stdout = stdout
         self.verbose = verbose
-        install.BaseInstallManager.__init__(self, 'elasticsearch', verbose=self.verbose, stdout=stdout)
+        install.BaseInstallManager.__init__(self, 'elasticsearch.install', verbose=self.verbose, stdout=stdout)
         java_home = self.dynamite_environ.get('JAVA_HOME')
         if not java_home:
             self.logger.info('Installing compatible version of Java.')
@@ -80,16 +79,18 @@ class InstallManager(install.BaseInstallManager):
 
     def setup(self, node_name: Optional[str] = None, network_host: Optional[str] = None, port: Optional[int] = None,
               initial_master_nodes: Optional[List[str]] = None, discover_seed_hosts: Optional[List[str]] = None,
-              tls_cert_subject: Optional[str] = None, heap_size_gigs: Optional[int] = None):
-        """
-        :param node_name: The name of this elasticsearch node
-        :param network_host: The IP address to listen on (E.G "0.0.0.0")
-        :param port: The port that the ES API is bound to (E.G 9200)
-        :param initial_master_nodes: A list of nodes representing master (and master-eligible) nodes in this cluster
-        :param discover_seed_hosts: A list of IPs on other hosts you wish to form a cluster with
-        :param tls_cert_subject: Denotes the thing being secured;
-                                 E.G (/C=US/ST=GA/L=Atlanta/O=Dynamite Analytics/OU=R&D/CN=dynamite.ai)
-        :param heap_size_gigs: The initial/max java heap space to allocate
+              tls_cert_subject: Optional[str] = None, heap_size_gigs: Optional[int] = None) -> None:
+        """Setup Elasticsearch
+        Args:
+            node_name: The name of this elasticsearch node
+            network_host: The IP address to listen on (E.G "0.0.0.0")
+            port: The port that the ES API is bound to (E.G 9200)
+            initial_master_nodes: A list of nodes representing master (and master-eligible) nodes in this cluster
+            discover_seed_hosts: A list of IPs on other hosts you wish to form a cluster with
+            tls_cert_subject: Denotes the thing being secured; E.G (/C=US/ST=GA/L=Atlanta/O=Dynamite Analytics/OU=R&D/CN=dynamite.ai)
+            heap_size_gigs: The initial/max java heap space to allocate
+        Returns:
+            None
         """
         sysctl = systemctl.SystemCtl()
 
@@ -170,19 +171,24 @@ class InstallManager(install.BaseInstallManager):
                                                 verbose=self.verbose)
         self.logger.info('Begin cluster settings bootstrapping process.')
         post_install_bootstrap_cluster_settings(stdout=self.stdout, verbose=self.verbose)
+        self.logger.info('Install events_to_hosts job.')
+        event_to_host_task = install_events_to_hosts.EventsToHostsTask('admin', 'admin',
+                                                                     target=f'https://{network_host}:{port}')
+        event_to_host_task.download_and_install()
+        event_to_host_task.create_cronjob(interval_minutes=5)
 
 
 class UninstallManager(install.BaseUninstallManager):
-    """
-    Uninstall Elasticsearch
-    """
 
     def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param purge_config: If enabled, remove all the configuration files associated with this installation
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Uninstall Elasticsearch
+        Args:
+            purge_config: If enabled, remove all the configuration files associated with this installation
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         from dynamite_nsm.services.elasticsearch.config import ConfigManager
         from dynamite_nsm.services.elasticsearch.process import ProcessManager
@@ -192,17 +198,19 @@ class UninstallManager(install.BaseUninstallManager):
         es_directories = [env_vars.get('ES_HOME'), es_config.path_logs]
         if purge_config:
             es_directories.append(env_vars.get('ES_PATH_CONF'))
-        super().__init__('elasticsearch', directories=es_directories,
-                         process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
+        install_events_to_hosts.EventsToHostsTask().remove_cronjob()
+        super().__init__('elasticsearch.uninstall', directories=es_directories,
+                         environ_vars=['ES_PATH_CONF', 'ES_HOME', 'ES_LOG'],
+                         process=ProcessManager(stdout=stdout, verbose=verbose),
+                         sysctl_service_name='elasticsearch.service', stdout=stdout, verbose=verbose)
 
-
-if __name__ == '__main__':
-    install_mngr = InstallManager(
-        install_directory=f'{const.INSTALL_PATH}/elasticsearch',
-        configuration_directory=f'{const.CONFIG_PATH}/elasticsearch',
-        log_directory=f'{const.LOG_PATH}/elasticsearch',
-        download_elasticsearch_archive=True,
-        stdout=True,
-        verbose=True
-    )
-    install_mngr.setup()
+    if __name__ == '__main__':
+        install_mngr = InstallManager(
+            install_directory=f'{const.INSTALL_PATH}/elasticsearch',
+            configuration_directory=f'{const.CONFIG_PATH}/elasticsearch',
+            log_directory=f'{const.LOG_PATH}/elasticsearch',
+            download_elasticsearch_archive=True,
+            stdout=True,
+            verbose=True
+        )
+        install_mngr.setup()

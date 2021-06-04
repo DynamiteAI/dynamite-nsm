@@ -16,6 +16,7 @@ class BpfConfigManager(GenericConfigManager):
     """
     Manage Berkley Packet Filters for Zeek
     """
+
     def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """Configure Berkley Packet Filters for Zeek monitored interfaces.
 
@@ -66,6 +67,7 @@ class SiteLocalConfigManager(GenericConfigManager):
     """
     Manage local/site.zeek file (contains scripts, definitions, and signatures to be loaded)
     """
+
     @staticmethod
     def _line_denotes_script(line: str):
         return '@load' in line.replace(' ', '') and '@load-' not in line
@@ -100,7 +102,7 @@ class SiteLocalConfigManager(GenericConfigManager):
 
         with open(f'{self.configuration_directory}/site/local.zeek') as config_f:
             config_data = dict(data=config_f.readlines())
-        super().__init__(config_data, name='ZEEKLOCAL', verbose=verbose, stdout=stdout)
+        super().__init__(config_data, name='zeek.config.local', verbose=verbose, stdout=stdout)
 
         self.add_parser(
             parser=lambda data: local_site.Scripts(
@@ -179,6 +181,7 @@ class NodeConfigManager(GenericConfigManager):
     """
     Manage Zeek node.cfg used to determine which network interfaces to monitor
     """
+
     def __init__(self, install_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """Configuration Manager for node.cfg file
 
@@ -207,7 +210,7 @@ class NodeConfigManager(GenericConfigManager):
             for item in config_parser.items(section):
                 key, value = item
                 config_data[section][key] = value
-        super().__init__(config_data, name='ZEEKNODE', verbose=verbose, stdout=stdout)
+        super().__init__(config_data, name='zeek.config.node', verbose=verbose, stdout=stdout)
         self.add_parser(
             parser=lambda data:
             [
@@ -278,85 +281,38 @@ class NodeConfigManager(GenericConfigManager):
         return c
 
     @staticmethod
-    def get_optimal_zeek_worker_config(interface_names: List[str], strategy: Optional[str] = "aggressive",
-                                       cpus: Optional[Tuple] = None) -> node.Workers:
+    def get_optimal_zeek_worker_config(interface_names: List[str],
+                                       available_cpus: Optional[Tuple] = None) -> node.Workers:
         """Algorithm for determining the assignment of CPUs for Zeek workers
         Args:
             interface_names: A list of network interface names
-            strategy: 'aggressive', results in more CPUs pinned per interface, sometimes overshoots resources; 'conservative', results in less CPUs pinned per interface, but never overshoots resources
-            cpus: If None, we'll derive this by looking at the cpu core count, otherwise a list of cpu cores (E.G [0, 1, 2])
+            available_cpus: If None, we'll derive this by looking at the cpu core count, otherwise a list of cpu cores
         Returns:
-             A dictionary containing Zeek worker configuration
+             A node.Workers object
         """
+        zeek_worker_configs = node.Workers()
+        if not available_cpus:
+            # Reserve CPU 0 for KERNEL operations
+            available_cpus = [c for c in range(1, utilities.get_cpu_core_count())]
 
-        if not cpus:
-            cpus = [c for c in range(0, utilities.get_cpu_core_count())]
-
-        # Reserve 0 for KERNEL/Userland opts
-        available_cpus = cpus[1:]
-
-        def grouper(n, iterable):
-            args = [iter(iterable)] * n
-            return zip_longest(*args)
-
-        def create_workers(net_interfaces, avail_cpus):
-            idx = 0
-            avail_cpus = list(avail_cpus)
-            zeek_worker_configs = node.Workers()
-            if not avail_cpus:
-                return zeek_worker_configs
-            for net_interface in net_interfaces:
-                if idx >= len(avail_cpus):
-                    idx = 0
-                if isinstance(avail_cpus[idx], int):
-                    avail_cpus[idx] = [avail_cpus[idx]]
-                zeek_worker_configs.add_worker(
-                    node.Worker(
-                        worker_name='dynamite-worker-' + net_interface,
-                        host='localhost',
-                        interface_name=net_interface,
-                        load_balance_processes=len(avail_cpus[idx]),
-                        pinned_cpus=avail_cpus[idx],
-                        cluster_id=randint(1, 32768),
-                        cluster_type='AF_Packet::FANOUT_HASH'
-                    )
+        for cpu_affinity_group in utilities.get_optimal_cpu_interface_config(interface_names=interface_names,
+                                                                             available_cpus=available_cpus):
+            net_interface = cpu_affinity_group['interface_name']
+            pinned_cpus = cpu_affinity_group['pin_cpus']
+            lb_processes = cpu_affinity_group['thread_count']
+            zeek_worker_configs.add_worker(
+                node.Worker(
+                    worker_name='dynamite-worker-' + net_interface,
+                    host='localhost',
+                    interface_name=net_interface,
+                    load_balance_processes=lb_processes,
+                    pinned_cpus=pinned_cpus,
+                    cluster_id=randint(1, 32768),
+                    cluster_type='AF_Packet::FANOUT_HASH'
                 )
-                idx += 1
-            return zeek_worker_configs
+            )
 
-        if len(available_cpus) <= len(interface_names):
-            # Wrap the number of CPUs around the number of network interfaces;
-            # Since there are more network interfaces than CPUs; CPUs will be assigned more than once
-            # lb_procs will always be 1
-
-            zeek_workers = create_workers(interface_names, available_cpus)
-
-        else:
-            # In this scenario we choose from one of two strategies
-            #  1. Aggressive:
-            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND UP **.
-            #     - Group the available CPUs by this integer
-            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
-            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
-            #  2. Conservative:
-            #     - Take the ratio of network_interfaces to available CPUS; ** ROUND DOWN **.
-            #     - Group the available CPUs by this integer
-            #       (if the ratio == 2 create as many groupings of 2 CPUs as possible)
-            #     - Apply the same wrapping logic used above, but with the CPU groups instead of single CPU instances
-            aggressive_ratio = int(math.ceil(len(available_cpus) / float(len(interface_names))))
-            conservative_ratio = int(math.floor(len(available_cpus) / len(interface_names)))
-            if strategy == 'aggressive':
-                cpu_groups = grouper(aggressive_ratio, available_cpus)
-            else:
-                cpu_groups = grouper(conservative_ratio, available_cpus)
-
-            temp_cpu_groups = []
-            for cpu_group in cpu_groups:
-                cpu_group = [c for c in cpu_group if c]
-                temp_cpu_groups.append(cpu_group)
-            cpu_groups = temp_cpu_groups
-            zeek_workers = create_workers(interface_names, cpu_groups)
-        return zeek_workers
+        return zeek_worker_configs
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """Write the changes out to configuration file
@@ -396,6 +352,7 @@ class LocalNetworksConfigManager(GenericConfigManager):
     """
     Manage the networks network.cfg for defining which networks Zeek will consider local
     """
+
     @staticmethod
     def _parse_local_networks(data: Dict) -> local_network.LocalNetworks:
         local_networks = local_network.LocalNetworks()
@@ -437,7 +394,7 @@ class LocalNetworksConfigManager(GenericConfigManager):
 
         with open(f'{self.installation_directory}/etc/networks.cfg') as config_f:
             config_data = dict(data=config_f.readlines())
-        super().__init__(config_data, name='ZEEKNET', verbose=verbose, stdout=stdout)
+        super().__init__(config_data, name='zeek.config.networks', verbose=verbose, stdout=stdout)
 
         self.add_parser(
             parser=self._parse_local_networks,
