@@ -95,19 +95,14 @@ class ElasticsearchTargets(BaseTargets):
                  ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False):
         """Elasticsearch endpoint configuration where events should be sent
         Args:
-            target_strings: The list of Elasticsearch nodes to connect to. The events are distributed to these nodes in
-                round robin order.
+            target_strings: The list of Elasticsearch nodes to connect to.
             index: The index name to write events to.
             username: The basic authentication username for connecting to Elasticsearch.
             password: The basic authentication password for connecting to Elasticsearch.
+            enabled: If True, Filebeat will attempt to send events to this target
             ssl_certificate_authorities: The list of root certificates for server verifications.
-                If certificate_authorities is empty or not set, the trusted certificate authorities of the host
-                system are used. (E.G ["/etc/pki/root/ca.pem"])
             ssl_certificate: The path to the certificate for SSL client authentication.
-            If the certificate is not specified, client authentication is not available.
-            The connection might fail if the server requests client authentication.
             ssl_key: The client certificate key used for client authentication.
-                This option is required if ssl_certificate is specified.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
         super().__init__(target_strings, ssl_certificate_authorities, ssl_certificate, ssl_key, ssl_verification_mode,
@@ -145,14 +140,10 @@ class KafkaTargets(BaseTargets):
             topic: A Kafka topic
             username: The username used to authenticate to Kafka broker
             password: The password used to authenticate to Kafka broker
+            enabled: If True, Filebeat will attempt to send events to this target
             ssl_certificate_authorities: The list of root certificates for server verifications.
-                If certificate_authorities is empty or not set, the trusted certificate authorities of the host
-                system are used. (E.G ["/etc/pki/root/ca.pem"])
             ssl_certificate: The path to the certificate for SSL client authentication.
-            If the certificate is not specified, client authentication is not available.
-            The connection might fail if the server requests client authentication.
             ssl_key: The client certificate key used for client authentication.
-                This option is required if ssl_certificate is specified.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
         super().__init__(target_strings, ssl_certificate_authorities, ssl_certificate, ssl_key, ssl_verification_mode,
@@ -168,6 +159,7 @@ class KafkaTargets(BaseTargets):
 
     def get_raw(self) -> Dict:
         """Get the raw representation of this config object.
+
         Returns:
             A configuration dictionary representing a kafka connector where to send logs
         """
@@ -194,20 +186,15 @@ class LogstashTargets(BaseTargets):
         """Logstash endpoint configuration where events should be sent
         Args:
             target_strings: A list of Logstash hosts, and their service port (E.G ["192.168.0.9 5044"])
-            load_balance: If included and multiple Logstash hosts are configured, the output plugin load balances published
-                events onto all Logstash hosts.
+            load_balance: If included and multiple Logstash hosts are configured load-balance between them
             index: The name of the index to include in the @metadata.beat field
             socks_5_proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
             pipelines: Configures the number of batches to be sent asynchronously to Logstash
             max_batch_size: The maximum number of events to bulk in a single Logstash request.
+            enabled: If True, Filebeat will attempt to send events to this target
             ssl_certificate_authorities: The list of root certificates for server verifications.
-                If certificate_authorities is empty or not set, the trusted certificate authorities of the host
-                system are used. (E.G ["/etc/pki/root/ca.pem"])
             ssl_certificate: The path to the certificate for SSL client authentication.
-                If the certificate is not specified, client authentication is not available.
-                The connection might fail if the server requests client authentication.
             ssl_key: The client certificate key used for client authentication.
-                This option is required if ssl_certificate is specified.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
 
@@ -255,28 +242,17 @@ class RedisTargets(BaseTargets):
         """Redis endpoint configuration where events should be sent
         Args:
             target_strings: A list of Redis hosts, and their service port (E.G ["192.168.0.9 6379"]
-            index: The key format string to use. If this string contains field references, such as fields.name, the
-                fields must exist, or the rule fails.
-            load_balance: If included and multiple hosts or workers are configured, the output plugin load balances
-                published events onto all Redis hosts. Otherwise, the output plugin sends all events to only one host
-                (determined at random) and will switch to another host if the currently selected one becomes unreachable.
-                The default value is True.
+            index: The key format string to use.
+            load_balance: If included and multiple Logstash hosts are configured load-balance between them
             socks_5_proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
             workers: The number of workers to use for each host configured to publish events to Redis.
-                Use this setting along with the load_balance option.
-                For example, if you have 2 hosts and 3 workers, in total 6 workers are started (3 for each host).
             max_batch_size: The maximum number of events to bulk in a single Redis request or pipeline.
-                The default is 2048.
             password: The password to authenticate with. The default is no authentication.
             db: The Redis database number where the events are published. The default is 0.
+            enabled: If True, Filebeat will attempt to send events to this target
             ssl_certificate_authorities: The list of root certificates for server verifications.
-                If certificate_authorities is empty or not set, the trusted certificate authorities of the host
-                system are used. (E.G ["/etc/pki/root/ca.pem"])
             ssl_certificate: The path to the certificate for SSL client authentication.
-                If the certificate is not specified, client authentication is not available.
-                The connection might fail if the server requests client authentication.
             ssl_key: The client certificate key used for client authentication.
-                This option is required if ssl_certificate is specified.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
         super().__init__(target_strings, ssl_certificate_authorities, ssl_certificate, ssl_key, ssl_verification_mode,

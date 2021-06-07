@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import inspect
 from typing import Any, Dict, List, Optional, Union
@@ -55,20 +57,23 @@ class MultipleResponsibilityInterface(BaseInterface):
         self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
         # print(self.cls, [(item.name, item.flags, item.kwargs) for item in self.base_params])
 
-    def get_parser(self) -> argparse.ArgumentParser:
-        """Returns an argparse.ArgumentParser instance before parse_args has been called.
+    @staticmethod
+    def build_parser(interface: MultipleResponsibilityInterface,
+                     parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """Build a parser from any `MultipleResponsibilityInterface` and `argparse.ArgumentParser` derived class
         Args:
+            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+            interface: The `MultipleResponsibilityInterface` instance you wish to append
 
         Returns:
-             argparse.ArgumentParser instance
+            An argument parser instance for the `MultipleResponsibilityInterface` derived class
         """
-        parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
         actions_subparsers = parser.add_subparsers()
-        for method, params_group in self.interface_methods.items():
-            if method in self.supported_method_names:
+        for method, params_group in interface.interface_methods.items():
+            if method in interface.supported_method_names:
                 action_parser = actions_subparsers.add_parser(method.replace('_', '-'))
                 action_parser.set_defaults(entry_method_name=method)
-                for params in self.base_params:
+                for params in interface.base_params:
                     action_parser.add_argument(*params.flags, **params.kwargs)
                 for params in params_group:
                     try:
@@ -77,14 +82,22 @@ class MultipleResponsibilityInterface(BaseInterface):
                         continue
         return parser
 
+    def get_parser(self) -> argparse.ArgumentParser:
+        """Get the current interface as an `argparse.ArgumentParser` instance
+
+        Returns:
+             An argument parser instance for the `MultipleResponsibilityInterface` derived class
+        """
+        parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
+        return self.build_parser(self, parser)
+
     def execute(self, args: argparse.Namespace) -> Any:
-        """Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
+        """Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.
         Args:
             args: The output of argparse.ArgumentParser.parse_args() function
         Returns:
-            Any value
+            Any value; completely depends on the `selected_method` being invoked
         """
-
         constructor_kwargs = dict()
         entry_method_kwargs = dict()
         for param, value in vars(args).items():
@@ -143,25 +156,38 @@ class SingleResponsibilityInterface(BaseInterface):
         self.base_params, self.interface_methods = get_class_instance_methods(cls, defaults, use_parent_init=False)
         self.interface_params = self.interface_methods[self.entry_method_name]
 
-    def get_parser(self) -> argparse.ArgumentParser:
-        """Returns an argparse.ArgumentParser instance before parse_args has been called.
+    @staticmethod
+    def build_parser(interface: SingleResponsibilityInterface,
+                     parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """Build a parser from any `SingleResponsibilityInterface` and `argparse.ArgumentParser` derived class
+        Args:
+            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+            interface: The `SingleResponsibilityInterface` instance you wish to append
 
         Returns:
-             argparse.ArgumentParser instance
+            An argument parser instance for the `SingleResponsibilityInterface` derived class
         """
-        parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
-        for params in self.base_params:
+        for params in interface.base_params:
             parser.add_argument(*params.flags, **params.kwargs)
-        for params in self.interface_params:
+        for params in interface.interface_params:
             parser.add_argument(*params.flags, **params.kwargs)
         return parser
 
+    def get_parser(self) -> argparse.ArgumentParser:
+        """Get the current interface as an `argparse.ArgumentParser` instance
+
+        Returns:
+            An argument parser instance for the `SingleResponsibilityInterface` derived class
+        """
+        parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
+        return self.build_parser(self, parser)
+
     def execute(self, args: argparse.Namespace) -> Any:
-        """Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
+        """Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.
         Args:
             args: The output of argparse.ArgumentParser.parse_args() function
         Returns:
-            None
+            Any value; depending on the value returned from the `entry_method`
         """
         if getattr(args, 'background', None):
             setattr(args, 'background', None)
@@ -188,8 +214,8 @@ class SingleResponsibilityInterface(BaseInterface):
         # Call the entry method
         return exec_entry_method(**entry_method_kwargs)
 
-    def execute_in_background(self, args: argparse.Namespace):
-        """Provides the ability to run a method as a POSIX compliant daemon
+    def execute_in_background(self, args: argparse.Namespace) -> None:
+        """Call execute, but run in the background inside a dedicated process.
         Args:
             args: The output of argparse.ArgumentParser.parse_args() function
         Returns:
@@ -220,42 +246,46 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         self.config_module_map = {}
         super().__init__(self.config.__class__, 'commit', interface_name, interface_description, defaults)
 
-    def get_parser(self) -> argparse.ArgumentParser:
-        """Returns an argparse.ArgumentParser instance before parse_args has been called.
+    @staticmethod
+    def build_parser(interface: SimpleConfigManagerInterface,
+                     parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """Build a parser from any `SimpleConfigManagerInterface` and `argparse.ArgumentParser` derived class
+        Args:
+            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+            interface: The `SimpleConfigManagerInterface` instance you wish to append
 
         Returns:
-             argparse.ArgumentParser instance
+            An argument parser instance for the `SimpleConfigManagerInterface` derived class
         """
-        parser = super().get_parser()
         config_options = parser.add_argument_group('configuration options')
         config_objects_subparser = parser.add_subparsers()
-        for var in vars(self.config):
+        for params in interface.base_params + interface.interface_params:
+            parser.add_argument(*params.flags, **params.kwargs)
+        for var in vars(interface.config):
             if var in RESERVED_VARIABLE_NAMES:
                 continue
             elif '_raw' in var:
                 continue
-            elif var in [param.name for param in self.base_params]:
+            elif var in [param.name for param in interface.base_params]:
                 continue
-            elif 'config_objects' in str(type(getattr(self.config, var))):
-                complex_obj = getattr(self.config, var)
+            elif 'config_objects' in str(type(getattr(interface.config, var))):
+                complex_obj = getattr(interface.config, var)
                 if isinstance(complex_obj, Analyzers):
                     config_module_interface = AnalyzersInterface(complex_obj)
-                    self.config_module_map.update({var: config_module_interface})
+                    interface.config_module_map.update({var: config_module_interface})
                     interface_operations.append_service_interface_to_parser(config_objects_subparser,
-                                                                            interface=AnalyzersInterface(complex_obj),
+                                                                            interface=config_module_interface,
                                                                             interface_name=var,
                                                                             interface_group_name='config_module')
                 elif isinstance(complex_obj, targets.BaseTargets):
-                    config_module_interface = FilebeatTargetsInterface(complex_obj, defaults=self.defaults)
-                    self.config_module_map.update({var: config_module_interface})
-                    interface_operations.append_service_interface_to_parser(
-                        config_objects_subparser,
-                        interface=FilebeatTargetsInterface(complex_obj),
-                        interface_name=var,
-                        interface_group_name='config_module'
-                    )
+                    config_module_interface = FilebeatTargetsInterface(complex_obj)
+                    interface.config_module_map.update({var: config_module_interface})
+                    interface_operations.append_service_interface_to_parser(config_objects_subparser,
+                                                                            interface=config_module_interface,
+                                                                            interface_name=var,
+                                                                            interface_group_name='config_module')
             else:
-                args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config, var)),
+                args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config, var)),
                                                                         required=False)
                 try:
                     config_options.add_argument(*args.flags, **args.kwargs)
@@ -263,12 +293,21 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
                     continue
         return parser
 
+    def get_parser(self) -> argparse.ArgumentParser:
+        """Returns an argparse.ArgumentParser instance before parse_args has been called.
+
+        Returns:
+             argparse.ArgumentParser instance
+        """
+        parser = super().get_parser()
+        return self.build_parser(self, parser)
+
     def execute(self, args: argparse.Namespace) -> Any:
-        """Also handles config_module interfaces (interfaces compatible with services.base.config_objects's)
+        """Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.
         Args:
             args: The output of argparse.ArgumentParser.parse_args() function
         Returns:
-            Any Value
+            Any value; depending on the value returned from the `entry_method` (usually a `ConfigManager.commit`)
         """
         changed_config = False
         if not getattr(args, 'config_module', None):
@@ -331,24 +370,12 @@ def append_service_multiple_responsibility_interface_to_parser(
     Returns:
         A new parser
     """
-    actions_subparsers = parser.add_subparsers()
-
-    for method, params_group in interface.interface_methods.items():
-        if method in interface.supported_method_names:
-            action_parser = actions_subparsers.add_parser(method.replace('_', '-'))
-            action_parser.set_defaults(entry_method_name=method)
-            for params in interface.base_params:
-                action_parser.add_argument(*params.flags, **params.kwargs)
-            for params in params_group:
-                try:
-                    action_parser.add_argument(*params.flags, **params.kwargs)
-                except argparse.ArgumentError:
-                    continue
-    return parser
+    return interface.build_parser(interface, parser)
 
 
 def append_service_single_responsibility_interface_to_parser(parser: argparse.ArgumentParser,
-                                                             interface: SingleResponsibilityInterface):
+                                                             interface: SingleResponsibilityInterface) -> \
+        argparse.ArgumentParser:
     """
     Append an `SingleResponsibilityInterface` to an existing parser as a sub-parser.
     Args:
@@ -358,15 +385,13 @@ def append_service_single_responsibility_interface_to_parser(parser: argparse.Ar
     Returns:
         A new parser
     """
-    for params in interface.base_params + interface.interface_params:
-        parser.add_argument(*params.flags, **params.kwargs)
-    return parser
+    return interface.build_parser(interface, parser)
 
 
 def append_service_simple_config_management_interface_to_parser(parser: argparse.ArgumentParser,
-                                                                interface: SimpleConfigManagerInterface):
-    """
-    Append an `SimpleConfigManagerInterface` to an existing parser as a sub-parser.
+                                                                interface: SimpleConfigManagerInterface) -> \
+        argparse.ArgumentParser:
+    """Append an `SimpleConfigManagerInterface` to an existing parser as a sub-parser.
     Args:
         parser: The parser to append our interface too
         interface: The new interface to add to the parser
@@ -374,38 +399,4 @@ def append_service_simple_config_management_interface_to_parser(parser: argparse
     Returns:
         A new parser
     """
-    config_options = parser.add_argument_group('configuration options')
-    config_objects_subparser = parser.add_subparsers()
-    for params in interface.base_params + interface.interface_params:
-        parser.add_argument(*params.flags, **params.kwargs)
-    for var in vars(interface.config):
-        if var in RESERVED_VARIABLE_NAMES:
-            continue
-        elif '_raw' in var:
-            continue
-        elif var in [param.name for param in interface.base_params]:
-            continue
-        elif 'config_objects' in str(type(getattr(interface.config, var))):
-            complex_obj = getattr(interface.config, var)
-            if isinstance(complex_obj, Analyzers):
-                config_module_interface = AnalyzersInterface(complex_obj)
-                interface.config_module_map.update({var: config_module_interface})
-                interface_operations.append_service_interface_to_parser(config_objects_subparser,
-                                                                        interface=config_module_interface,
-                                                                        interface_name=var,
-                                                                        interface_group_name='config_module')
-            elif isinstance(complex_obj, targets.BaseTargets):
-                config_module_interface = FilebeatTargetsInterface(complex_obj)
-                interface.config_module_map.update({var: config_module_interface})
-                interface_operations.append_service_interface_to_parser(config_objects_subparser,
-                                                                        interface=config_module_interface,
-                                                                        interface_name=var,
-                                                                        interface_group_name='config_module')
-        else:
-            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config, var)),
-                                                                    required=False)
-            try:
-                config_options.add_argument(*args.flags, **args.kwargs)
-            except argparse.ArgumentError:
-                continue
-    return parser
+    return interface.build_parser(interface, parser)

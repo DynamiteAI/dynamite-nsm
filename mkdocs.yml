@@ -4,7 +4,7 @@ plugins:
 - search
 - mkdocstrings
 nav:
-  - Introduction: 01_index.md
+  - Introduction: index.md
   - About:
       - Project Goals: about/01_project_goals.md
       - Architechture: about/02_architecture.md
@@ -30,7 +30,8 @@ nav:
   - Installation:
     - Overview: installation/01_overview.md
     - Agent:
-        - Preparing Inspection Interfaces: installation/agent/01_configure_inspection_interface.md
+        - Overview: installation/agent/01_overview.md
+        - Preparing Inspection Interfaces: installation/agent/00_configure_inspection_interface.md
     - Monitor:
         - Setup Management Interface: installation/monitor/01_network_interface_configuration.md
   - Configuration:

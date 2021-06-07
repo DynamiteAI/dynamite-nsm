@@ -11,9 +11,9 @@ DynamiteNSM consists of several projects that are independent of one another.
 
 | Project         | Description                                                                                      | Contributing Guide |
 |-----------------|--------------------------------------------------------------------------------------------------|--------------------|
-| dynamite-nsm    | Contains core libraries for setting up the Dynamite stack.                                       |                    |
-| configurations  | Default configuration sets that can be used to deploy DynamiteNSM services in pre-defined states |                    |
-| kibana_packages | Collections of Kibana `saved_objects` that can be managed via `kibana package` utility.          |                    |
+| dynamite-nsm    | Contains core libraries for setting up the Dynamite stack.                                       | [View](https://github.com/DynamiteAI/dynamite-nsm/blob/docs/master/CONTRIBUTING.md)                   |
+| configurations  | Default configuration sets that can be used to deploy DynamiteNSM services in pre-defined states | **N/A**                 |
+| kibana_packages | Collections of Kibana `saved_objects` that can be managed via `kibana package` utility.          | [View](https://github.com/DynamiteAI/kibana_packages/blob/main/CONTRIBUTING.md)                   |
 
 
 ## Types of Contribution
