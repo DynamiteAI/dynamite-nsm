@@ -15,6 +15,18 @@ class InstallManager(install.BaseInstallManager):
                  zeek_configuration_directory: Optional[str] = None, zeek_install_directory: Optional[str] = None,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False
                  ):
+        """Manage agent installation process
+
+        Args:
+            filebeat_install_directory: The path to the Filebeat install directory (Default - /opt/dynamite/filebeat)
+            suricata_configuration_directory: The path to the Suricata config directory (Default - /etc/dynamite/suricata)
+            suricata_install_directory: The path to the Suricata install directory (Default - /opt/dynamite/suricata)
+            suricata_log_directory: The path to the Suricata log directory (Default - /var/log/suricata)
+            zeek_configuration_directory: The path to the Zeek configuration directory (Default - /etc/dynamite/zeek)
+            zeek_install_directory: The path to the Zeek installation directory (Default - /opt/dynamite/zeek)
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
+        """
         super().__init__('agent.install', stdout=stdout, verbose=verbose)
         self.filebeat_install_directory = filebeat_install_directory
         self.suricata_configuration_directory = suricata_configuration_directory
@@ -25,14 +37,14 @@ class InstallManager(install.BaseInstallManager):
 
     def setup(self, inspect_interfaces: List[str], targets: List[str],
               target_type: Optional[str] = 'elasticsearch') -> None:
-        """
-
+        """ Setup Zeek, Suricata and Filebeat on the same physical instance.
         Args:
             inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
             targets: One or more URLs to send event/alerts to (E.G https://my_elasticsearch_collector.local:9200)
             target_type: The target type; current supported: elasticsearch (default), logstash, kafka, redis
 
-        Returns: None
+        Returns:
+            None
         """
         if self.suricata_install_directory or self.suricata_configuration_directory or self.suricata_log_directory:
             if not (
@@ -64,9 +76,19 @@ class InstallManager(install.BaseInstallManager):
 class UninstallManager(install.BaseUninstallManager):
 
     def __init__(self, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
+        """Manage agent uninstall process
+
+        Args:
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
+        """
         super().__init__(directories=[], name='agent.uninstall', stdout=stdout, verbose=verbose)
 
-    def uninstall(self):
+    def uninstall(self) -> None:
+        """Uninstall Zeek, Suricata and Filebeat from this instance.
+        Returns:
+            None
+        """
         from dynamite_nsm.services.zeek import profile as zeek_profile
         from dynamite_nsm.services.suricata import profile as suricata_profile
 

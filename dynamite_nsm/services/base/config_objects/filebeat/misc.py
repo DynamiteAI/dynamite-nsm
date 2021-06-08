@@ -117,7 +117,7 @@ class FieldProcessors:
             )
         )
 
-    def get_raw(self) -> List:
+    def get_raw(self) -> List[Dict]:
         """Get the raw representation of this config object.
         Returns:
             A dictionary of Filebeat field processors
@@ -131,7 +131,7 @@ class FieldProcessors:
         )]
 
     @staticmethod
-    def validate_agent_tag(agent_tag: str):
+    def validate_agent_tag(agent_tag: str) -> bool:
         """Validate that the agent tag given is valid
         Args:
             agent_tag: The name of the agent

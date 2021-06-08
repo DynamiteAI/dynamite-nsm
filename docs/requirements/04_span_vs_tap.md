@@ -14,8 +14,9 @@ To be able to start forwarding events an agent must be deployed on a SPAN port o
 ## Pros and Cons
 
 ### Span Ports
-
-![](/data/img/span_diagram.png)
+<p align="center">
+    <img src="/data/img/span_diagram.png" />
+</p>
 
 - Available on almost all managed switches
 - Does not sit inline, if the span port fails, it will not disrupt network connectivity.
@@ -23,7 +24,9 @@ To be able to start forwarding events an agent must be deployed on a SPAN port o
 
 ### Network Taps
 
-![](/data/img/tap_diagram.png)
+<p align="center">
+    <img src="/data/img/tap_diagram.png" />
+</p>
 
 - A high quality tap typically handles much better under high traffic load (will not drop packets.)
 - Court admissible and provides forensically sound data/evidence.

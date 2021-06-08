@@ -8,9 +8,9 @@ for installing the agent.
 </p>
 
 1. **Install all the agent services on the same physical instance.** This is the easiest option but requires more serious 
-hardware.
+[hardware](/requirements/02_agent_specifications).
 2. **Install services on separate instances**. Useful when either Zeek or Suricata is not needed, or when the available hardware is below 
-the [recommended specifications](/requirements/02_agent_specifications) for a shared instance.
+the above hardware specifications for a shared instance.
    
 
 

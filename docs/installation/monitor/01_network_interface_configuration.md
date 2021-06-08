@@ -31,5 +31,4 @@ iface eth0 inet static
 ## Post Configuration
 Once your interfaces are setup. Reboot to apply the changes.
 
-Once the reboot is complete, confirm that both your management and monitoring interfaces are available and up with a 
-tool such as `ifconfig`.
+Once the reboot is complete, confirm that your interface is up with a tool such as `ifconfig`.

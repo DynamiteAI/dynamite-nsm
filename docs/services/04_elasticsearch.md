@@ -6,7 +6,7 @@ Within DynamiteNSM it is used to store all network events and alerts that have b
 DynamiteNSM pre-configures Elasticsearch with several useful defaults, and automatically optimizes its use of the JVM heap.
 
 ```bash
-dynamite elasticsearch -h
+sudo dynamite elasticsearch -h
 usage: dynamite [-h] {install,uninstall,process,config} ...
 
 Elasticsearch @ 192.168.194.143

@@ -37,7 +37,8 @@ class OptimizeThreadingManager:
         Args:
             inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1", "mon2"])
 
-        Returns: None
+        Returns:
+            None
         """
         if not inspect_interfaces:
             self.logger.error('Please specify the \'inspect-interfaces\' you wish to capture on.')

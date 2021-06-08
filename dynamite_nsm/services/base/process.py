@@ -101,7 +101,7 @@ class BaseProcessManager:
     def status(self) -> Union[Dict, str]:
         """Get the status of a process
         Returns:
-            A dictionary containing process status or a string if `pretty_print` is True.
+            A dictionary containing process status or a tabulated string if `pretty_print` is True.
         """
         if self.pid_file:
             self.pid = self._get_pid(self.pid_file)

@@ -13,7 +13,7 @@ transform it on the fly, and send it to your desired destination.
 DynamiteNSM pre-configures Logstash with several useful defaults, and automatically optimizes its use of the JVM heap.
 
 ```bash
-dynamite logstash -h
+sudo dynamite logstash -h
 usage: dynamite [-h] {install,uninstall,process,config} ...
 
 Logstash @ 192.168.194.143
