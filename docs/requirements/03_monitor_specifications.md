@@ -12,8 +12,7 @@ Monitors combine Elasticsearch, and Kibana into a single instance, and receive t
 
 A separate data storage volume should be created to maximize write performance and alleviate I/O contention with the OS.  Creating a separate data volume also helps ensure storage consumption will not adversely affect OS operation.  
 
-The data storage volume should be configured with: 
-
+The data storage volume should be configured with:
 - 10K RPM HDD or SSD (higher I/O but fewer possible read/write operations over lifespan)
 - All drives the same make/model
 - RAID 0 for fast I/O 

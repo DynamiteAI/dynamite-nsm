@@ -4,6 +4,7 @@ from dynamite_nsm.services.base import install
 from dynamite_nsm.services.zeek import install as zeek_install
 from dynamite_nsm.services.filebeat import install as filebeat_install
 from dynamite_nsm.services.suricata import install as suricata_install
+from dynamite_nsm.services.agent import optimize
 
 
 class InstallManager(install.BaseInstallManager):
@@ -55,7 +56,7 @@ class InstallManager(install.BaseInstallManager):
                     'You must specify suricata-configuration-directory, suricata-install-directory, '
                     'and suricata-log-directory.')
                 return None
-            
+
             suricata_install.InstallManager(configuration_directory=self.suricata_configuration_directory,
                                             install_directory=self.suricata_install_directory,
                                             log_directory=self.suricata_log_directory, download_suricata_archive=True,
@@ -71,6 +72,8 @@ class InstallManager(install.BaseInstallManager):
         filebeat_install.InstallManager(install_directory=self.filebeat_install_directory,
                                         download_filebeat_archive=True, stdout=self.stdout,
                                         verbose=self.verbose).setup(targets=targets, target_type=target_type)
+        optimize.OptimizeThreadingManager(self.suricata_configuration_directory, self.zeek_install_directory,
+                                          stdout=self.stdout, verbose=self.verbose)
 
 
 class UninstallManager(install.BaseUninstallManager):

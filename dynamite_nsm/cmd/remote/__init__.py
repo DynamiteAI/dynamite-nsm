@@ -6,8 +6,6 @@ from dynamite_nsm.utilities import get_primary_ip_address
 
 
 def get_action_parser():
-    print(utilities.PrintDecorations.colorize('This utility is in alpha and may change dramatically between releases!',
-                                              _color='yellow'))
     parser = argparse.ArgumentParser(description=f'Dynamite Remote Manager @ {get_primary_ip_address()}')
     subparsers = parser.add_subparsers()
 

@@ -1,11 +1,10 @@
 # SDK Overview
 
-
 ## Highlevel Design Concepts
 
-DynamiteNSM provides several entry points for developers to build their own utilities or automate a deployment process.
+`dynamite-nsm` provides several entry points for developers to build their own utilities or automate a deployment process.
 
-The DynamiteNSM SDK is divided into two major sub-modules: `services` and `cmd`.
+The `dynamite-nsm` package is divided into two major modules: `services` and `cmd`.
 
 - The `services` module provides a common set of wrappers around various utilities.
 - The `cmd` module provides a set of functions and classes for converting `services` into fully functioning commandline utilities. 

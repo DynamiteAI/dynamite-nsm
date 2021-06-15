@@ -7,10 +7,9 @@ DynamiteNSM relies on Filebeat for some initial formatting and normalization of 
 sending the logs on through a supported [connector](/configuration/agent/01_connectors).
 
 ```bash
-sudo dynamite filebeat -h
+$ sudo dynamite filebeat -h
 
 usage: dynamite [-h] {install,uninstall,process,config,logs} ...
-
 Filebeat @ 192.168.199.1
 
 positional arguments:
@@ -23,8 +22,6 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-
-
 ```
 
 ## Installation
@@ -47,5 +44,8 @@ sudo dynamite filebeat process -h
 ### Directories
 
 - Installation Directory: `/opt/dynamite/filebeat/`
+
+### Files
+- Configuration: `/opt/dynamite/filebeat/filebeat.yml`
 - Logs: `/opt/dynamite/filebeat/logs/filebeat`
 

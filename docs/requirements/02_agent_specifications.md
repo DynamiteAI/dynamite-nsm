@@ -30,7 +30,7 @@ considered when selecting RAM for use in Dynamite Agents or Monitors.
 
 | Agent Size | Max Sustained Throughput | RAM (GB) |
 |------------|--------------------------|----------|
-| Mini       | 500 Mbps                 | 32       |
+| Mini       | 300 Mbps                 | 32       |
 | Small      | 1 Gbps                   | 64       |
 | Medium     | 6 Gbps                   | 320      |
 | Large      | 12 Gbps                  | 512      |
@@ -51,7 +51,6 @@ A separate data storage volume should be created to maximize write performance a
 The data storage volume should be configured with: 
 
 > ⓘ HDD considerations
-
 > - 10K RPM HDD or SSD (higher I/O but fewer possible read/write operations over lifespan)
 > - All drives the same make/model
 > - RAID 0 for fast I/O

@@ -5,12 +5,12 @@ This setup will work with small lab environments, but is not suggested for scena
 
 ## Pre-requisites
 
-- Two physical or virtual machines running a [supported operating system](/supported_operating_systems). One machine will be dedicated to packet acquisition and analysis - **The Agent**; the other for storing and presentation of this data - **The Monitor**.
+- Two physical or virtual machines running a [supported operating system](/supported_operating_systems). One machine will be dedicated to packet acquisition and analysis - **The Agent**; the other for the storing and presentation of this data - **The Monitor**.
 
 | Role    | RAM | CPUs | Network Interfaces  |
 |---------|-----|------|---------------------|
 | Monitor | 8   | 4    | 1                   |
-| Agent   | 16   | 8    | 2                  |
+| Agent   | 32   | 8    | 2                  |
 
 > ⓘ For the sake of testing your RAM and CPU can be decreased below the above small-network recommendation,
 > however this may result in dropped packets depending on your average throughput.
@@ -18,8 +18,8 @@ This setup will work with small lab environments, but is not suggested for scena
 > ⓘ `dynamite zeek logs metrics --pretty` and `dynamite suricata logs metrics --pretty` can be used to watch for dropped packets.
 
 
-- A physical or virtual switch capable of [SPANing or a dedicated TAP](for_security_engineers/technical_documents/span_vs_tap).
-- [Python 3.8+](https://www.python.org/downloads/).
+- A physical or virtual switch capable of [SPANing or a dedicated TAP](/requirements/04_span_vs_tap) device.
+- [Python 3.7+](https://www.python.org/downloads/).
 
 
 ## Setup DynamiteNSM SDKs and utilities.

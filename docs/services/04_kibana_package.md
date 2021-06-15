@@ -5,7 +5,8 @@ that can easily be installed to a specific tenant.
 
 
 ```bash
-sudo dynamite kibana package -h
+$ sudo dynamite kibana package -h
+
 usage: dynamite package [-h] {install,list,list-tenants,list-saved-objects,uninstall} ...
 
 positional arguments:

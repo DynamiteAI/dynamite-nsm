@@ -243,7 +243,7 @@ class RedisTargets(BaseTargets):
         Args:
             target_strings: A list of Redis hosts, and their service port (E.G ["192.168.0.9 6379"]
             index: The key format string to use.
-            load_balance: If included and multiple Logstash hosts are configured load-balance between them
+            load_balance: If included and multiple Redis hosts are configured load-balance between them
             socks_5_proxy_url: The full url to the SOCKS5 proxy used for encapsulating the beat protocol
             workers: The number of workers to use for each host configured to publish events to Redis.
             max_batch_size: The maximum number of events to bulk in a single Redis request or pipeline.

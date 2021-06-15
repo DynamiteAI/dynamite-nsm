@@ -5,7 +5,7 @@ transform it on the fly, and send it to your desired destination.
 > ⓘ Logstash is an optional component within the Dynamite stack and is not installed as part of the `monitor`.
 > DynamiteNSM does not currently provide an automated integration strategy with Logstash. 
 > 
-> Once installed, Logstash must be manually configured to listen for events from the `agent` and forward them downstream
+> Once installed, Logstash must be manually configured to listen for events from the `agent`, forwarding them downstream
 > to a collector of your choice.
 
 
@@ -13,7 +13,8 @@ transform it on the fly, and send it to your desired destination.
 DynamiteNSM pre-configures Logstash with several useful defaults, and automatically optimizes its use of the JVM heap.
 
 ```bash
-sudo dynamite logstash -h
+$ sudo dynamite logstash -h
+
 usage: dynamite [-h] {install,uninstall,process,config} ...
 
 Logstash @ 192.168.194.143

@@ -1,5 +1,7 @@
 site_name: DynamiteNSM
-theme: material
+theme:
+  name: material
+  logo: data/img/logo_inverted.png
 plugins:
 - search
 - mkdocstrings
@@ -28,18 +30,32 @@ nav:
       - Monitor Specifications: requirements/03_monitor_specifications.md
       - SPAN vs TAP: requirements/04_span_vs_tap.md
   - Installation:
-    - Overview: installation/01_overview.md
+    - Installation Overview: installation/01_overview.md
     - Agent:
         - Overview: installation/agent/01_overview.md
-        - Preparing Inspection Interfaces: installation/agent/00_configure_inspection_interface.md
+        - Preparing Inspection Interfaces: installation/agent/02_configure_inspection_interface.md
+        - Install on the Same Instance: installation/agent/03_install_same_instance.md
+        - Install across Separate Instances: installation/agent/04_install_separate_instances.md
     - Monitor:
-        - Setup Management Interface: installation/monitor/01_network_interface_configuration.md
+        - Overview: installation/monitor/01_overview.md
+        - Setup Management Interface: installation/monitor/02_network_interface_configuration.md
+        - Install on the Same Instance: installation/monitor/03_install_same_instance.md
+        - Install across Separate Instances: installation/monitor/04_install_separate_instances.md
   - Configuration:
+      - Configuration Overview: configuration/01_overview.md
       - Agent:
           - Connectors: configuration/agent/01_connectors.md
           - Event Normalization: configuration/agent/02_event_normalization.md
           - Scripts and Rules: configuration/agent/03_scripts_and_rules.md
+          - Inspection Interfaces: configuration/agent/04_inspection_interfaces.md
+      - Monitor:
+          - Elasticsearch: configuration/monitor/01_elasticsearch.md
+          - Kibana: configuration/monitor/02_kibana.md
   - Services:
+      - Updates: services/01_updates.md
+      - Monitor: services/02_monitor.md
+      - Agent: services/03_agent.md
+      - Remote: services/10_remote.md
       - Elasticsearch: services/04_elasticsearch.md
       - Logstash: services/05_logstash.md
       - Kibana: services/06_kibana.md
@@ -101,5 +117,6 @@ nav:
                     - profile: guides/developers/SDK/services/elasticsearch/profile.md
   - Resources:
       - Contributing Guide: resources/contributing_guide.md
+      - Coding Guidelines: resources/coding_guidelines.md
 
 

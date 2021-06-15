@@ -1,14 +1,15 @@
 # Zeek
 Zeek (formerly Bro) is a free and open-source software network analysis framework. It provides an extremely powerful scripting
-language that can be used for everything protocol parsing to file carving.
+language that can be used for everything from protocol parsing to file carving.
 
 Within DynamiteNSM, Zeek serves as the primary mechanism for harvesting metadata around network conversations.
 
-Through its powerful scripting framework, Zeek is capable of generating [many logs](https://docs.zeek.org/en/master/script-reference/log-files.html) that can be used for providing rich context
-around and alert.
+Through its scripting framework, Zeek is capable of generating [many logs](https://docs.zeek.org/en/master/script-reference/log-files.html) that provide rich context
+around and alerts.
 
 ```bash
-sudo dynamite zeek -h 
+$ sudo dynamite zeek -h 
+
 usage: dynamite [-h] {install,uninstall,process,config,logs} ...
 
 Zeek @ 192.168.199.1
