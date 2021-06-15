@@ -15,5 +15,8 @@ except KeyError:
     interface = None
 except FileNotFoundError:
     interface = None
+
+"""
 if not interface:
     print(f'Skipping zeek.config.scripts as it was never retrieved successfully')
+"""

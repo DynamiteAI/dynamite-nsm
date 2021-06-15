@@ -133,8 +133,8 @@ class InstallManager(install.BaseInstallManager):
         filebeat_config.kibana_settings.enabled = True
         if not monitor_log_paths:
             environ = utilities.get_environment_file_dict()
-            zeek_log_root = f'{environ["ZEEK_HOME"]}/logs/current/'
-            suricata_log_root = environ["SURICATA_LOGS"]
+            zeek_log_root = f'{environ.get("ZEEK_HOME", "")}/logs/current/'
+            suricata_log_root = environ.get('SURICATA_LOGS', '')
             zeek_profiler = zeek_profile.ProcessProfiler()
             suricata_profiler = suricata_profile.ProcessProfiler()
             if zeek_profiler.is_installed():
@@ -183,6 +183,9 @@ class InstallManager(install.BaseInstallManager):
         # Install and enable service
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/filebeat.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/filebeat.service')
+
+        # Update environment file
+        self.create_update_filebeat_environment_variables()
 
 
 class UninstallManager(install.BaseUninstallManager):

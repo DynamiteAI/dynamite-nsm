@@ -22,7 +22,6 @@ JVM_ROOT = '/usr/lib/jvm/'
 SYS_BIN = '/usr/bin/'
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 PCAP_PATH = "/etc/dynamite/pcaps/"
-INSTALLED_KIBANA_PACKAGES_FILE = '/etc/dynamite/kibana/installed_packages.json'
 
 
 def bootstrap_constants_from_const_environment_file():

@@ -2,6 +2,7 @@ import argparse
 import inspect
 from typing import Any, Dict, List, Optional, Union
 
+import daemon
 from tabulate import tabulate
 
 from dynamite_nsm.cmd import interface_operations
@@ -62,28 +63,24 @@ class MultipleResponsibilityInterface(BaseInterface):
 
         :return: argparse.ArgumentParser instance
         """
-        actions = []
         parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
+        actions_subparsers = parser.add_subparsers()
         for params in self.base_params:
             parser.add_argument(*params.flags, **params.kwargs)
         for method, params_group in self.interface_methods.items():
             if method in self.supported_method_names:
-                actions.append(method.replace('_', '-'))
+                action_parser = actions_subparsers.add_parser(method.replace('_', '-'))
+                action_parser.set_defaults(entry_method_name=method)
                 for params in params_group:
                     try:
-                        parser.add_argument(*params.flags, **params.kwargs)
+                        action_parser.add_argument(*params.flags, **params.kwargs)
                     except argparse.ArgumentError:
                         continue
-        if actions:
-            parser.add_argument('action', choices=actions)
         return parser
 
     def execute(self, args: argparse.Namespace) -> Any:
         """
         Given a set of parsed arguments execute those arguments according the defined parameters and entry_method_name
-
-        **Note the args.Namespace must contain an "action" parameter in order to function properly
-
         :param args: The output of argparse.ArgumentParser.parse_args() function
         """
         constructor_kwargs = dict()
@@ -91,19 +88,20 @@ class MultipleResponsibilityInterface(BaseInterface):
         for param, value in vars(args).items():
             if param in [p.name for p in self.base_params]:
                 constructor_kwargs[param] = value
-            elif param in [p.name for p in self.interface_methods[args.action.replace('-', '_')]]:
+            else:
                 entry_method_kwargs[param] = value
+        entry_method_kwargs.pop('component', None)
+        entry_method_kwargs.pop('interface', None)
+        entry_method_kwargs.pop('sub_interface', None)
+        entry_method_kwargs.pop('entry_method_name', None)
         # Dynamically load our class
         klass = getattr(self, 'cls')
         # Instantiate it with the constructor kwargs
         exec_inst = klass(**constructor_kwargs)
         # Dynamically load our defined entry_method
-        exec_method = getattr(exec_inst, args.action.replace('-', '_'))
-        entry_method_kwargs.pop('component', None)
-        entry_method_kwargs.pop('interface', None)
-        entry_method_kwargs.pop('sub_interface', None)
+        exec_entry_method = getattr(exec_inst, args.entry_method_name)
         # Call the entry method
-        return exec_method(**entry_method_kwargs)
+        return exec_entry_method(**entry_method_kwargs)
 
 
 class SingleResponsibilityInterface(BaseInterface):
@@ -151,7 +149,6 @@ class SingleResponsibilityInterface(BaseInterface):
         parser = argparse.ArgumentParser(description=f'{self.interface_name} - {self.interface_description}')
         for params in self.base_params:
             parser.add_argument(*params.flags, **params.kwargs)
-
         for params in self.interface_params:
             parser.add_argument(*params.flags, **params.kwargs)
         return parser
@@ -162,6 +159,10 @@ class SingleResponsibilityInterface(BaseInterface):
 
         :param args: The output of argparse.ArgumentParser.parse_args() function
         """
+        if getattr(args, 'background', None):
+            setattr(args, 'background', None)
+            return self.execute_in_background(args)
+
         constructor_kwargs = dict()
         entry_method_kwargs = dict()
         for param, value in vars(args).items():
@@ -172,6 +173,8 @@ class SingleResponsibilityInterface(BaseInterface):
         entry_method_kwargs.pop('component', None)
         entry_method_kwargs.pop('interface', None)
         entry_method_kwargs.pop('sub_interface', None)
+
+        entry_method_kwargs.pop('background', None)
         # Dynamically load our class
         klass = getattr(self, 'cls')
         # Instantiate it with the constructor kwargs
@@ -180,6 +183,12 @@ class SingleResponsibilityInterface(BaseInterface):
         exec_entry_method = getattr(exec_inst, self.entry_method_name)
         # Call the entry method
         return exec_entry_method(**entry_method_kwargs)
+
+    def execute_in_background(self, args: argparse.Namespace):
+        args.verbose = True
+        args.stdout = False
+        with daemon.DaemonContext():
+            self.execute(args)
 
 
 class SimpleConfigManagerInterface(SingleResponsibilityInterface):
@@ -297,19 +306,18 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
 
 def append_service_multiple_responsibility_interface_to_parser(parser: argparse.ArgumentParser,
                                                                interface: MultipleResponsibilityInterface):
-    actions = []
+    actions_subparsers = parser.add_subparsers()
     for params in interface.base_params:
         parser.add_argument(*params.flags, **params.kwargs)
     for method, params_group in interface.interface_methods.items():
         if method in interface.supported_method_names:
-            actions.append(method.replace('_', '-'))
+            action_parser = actions_subparsers.add_parser(method.replace('_', '-'))
+            action_parser.set_defaults(entry_method_name=method)
             for params in params_group:
                 try:
-                    parser.add_argument(*params.flags, **params.kwargs)
+                    action_parser.add_argument(*params.flags, **params.kwargs)
                 except argparse.ArgumentError:
                     continue
-    if actions:
-        parser.add_argument('action', choices=actions)
     return parser
 
 

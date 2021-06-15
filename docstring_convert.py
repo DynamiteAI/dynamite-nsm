@@ -1,10 +1,13 @@
 text = '''
-    """
-    Given a callable function returns a three part definition for that function
-
-    :param func: A callable function
-    :return: A tuple with the (function.__name__, function.__annotations__, inspect.getdoc(function))
-    """
+        """ 
+        Install Logstash
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
+        :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
+        :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
+        :param download_logstash_archive: If True, download the Logstash archive from a mirror
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
+        """
 '''
 params = []
 return_val = 'None'
