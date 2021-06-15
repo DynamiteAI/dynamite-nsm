@@ -69,7 +69,7 @@ class ConfigManager(YamlConfigManager):
 
         with open(self.filebeat_config_path, 'r') as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
-        super().__init__(self.config_data_raw, name='FILEBEATCFG', verbose=verbose, stdout=stdout, **extract_tokens)
+        super().__init__(self.config_data_raw, name='filebeat.config', verbose=verbose, stdout=stdout, **extract_tokens)
 
         self.parse_yaml_file()
         try:

@@ -9,10 +9,11 @@ from dynamite_nsm.services.base.config import JavaOptionsConfigManager, YamlConf
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Manage an Elasticsearch configuration
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
         extract_tokens = {
             'node_name': ('node.name',),
@@ -53,7 +54,8 @@ class ConfigManager(YamlConfigManager):
 
         with open(self.elasticsearch_config_path) as configyaml:
             self.config_data_raw = load(configyaml, Loader=Loader)
-        super().__init__(self.config_data_raw, name='ELASTICCFG', verbose=verbose, stdout=stdout, **extract_tokens)
+        super().__init__(self.config_data_raw, name='elasticsearch.config', verbose=verbose, stdout=stdout,
+                         **extract_tokens)
         self.parse_yaml_file()
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
@@ -71,25 +73,25 @@ class ConfigManager(YamlConfigManager):
 
 class JavaHeapOptionsConfigManager(JavaOptionsConfigManager):
 
-    def __init__(self, configuration_directory, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """Configure Elasticsearch Java Heap Options
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
 
         self.configuration_directory = configuration_directory
         self.elasticsearch_jvm_config_path = f'{self.configuration_directory}/jvm.options'
         with open(self.elasticsearch_jvm_config_path) as jvm_config:
             data = {'data': jvm_config.readlines()}
-        super().__init__(data, name='ELASTICJAVA', verbose=verbose, stdout=stdout)
+        super().__init__(data, name='elasticsearch.java', verbose=verbose, stdout=stdout)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
-        """
-        Write out an updated configuration file, and optionally backup the old one.
-
-        :param out_file_path: The path to the output file; if none given overwrites existing
-        :param backup_directory: The path to the backup directory
+        """Write out an updated configuration file, and optionally backup the old one.
+        Args:
+            out_file_path: The path to the output file; if none given overwrites existing
+            backup_directory: The path to the backup directory
         """
         if not out_file_path:
             out_file_path = self.elasticsearch_jvm_config_path

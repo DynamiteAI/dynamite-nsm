@@ -3,3 +3,96 @@ theme: material
 plugins:
 - search
 - mkdocstrings
+nav:
+  - Introduction: 01_index.md
+  - About:
+      - Project Goals: about/01_project_goals.md
+      - Architechture: about/02_architecture.md
+      - Event Data Model:
+          - Data Model Overview: about/data_model/01_overview.md
+          - Sample Logs:
+              - Suricata Alert: about/data_model/samples/alert.eve.json.md
+              - Zeek Connection: about/data_model/samples/conn.log.md
+              - Zeek DHCP: about/data_model/samples/dhcp.log.md
+              - Zeek DNS: about/data_model/samples/dns.log.md
+              - Zeek Files: about/data_model/samples/files.log.md
+              - Zeek HTTP: about/data_model/samples/http.log.md
+              - Zeek Portable Executables: about/data_model/samples/pe.log.md
+              - Zeek SSH: about/data_model/samples/ssh.log.md
+              - Zeek SSL: about/data_model/samples/ssl.log.md
+              - Zeek Weird: about/data_model/samples/weird.log.md
+              - Zeek X509: about/data_model/samples/x509.log.md
+  - Requirements:
+      - Supported Operating Systems: requirements/01_supported_operating_systems.md
+      - Agent Specifications: requirements/02_agent_specifications.md
+      - Monitor Specifications: requirements/03_monitor_specifications.md
+      - SPAN vs TAP: requirements/04_span_vs_tap.md
+  - Installation:
+    - Overview: installation/01_overview.md
+    - Agent:
+        - Preparing Inspection Interfaces: installation/agent/01_configure_inspection_interface.md
+    - Monitor:
+        - Setup Management Interface: installation/monitor/01_network_interface_configuration.md
+  - Configuration:
+      - Agent:
+          - Connectors: configuration/agent/01_connectors.md
+          - Event Normalization: configuration/agent/02_event_normalization.md
+          - Scripts and Rules: configuration/agent/03_scripts_and_rules.md
+  - Services:
+      - Elasticsearch: services/01_elasticsearch.md
+      - Logstash: services/02_logstash.md
+      - Kibana: services/03_kibana.md
+      - Kibana Package Manager: services/04_kibana_package.md
+  - Guides:
+      - Quick Start: guides/01_quick_start.md
+      - Working with Kibana Package Manager: guides/02_using_kibana_package.md
+      - Software Developer Guides:
+          - Overview: guides/developers/01_overview.md
+          - Create a Commandline Utility: guides/developers/02_build_a_commandline_utility.md
+          - Create a Kibana Package: guides/developers/02_create_a_kibana_package.md
+          - Software Development Kit:
+              - Overview: guides/developers/SDK/01_overview.md
+              - cmd:
+                - base_interface: guides/developers/SDK/cmd/base_interface.md
+                - inspection_helpers: guides/developers/SDK/cmd/inspection_helpers.md
+                - config_object_interfaces: guides/developers/SDK/cmd/config_object_interfaces.md
+                - service_interfaces: guides/developers/SDK/cmd/service_interfaces.md
+              - services:
+                - base:
+                      - install: guides/developers/SDK/services/base/install.md
+                      - config: guides/developers/SDK/services/base/config.md
+                      - config_objects:
+                            - guides/developers/SDK/services/base/config_objects/generic.md
+                            - filebeat:
+                              - guides/developers/SDK/services/base/config_objects/filebeat/misc.md
+                              - guides/developers/SDK/services/base/config_objects/filebeat/targets.md
+                      - logs: guides/developers/SDK/services/base/logs.md
+                      - process: guides/developers/SDK/services/base/process.md
+                      - profile: guides/developers/SDK/services/base/profile.md
+                - filebeat:
+                    - install: guides/developers/SDK/services/filebeat/install.md
+                    - config: guides/developers/SDK/services/filebeat/config.md
+                    - logs: guides/developers/SDK/services/filebeat/logs.md
+                    - process: guides/developers/SDK/services/filebeat/process.md
+                    - profile: guides/developers/SDK/services/filebeat/profile.md
+                - suricata:
+                    - install: guides/developers/SDK/services/suricata/install.md
+                    - config: guides/developers/SDK/services/suricata/config.md
+                    - logs: guides/developers/SDK/services/suricata/logs.md
+                    - process: guides/developers/SDK/services/suricata/process.md
+                    - profile: guides/developers/SDK/services/suricata/profile.md
+                - zeek:
+                    - install: guides/developers/SDK/services/zeek/install.md
+                    - config: guides/developers/SDK/services/zeek/config.md
+                    - logs: guides/developers/SDK/services/zeek/logs.md
+                    - process: guides/developers/SDK/services/zeek/process.md
+                    - profile: guides/developers/SDK/services/zeek/profile.md
+                - elasticsearch:
+                    - install: guides/developers/SDK/services/elasticsearch/install.md
+                    - config: guides/developers/SDK/services/elasticsearch/config.md
+                    - process: guides/developers/SDK/services/elasticsearch/process.md
+                    - profile: guides/developers/SDK/services/elasticsearch/profile.md
+  - Resources:
+      - Contributing Guide: resources/contributing_guide.md
+
+

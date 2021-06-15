@@ -14,7 +14,7 @@ from dynamite_nsm.utilities import makedirs
 class InstallManager(install.BaseInstallManager):
 
     def __init__(self, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        super().__init__('updates', verbose, stdout)
+        super().__init__('updates.install', verbose, stdout)
         self.stdout = stdout
         self.verbose = verbose
 
@@ -63,6 +63,9 @@ class InstallManager(install.BaseInstallManager):
                 os.path.join(const.INSTALL_CACHE, 'mirrors.tar.gz'), e))
 
     def setup(self):
+        """
+        Download updates and setup them up.
+        """
         self.logger.info(
             'Attempting to download the latest mirrors and default configurations for installable components.')
         self.update_mirrors()

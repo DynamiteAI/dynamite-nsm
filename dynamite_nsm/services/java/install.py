@@ -9,7 +9,7 @@ class InstallManager(install.BaseInstallManager):
 
     def __init__(self, install_directory: str, download_java_archive: Optional[bool] = True,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        super().__init__('java', verbose, stdout)
+        super().__init__('java.install', verbose, stdout)
         self.install_directory = install_directory
         self.stdout = stdout
         self.verbose = verbose

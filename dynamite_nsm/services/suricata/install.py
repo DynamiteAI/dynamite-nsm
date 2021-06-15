@@ -33,7 +33,6 @@ def post_install_bootstrap_updater(suricata_install_directory: str, stdout: Opti
 
 
 class InstallManager(install.BaseInstallManager):
-
     """
     Manage Suricata installation process
     """
@@ -49,8 +48,6 @@ class InstallManager(install.BaseInstallManager):
             download_suricata_archive: If True, download the Suricata archive from a mirror
             stdout: Print the output to console
             verbose: Include detailed debug messages
-        Returns:
-            None
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
@@ -58,7 +55,7 @@ class InstallManager(install.BaseInstallManager):
         self.download_suricata_archive = download_suricata_archive
         self.stdout = stdout
         self.verbose = verbose
-        install.BaseInstallManager.__init__(self, 'suricata', verbose=self.verbose, stdout=stdout)
+        install.BaseInstallManager.__init__(self, 'suricata.install', verbose=self.verbose, stdout=stdout)
         if download_suricata_archive:
             self.logger.info("Attempting to download Suricata archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.SURICATA_MIRRORS)
@@ -132,17 +129,15 @@ class InstallManager(install.BaseInstallManager):
             self.copy_file_or_directory_to_destination(f'{suricata_tarball_extracted}/{conf}',
                                                        self.configuration_directory)
 
-    def setup(self, capture_network_interfaces: Optional[List[str]] = None):
+    def setup(self, inspect_interfaces: List[str]):
         """Install Suricata
         Args:
-            capture_network_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
         Returns:
             None
         """
-        if not capture_network_interfaces:
-            capture_network_interfaces = utilities.get_network_interface_names()
-        if not self.validate_capture_network_interfaces(capture_network_interfaces):
-            raise install.NetworkInterfaceNotFound(capture_network_interfaces)
+        if not self.validate_inspect_interfaces(inspect_interfaces):
+            raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()
         self.install_suricata_dependencies()
         self.create_update_suricata_environment_variables()
@@ -171,13 +166,14 @@ class InstallManager(install.BaseInstallManager):
         suricata_config.classification_file = os.path.join(self.configuration_directory, 'rules',
                                                            'classification.config')
         suricata_config.af_packet_interfaces = misc.AfPacketInterfaces()
-        for interface in capture_network_interfaces:
+        for interface in inspect_interfaces:
             suricata_config.af_packet_interfaces.add(
                 misc.AfPacketInterface(
                     interface_name=interface, threads='auto', cluster_id=random.randint(1, 50000),
-                    cluster_type='cluster_flow'
+                    cluster_type='cluster_qm'
                 )
             )
+
         suricata_config.commit()
         self.logger.info('Applying Suricata configuration.')
         self.logger.debug(suricata_config.af_packet_interfaces)
@@ -196,7 +192,6 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-
     """
     Uninstall Suricata process manager
     """
@@ -217,7 +212,8 @@ class UninstallManager(install.BaseUninstallManager):
         suricata_directories = [env_vars.get('SURICATA_HOME'), env_vars.get('SURICATA_LOGS')]
         if purge_config:
             suricata_directories.append(env_vars.get('SURICATA_CONFIG'))
-        super().__init__('suricata', directories=suricata_directories,
+        super().__init__('suricata.uninstall', directories=suricata_directories, sysctl_service_name='suricata.service',
+                         environ_vars=['SURICATA_HOME', 'SURICATA_CONFIG', 'SURICATA_LOGS', 'OINKMASTER_HOME'],
                          process=ProcessManager(stdout=stdout, verbose=verbose), stdout=stdout, verbose=verbose)
 
 

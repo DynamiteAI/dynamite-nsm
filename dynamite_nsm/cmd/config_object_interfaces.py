@@ -42,9 +42,8 @@ class AnalyzersInterface(BaseInterface):
         choices = []
         for analyzer in self.config_obj.analyzers:
             choices.append(analyzer.id)
-        parser.add_argument('--id', dest='analyzer_id', type=int,
-                            help='Specify the id for the config object you want to work with.',
-                            choices=choices)
+        parser.add_argument('--ids', dest='analyzer_ids', nargs='+', type=int, default=[],
+                            help='Specify one or more ids for the config object you want to work with.')
         parser.add_argument('--enable', dest='enable', action='store_true', help=f'Enable selected object.')
         parser.add_argument('--disable', dest='disable', action='store_true', help=f'Disable selected object')
         if getattr(self.config_obj.analyzers[0], 'value', None):
@@ -61,49 +60,38 @@ class AnalyzersInterface(BaseInterface):
         Returns: Can return any value; completely depends on the `service.action` being invoked
         """
         self.changed_rows = []
-        selected_analyzer = None
-        selected_analyzer_value = 'N/A'
         headers = ['Id', 'Name', 'Enabled', 'Value']
         table = [headers]
+        selected_items = []
         for analyzer in self.config_obj.analyzers:
             analyzer_value = 'N/A'
             if getattr(analyzer, 'value', None):
                 analyzer_value = analyzer.value
             row = [analyzer.id, analyzer.name, analyzer.enabled, analyzer_value]
             table.append(row)
-            if analyzer.id == args.analyzer_id:
+            if analyzer.id in list(args.analyzer_ids):
                 selected_analyzer = analyzer
-                selected_analyzer_value = analyzer_value
-                break
-        if not args.analyzer_id:
-            return tabulate(table, tablefmt='fancy_grid')
+                if selected_analyzer:
+                    if args.disable:
+                        selected_analyzer.enabled = False
+                    elif args.enable:
+                        selected_analyzer.enabled = True
+                    if getattr(args, 'value', None):
+                        if not str(args.value).endswith(';'):
+                            args.value = args.value + ';'
+                        selected_analyzer.value = args.value
+                    selected_items.append([selected_analyzer.id, selected_analyzer.name, selected_analyzer.enabled,
+                                           selected_analyzer.value if selected_analyzer.value else 'N/A'])
+
+        if not args.analyzer_ids:
+            all_analyzers = []
+            for analyzer in self.config_obj.analyzers:
+                all_analyzers.append(
+                    [analyzer.id, analyzer.name, analyzer.enabled, analyzer.value if analyzer.value else 'N/A'])
+            return tabulate(headers=headers, tabular_data=all_analyzers, tablefmt='fancy_grid')
         else:
-            if selected_analyzer:
-                if args.disable:
-                    selected_analyzer.enabled = False
-                elif args.enable:
-                    selected_analyzer.enabled = True
-
-                if getattr(selected_analyzer, 'value',
-                           None) and args.value:  # TODO smells bad - check class implementation that requires this hack
-                    if not str(args.value).endswith(';'):
-                        args.value = args.value + ';'
-                    selected_analyzer.value = args.value
-                else:
-                    # Populate value in the namespace so we can perform the below check w/o issue.
-                    args.value = None
-
-                if not args.value and not args.enable and not args.disable:
-                    table = [headers, [selected_analyzer.id, selected_analyzer.name, selected_analyzer.enabled,
-                                       selected_analyzer_value]]
-                    return tabulate(table, tablefmt='fancy_grid')
-                else:
-                    changed_value = selected_analyzer_value
-                    if args.value:
-                        changed_value = args.value
-                    self.changed_rows = [[selected_analyzer.id, selected_analyzer.name, selected_analyzer.enabled,
-                                          changed_value]]
-                    return self.config_obj
+            self.changed_rows = selected_items
+            return self.config_obj
 
 
 class FilebeatTargetsInterface(BaseInterface):
@@ -138,7 +126,8 @@ class FilebeatTargetsInterface(BaseInterface):
         parser = argparse.ArgumentParser()
         target_options = parser.add_argument_group('target options')
         for var in vars(self.config_obj):
-            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config_obj, var)))
+            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config_obj, var)),
+                                                                    required=False)
             if var != 'enabled':
                 arg_description = self._get_description_for_instance_var(var).replace('\n', ' ')
             else:
@@ -192,9 +181,8 @@ def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentP
     choices = []
     for analyzer in interface.config_obj.analyzers:
         choices.append(analyzer.id)
-    parser.add_argument('--id', dest='analyzer_id', type=int,
-                        help='Specify the id for the config object you want to work with.',
-                        choices=choices)
+    parser.add_argument('--ids', dest='analyzer_ids', nargs='+',
+                        help='Specify the id for the config object you want to work with.', type=int, default=[])
     parser.add_argument('--enable', dest='enable', action='store_true', help=f'Enable selected object.')
     parser.add_argument('--disable', dest='disable', action='store_true', help=f'Disable selected object')
     if getattr(interface.config_obj.analyzers[0], 'value', None):
@@ -214,7 +202,8 @@ def append_config_object_filebeat_targets_to_parser(parser: argparse.ArgumentPar
     """
     target_options = parser.add_argument_group('target options')
     for var in vars(interface.config_obj):
-        args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)))
+        args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)),
+                                                                required=False)
         arg_description = interface._get_description_for_instance_var(var).replace('\n', ' ')
         args.add_description(arg_description)
         try:

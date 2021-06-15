@@ -1,9 +1,8 @@
 import pytest
-from dynamite_nsm.utilities import get_environment_file_dict, makedirs
+from dynamite_nsm.utilities import makedirs
 import os
 import shutil
 import yaml
-
 
 
 @pytest.fixture()
@@ -12,11 +11,12 @@ def basic_manifest_data():
         "name": "Package Name",
         "author": "Author McAuthorface",
         "author_email": "a.mcauthorface@dynamitepackagers.co",
-        "description": "A saved objects package",
+        "description": "A saved packages package",
         "package_type": "saved_objects",
         "file_list": ["traffic_by_protocol.ndjson"]
     }
     return manifest_data
+
 
 @pytest.fixture()
 def kibana_test_dir(request):
@@ -60,6 +60,3 @@ def kibana_test_config_yaml(kibana_test_dir):
         yamlfile.write(yaml.dump(confdata))
     return path
 
-
-
-    

@@ -32,30 +32,9 @@ class ProcessManager(process.BaseProcessManager):
         :param pretty_print_status: If enabled, status will be printed in a tabulated style
         """
         environ = utilities.get_environment_file_dict()
-        process.BaseProcessManager.__init__(self, 'logstash.service', 'logstash', log_path=environ.get('LS_LOGS'),
+        process.BaseProcessManager.__init__(self, 'logstash.service', 'logstash.process', log_path=environ.get('LS_LOGS'),
                                             stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
 
         if not logstash_profile.ProcessProfiler().is_installed():
             self.logger.error("LogStash is not installed. Install it with 'dynamite logstash install -h'")
             raise CallLogstashProcessError("LogStash is not installed.")
-
-
-def start(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-          pretty_print_status: Optional[bool] = False) -> bool:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).start()
-
-
-def stop(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-         pretty_print_status: Optional[bool] = False) -> bool:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
-
-
-def restart(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-            pretty_print_status: Optional[bool] = False) -> bool:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
-
-
-def status(stdout: Optional[bool] = True, verbose: Optional[bool] = False,
-           pretty_print_status: Optional[bool] = False) -> Union[Dict, str]:
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()
-

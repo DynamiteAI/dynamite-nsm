@@ -1,7 +1,7 @@
-import pytest
-import json
 from dynamite_nsm.services.kibana.package.manager import PackageManifest, Package
 from dynamite_nsm.services.kibana.package.schemas import ORPHAN_OBJECT_PACKAGE_MANIFEST_DATA
+
+
 def test_package_manifest_validation(basic_manifest_data):
     manifest = PackageManifest(basic_manifest_data)
     for key, value in basic_manifest_data.items():
@@ -16,5 +16,4 @@ def test_package_es_input_custom_ids():
     es_input = package.es_input(id=custom_document_id)
     assert custom_document_id == es_input.get('id')
 
-    
     

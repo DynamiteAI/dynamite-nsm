@@ -7,7 +7,7 @@ import time
 import os
 from datetime import datetime
 from datetime import timedelta
-from typing import Dict, Generator, Optional
+from typing import Dict, Optional
 
 import tabulate
 
@@ -79,7 +79,6 @@ class MetricsEntry:
         Returns:
             None
         """
-
         self.open_file_handles = math.ceil((self.open_file_handles + metric_entry.open_file_handles) / 2)
         self.memory_allocated = math.ceil((self.memory_allocated + metric_entry.memory_allocated) / 2)
         self.harvester_open_files = math.ceil((self.harvester_open_files + metric_entry.harvester_open_files) / 2)
@@ -288,7 +287,7 @@ class StatusLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
 
     def tail_metrics(self, pretty_print: Optional[bool] = True):
         """Tail and follow a metrics log to console
@@ -322,4 +321,4 @@ class StatusLog(logs.LogFile):
                 start = datetime.utcnow() - timedelta(seconds=60)
                 time.sleep(5)
         except KeyboardInterrupt:
-            print('[+] Exited.')
+            print(utilities.PrintDecorations.colorize('OK', 'green'))

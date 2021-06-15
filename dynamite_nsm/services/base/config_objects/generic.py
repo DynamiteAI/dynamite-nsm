@@ -52,7 +52,7 @@ class GenericItemGroup:
 
 class Analyzer(GenericItem):
     """
-    Analyzers are objects used for identifying Zeek scripts and signatures as well as Suricata rule-sets
+    Analyzers are packages used for identifying Zeek scripts and signatures as well as Suricata rule-sets
     """
     def __init__(self, name: str, enabled: Optional[bool] = False):
         """
@@ -85,14 +85,14 @@ class Analyzers(GenericItemGroup):
     def get_disabled(self) -> List[Analyzer]:
         """Get all analyzers that are disabled.
         Returns:
-            A list of disabled `Analyzer` objects
+            A list of disabled `Analyzer` packages
         """
         return [analyzer for analyzer in self.analyzers if not analyzer.enabled]
 
     def get_enabled(self) -> List[Analyzer]:
         """Get all analyzers that are enabled.
         Returns:
-            A list of enabled `Analyzer` objects
+            A list of enabled `Analyzer` packages
         """
         return [analyzer for analyzer in self.analyzers if analyzer.enabled]
 

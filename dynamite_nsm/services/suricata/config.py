@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
+from typing import Optional, Tuple
 
 from yaml import Loader
 from yaml import load
@@ -71,6 +71,7 @@ class ConfigManager(YamlConfigManager):
         """
 
         extract_tokens = {
+            'runmode': ('runmode',),
             'home_net': ('vars', 'address-groups', 'HOME_NET'),
             'external_net': ('vars', 'address-groups', 'EXTERNAL_NET'),
             'http_servers': ('vars', 'address-groups', 'HTTP_SERVERS'),
@@ -99,11 +100,13 @@ class ConfigManager(YamlConfigManager):
             'reference_config_file': ('reference-config-file',),
             '_af_packet_interfaces_raw': ('af-packet',),
             '_pcap_interfaces_raw': ('pcap',),
-            '_rule_files_raw': ('rule-files',)
+            '_rule_files_raw': ('rule-files',),
+            '_threading_raw': ('threading',)
         }
         self.configuration_directory = configuration_directory
         self.config_data = None
 
+        self.runmode = None
         self.home_net = None
         self.external_net = None
         self.http_servers = None
@@ -132,6 +135,7 @@ class ConfigManager(YamlConfigManager):
         self._af_packet_interfaces_raw = []
         self._pcap_interfaces_raw = []
         self._rule_files_raw = []
+        self._threading_raw = {}
         self.suricata_config_file = os.path.join(self.configuration_directory, 'suricata.yaml')
         try:
             with open(self.suricata_config_file, 'r') as configyaml:
@@ -139,7 +143,7 @@ class ConfigManager(YamlConfigManager):
         except (IOError, ValueError):
             raise general_exceptions.ReadConfigError(f'Failed to read or parse {self.suricata_config_file}.')
 
-        super().__init__(self.config_data_raw, name='SURICATACFG', verbose=verbose, stdout=stdout, **extract_tokens)
+        super().__init__(self.config_data_raw, name='suricata.config', verbose=verbose, stdout=stdout, **extract_tokens)
 
         self.parse_yaml_file()
 
@@ -160,6 +164,15 @@ class ConfigManager(YamlConfigManager):
                 threads=af_packet_interface_raw.get('threads')
             ) for af_packet_interface_raw in self._af_packet_interfaces_raw]
         )
+        thread_families = self._threading_raw.get('cpu_affinity', [])
+        self.threading = misc.Threading()
+        for thread_family in thread_families:
+            if 'management-cpu-set' in thread_family.keys():
+                self.threading.management_cpu_set = thread_family.get('management-cpu-set', {}).get('cpus', [])
+            elif 'receive-cpu-set' in thread_family.keys():
+                self.threading.receive_cpu_set = thread_family.get('receive-cpu-set', {}).get('cpus', [])
+            elif 'worker-cpu-set' in thread_family.keys():
+                self.threading.worker_cpu_set = thread_family.get('worker-cpu-set', {}).get('cpus', [])
 
         self.pcap_interfaces = misc.PcapInterfaces(
             interface_names=[interface_raw for interface_raw in self._pcap_interfaces_raw]
@@ -184,6 +197,20 @@ class ConfigManager(YamlConfigManager):
             c.configuration_directory = configuration_directory
         return c
 
+    @staticmethod
+    def get_optimal_suricata_threading_config(available_cpus: Optional[Tuple] = None) -> misc.Threading:
+        management_cpu_set = set()
+        receive_cpu_set = set()
+        worker_cpu_set = set()
+
+        for i, c in enumerate(available_cpus):
+            if i % 8 == 0:
+                management_cpu_set.add(c)
+            else:
+                receive_cpu_set.add(c)
+                worker_cpu_set.add(c)
+        return misc.Threading(management_cpu_set, receive_cpu_set, worker_cpu_set)
+
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:
 
@@ -202,4 +229,5 @@ class ConfigManager(YamlConfigManager):
         self._rule_files_raw = self.rules.get_raw()
         self._pcap_interfaces_raw = self.pcap_interfaces.get_raw()
         self._af_packet_interfaces_raw = self.af_packet_interfaces.get_raw()
+        self._threading_raw = self.threading.get_raw()
         super(ConfigManager, self).commit(out_file_path, backup_directory, top_text=top_text)
