@@ -131,12 +131,14 @@ def post_install_bootstrap_cluster_settings(bootstrap_attempts: Optional[int] = 
     Returns:
         None
     """
-    import json, requests
+    import json
+    import requests
     from dynamite_nsm.services.elasticsearch import process, profile
     es_process_profile = profile.ProcessProfiler()
     log_level = logging.INFO
     es_url = f'https://{utilities.get_primary_ip_address()}:9200'
-    es_cluster_data = {'persistent': {'script.max_compilations_rate': '500/5m'}}
+    es_cluster_data = {'persistent': {'script.max_compilations_rate': '1000/5m'},
+                       'transient': {'script.max_compilations_rate': '1000/5m'}}
     if verbose:
         log_level = logging.DEBUG
     logger = get_logger('elasticsearch.cluster_setup', level=log_level, stdout=stdout)
