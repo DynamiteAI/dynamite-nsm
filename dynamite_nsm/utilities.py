@@ -69,7 +69,6 @@ class PrintDecorations:
     _COLOR_RESET = _COLOR_END
 
 
-
 def backup_configuration_file(source_file: str, configuration_backup_directory: str,
                               destination_file_prefix: str) -> None:
     """Backup a configuration file

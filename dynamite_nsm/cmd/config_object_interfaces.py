@@ -185,9 +185,9 @@ def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentP
                         help='Specify the id for the config object you want to work with.', type=int, default=[])
     parser.add_argument('--enable', dest='enable', action='store_true', help=f'Enable selected object.')
     parser.add_argument('--disable', dest='disable', action='store_true', help=f'Disable selected object')
-    if getattr(interface.config_obj.analyzers[0], 'value', None):
+    if choices and getattr(interface.config_obj.analyzers[0], 'value', None):
         parser.add_argument('--value', dest='value', type=str,
-                            help=f'The value associated with the selected object')
+                            help='The value associated with the selected object')
     return parser
 
 

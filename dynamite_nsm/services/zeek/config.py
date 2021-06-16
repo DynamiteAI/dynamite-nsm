@@ -213,28 +213,28 @@ class NodeConfigManager(GenericConfigManager):
                 key, value = item
                 config_data[section][key] = value
         super().__init__(config_data, name='zeek.config.node', verbose=verbose, stdout=stdout)
-        self.add_parser(
-            parser=lambda data:
-            [
-                node.Manager(
-                    manager_name=name,
-                    host=values.get('host')
-                )
-                for name, values in data.items() if
-                values.get('type') == 'manager'][0],
-            attribute_name='manager'
-        )
-        self.add_parser(
-            parser=lambda data: node.Loggers(
-                [
-                    node.Logger(
-                        logger_name=name,
-                        host=values.get('host')
-                    )
-                    for name, values in data.items() if
-                    values.get('type') == 'logger']),
-            attribute_name='loggers'
-        )
+
+        def _get_nodeobjs_from_data(objtype: str, limit=None):
+            classmap = {
+                'manager': lambda name, values: node.Manager(manager_name=name, host=values.get('host')),
+                'loggers': lambda name, values: node.Logger(logger_name=name, host=values.get('host'))
+            }
+
+            def get_objs(data):
+                node_objects = []
+                for name, values in data.items():
+                    if values.get('type', '').lower() != objtype.lower():
+                        continue
+                    no = classmap[objtype](name, values)
+                    node_objects.append(no)
+                    if limit:
+                        if len(node_objects) >= limit:
+                            break
+                return node_objects
+            return get_objs
+
+        self.add_parser(parser=_get_nodeobjs_from_data('manager', limit=1), attribute_name='manager')
+        self.add_parser(parser=_get_nodeobjs_from_data('loggers'), attribute_name='loggers')
         self.add_parser(
             parser=lambda data: node.Proxies(
                 [
