@@ -109,7 +109,6 @@ class InstallManager(install.BaseInstallManager):
             monitor_log_paths=[]
         )
         filebeat_config.field_processors.originating_agent_tag = agent_tag
-        filebeat_config.kibana_settings.enabled = True
         if not monitor_log_paths:
             environ = utilities.get_environment_file_dict()
             zeek_log_root = f'{environ.get("ZEEK_HOME", "")}/logs/current/'

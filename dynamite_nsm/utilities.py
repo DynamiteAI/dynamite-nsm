@@ -291,7 +291,7 @@ def download_file(url: str, filename: str, stdout: Optional[bool] = False) -> bo
         '\033[0;36m'
         'DOWNLOAD_MANAGER ',
         '\033[0m',
-        '                    | ',
+        '               | ',
         progressbar.FileTransferSpeed(),
         ' ', progressbar.Bar(),
         ' ', '({})'.format(filename),
