@@ -112,7 +112,7 @@ nav:
                     - profile: guides/developers/SDK/services/zeek/profile.md
                 - elasticsearch:
                     - install: guides/developers/SDK/services/elasticsearch/install.md
-                    - config: guides/developers/SDK/services/elasticsearch/config.md
+                    - config: guides/developeers/SDK/services/elasticsearch/config.md
                     - process: guides/developers/SDK/services/elasticsearch/process.md
                     - profile: guides/developers/SDK/services/elasticsearch/profile.md
   - Resources:

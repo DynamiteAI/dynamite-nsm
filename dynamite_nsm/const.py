@@ -5,13 +5,10 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGS_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/1.0/' \
-                      'default_configs.tar.gz'
-MIRRORS_CONFIG_URL = 'https://dynamite-config-staging.s3-us-west-2.amazonaws.com/dynamite-dev/1.0/mirrors.tar.gz'
-EMERGING_THREATS_OPEN = 'http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz'
+DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.0.tar.gz'
+CONFIG_DELTA_CHANGE_SET = None  # We'll support these later
 
-DEFAULT_CONFIGS_ARCHIVE_NAME = 'default_configs.tar.gz'
-MIRRORS_CONFIG_ARCHIVE_NAME = 'mirrors.tar.gz'
+EMERGING_THREATS_OPEN = 'http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz'
 DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
 INSTALL_PATH = "/opt/dynamite"
