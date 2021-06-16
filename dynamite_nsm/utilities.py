@@ -291,34 +291,14 @@ def download_file(url: str, filename: str, stdout: Optional[bool] = False) -> bo
         '\033[0;36m'
         'DOWNLOAD_MANAGER ',
         '\033[0m',
-        '               | ',
+        '                     | ',
         progressbar.FileTransferSpeed(),
         ' ', progressbar.Bar(),
         ' ', '({})'.format(filename),
         ' ', progressbar.ETA(),
 
     ]
-    if response_size_bytes and response_size_bytes != 'NaN':
-        try:
-            pb = progressbar.ProgressBar(widgets=widgets, max_value=int(response_size_bytes))
-        except TypeError:
-            pb = progressbar.ProgressBar(widgets=widgets, maxval=int(response_size_bytes))
-    else:
-        widgets = [
-            '\033[92m',
-            '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
-            '\033[0m',
-            '\033[0;36m'
-            'DOWNLOAD_MANAGER ',
-            '\033[0m',
-            '          | ',
-            ' ', progressbar.BouncingBar(),
-            ' ', '({})'.format(filename),
-        ]
-        try:
-            pb = progressbar.ProgressBar(widgets, max_value=progressbar.UnknownLength)
-        except TypeError:
-            pb = progressbar.ProgressBar(maxval=progressbar.UnknownLength)
+    pb = progressbar.ProgressBar(widgets=widgets, maxval=int(response_size_bytes))
     if stdout:
         try:
             pb.start()
