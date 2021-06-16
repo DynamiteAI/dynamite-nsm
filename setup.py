@@ -4,14 +4,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='dynamite-nsm',
-    version='0.8.0',
+    version='1.0.0',
     packages=find_packages(),
     scripts=['scripts/dynamite'],
     url='http://dynamite.ai',
     long_description_content_type="text/markdown",
     license='GPL 3',
-    author='Jamin Becker',
-    author_email='jamin@dynamite.ai',
+    author='Dynamite Analytics',
+    author_email='admin@dynamite.ai',
     description='DynamiteNSM is an network security monitor with an emphasis on very fast deployment, '
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
