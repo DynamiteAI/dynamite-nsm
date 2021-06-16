@@ -42,3 +42,10 @@ sudo dynamite kibana config -h
 ```markdown
 sudo dynamite agent process -h
 ```
+
+
+## Troubleshooting
+
+| Problem                     | Description                                                                 | Solution                                                                                                                                                                                                                                                                                                                                                                                                        |
+|-----------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Can't Access Web Interfaces | You cannot access `elasticsearch` or `kibana` through their web-interfaces. | Firstly, double check that the services are running: `dynamite monitor process status`. If they are, you may have a host based firewall enabled. By default, CentOS for example, enables `firewalld` service. You may need to modify the ACLs in order allow `9200` and `5601` accessible to outside hosts. Temporarily, you can disable `firewalld` via `systemctl stop firwalld` to verify this is the issue. |

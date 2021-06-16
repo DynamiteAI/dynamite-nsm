@@ -5,8 +5,6 @@ DynamiteNSM has been tested on all the below Linux Distributions. Just because i
 
 |**Linux Distro**                                       | **Agent Services** 	| **Monitor Services** 	
 |---------------------------------------------------------------------------	|-----------	|-------------	
-| ![amazon-logo](../data/img/operating_system_icons/amazon_linux.png) Amazon Linux 2 	| ✅         	| ✅   |
-| ![centos-logo](../data/img/operating_system_icons/centos.png) CentOs 6             	| ✅         	| ✅   |
 | ![centos-logo](../data/img/operating_system_icons/centos.png) CentOs 7             	| ✅         	| ✅   |
 | ![centos-logo](../data/img/operating_system_icons/centos.png) CentOs 8             	| ✅         	| ✅   |
 | ![debian-logo](../data/img/operating_system_icons/debian.png) Debian 9             	| ✅         	| ✅   |
