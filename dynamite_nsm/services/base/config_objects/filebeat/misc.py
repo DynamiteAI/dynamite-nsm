@@ -34,13 +34,15 @@ class InputLogs:
 
 class IndexTemplateSettings:
 
-    def __init__(self, index_name: str, index_pattern: Optional[str] = None):
+    def __init__(self, index_name: str, index_pattern: Optional[str] = None, enabled: Optional[bool] = True,
+                 overwrite: Optional[bool] = True):
         """Settings for index name and pattern for downstream Elasticsearch
         Args:
             index_name: The name of the index where to send logs (E.G dynamite-events-%{+yyyy.MM.dd})
             index_pattern: The corresponding index pattern (E.G dynamite-events-*)
         """
-        self.enabled = False
+        self.enabled = enabled
+        self.overwrite = overwrite
         self.index_name = index_name
         if index_pattern:
             self.index_pattern = index_pattern
@@ -55,7 +57,8 @@ class IndexTemplateSettings:
             obj_name=str(self.__class__),
             index_name=self.index_name,
             index_pattern=self.index_pattern,
-            enabled=self.enabled
+            enabled=self.enabled,
+            overwrite=self.overwrite,
         ))
 
     def get_raw(self) -> Dict:
@@ -65,19 +68,20 @@ class IndexTemplateSettings:
         """
         return dict(
             enabled=self.enabled,
+            overwrite=self.overwrite,
             name=self.index_name,
             pattern=self.index_pattern
         )
 
 
 class KibanaSettings:
-    def __init__(self, kibana_target_str: str, kibana_protocol: str):
+    def __init__(self, kibana_target_str: str, kibana_protocol: str, enabled: Optional[bool] = False):
         """Settings for configuring an upstream Kibana instance
         Args:
             kibana_target_str: The URL to the Kibana instance w/o the protocol prefix (E.G 192.168.0.5:5601)
             kibana_protocol: http or https
         """
-        self.enabled = False
+        self.enabled = enabled
         self.kibana_target_str = kibana_target_str
         self.kibana_protocol = kibana_protocol
 

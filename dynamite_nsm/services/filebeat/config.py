@@ -91,11 +91,14 @@ class ConfigManager(YamlConfigManager):
             originating_agent_tag=agent_tag
         )
         self.index_template_settings = IndexTemplateSettings(
-            index_name=self._index_template_settings_raw.get('name'),
-            index_pattern=self._index_template_settings_raw.get('pattern'),
+            enabled=self._index_template_settings_raw.get('enabled', False),
+            overwrite=self._index_template_settings_raw.get('overwrite', False),
+            index_name=self._index_template_settings_raw.get('name', 'filebeat'),
+            index_pattern=self._index_template_settings_raw.get('pattern', 'filebeat-*'),
         )
 
         self.kibana_settings = KibanaSettings(
+            enabled=self._kibana_settings_raw.get('enabled'),
             kibana_target_str=self._kibana_settings_raw.get('host'),
             kibana_protocol=self._kibana_settings_raw.get('protocol')
         )
