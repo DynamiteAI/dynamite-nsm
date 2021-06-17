@@ -108,12 +108,34 @@ def list_backup_configurations(configuration_backup_directory: str) -> List[Dict
     """
 
     backups = []
+    digits_only_re = re.compile("^([\s\d]+)$")
     try:
         for conf in os.listdir(configuration_backup_directory):
-            backups.append(
-                {'filename': conf, 'filepath': os.path.join(configuration_backup_directory, conf),
-                 'time': float(conf.split('.')[-1])}
-            )
+            timestampstr = conf.split('.')[-1]
+            if not digits_only_re.match(timestampstr):
+                confpath = os.path.join(configuration_backup_directory, conf)
+                if os.path.isdir(confpath):
+                    for subconf in os.listdir(confpath):
+                        timestampstr = subconf.split('.')[-1]
+                        if digits_only_re.match(timestampstr):
+                            backups.append(
+                                {
+                                    'filename': subconf,
+                                    'filepath': os.path.join(confpath, subconf),
+                                    'time': float(timestampstr)
+                                }
+                            )
+                else:
+                    # file is not a dir, and does not match expected format with timestamp. skip it.
+                    continue
+            else:
+                backups.append(
+                    {
+                        'filename': conf,
+                        'filepath': os.path.join(configuration_backup_directory, conf),
+                        'time': float(timestampstr)
+                    }
+                )
     except FileNotFoundError:
         return backups
     backups.sort(key=lambda item: item['time'], reverse=True)

@@ -1,6 +1,6 @@
 import json
 from zlib import adler32
-from typing import List, Optional
+from typing import List, Optional, Union
 
 
 class GenericItem(object):
@@ -27,21 +27,14 @@ class GenericItemGroup:
     def __add__(self, item: GenericItem) -> None:
         self.items.append(item)
 
-    def __getitem__(self, identifier_value_str: str):
-        for item in self.items:
-            if getattr(item, self.identifier_attribute) == identifier_value_str:
-                return item
-        raise KeyError(f'{identifier_value_str} not found for any {self.identifier_attribute}')
-
-    def __iter__(self):
-        return self
-
-    def __next__(self) -> GenericItem:
-        if self._idx >= len(self.items):
-            raise StopIteration
-        current_item = self.items[self._idx]
-        self._idx += 1
-        return current_item
+    def __getitem__(self, indexing_value: Union[str, int]):
+        if type(indexing_value) == int:
+            return self.items[indexing_value]
+        else:
+            for item in self.items:
+                if getattr(item, self.identifier_attribute) == indexing_value:
+                    return item
+            raise KeyError(f'{indexing_value} not found for any {self.identifier_attribute}')
 
     def add(self, item: GenericItem) -> None:
         self.__add__(item)

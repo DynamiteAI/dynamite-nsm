@@ -150,12 +150,14 @@ class SiteLocalConfigManager(GenericConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_dir = '/tmp/dynamite/temp_configs/sites'
         tmp_config = f'{tmp_dir}/local.zeek'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
             out_f.write(raw_text)
-        c = cls(configuration_directory=tmp_dir)
+        # little hack because this class has the /sites/ folder prefix preended to provided config dir
+        cfgdir = f"{tmp_dir}/../"
+        c = cls(configuration_directory=cfgdir)
         if configuration_directory:
             c.configuration_directory = configuration_directory
         return c
@@ -270,12 +272,12 @@ class NodeConfigManager(GenericConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_dir = '/tmp/dynamite/temp_configs/etc'
         tmp_config = f'{tmp_dir}/node.cfg'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
             out_f.write(raw_text)
-        c = cls(install_directory=tmp_dir)
+        c = cls(install_directory=f"{tmp_dir}/../")
         if install_directory:
             c.install_directory = install_directory
         return c
@@ -357,6 +359,11 @@ class LocalNetworksConfigManager(GenericConfigManager):
     def _parse_local_networks(data: Dict) -> local_network.LocalNetworks:
         local_networks = local_network.LocalNetworks()
         for line in data['data']:
+            if any([not line,
+                    line.strip().startswith('#'),
+                    len(line) == 0,
+                    len(line.split(" ")) == 1]):
+                continue
             ip_and_cidr, description = None, None
             ipv4_match = findall(local_network.IPV4_AND_CIDR_PATTERN, line)
             ipv6_match = findall(local_network.IPV6_AND_CIDR_PATTERN, line)
@@ -414,3 +421,22 @@ class LocalNetworksConfigManager(GenericConfigManager):
             out_file_path = f'{self.installation_directory}/etc/networks.cfg'
         self.formatted_data = '\n'.join(self.local_networks.get_raw())
         super(LocalNetworksConfigManager, self).commit(out_file_path, backup_directory)
+
+    @classmethod
+    def from_raw_text(cls, raw_text: str, installation_directory: Optional[str] = None):
+        """Alternative method for creating configuration file from raw text
+        Args:
+            raw_text: The string representing the configuration file
+            install_directory: The installation directory where the config file resides
+        Returns:
+             An instance of ConfigManager
+        """
+        tmp_dir = '/tmp/dynamite/temp_configs/etc'
+        tmp_config = f'{tmp_dir}/networks.cfg'
+        utilities.makedirs(tmp_dir)
+        with open(tmp_config, 'w') as out_f:
+            out_f.write(raw_text)
+        c = cls(installation_directory=f"{tmp_dir}/../")
+        if installation_directory:
+            c.installation_directory = installation_directory
+        return c

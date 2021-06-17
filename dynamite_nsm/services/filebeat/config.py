@@ -163,7 +163,7 @@ class ConfigManager(YamlConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_dir = '/tmp/dynamite/temp_configs'
         tmp_config = f'{tmp_dir}/filebeat.yml'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
