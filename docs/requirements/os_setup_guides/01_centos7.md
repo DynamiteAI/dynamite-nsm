@@ -1,4 +1,4 @@
-# Centos 7 Setup Guide
+# Centos 7 Preparation
 
 ## Setup Tasks
 
