@@ -16,7 +16,7 @@ common dependencies.
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 16.10 | ✅                  | ✅                    |                                                     |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 17.04 | ✅                  | ✅                    |                                                     |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 17.10 | ✅                  | ✅                    |                                                     |
-| ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 18.04 | ✅                  | ✅                    |                                                     |
+| ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 18.04 | ✅                  | ✅                    | [View](/requirements/os_setup_guides/09_ubuntu1804)                                                    |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 18.10 | ✅                  | ✅                    |                                                     |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 19.04 | ✅                  | ✅                    |                                                     |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 19.10 | ✅                  | ✅                    |                                                     |
