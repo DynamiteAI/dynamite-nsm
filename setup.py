@@ -16,6 +16,7 @@ setup(
                 'minimal configuration, and intuitive management.',
     include_package_data=True,
     install_requires=[
+        'bcrypt==3.2.0',
         'coloredlogs==15.0',
         'progressbar==2.5',
         'tabulate==0.8.9',

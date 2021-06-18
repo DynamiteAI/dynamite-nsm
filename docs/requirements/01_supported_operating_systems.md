@@ -1,6 +1,9 @@
 # Supported Operating Systems
 
-DynamiteNSM has been tested on all the below Linux Distributions. Just because it isn't on this list does not mean installation won't be successful, but we recommend you stick with one of the below options.
+DynamiteNSM has been tested on all the below Linux Distributions. Included below are preparation guides for installing 
+common dependencies. 
+
+> ⓘ 
 
 
 | **Linux Distro**                                                           | **Agent Services** | **Monitor Services** | **Preparation Guide**                                      |

@@ -264,6 +264,8 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         for var in vars(interface.config):
             if var in RESERVED_VARIABLE_NAMES:
                 continue
+            elif var.startswith('_'):
+                continue
             elif '_raw' in var:
                 continue
             elif var in [param.name for param in interface.base_params]:

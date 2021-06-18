@@ -4,7 +4,7 @@
 
 DynamiteNSM is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive.
 
-It has two main components: `agent` and `monitor`. Dynamite agents can easily be deployed to monitor a dedicated network segments while the monitor provides
+It has two main components: `agent` and `monitor`. Dynamite agents can easily be deployed to monitor dedicated network segments while the monitor provides
 a powerful query interface and in-depth analytics.
 
 <center>

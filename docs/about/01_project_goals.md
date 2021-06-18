@@ -1,45 +1,39 @@
 # Project Goals
 
 Passive network monitoring is an approach to network monitoring where traffic is *sniffed* via
-strategically placed sensors on critical junctions of your network. DynamiteNSM aims to make the process of setting up
-the sensor and monitoring infrastructure needed to collect and make sense of this data as seamless as possible.
+strategically placed sensors on critical junctions of a network. DynamiteNSM aims to make the process of setting up
+and managing this infrastructure as seamless as possible.
 
-DynamiteNSM was built around several design goals to make it an attractive alternative to heavier weight NSMs.
+## Simple
+Keep interfaces simple and intuitive. Users should be able to get to a working state with minimal documentation.
 
-## Lightweight and Extensible
+## Lightweight 
 
-Give users the choice as to which services they want to download and install without the need of installing a dedicated operating system.
+Give users the option to install and configure only the components they need 
+without requiring them to download a huge image.
 
-Services should be self-contained, provide multiple integration paths, and be easy to extend.
+## Extensible
 
-## Flexible
+Provide intuitive programming interfaces and utilities where ever possible, giving users multiple paths of integration and extension.
 
-Give users the ability to customize DynamiteNSM to fit a variety of operational, detection, and threat-hunting use-cases.
+## Adaptable
 
-Users should be able to extend functionality of DynamiteNSM through packages that encapsulate dashboards, visualizations and internal configurations.
+Provide variety of ways users can interact with their data, ranging from tracking operational network metrics to threat-hunting.
+
 
 ## Secure
 
-Wherever possible services should be installed with security in mind. 
+Install components pre-configured with security in mind. Wherever possible encrypt data in transit and at rest.
 
-By default, all services must use encrypted channels of communication and require authentication. 
+## Optimized
 
-## Intelligent Defaults
-Where possible provide intelligent defaults. Users should not need to understand the intricacies of DynamiteNSM to start running with 
-reasonable configurations. 
+Install components to best utilize system resources. When needed, make changes to the underlying system to improve tasks like
+packet acquisition and memory management.
 
-Intelligently configure installed services to best utilize system resources where possible; provide overrides for these defaults.
 
-## Minimal Knowledge Deployment
-Provide rich contextual help menus and intuitive interfaces wherever possible. Keep interfaces simple.
+## Centralized
 
-Users should be able to get to a working state with minimal to no documentation.
-
-## Remote Management
-
-Provide users with the tools needed to remotely manage DynamiteNSM nodes.
-
-Users should be able to control nodes and perform operations against multiple nodes at once. Users should be able 
+Provide users with the tools needed to remotely manage their deployments. Users should be able to perform remote operations against multiple instances in parallel. Users should be able 
 to copy the configuration state of one node to another.
 
    
