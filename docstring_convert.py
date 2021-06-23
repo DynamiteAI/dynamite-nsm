@@ -1,12 +1,10 @@
 text = '''
-        """ 
-        Install Logstash
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/logstash/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
-        :param download_logstash_archive: If True, download the Logstash archive from a mirror
+        """
+        Manage Kibana Process
+
         :param stdout: Print output to console
         :param verbose: Include detailed debug messages
+        :param pretty_print_status: If enabled, status will be printed in a tabulated style
         """
 '''
 params = []

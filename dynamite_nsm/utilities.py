@@ -32,38 +32,40 @@ import psutil
 from dynamite_nsm import const
 from dynamite_nsm import exceptions
 
+
 class PrintDecorations:
 
-   @staticmethod
-   def _get_colormap():
-    pddict = PrintDecorations.__dict__
-    colormap = {}
-    for key, val in pddict.items():
-        if not key.startswith("_COLOR"):
-            continue
-        colormap[key] = val
-    return colormap
-            
-   @staticmethod
-   def colorize(strinput, _color):
-       colormap = PrintDecorations._get_colormap()
-       avail_colors = [c.replace("_COLOR_", "").lower() for c in colormap.keys()]
-       if _color not in avail_colors:
-           raise ValueError(f"Not a valid color, must be one of: {avail_colors}")
-       color = colormap[f"_COLOR_{_color.upper()}"]
-       print(color)
-       return f"{color}{strinput}{PrintDecorations._COLOR_END}"
+    @staticmethod
+    def _get_colormap():
+        pddict = PrintDecorations.__dict__
+        colormap = {}
+        for key, val in pddict.items():
+            if not key.startswith("_COLOR"):
+                continue
+            colormap[key] = val
+        return colormap
 
-   _COLOR_CYAN = '\033[96m'
-   _COLOR_DARKCYAN = '\033[36m'
-   _COLOR_BLUE = '\033[94m'
-   _COLOR_GREEN = '\033[92m'
-   _COLOR_YELLOW = '\033[93m'
-   _COLOR_RED = '\033[91m'
-   _COLOR_BOLD = '\033[1m'
-   _COLOR_UNDERLINE = '\033[4m'
-   _COLOR_END = '\033[0m'
+    @staticmethod
+    def colorize(strinput, _color):
+        colormap = PrintDecorations._get_colormap()
+        avail_colors = [c.replace("_COLOR_", "").lower() for c in colormap.keys()]
+        if _color not in avail_colors:
+            raise ValueError(f"Not a valid color, must be one of: {avail_colors}")
+        color = colormap[f"_COLOR_{_color.upper()}"]
+        print(color)
+        return f"{PrintDecorations._COLOR_END}{color}{strinput}{PrintDecorations._COLOR_END}"
 
+    _COLOR_CYAN = '\033[96m'
+    _COLOR_DARKCYAN = '\033[36m'
+    _COLOR_BLUE = '\033[94m'
+    _COLOR_GREEN = '\033[92m'
+    _COLOR_YELLOW = '\033[93m'
+    _COLOR_RED = '\033[91m'
+    _COLOR_BOLD = '\033[1m'
+    _COLOR_UNDERLINE = '\033[4m'
+    _COLOR_END = '\033[0m'
+    # convenience/code legibility:
+    _COLOR_RESET = _COLOR_END
 
 
 
@@ -711,15 +713,20 @@ def print_coffee_art() -> None:
         pass
 
 
-def prompt_input(message) -> str:
+def prompt_input(message: str, valid_responses: Optional[List] = None) -> str:
     """Taking in input
     Args:
         message: The message appearing next to the input prompt.
+        valid_responses: A list of expected responses
     Returns:
          The inputted text
     """
 
     res = input(message)
+    if valid_responses:
+        while str(res).strip() not in [str(r) for r in valid_responses]:
+            print(f'Please enter a valid value: {valid_responses}')
+            res = input(message)
     return res
 
 

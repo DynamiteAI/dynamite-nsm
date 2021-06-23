@@ -9,10 +9,13 @@ from dynamite_nsm.services.base.config import JavaOptionsConfigManager, YamlConf
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Manage an Elasticsearch configuration
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/elasticsearch/)
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         extract_tokens = {
             'node_name': ('node.name',),

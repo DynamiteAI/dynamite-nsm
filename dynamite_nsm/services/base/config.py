@@ -19,7 +19,6 @@ class NoAliasDumper(SafeDumper):
 
 
 class BackupConfigManager:
-
     """
     Manage backup and restoration process across various service configs
     """
@@ -114,6 +113,7 @@ class JavaOptionsConfigManager(GenericConfigManager):
     """
     A special base configuration manager for jvm.options configurations
     """
+
     @staticmethod
     def _parse_jvm_options(data: Dict):
         initial_memory = None
@@ -188,6 +188,7 @@ class YamlConfigManager:
     """
     A configuration manager for working with any YAML formatted configuration file
     """
+
     def __init__(self, config_data: Dict, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
                  **extract_tokens: Dict):
         """Work with YAML based configuration files
@@ -248,7 +249,7 @@ class YamlConfigManager:
             set_instance_var_from_token(variable_name=var_name, data=self.config_data)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
-                     top_text: Optional[str] = None) -> None:
+               top_text: Optional[str] = None) -> None:
         """Write out an updated configuration file, and optionally backup the old one.
         Args:
             out_file_path: The path to the output file; if none given overwrites existing

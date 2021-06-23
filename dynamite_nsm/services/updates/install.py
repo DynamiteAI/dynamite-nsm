@@ -63,6 +63,9 @@ class InstallManager(install.BaseInstallManager):
                 os.path.join(const.INSTALL_CACHE, 'mirrors.tar.gz'), e))
 
     def setup(self):
+        """
+        Download updates and setup them up.
+        """
         self.logger.info(
             'Attempting to download the latest mirrors and default configurations for installable components.')
         self.update_mirrors()

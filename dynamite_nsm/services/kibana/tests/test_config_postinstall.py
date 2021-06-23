@@ -1,13 +1,17 @@
-# These tests are for post-installation checks, they access data from the current instalation and not from a test environment.
+"""
+These tests are for post-installation checks, they access data from the current installation and not from a
+test environment.
+"""
 
 import os
-from dynamite_nsm.tests.fixtures import dynamite_environment
+
 
 def test_kibana_home_set_and_exists(dynamite_environment):
     kibana_home = dynamite_environment.get('KIBANA_HOME')
     assert kibana_home is not None
     assert os.path.exists(kibana_home)
     assert os.path.isdir(kibana_home)
+
 
 def test_kibana_config_set_and_exists(dynamite_environment):
     kibana_conf = dynamite_environment.get('KIBANA_PATH_CONF')

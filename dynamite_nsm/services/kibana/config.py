@@ -9,10 +9,13 @@ from dynamite_nsm.services.base.config import YamlConfigManager
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Manage Kibana Configuration
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         extract_tokens = {
             'host': ('server.host',),
@@ -35,11 +38,13 @@ class ConfigManager(YamlConfigManager):
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:
-        """
-        Write out an updated configuration file, and optionally backup the old one.
-
-        :param out_file_path: The path to the output file; if none given overwrites existing
-        :param backup_directory: The path to the backup directory
+        """Write out an updated configuration file, and optionally backup the old one.
+        Args:
+            out_file_path: The path to the output file; if none given overwrites existing
+            backup_directory: The path to the backup directory
+            top_text: The text to be appended at the top of the config file (typically used for YAML version header)
+        Returns:
+            None
         """
         if not out_file_path:
             out_file_path = self.kibana_config_path

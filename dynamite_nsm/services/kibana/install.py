@@ -114,8 +114,8 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/kibana.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/kibana.service')
 
-        self.logger.info('Importing Kibana saved objects.')
-        post_install_saved_objects(f'{const.DEFAULT_CONFIGS}/kibana/objects', stdout=self.stdout, verbose=self.verbose)
+        self.logger.info('Importing Kibana saved packages.')
+        post_install_saved_objects(f'{const.DEFAULT_CONFIGS}/kibana/packages', stdout=self.stdout, verbose=self.verbose)
 
 
 class UninstallManager(install.BaseUninstallManager):
