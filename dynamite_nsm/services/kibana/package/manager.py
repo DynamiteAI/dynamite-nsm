@@ -127,7 +127,7 @@ class SavedObjectsManager:
             self.logger.error("Could not find any packages to uninstall.")
             return
         else:
-            if len(installed_packages) > 1 and package_name:
+            if len(installed_packages) > 1 or package_name:
                 print("Select a package to uninstall: ")
 
                 for package in installed_packages:
