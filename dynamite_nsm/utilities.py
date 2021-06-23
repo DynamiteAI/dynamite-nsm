@@ -69,7 +69,6 @@ class PrintDecorations:
     _COLOR_RESET = _COLOR_END
 
 
-
 def backup_configuration_file(source_file: str, configuration_backup_directory: str,
                               destination_file_prefix: str) -> None:
     """Backup a configuration file
@@ -299,13 +298,14 @@ def download_file(url: str, filename: str, stdout: Optional[bool] = False) -> bo
     Returns: True, if successfully downloaded.
 
     """
+    CHUNK = 16 * 1024
+
     makedirs(const.INSTALL_CACHE, exist_ok=True)
     response = urlopen(url)
     try:
         response_size_bytes = int(response.headers['Content-Length'])
     except (KeyError, TypeError, ValueError):
         response_size_bytes = None
-    CHUNK = 16 * 1024
     widgets = [
         '\033[92m',
         '{} '.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S')),
@@ -366,8 +366,6 @@ def extract_archive(archive_path: str, destination_path: str) -> None:
 
 def get_optimal_cpu_interface_config(interface_names: List[str], available_cpus: Union[Tuple, List[Tuple]],
                                      custom_ratio: Optional[int] = None):
-    cpu_network_interface_config = None
-
     def grouper(n, iterable):
         args = [iter(iterable)] * n
         return zip_longest(*args)
@@ -406,7 +404,7 @@ def get_optimal_cpu_interface_config(interface_names: List[str], available_cpus:
             cpu_group = [c for c in cpu_group if c]
             temp_cpu_groups.append(tuple(cpu_group))
         cpu_groups = temp_cpu_groups
-        cpu_network_interface_config = create_thread_groups(interface_names, cpu_groups)
+        cpu_network_interface_config = create_thread_groups(interface_names, tuple(cpu_groups))
     return cpu_network_interface_config
 
 
@@ -604,7 +602,7 @@ def get_network_addresses() -> Tuple:
     internal_address, external_address = None, None
     try:
         site = str(urlopen("http://checkip.dyndns.org/", timeout=2).read())
-        grab = re.findall('([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)', site)
+        grab = re.findall(r'([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)', site)
         external_address = grab[0]
     except (URLError, IndexError, HTTPError):
         pass

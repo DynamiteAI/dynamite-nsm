@@ -1,5 +1,4 @@
-import time
-from typing import Dict, Optional, Union
+from typing import Optional
 
 from dynamite_nsm import exceptions
 from dynamite_nsm import utilities
@@ -8,22 +7,18 @@ from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
 
 
 class CallElasticProcessError(exceptions.CallProcessError):
-    """
-    Thrown when elasticsearch process encounters an error state
-    """
-
     def __init__(self, message):
-        """
-        :param message: A more specific error message
+        """Thrown when elasticsearch process encounters an error state
+        Args:
+            message: A more specific error message
+        Returns:
+            None
         """
         msg = "An error occurred while calling elasticsearch process: {}".format(message)
         super(CallElasticProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):
-    """
-    ElasticSearch Process Manager
-    """
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):

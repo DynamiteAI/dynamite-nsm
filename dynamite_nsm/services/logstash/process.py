@@ -7,29 +7,27 @@ from dynamite_nsm.services.logstash import profile as logstash_profile
 
 
 class CallLogstashProcessError(exceptions.CallProcessError):
-    """
-    Thrown when logstash process encounters an error state
-    """
     def __init__(self, message):
-        """
-        :param message: A more specific error message
+        """Thrown when logstash process encounters an error state
+        Args:
+            message: A more specific error message
+        Returns:
+            None
         """
         msg = "An error occurred while calling logstash process: {}".format(message)
         super(CallLogstashProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):
-    """
-    LogStash Process Manager
-    """
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
-        """
-        Manage Logstash Process
-
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
-        :param pretty_print_status: If enabled, status will be printed in a tabulated style
+        """Manage Logstash Process
+        Args:
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+            pretty_print_status: If enabled, status will be printed in a tabulated style
+        Returns:
+            None
         """
         environ = utilities.get_environment_file_dict()
         process.BaseProcessManager.__init__(self, 'logstash.service', 'logstash.process', log_path=environ.get('LS_LOGS'),

@@ -1,9 +1,8 @@
 text = '''
-        """
-        Write out an updated configuration file, and optionally backup the old one.
-
-        :param out_file_path: The path to the output file; if none given overwrites existing
-        :param backup_directory: The path to the backup directory        
+        """Manage Kibana Configuration
+        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
+        :param stdout: Print output to console
+        :param verbose: Include detailed debug messages
         """
 '''
 params = []

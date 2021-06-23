@@ -7,11 +7,18 @@ class RuleUpdateManager(BaseInstallManager):
 
     def __init__(self, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param stdout: Print the output to console
-        :param verbose: Include detailed debug messages
+        """Update Suricata Rule-sets
+        Args:
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         super().__init__('suricata.update', stdout=stdout, verbose=verbose)
 
     def update(self):
+        """Start the update process
+        Returns:
+            None
+        """
         update_suricata_rules(stdout=self.stdout, verbose=self.verbose)

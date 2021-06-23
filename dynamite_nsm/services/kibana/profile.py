@@ -10,6 +10,9 @@ from dynamite_nsm.services.kibana import process as kibana_process
 
 class ProcessProfiler(profile.BaseProcessProfiler):
     def __init__(self):
+        """
+        Get information about the Kibana service
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.kibana_home = self.env_dict.get('KIBANA_HOME')
@@ -23,6 +26,10 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              )
 
     def is_running(self):
+        """Check if Kibana is running
+        Returns:
+            True, if running
+        """
         if self.kibana_home:
             try:
                 return kibana_process.ProcessManager().status()['running']
@@ -31,6 +38,10 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         return False
 
     def is_listening(self):
+        """Check if Kibana is listening
+        Returns:
+            True, if listening
+        """
         if not self.kibana_config:
             return False
         if not os.path.exists(self.kibana_config):

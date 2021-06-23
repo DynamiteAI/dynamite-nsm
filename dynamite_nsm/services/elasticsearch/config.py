@@ -4,7 +4,7 @@ import bcrypt
 from yaml import Loader
 from yaml import load
 
-from dynamite_nsm.services.elasticsearch.tasks import configure_cluster
+from dynamite_nsm.services.elasticsearch.tasks import setup_security
 from dynamite_nsm.services.base.config import JavaOptionsConfigManager, YamlConfigManager
 
 
@@ -149,8 +149,8 @@ class ChangePasswordManager(YamlConfigManager):
         super(ChangePasswordManager, self).commit(out_file_path, backup_directory)
         main_config = ConfigManager(self.configuration_directory)
         self.logger.warning('Cycling Elasticsearch service in order for changes to take effect.')
-        configure_cluster.InstallElasticsearchCertificates(network_host=main_config.network_host,
-                                                           terminate_elasticsearch=False).invoke()
+        setup_security.InstallElasticsearchCertificates(network_host=main_config.network_host,
+                                                        terminate_elasticsearch=False).invoke()
 
 
 class JavaHeapOptionsConfigManager(JavaOptionsConfigManager):

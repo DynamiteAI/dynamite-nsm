@@ -65,6 +65,9 @@ nav:
       - Filebeat: services/09_filebeat.md
   - Guides:
       - Quick Start: guides/01_quick_start.md
+      - BaseViews Kibana Package:
+          - Overview: guides/base_views/01_overview.md
+          - Pivot Fields: guides/base_views/02_pivot_fields.md
       - Working with Kibana Package Manager: guides/02_using_kibana_package.md
       - Software Developer Guides:
           - Overview: guides/developers/01_overview.md

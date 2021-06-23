@@ -174,6 +174,9 @@ class InstallManager(install.BaseInstallManager):
                 )
             )
 
+        suricata_config.threading = suricata_config.get_optimal_suricata_threading_config(
+            tuple([i for i in range(0, utilities.get_cpu_core_count() - 1)]))
+
         suricata_config.commit()
         self.logger.info('Applying Suricata configuration.')
         self.logger.debug(suricata_config.af_packet_interfaces)

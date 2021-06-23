@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Optional
 
@@ -14,11 +13,14 @@ class InstallManager(install.BaseInstallManager):
 
     def __init__(self, install_directory: str, download_oinkmaster_archive: Optional[bool] = True,
                  stdout: Optional[bool] = True, verbose: Optional[bool] = False):
-        """
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/oinkmaster/)
-        :param download_oinkmaster_archive: If True, download the Oinkmaster archive from a mirror
-        :param stdout: Print the output to console
-        :param verbose: Include output from system utilities
+        """Initialize Rule Installer
+        Args:
+            install_directory: Path to the install directory (E.G /opt/dynamite/oinkmaster/)
+            download_oinkmaster_archive: If True, download the Oinkmaster archive from a mirror
+            stdout: Print the output to console
+            verbose: Include output from system utilities
+        Returns:
+            None
         """
 
         self.install_directory = install_directory
@@ -36,6 +38,10 @@ class InstallManager(install.BaseInstallManager):
             _, _, self.local_mirror_root = self.get_mirror_info(const.OINKMASTER_MIRRORS)
 
     def create_update_oinkmaster_environment_variables(self) -> None:
+        """Creates the required Oinkmaster environmental variable
+        Returns:
+            None
+        """
         self.create_update_env_variable('OINKMASTER_HOME', self.install_directory)
 
     def setup(self):

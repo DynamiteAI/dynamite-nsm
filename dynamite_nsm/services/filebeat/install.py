@@ -54,14 +54,16 @@ class InstallManager(install.BaseInstallManager):
         for inst in install_paths:
             self.copy_file_or_directory_to_destination(f'{filebeat_tarball_extracted}/{inst}',
                                                        self.install_directory)
+
     @staticmethod
     def validate_targets(targets, stdout=True, verbose=False):
-        """
-        Ensures that targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
-        :param targets: A list of IP/host port pair
-        :param stdout: Print the output to console
-        :param verbose: Include detailed debug messages
-        :return: True if valid
+        """Ensures that targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
+        Args:
+            targets: A list of IP/host port pair
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
+        Returns:
+             True if valid
         """
         log_level = logging.INFO
         if verbose:

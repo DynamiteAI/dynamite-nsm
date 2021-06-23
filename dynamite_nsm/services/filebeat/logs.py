@@ -17,15 +17,12 @@ from dynamite_nsm.services.base import logs
 
 
 def parse_filebeat_datetime(t: str) -> datetime:
-    """
-    Parse a common filebeat timestamp string
-
+    """Parse a common filebeat timestamp string
     Args:
         t: A '%Y-%m-%dT%H:%M:%S.%f' formatted string
 
     Returns:
         A datetime object
-
     """
     ret = datetime.strptime(t[0:22], '%Y-%m-%dT%H:%M:%S.%f')
     if t[23] == '+':
@@ -36,13 +33,13 @@ def parse_filebeat_datetime(t: str) -> datetime:
 
 
 class InvalidFilebeatStatusLogEntry(Exception):
-    """
-    Thrown when a Filebeat log entry is improperly formatted
-    """
 
     def __init__(self, message):
-        """
-        :param message: A more specific error message
+        """Thrown when a Filebeat log entry is improperly formatted
+        Args:
+            message: A more specific error message
+        Returns:
+            None
         """
         msg = "FileBeat log entry is invalid: {}".format(message)
         super(InvalidFilebeatStatusLogEntry, self).__init__(msg)
@@ -54,7 +51,7 @@ class MetricsEntry:
     """
 
     def __init__(self, monitoring_payload: Dict, time: datetime):
-        """A metrics entry
+        """Initialize metrics entry object
         Args:
             monitoring_payload: The serialized JSON for "monitoring" status types
             time: A datetime object representing when the metrics entry was written

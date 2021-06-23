@@ -393,10 +393,10 @@ class SavedObjectsManager:
 
         if not path:
             self.logger.error('You must enter a path to the package you wish to install.')
-            return
+            return False
         elif not os.path.exists(path):
             self.logger.error(f'This path does not exist: {path}')
-            return
+            return False
         self.logger.info('Checking connection to Kibana.')
         self.check_kibana_connection(self.username, self.password)
         is_folder = os.path.isdir(path)
@@ -447,7 +447,8 @@ class SavedObjectsManager:
 
     def list(self, pretty: Optional[bool] = True) -> Optional[Union[str, List]]:
         """List packages currently installed for this instance
-            pretty: If true, packages will be enumerated in a tabulated form
+            Args:
+                pretty: If true, packages will be enumerated in a tabulated form
         """
         try:
             packages = package_objects.Package.search_installed_packages(kibana_target=self.kibana_url,

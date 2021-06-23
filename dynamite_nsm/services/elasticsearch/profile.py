@@ -10,6 +10,9 @@ from dynamite_nsm.services.elasticsearch import process as elastic_process
 
 class ProcessProfiler(profile.BaseProcessProfiler):
     def __init__(self):
+        """
+        Get information about the Elasticsearch service
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.elasticsearch_home = self.env_dict.get('ES_HOME')
@@ -26,7 +29,6 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         """Check if Elasticsearch is running
         Returns:
             True, if running
-
         """
         if self.elasticsearch_home:
             try:

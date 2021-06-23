@@ -2,11 +2,9 @@ import os
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
-from dynamite_nsm.services.elasticsearch.tasks import install_events_to_hosts, configure_cluster
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.elasticsearch import config
-from dynamite_nsm.services.elasticsearch.post_installation_tasks import post_install_bootstrap_tls_certificates, \
-    post_install_bootstrap_cluster_settings
+from dynamite_nsm.services.elasticsearch.tasks import install_events_to_hosts, setup_security, configure_cluster
 
 
 class InstallManager(install.BaseInstallManager):
@@ -165,29 +163,25 @@ class InstallManager(install.BaseInstallManager):
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
 
         self.logger.info('Generating SSL Certificates and Keys.')
-        ssl_gen_task_results = configure_cluster.GenerateElasticsearchSSLCertificates(subj=tls_cert_subject).invoke()
+        ssl_gen_task_results = setup_security.GenerateElasticsearchSSLCertificates(subj=tls_cert_subject).invoke()
 
         for res in ssl_gen_task_results:
             cmd, out, err = res
-            self.logger.debug(f'{" ".join(cmd)} -> {out}')
+            self.logger.debug(f'{" ".join(cmd)} -> out: {out} err: {err}')
 
         self.logger.info('Installing SSL Certificates and Keys')
-        install_ssl_task_results = configure_cluster.InstallElasticsearchCertificates(
+        install_ssl_task_results = setup_security.InstallElasticsearchCertificates(
             network_host=network_host).invoke()
-        
+
         for res in install_ssl_task_results:
             cmd, out, err = res
             self.logger.debug(f'{" ".join(cmd)} -> out: {out} err: {err}')
 
-        """
-        # Bootstrap Transport Layer Security
-        self.logger.info('Beginning TLS bootstrapping process.')
-        post_install_bootstrap_tls_certificates(self.configuration_directory, self.install_directory,
-                                                subj=tls_cert_subject, stdout=self.stdout,
-                                                verbose=self.verbose)
-        self.logger.info('Begin cluster settings bootstrapping process.')
-        post_install_bootstrap_cluster_settings(stdout=self.stdout, verbose=self.verbose)
-        """
+        self.logger.info('Setting up persistent cluster settings.')
+        configure_cluster_task_results = configure_cluster.UpdateClusterSettings(network_host=network_host,
+                                                                                 http_port=port).invoke()
+        rcode, msg = configure_cluster_task_results
+        self.logger.debug(f'rcode: {rcode}-> msg: {msg}')
 
         """
         # We'll revisit this in another release
@@ -212,7 +206,6 @@ class UninstallManager(install.BaseUninstallManager):
         Returns:
             None
         """
-        from dynamite_nsm.services.elasticsearch.config import ConfigManager
         from dynamite_nsm.services.elasticsearch.process import ProcessManager
 
         env_vars = utilities.get_environment_file_dict()

@@ -19,7 +19,6 @@ def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logge
 
     Returns: A logger instance
     """
-
     coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'green'}, 'hostname': {'color': 'magenta'},
                                         'levelname': {'bold': True, 'color': 'black'},
                                         'name': {'color': 'cyan', 'bold': True},
