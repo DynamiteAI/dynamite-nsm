@@ -38,6 +38,10 @@ class ProcessManager:
         self.logger = get_logger('agent.process', level=log_level, stdout=stdout)
 
     def start(self) -> bool:
+        """Start agent processes
+        Returns:
+            True, if successful
+        """
         filebeat_res, suricata_res, zeek_res = True, True, True
         if not filebeat_profile.ProcessProfiler().is_installed():
             self.logger.error('You must install Filebeat to run this command.')
@@ -50,6 +54,10 @@ class ProcessManager:
         return filebeat_res and zeek_res and suricata_res
 
     def stop(self) -> bool:
+        """Stop agent processes
+        Returns:
+            True, if successful
+        """
         filebeat_res, suricata_res, zeek_res = True, True, True
         if not filebeat_profile.ProcessProfiler().is_installed():
             self.logger.error('You must install Filebeat to run this command.')
@@ -62,6 +70,10 @@ class ProcessManager:
         return filebeat_res and zeek_res and suricata_res
 
     def status(self) -> Optional[Union[Dict, str]]:
+        """Get the status of a processes
+        Returns:
+            A dictionary containing process status or a tabulated string if `pretty_print` is True.
+        """
         if not filebeat_profile.ProcessProfiler().is_installed():
             self.logger.error('You must install filebeat to run this command.')
             return None

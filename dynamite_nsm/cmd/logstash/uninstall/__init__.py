@@ -6,5 +6,5 @@ interface = \
                                   interface_name='Logstash Uninstall Manager',
                                   interface_description='Uninstall Logstash on this machine.',
                                   entry_method_name='uninstall',
-                                  defaults=dict(purge_config=False, stdout=True)
+                                  defaults=dict(purge_config=True, stdout=True)
                                   )

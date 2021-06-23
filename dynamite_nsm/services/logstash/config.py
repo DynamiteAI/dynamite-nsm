@@ -9,10 +9,13 @@ from dynamite_nsm.services.base.config import JavaOptionsConfigManager, YamlConf
 class ConfigManager(YamlConfigManager):
 
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Manage Logstash Configuration
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         extract_tokens = {
             'node_name': ('node.name',),
@@ -42,9 +45,6 @@ class ConfigManager(YamlConfigManager):
 
         :param out_file_path: The path to the output file; if none given overwrites existing
         :param backup_directory: The path to the backup directory
-
-        Args:
-            top_text:
         """
         if not out_file_path:
             out_file_path = self.logstash_config_path

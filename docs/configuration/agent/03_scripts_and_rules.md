@@ -1,5 +1,9 @@
 # Scripts and Rules
 
+> ⚠️ Changes made within these interfaces require that Zeek and/or Suricata be restarted. Typically, the easiest way to 
+> accomplish this is via the command:
+> `sudo dynamite agent process restart`
+
 Both Zeek and Suricata provide unique methods for 
 extracting information from raw network traffic and building detections.
 
@@ -14,10 +18,6 @@ extremely fast pattern matching, and is excellent for identifying known maliciou
 
 The `dynamite` commandline utility provides a relatively simple interface for 
 enabling disabling scripts and rules. 
-
-> ⓘ Changes made within these interfaces require that Zeek and/or Suricata be restarted. Typically, the easiest way to 
-> accomplish this is via the command:
-> `sudo dynamite agent process restart`
 
 ### Zeek
 

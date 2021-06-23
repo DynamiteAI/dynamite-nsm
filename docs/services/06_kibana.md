@@ -7,7 +7,8 @@ useful for exploring your network from a variety of different perspectives.
 Additional packages can be installed via the `kibana package` utility.
 
 ```bash
-dynamite kibana -h
+$ sudo dynamite kibana -h
+
 usage: dynamite [-h] {install,uninstall,process,config,package} ...
 
 Kibana @ 192.168.194.143

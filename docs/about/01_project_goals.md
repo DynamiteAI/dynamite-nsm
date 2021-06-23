@@ -1,19 +1,39 @@
 # Project Goals
 
-Passive network monitoring is an approach to network monitoring where traffic is "sniffed" via
-strategically placed sensors on critical junctions of your network. DynamiteNSM aims to make the process of setting up
-the sensor and monitoring infrastructure needed to collect and make sense of this data as seamless as possible.
+Passive network monitoring is an approach to network monitoring where traffic is *sniffed* via
+strategically placed sensors on critical junctions of a network. DynamiteNSM aims to make the process of setting up
+and managing this infrastructure as seamless as possible.
 
-DynamiteNSM was built around several design goals to make it an attractive alternative to heavier weight NSMs.
+## Simple
+Keep interfaces simple and intuitive. Users should be able to get to a working state with minimal documentation.
 
-1. **Minimal-knowledge Deployment**: A user should be able to get to a working state with minimal or 
-   no documentation.
-2. **Intelligent Defaults**: A user is not required to understand the intricacies of our stack to start running with 
-   reasonable configurations.
-3. **Unified Utility for Management**: All the tools for installing, managing, and monitoring Dynamite services should 
-   be accessible in a single utility. 
-4. **SDKs for Everything**: Every installable service in the DynamiteNSM can be controlled through a set of Python 
-   libraries. Users should always have the option of building their own interfaces to manage these services.
-5. **Extremely Customizable**: A user should be able to customize DynamiteNSM to fit a variety of operational, 
-   threat-hunting, and detection use-cases.
+## Lightweight 
+
+Give users the option to install and configure only the components they need 
+without requiring them to download a huge image.
+
+## Extensible
+
+Provide intuitive programming interfaces and utilities where ever possible, giving users multiple paths of integration and extension.
+
+## Adaptable
+
+Provide variety of ways users can interact with their data, ranging from tracking operational network metrics to threat-hunting.
+
+
+## Secure
+
+Install components pre-configured with security in mind. Wherever possible encrypt data in transit and at rest.
+
+## Optimized
+
+Install components to best utilize system resources. When needed, make changes to the underlying system to improve tasks like
+packet acquisition and memory management.
+
+
+## Centralized
+
+Provide users with the tools needed to remotely manage their deployments. Users should be able to perform remote operations against multiple instances in parallel. Users should be able 
+to copy the configuration state of one node to another.
+
    

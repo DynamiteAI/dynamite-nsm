@@ -6,5 +6,5 @@ interface = \
                                   interface_name='Filebeat Uninstall Manager',
                                   interface_description='Uninstall Filebeat on this machine.',
                                   entry_method_name='uninstall',
-                                  defaults=dict(purge_config=False, stdout=True)
+                                  defaults=dict(purge_config=True, stdout=True)
                                   )

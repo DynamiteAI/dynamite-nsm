@@ -6,5 +6,5 @@ interface = \
                                   interface_name='Suricata Uninstall Manager',
                                   interface_description='Uninstall Suricata this machine.',
                                   entry_method_name='uninstall',
-                                  defaults=dict(purge_config=False, stdout=True)
+                                  defaults=dict(purge_config=True, stdout=True)
                                   )

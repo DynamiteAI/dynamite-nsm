@@ -7,10 +7,10 @@ from dynamite_nsm.services.zeek import process as zeek_process
 
 
 class ProcessProfiler(profile.BaseProcessProfiler):
-    """
-    Get information about Zeek processes
-    """
     def __init__(self):
+        """
+        Get information about the Zeek service
+        """
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
         self.zeek_scripts = self.env_dict.get('ZEEK_SCRIPTS')

@@ -7,10 +7,11 @@ from dynamite_nsm.services.filebeat import process as filebeat_process
 
 
 class ProcessProfiler(profile.BaseProcessProfiler):
-    """
-    Get information about Filebeat processes
-    """
+
     def __init__(self):
+        """
+        Get information about the Filebeat service
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.filebeat_home = self.env_dict.get('FILEBEAT_HOME')

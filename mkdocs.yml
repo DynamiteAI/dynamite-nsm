@@ -1,10 +1,12 @@
 site_name: DynamiteNSM
-theme: material
+theme:
+  name: material
+  logo: data/img/logo_inverted.png
 plugins:
 - search
 - mkdocstrings
 nav:
-  - Introduction: 01_index.md
+  - Introduction: index.md
   - About:
       - Project Goals: about/01_project_goals.md
       - Architechture: about/02_architecture.md
@@ -28,23 +30,44 @@ nav:
       - Monitor Specifications: requirements/03_monitor_specifications.md
       - SPAN vs TAP: requirements/04_span_vs_tap.md
   - Installation:
-    - Overview: installation/01_overview.md
+    - Installation Overview: installation/01_overview.md
     - Agent:
-        - Preparing Inspection Interfaces: installation/agent/01_configure_inspection_interface.md
+        - Overview: installation/agent/01_overview.md
+        - Preparing Inspection Interfaces: installation/agent/02_configure_inspection_interface.md
+        - Install on the Same Instance: installation/agent/03_install_same_instance.md
+        - Install across Separate Instances: installation/agent/04_install_separate_instances.md
     - Monitor:
-        - Setup Management Interface: installation/monitor/01_network_interface_configuration.md
+        - Overview: installation/monitor/01_overview.md
+        - Setup Management Interface: installation/monitor/02_network_interface_configuration.md
+        - Install on the Same Instance: installation/monitor/03_install_same_instance.md
+        - Install across Separate Instances: installation/monitor/04_install_separate_instances.md
   - Configuration:
+      - Configuration Overview: configuration/01_overview.md
       - Agent:
           - Connectors: configuration/agent/01_connectors.md
           - Event Normalization: configuration/agent/02_event_normalization.md
           - Scripts and Rules: configuration/agent/03_scripts_and_rules.md
+          - Inspection Interfaces: configuration/agent/04_inspection_interfaces.md
+      - Monitor:
+          - Elasticsearch: configuration/monitor/01_elasticsearch.md
+          - Kibana: configuration/monitor/02_kibana.md
   - Services:
-      - Elasticsearch: services/01_elasticsearch.md
-      - Logstash: services/02_logstash.md
-      - Kibana: services/03_kibana.md
+      - Updates: services/01_updates.md
+      - Monitor: services/02_monitor.md
+      - Agent: services/03_agent.md
+      - Remote: services/10_remote.md
+      - Elasticsearch: services/04_elasticsearch.md
+      - Logstash: services/05_logstash.md
+      - Kibana: services/06_kibana.md
       - Kibana Package Manager: services/04_kibana_package.md
+      - Zeek: services/07_zeek.md
+      - Suricata: services/08_suricata.md
+      - Filebeat: services/09_filebeat.md
   - Guides:
       - Quick Start: guides/01_quick_start.md
+      - BaseViews Kibana Package:
+          - Overview: guides/base_views/01_overview.md
+          - Pivot Fields: guides/base_views/02_pivot_fields.md
       - Working with Kibana Package Manager: guides/02_using_kibana_package.md
       - Software Developer Guides:
           - Overview: guides/developers/01_overview.md
@@ -69,6 +92,9 @@ nav:
                       - logs: guides/developers/SDK/services/base/logs.md
                       - process: guides/developers/SDK/services/base/process.md
                       - profile: guides/developers/SDK/services/base/profile.md
+                - agent:
+                      - install: guides/developers/SDK/services/agent/install.md
+                      - process: guides/developers/SDK/services/agent/process.md
                 - filebeat:
                     - install: guides/developers/SDK/services/filebeat/install.md
                     - config: guides/developers/SDK/services/filebeat/config.md
@@ -89,10 +115,11 @@ nav:
                     - profile: guides/developers/SDK/services/zeek/profile.md
                 - elasticsearch:
                     - install: guides/developers/SDK/services/elasticsearch/install.md
-                    - config: guides/developers/SDK/services/elasticsearch/config.md
+                    - config: guides/developeers/SDK/services/elasticsearch/config.md
                     - process: guides/developers/SDK/services/elasticsearch/process.md
                     - profile: guides/developers/SDK/services/elasticsearch/profile.md
   - Resources:
       - Contributing Guide: resources/contributing_guide.md
+      - Coding Guidelines: resources/coding_guidelines.md
 
 

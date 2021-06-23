@@ -19,7 +19,6 @@ def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logge
 
     Returns: A logger instance
     """
-
     coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'green'}, 'hostname': {'color': 'magenta'},
                                         'levelname': {'bold': True, 'color': 'black'},
                                         'name': {'color': 'cyan', 'bold': True},
@@ -32,7 +31,7 @@ def get_logger(component_name, level=logging.INFO, stdout=True) -> logging.Logge
     if not len(logger.handlers):
         fh = logging.FileHandler(os.path.join(const.LOG_PATH, 'dynamite-{}.log'.format(TODAY_FORMATTED_DATE)))
         fformatter = logging.Formatter(
-            '%(asctime)s | %(name)25s | %(module)20s | %(funcName)45s | %(lineno)4s | %(levelname)8s |  %(message)s')
+            '%(asctime)s | %(name)20s | %(module)20s | %(funcName)45s | %(lineno)4s | %(levelname)8s |  %(message)s')
         fh.setFormatter(fformatter)
         logger.addHandler(fh)
     if stdout:

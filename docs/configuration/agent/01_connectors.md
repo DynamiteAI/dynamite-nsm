@@ -1,19 +1,20 @@
 # Connectors
-DynamiteNSM relies on `filebeat` for sending events and alerts to a downstream collector. The following are currently supported.
+
+> ⚠️ Changes made within these interfaces require that Filebeat be restarted. Typically, the easiest way to 
+> accomplish this is via the command:
+> `sudo dynamite filebeat process restart`
+
+Dynamite `agents` rely on `filebeat` for sending events and alerts to a downstream collector. The following are currently supported.
 
 - Logstash
 - Elasticsearch (default)
 - Redis
 - Kafka
 
-> ⓘ Changes made within these interfaces require that Filebeat be restarted. Typically, the easiest way to 
-> accomplish this is via the command:
-> `sudo dynamite agent process restart`
-
 ## Logstash
 
 ```bash
-dynamite filebeat config logstash_targets -h
+sudo dynamite filebeat config logstash_targets -h
 ```
 
 Logstash is powerful data-processing pipeline by Elastic.co. It provides a versatile set of configuration driven ingestion, filtering, and transformation functions. Logstash can be paired with a multitude of upstream retention solutions such as ElasticSearch and InfluxDB.
@@ -29,7 +30,7 @@ Logstash is powerful data-processing pipeline by Elastic.co. It provides a versa
 ## ElasticSearch
 
 ```bash
-dynamite filebeat config elasticsearch_targets -h
+sudo dynamite filebeat config elasticsearch_targets -h
 ```
 
 Elasticsearch is a search engine by Elastic.co that provides distributed, full-text search and supports retention of schemaless data. Elasticsearch is often deployed behind one or more Logstash instances, however in this configuration ingestion is achieved by directly connecting to Elasticsearch's index API.
@@ -44,7 +45,7 @@ Elasticsearch is a search engine by Elastic.co that provides distributed, full-t
 ## Kafka
 
 ```bash
-dynamite filebeat config kafka_targets -h
+sudo dynamite filebeat config kafka_targets -h
 ```
 
 Apache Kafka is a distributed event streaming platform and brokering solution providing high-performance data pipelines for realtime feeds. If extremely high volumes of network traffic are expected, Kafka is a good option.
@@ -59,7 +60,7 @@ Apache Kafka is a distributed event streaming platform and brokering solution pr
 ## Redis
 
 ```bash
-dynamite filebeat config redis_targets -h
+sudo dynamite filebeat config redis_targets -h
 ```
 
 Redis is an open source, in-memory data structure store, used as a database, cache, and message broker. If your goal is short-lived visualizations of realtime network analytics, Redis is a great fit.

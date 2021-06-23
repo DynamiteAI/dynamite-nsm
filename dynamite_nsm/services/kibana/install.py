@@ -4,7 +4,6 @@ from typing import List, Optional
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.kibana import config
-from dynamite_nsm.services.kibana.post_installation_tasks import post_install_saved_objects
 from dynamite_nsm.services.kibana.tasks import install_dynamite_investigator
 
 
@@ -13,13 +12,14 @@ class InstallManager(install.BaseInstallManager):
     def __init__(self, configuration_directory: str, install_directory: str, log_directory: str,
                  download_kibana_archive: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
-        :param install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
-        :param log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
-        :param download_kibana_archive: If True, download the Kibana archive from a mirror
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Install Kibana
+        Args:
+            configuration_directory: Path to the configuration directory (E.G /etc/dynamite/kibana/)
+            install_directory: Path to the install directory (E.G /opt/dynamite/kibana/)
+            log_directory: Path to the log directory (E.G /var/log/dynamite/kibana/)
+            download_kibana_archive: If True, download the Kibana archive from a mirror
+            stdout: Print output to console
+            verbose: Include detailed debug messages
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
@@ -37,8 +37,10 @@ class InstallManager(install.BaseInstallManager):
             _, _, self.local_mirror_root = self.get_mirror_info(const.KIBANA_MIRRORS)
 
     def copy_kibana_files_and_directories(self) -> None:
-        """
-        Copy the required Kibana files from the install cache to their respective directories
+        """Copy the required Kibana files from the install cache to their respective directories
+
+        Returns:
+            None
         """
         kibana_tarball_extracted = f'{const.INSTALL_CACHE}/{self.local_mirror_root}'
         config_paths = [
@@ -61,8 +63,10 @@ class InstallManager(install.BaseInstallManager):
             self.copy_file_or_directory_to_destination(f'{kibana_tarball_extracted}/{inst}', self.install_directory)
 
     def create_update_kibana_environment_variables(self) -> None:
-        """
-        Creates all the required Kibana environmental variables
+        """Creates all the required Kibana environmental variables
+
+        Returns:
+            None
         """
         self.create_update_env_variable('KIBANA_PATH_CONF', self.configuration_directory)
         self.create_update_env_variable('KIBANA_HOME', self.install_directory)
@@ -70,10 +74,13 @@ class InstallManager(install.BaseInstallManager):
 
     def setup(self, host: Optional[str] = None, port: Optional[int] = None,
               elasticsearch_targets: Optional[List[str]] = None) -> None:
-        """
-        :param host: The IP or hostname to listen on
-        :param port: The port to listen on
-        :param elasticsearch_targets: A list of Elasticsearch urls
+        """Setup Kibana
+        Args:
+            host: The IP or hostname to listen on
+            port: The port to listen on
+            elasticsearch_targets: A list of Elasticsearch urls
+        Returns:
+            None
         """
 
         sysctl = systemctl.SystemCtl()
@@ -123,16 +130,16 @@ class InstallManager(install.BaseInstallManager):
 
 
 class UninstallManager(install.BaseUninstallManager):
-    """
-    Uninstall Kibana
-    """
 
     def __init__(self, purge_config: Optional[bool] = True, stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
-        """
-        :param purge_config: If enabled, remove all the configuration files associated with this installation
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """Uninstall Kibana
+        Args:
+            purge_config: If enabled, remove all the configuration files associated with this installation
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        Returns:
+            None
         """
         from dynamite_nsm.services.kibana.process import ProcessManager
 

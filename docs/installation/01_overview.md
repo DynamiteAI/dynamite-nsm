@@ -1,22 +1,33 @@
-## Install DynamiteNSM
-DynamiteNSM is 100% implemented in Python3, and can thus be installed directly via pip.
+# Installation Overview
+
+> ⚠️DynamiteNSM will need to make changes to your system in order to function properly. 
+> We highly recommend installing the `dynamite-nsm` package on a fresh installation of [Linux](/requirements/01_supported_operating_systems).
+
+> ⚠️ `root` access is needed as `dynamite` will need to be able to install and uninstall services within the
+> Dynamite stack, and perform privileged operations like user creation and `systemctl` management.
+
+
+`dynamite-nsm` is a [Python3.7+](https://www.python.org/downloads/) compatible package that can be installed directly through [pip](https://pip.pypa.io/en/stable/installing/).
+
 
 ```bash
-pip install dynamite-nsm
+sudo pip install dynamite-nsm
 ```
+
 
 Alternatively, developers may also wish to build from source.
 
 ```bash
 git clone https://github.com/DynamiteAI/dynamite-nsm.git && 
-pip install dynamite-nsm/
+sudo pip install dynamite-nsm/
 ```
 
 > ⓘ If you opt, for this method, and are curious about contributing to this project be sure to check out our 
-developer guides!
+[developer guides](/guides/developers/01_overview)!
 
 Once installed, you should be able to call `dynamite` directly from the commandline. 
 Keep in mind that `dynamite` requires `root` access in order to run basically any command.
+We will use the `dynamite` commandline utility for setting up and managing all the services we install.
 
 Download any default configuration or mirror updates.
 ```bash

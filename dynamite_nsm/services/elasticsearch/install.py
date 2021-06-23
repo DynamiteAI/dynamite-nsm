@@ -2,11 +2,9 @@ import os
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
-from dynamite_nsm.services.elasticsearch.tasks import install_events_to_hosts
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.elasticsearch import config
-from dynamite_nsm.services.elasticsearch.post_installation_tasks import post_install_bootstrap_tls_certificates, \
-    post_install_bootstrap_cluster_settings
+from dynamite_nsm.services.elasticsearch.tasks import install_events_to_hosts, setup_security, configure_cluster
 
 
 class InstallManager(install.BaseInstallManager):
@@ -164,18 +162,36 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/elasticsearch.service')
 
-        # Bootstrap Transport Layer Security
-        self.logger.info('Beginning TLS bootstrapping process.')
-        post_install_bootstrap_tls_certificates(self.configuration_directory, self.install_directory,
-                                                subj=tls_cert_subject, stdout=self.stdout,
-                                                verbose=self.verbose)
-        self.logger.info('Begin cluster settings bootstrapping process.')
-        post_install_bootstrap_cluster_settings(stdout=self.stdout, verbose=self.verbose)
+        self.logger.info('Generating SSL Certificates and Keys.')
+        ssl_gen_task_results = setup_security.GenerateElasticsearchSSLCertificates(subj=tls_cert_subject).invoke()
+
+        for res in ssl_gen_task_results:
+            cmd, out, err = res
+            self.logger.debug(f'{" ".join(cmd)} -> out: {out} err: {err}')
+
+        self.logger.info('Installing SSL Certificates and Keys')
+        install_ssl_task_results = setup_security.InstallElasticsearchCertificates(
+            network_host=network_host).invoke()
+
+        for res in install_ssl_task_results:
+            cmd, out, err = res
+            self.logger.debug(f'{" ".join(cmd)} -> out: {out} err: {err}')
+
+        self.logger.info('Setting up persistent cluster settings.')
+        configure_cluster_task_results = configure_cluster.UpdateClusterSettings(network_host=network_host,
+                                                                                 http_port=port).invoke()
+        rcode, msg = configure_cluster_task_results
+        self.logger.debug(f'rcode: {rcode}-> msg: {msg}')
+
+        """
+        # We'll revisit this in another release
+        
         self.logger.info('Install events_to_hosts job.')
         event_to_host_task = install_events_to_hosts.EventsToHostsTask('admin', 'admin',
                                                                      target=f'https://{network_host}:{port}')
         event_to_host_task.download_and_install()
         event_to_host_task.create_cronjob(interval_minutes=5)
+        """
 
 
 class UninstallManager(install.BaseUninstallManager):
@@ -190,17 +206,15 @@ class UninstallManager(install.BaseUninstallManager):
         Returns:
             None
         """
-        from dynamite_nsm.services.elasticsearch.config import ConfigManager
         from dynamite_nsm.services.elasticsearch.process import ProcessManager
 
         env_vars = utilities.get_environment_file_dict()
-        es_config = ConfigManager(configuration_directory=env_vars.get('ES_PATH_CONF'))
-        es_directories = [env_vars.get('ES_HOME'), es_config.path_logs]
+        es_directories = [env_vars.get('ES_HOME'), env_vars.get('ES_LOGS')]
         if purge_config:
             es_directories.append(env_vars.get('ES_PATH_CONF'))
         install_events_to_hosts.EventsToHostsTask().remove_cronjob()
         super().__init__('elasticsearch.uninstall', directories=es_directories,
-                         environ_vars=['ES_PATH_CONF', 'ES_HOME', 'ES_LOG'],
+                         environ_vars=['ES_PATH_CONF', 'ES_HOME', 'ES_LOGS'],
                          process=ProcessManager(stdout=stdout, verbose=verbose),
                          sysctl_service_name='elasticsearch.service', stdout=stdout, verbose=verbose)
 

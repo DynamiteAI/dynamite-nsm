@@ -9,10 +9,10 @@ from dynamite_nsm.services.suricata import process as suricata_process
 
 
 class ProcessProfiler(profile.BaseProcessProfiler):
-    """
-    Get information about Suricata processes
-    """
     def __init__(self):
+        """
+        Get information about the Suricata service
+        """
         self.env_dict = utilities.get_environment_file_dict()
         self.suricata_home = self.env_dict.get('SURICATA_HOME')
         self.suricata_config = self.env_dict.get('SURICATA_CONFIG')

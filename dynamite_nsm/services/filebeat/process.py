@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Optional
 
 from dynamite_nsm import exceptions
 from dynamite_nsm.services.base import process
@@ -6,21 +6,18 @@ from dynamite_nsm.services.filebeat import profile as profile
 
 
 class CallFilebeatProcessError(exceptions.CallProcessError):
-    """
-    Thrown when filebeat process encounters an error state
-    """
     def __init__(self, message):
-        """
-        :param message: A more specific error message
+        """Thrown when filebeat process encounters an error state
+        Args:
+            message: A more specific error message
+        Returns:
+            None
         """
         msg = "An error occurred while calling filebeat process: {}".format(message)
         super(CallFilebeatProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):
-    """
-    FileBeat Process Manager
-    """
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):

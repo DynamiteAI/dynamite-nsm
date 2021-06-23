@@ -12,21 +12,19 @@ PID_DIRECTORY = '/var/run/dynamite/kibana/'
 
 
 class CallKibanaProcessError(exceptions.CallProcessError):
-    """
-    Thrown when kibana process encounters an error state
-    """
+
     def __init__(self, message):
-        """
-        :param message: A more specific error message
+        """Thrown when kibana process encounters an error state
+        Args:
+            message: A more specific error message
+        Returns:
+            None
         """
         msg = f'An error occurred while calling kibana process: {message}'
         super(CallKibanaProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):
-    """
-    Kibana Process Manager
-    """
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):
@@ -45,9 +43,11 @@ class ProcessManager(process.BaseProcessManager):
             self.logger.error("Kibana is not installed. Install it with 'dynamite kibana install -h'")
             raise CallKibanaProcessError("Kibana is not installed.")
 
-    def optimize(self):
-        """
-        Runs Kibana webpack optimizer among other things.
+    def optimize(self) -> None:
+        """Runs Kibana webpack optimizer among other things.
+
+        Returns:
+            None
         """
         environ = utilities.get_environment_file_dict()
         if not os.path.exists(PID_DIRECTORY):

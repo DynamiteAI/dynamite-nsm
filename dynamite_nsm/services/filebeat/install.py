@@ -55,6 +55,40 @@ class InstallManager(install.BaseInstallManager):
             self.copy_file_or_directory_to_destination(f'{filebeat_tarball_extracted}/{inst}',
                                                        self.install_directory)
 
+    @staticmethod
+    def validate_targets(targets, stdout=True, verbose=False):
+        """Ensures that targets are entered in a valid format (E.G ["192.168.0.1:5044", "myhost2:5044"])
+        Args:
+            targets: A list of IP/host port pair
+            stdout: Print the output to console
+            verbose: Include detailed debug messages
+        Returns:
+             True if valid
+        """
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        logger = get_logger('FILEBEAT', level=log_level, stdout=stdout)
+        if isinstance(targets, list) or isinstance(targets, tuple):
+            protocol_tokens = ['http://', 'https://', 'plain://', 'sasl://', 'redis://']
+            for i, target in enumerate(targets):
+                target = str(target).lower()
+                for token in protocol_tokens:
+                    target = target.replace(token, '')
+                try:
+                    host, port = target.split(':')
+                    if not str(port).isdigit():
+                        logger.warning(
+                            'Target Invalid: {} port must be numeric at position {}'.format(target, i))
+                        return False
+                except ValueError:
+                    logger.warning('Target Invalid: {} expected host:port at position {}'.format(target, i))
+                    return False
+        else:
+            logger.warning('Target Invalid: {}; must be a enumerable (list, tuple)'.format(targets))
+            return False
+        return True
+
     def create_update_filebeat_environment_variables(self) -> None:
         """Creates all the required Filebeat environmental variables
         Returns:
@@ -111,7 +145,6 @@ class InstallManager(install.BaseInstallManager):
             monitor_log_paths=[]
         )
         filebeat_config.field_processors.originating_agent_tag = agent_tag
-        filebeat_config.kibana_settings.enabled = True
         if not monitor_log_paths:
             environ = utilities.get_environment_file_dict()
             zeek_log_root = f'{environ.get("ZEEK_HOME", "")}/logs/current/'

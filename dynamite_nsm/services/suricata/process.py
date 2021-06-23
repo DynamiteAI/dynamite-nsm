@@ -9,9 +9,6 @@ PID_DIRECTORY = '/var/run/dynamite/suricata/'
 
 
 class ProcessManager(process.BaseProcessManager):
-    """
-    Suricata Process Manager
-    """
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):

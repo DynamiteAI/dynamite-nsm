@@ -1,3 +1,4 @@
+import os
 import sys
 import requests
 import subprocess
@@ -22,23 +23,29 @@ class BaseTask:
         raise NotImplemented()
 
 
-class BaseShellCommandTask(BaseTask):
+class BaseShellCommandsTask(BaseTask):
 
-    def __init__(self, name: str, package_link: str, command: str, args: List[str], description: Optional[str] = None):
+    def __init__(self, name: str, package_link: str, commands: List[List[str]], description: Optional[str] = None):
         super().__init__(name, package_link, description)
-        self.command = command
-        self.args = args
+        self.commands = commands
 
-    def invoke(self, shell=False) -> Tuple[bytes, bytes]:
-        p = subprocess.Popen(executable=self.command, args=self.args, shell=shell, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        return out, err
+    def invoke(self, shell: Optional[bool] = False, cwd: Optional[str] = os.getcwd()) -> List[Tuple[List, bytes, bytes]]:
+        results = []
+        for command in self.commands:
+            bin, args = command[0], command[1:]
+            p = subprocess.Popen(executable=bin, args=args, shell=shell, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, cwd=cwd, env=utilities.get_environment_file_dict())
+            out, err = p.communicate()
+            results.append((command, out, err))
+        return results
 
     def create_cronjob(self, interval_minutes: int):
         cron = crontab.CronTab(user='root')
+        command_string = ''
+        for command in self.commands:
+            command_string += f'{" ".join(command)};'
         job = cron.new(
-            command=f'{self.command} {" ".join(self.args)}',
+            command=command_string,
             comment=self.name
         )
         job.minute.every(interval_minutes)
@@ -47,6 +54,19 @@ class BaseShellCommandTask(BaseTask):
     def remove_cronjob(self):
         cron = crontab.CronTab(user='root')
         cron.remove_all(comment=self.name)
+
+
+class BaseShellCommandTask(BaseShellCommandsTask):
+
+    def __init__(self, name: str, package_link: str, command: str, args: List[str], description: Optional[str] = None):
+        command = [
+            command
+        ]
+        command.extend(args)
+
+        super().__init__(name, commands=[command], package_link=package_link, description=description)
+        self.command = command
+        self.args = args
 
 
 class BasePythonPackageInstallTask(BaseShellCommandTask):

@@ -38,6 +38,10 @@ class ProcessManager:
         self.logger = get_logger('agent.process', level=log_level, stdout=stdout)
 
     def start(self) -> bool:
+        """Start the monitor services
+        Returns:
+            True, if successfully started
+        """
         kibana_res, logstash_res, elasticsearch_res = True, True, True
         if not elasticsearch_profile.ProcessProfiler().is_installed():
             self.logger.error('You must install kibana to run this command.')
@@ -50,6 +54,10 @@ class ProcessManager:
         return kibana_res and elasticsearch_res and logstash_res
 
     def stop(self) -> bool:
+        """Stop the monitor services
+        Returns:
+            True, if successfully stopped
+        """
         kibana_res, logstash_res, elasticsearch_res = True, True, True
         if not elasticsearch_profile.ProcessProfiler().is_installed():
             self.logger.error('You must install kibana to run this command.')
@@ -62,6 +70,10 @@ class ProcessManager:
         return kibana_res and elasticsearch_res and logstash_res
 
     def status(self) -> Optional[Union[Dict, str]]:
+        """Get the statuses of monitor services
+        Returns:
+            The statuses of monitor services
+        """
         agent_status = {}
         kibana_status, elasticsearch_status, logstash_status = {}, {}, {}
         if not elasticsearch_profile.ProcessProfiler().is_installed():
@@ -110,4 +122,8 @@ class ProcessManager:
         return agent_status
 
     def restart(self) -> bool:
+        """Restart monitor services
+        Returns:
+            True, if successfully restarted
+        """
         return self.stop() and self.start()

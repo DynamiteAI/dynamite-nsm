@@ -117,15 +117,13 @@ class WriteConfigError(Exception):
 
 
 class WriteJavaConfigError(WriteConfigError):
-    """Thrown when the jvm.options file fails to write
-    Args:
-        message: A more specific error message
-    Returns:
-        None
-    """
+
     def __init__(self, message):
-        """
-        :param message: A more specific error message
+        """Thrown when the jvm.options file fails to write
+        Args:
+            message: A more specific error message
+        Returns:
+            None
         """
         msg = "An error occurred when writing jvm.options configuration: {}".format(message)
         super(WriteJavaConfigError, self).__init__(msg)

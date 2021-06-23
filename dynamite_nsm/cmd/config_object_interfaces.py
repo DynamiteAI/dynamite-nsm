@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 from typing import Any, Dict, Optional
 
@@ -18,13 +20,12 @@ Commandline interface wrappers for services.base.config_objects
 class AnalyzersInterface(BaseInterface):
     """
     Convert any `generic.Analyzers` derived class into a commandline utility (E.G Zeek scripts, signatures, and redefs
-    as well as Suricata signatures
+    as well as Suricata rule-sets
     """
 
     def __init__(self, config_obj: generic.Analyzers):
         """
         Setup the interface
-
         Args:
             config_obj: A complex config object that contains one or more `Analyzers`
         """
@@ -32,32 +33,45 @@ class AnalyzersInterface(BaseInterface):
         self.config_obj = config_obj
         self.changed_rows = []
 
-    def get_parser(self) -> argparse.ArgumentParser:
-        """ For the given interface return an `argparse.ArgumentParser` object for a Zeek Script, Definition, or Signature
-        or a Suricata signature.
+    @staticmethod
+    def build_parser(interface: AnalyzersInterface, parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """ Build a parser from any `AnalysisInterface` and `argparse.ArgumentParser` derived class
+        Args:
+            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+            interface: The `AnalyzerInterface` instance you wish to append
 
-        Returns: An argparse.ArgumentParser instance for the instantiated `AnalyzerInterface`
+        Returns:
+            An argument parser instance combined with the instantiated `AnalyzersInterface` derived class
         """
-        parser = argparse.ArgumentParser()
         choices = []
-        for analyzer in self.config_obj.analyzers:
+        for analyzer in interface.config_obj.analyzers:
             choices.append(analyzer.id)
         parser.add_argument('--ids', dest='analyzer_ids', nargs='+', type=int, default=[],
                             help='Specify one or more ids for the config object you want to work with.')
         parser.add_argument('--enable', dest='enable', action='store_true', help=f'Enable selected object.')
         parser.add_argument('--disable', dest='disable', action='store_true', help=f'Disable selected object')
-        if getattr(self.config_obj.analyzers[0], 'value', None):
+        if getattr(interface.config_obj.analyzers[0], 'value', None):
             parser.add_argument('--value', dest='value', type=str,
                                 help=f'The value associated with the selected object')
 
         return parser
 
+    def get_parser(self) -> argparse.ArgumentParser:
+        """Get the current interface as an `argparse.ArgumentParser` instance
+
+        Returns:
+            An argparse.ArgumentParser instance for the instantiated `AnalyzerInterface` derived class
+        """
+        parser = argparse.ArgumentParser()
+        return self.build_parser(self, parser)
+
     def execute(self, args: argparse.Namespace) -> Any:
-        """Interpret the parsed arguments and execute using the proper `service.action` class; can return any value.
+        """Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.
         Args:
             args: `argparse.Namespace` created by a method such as `argparse.ArgumentParser().parse_args()`
 
-        Returns: Can return any value; completely depends on the `service.action` being invoked
+        Returns:
+            Any value; completely depends on the parent interface's `ConfigManager.commit` method
         """
         self.changed_rows = []
         headers = ['Id', 'Name', 'Enabled', 'Value']
@@ -119,53 +133,76 @@ class FilebeatTargetsInterface(BaseInterface):
                 return param.description
         return ''
 
-    def get_parser(self):
-        """ For the given interface return an `argparse.ArgumentParser` object for a Filebeat `BaseTargets` object
-        Returns: An argparse.ArgumentParser instance for the instantiated `BaseTargets` derived class
+    @staticmethod
+    def build_parser(interface: FilebeatTargetsInterface, parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """Build a parser from any `BaseTargets` and `argparse.ArgumentParser` derived class
+        Args:
+            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+            interface: The `FilebeatTargetsInterface` instance you wish to append
+
+        Returns:
+            An argument parser instance for the instantiated `BaseTargets` derived class
         """
-        parser = argparse.ArgumentParser()
         target_options = parser.add_argument_group('target options')
-        for var in vars(self.config_obj):
-            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(self.config_obj, var)),
+        for var in vars(interface.config_obj):
+            args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)),
                                                                     required=False)
-            if var != 'enabled':
-                arg_description = self._get_description_for_instance_var(var).replace('\n', ' ')
-            else:
-                arg_description = 'If included, this target will be enabled, and events sent to it.'
+            if var == 'enabled':
+                continue
+            arg_description = interface._get_description_for_instance_var(var).replace('\n', ' ')
             args.add_description(arg_description)
             try:
                 target_options.add_argument(*args.flags, **args.kwargs)
             except argparse.ArgumentError:
                 continue
+        target_options.add_argument('--enable', dest='enable', action='store_true', help=f'Enable selected target.')
+        target_options.add_argument('--disable', dest='disable', action='store_true', help=f'Disable selected target')
         return parser
 
+    def get_parser(self):
+        """ For the given interface return an `argparse.ArgumentParser` object for a Filebeat `BaseTargets` object
+        Returns:
+            An argument parser instance for the instantiated `FilebeatTargetsInterface` derived class
+        """
+        parser = argparse.ArgumentParser()
+        return self.build_parser(self, parser)
+
     def execute(self, args: argparse.Namespace) -> Any:
-        """Interpret the parsed arguments and execute using the proper `service.action` class; can return any value.
+        """Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.
         Args:
             args: `argparse.Namespace` created by a method such as `argparse.ArgumentParser().parse_args()`
 
-        Returns: Can return any value; completely depends on the `service.action` being invoked
+        Returns:
+            Any value; completely depends on the parent interface's `ConfigManager.commit` method
         """
         self.changed_rows = []
-        changed_config = False
         headers = ['Config Option', 'Value']
-        table = [headers]
+        table = []
         for option, value in args.__dict__.items():
+            if option in ['enable', 'disable']:
+                continue
             if option in self.defaults:
                 continue
             if option in RESERVED_VARIABLE_NAMES:
                 continue
             if not value:
-                config_value = (option, getattr(self.config_obj, option, None))
+                config_value = (option.replace('_', '-'), getattr(self.config_obj, option, None))
                 if not config_value[1]:
-                    config_value = option, 'N/A'
+                    config_value = option.replace('_', '-'), 'N/A'
                 table.append(config_value)
             else:
-                changed_config = True
-                self.changed_rows.append([option, value])
+                self.changed_rows.append([option.replace('_', '-'), value])
                 setattr(self.config_obj, option, value)
-        if not changed_config:
-            return tabulate(table, tablefmt='fancy_grid')
+        if args.enable:
+            self.changed_rows.append(['enabled', True])
+            self.config_obj.enabled = True
+        elif args.disable:
+            self.changed_rows.append(['enabled', False])
+            self.config_obj.enabled = False
+
+        if not self.changed_rows:
+            table.append(['enabled', self.config_obj.enabled])
+            return tabulate(table, tablefmt='fancy_grid', headers=headers)
         return self.config_obj
 
 
@@ -176,19 +213,10 @@ def append_config_object_analyzer_interface_to_parser(parser: argparse.ArgumentP
         parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
         interface: The `AnalyzerInterface` instance you wish to append
 
-    Returns: The modified parser
+    Returns:
+        The modified parser
     """
-    choices = []
-    for analyzer in interface.config_obj.analyzers:
-        choices.append(analyzer.id)
-    parser.add_argument('--ids', dest='analyzer_ids', nargs='+',
-                        help='Specify the id for the config object you want to work with.', type=int, default=[])
-    parser.add_argument('--enable', dest='enable', action='store_true', help=f'Enable selected object.')
-    parser.add_argument('--disable', dest='disable', action='store_true', help=f'Disable selected object')
-    if choices and getattr(interface.config_obj.analyzers[0], 'value', None):
-        parser.add_argument('--value', dest='value', type=str,
-                            help='The value associated with the selected object')
-    return parser
+    return interface.build_parser(interface, parser)
 
 
 def append_config_object_filebeat_targets_to_parser(parser: argparse.ArgumentParser,
@@ -198,16 +226,8 @@ def append_config_object_filebeat_targets_to_parser(parser: argparse.ArgumentPar
         parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
         interface: The `FilebeatTargetsInterface` instance you wish to append
 
-    Returns: The modified parser
+    Returns:
+        The modified parser
     """
-    target_options = parser.add_argument_group('target options')
-    for var in vars(interface.config_obj):
-        args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config_obj, var)),
-                                                                required=False)
-        arg_description = interface._get_description_for_instance_var(var).replace('\n', ' ')
-        args.add_description(arg_description)
-        try:
-            target_options.add_argument(*args.flags, **args.kwargs)
-        except argparse.ArgumentError:
-            continue
-    return parser
+
+    return interface.build_parser(interface, parser)

@@ -20,6 +20,20 @@ class InstallManager(install.BaseInstallManager):
                  kibana_log_directory: Optional[str] = None,
                  stdout: Optional[bool] = False, verbose: Optional[bool] = False
                  ):
+        """Install Elaticsearch, Logstash, and Kibana
+        Args:
+            elasticsearch_install_directory: Path to the elasticsearch install directory (E.G /opt/dynamite/elasticsearch/)
+            elasticsearch_configuration_directory: Path to the elasticsearch configuration directory (E.G /etc/dynamite/elasticsearch/)
+            elasticsearch_log_directory: Path to the elasticsearch log directory (E.G /var/log/dynamite/elasticsearch/)
+            logstash_install_directory: Path to the logstash install directory (E.G /opt/dynamite/logstash/)
+            logstash_configuration_directory: Path to the logstash configuration directory (E.G /etc/dynamite/logstash/)
+            logstash_log_directory: Path to the log directory (E.G /var/log/dynamite/logstash/)
+            kibana_install_directory: Path to the kibana install directory (E.G /opt/dynamite/kibana/)
+            kibana_configuration_directory: Path to the kibana configuration directory (E.G /etc/dynamite/kibana/)
+            kibana_log_directory: Path to the kibana configuration directory (E.G /var/log/dynamite/kibana/)
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        """
         super().__init__('monitor.install', stdout=stdout, verbose=verbose)
         self.elasticsearch_install_directory = elasticsearch_install_directory
         self.elasticsearch_configuration_directory = elasticsearch_configuration_directory
@@ -32,6 +46,10 @@ class InstallManager(install.BaseInstallManager):
         self.kibana_log_directory = kibana_log_directory
 
     def setup(self):
+        """Setup Elasticsearch, Logstash, and Kibana
+        Returns:
+            None
+        """
 
         if self.elasticsearch_install_directory or self.elasticsearch_configuration_directory or \
                 self.elasticsearch_log_directory:
@@ -87,6 +105,11 @@ class InstallManager(install.BaseInstallManager):
 class UninstallManager(install.BaseUninstallManager):
 
     def __init__(self, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
+        """Uninstall Elasticsearch, Logstash, and Kibana
+        Args:
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+        """
         super().__init__(directories=[], name='monitor.uninstall', stdout=stdout, verbose=verbose)
 
     def uninstall(self):

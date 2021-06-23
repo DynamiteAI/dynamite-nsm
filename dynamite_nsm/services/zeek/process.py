@@ -12,9 +12,6 @@ from dynamite_nsm.services.zeek import profile as zeek_profile
 
 
 class ProcessManager(process.BaseProcessManager):
-    """
-    Zeek Process Manager
-    """
 
     def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
                  pretty_print_status: Optional[bool] = False):

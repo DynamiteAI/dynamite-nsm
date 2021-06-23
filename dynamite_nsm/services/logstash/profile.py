@@ -9,6 +9,9 @@ from dynamite_nsm.services.logstash import process as logstash_process
 
 class ProcessProfiler(profile.BaseProcessProfiler):
     def __init__(self):
+        """
+        Get information about the Logstash service
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.logstash_home = self.env_dict.get('LS_HOME')
@@ -22,6 +25,10 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              )
 
     def is_running(self):
+        """Check if Logstash is running
+        Returns:
+            True, if running
+        """
         if self.logstash_home:
             try:
                 return logstash_process.ProcessManager().status()['running']
