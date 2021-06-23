@@ -2,7 +2,7 @@
  
 Pivot fields are special fields that can be used to dynamically apply specific views and filters.
 
-![img.png](img.png)
+![img.png](../../data/img/pivot_fields.png)
 
 ## Types of Pivot Fields
 
