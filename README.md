@@ -26,7 +26,7 @@ sudo pip3 install dynamite-nsm
 sudo dynamite agent install --inspect-interfaces=<iface1> <iface2> <iface3>
 ```
 
-[**More Info »**](https://dynamite-nsm.readthedocs.io/en/latest/installation/01_overview)
+[**More Info »**](https://dynamiteai.github.io/dynamite-nsm/installation/01_overview)
 
 <p align="center">
  <img src="docs/data/img/arch_monitor.png" width="75%" height="auto"></img>
@@ -45,6 +45,6 @@ Checkout our comprehensive documentation complete with tutorials, guides, and ex
 
 Those wishing to contribute may also be interested in our [development guides](https://dynamite-nsm.readthedocs.io/en/latest/developers/01_overview).
 
-[**Read the docs »**](https://dynamite-nsm.readthedocs.io/en/latest/)
+[**Read the docs »**](https://dynamiteai.github.io/dynamite-nsm/)
 
 
