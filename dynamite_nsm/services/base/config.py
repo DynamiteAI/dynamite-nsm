@@ -94,7 +94,7 @@ class GenericConfigManager:
         except IOError:
             raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
-        self.logger.info('Configuration updated. Restart this service to apply.')
+        self.logger.warning('Configuration updated. Restart this service to apply.')
 
     def get_printable_config(self) -> Dict:
         """
@@ -307,7 +307,7 @@ class YamlConfigManager:
         except IOError:
             raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
-        self.logger.info('Configuration updated. Restart this service to apply.')
+        self.logger.warning('Configuration updated. Restart this service to apply.')
 
     def get_printable_config(self, pretty_print: Optional[bool] = False) -> str:
         """
