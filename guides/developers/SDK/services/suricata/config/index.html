@@ -1,0 +1,2976 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.4">
+    
+    
+      
+        <title>config.py - DynamiteNSM</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.bde7dde4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../../assets/stylesheets/palette.ef6f36e2.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/_mkdocstrings.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../../../../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dynamite_nsm.services.suricata.config" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../../.." title="DynamiteNSM" class="md-header__button md-logo" aria-label="DynamiteNSM" data-md-component="logo">
+      
+  <img src="../../../../../../data/img/logo_inverted.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DynamiteNSM
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              config.py
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../../.." title="DynamiteNSM" class="md-nav__button md-logo" aria-label="DynamiteNSM" data-md-component="logo">
+      
+  <img src="../../../../../../data/img/logo_inverted.png" alt="logo">
+
+    </a>
+    DynamiteNSM
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../.." class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      <label class="md-nav__link" for="__nav_2">
+        About
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="About" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          About
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/01_project_goals/" class="md-nav__link">
+        Project Goals
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/02_architecture/" class="md-nav__link">
+        Architechture
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3" type="checkbox" id="__nav_2_3" >
+      
+      <label class="md-nav__link" for="__nav_2_3">
+        Event Data Model
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Event Data Model" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          Event Data Model
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/01_overview/" class="md-nav__link">
+        Data Model Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3_2" type="checkbox" id="__nav_2_3_2" >
+      
+      <label class="md-nav__link" for="__nav_2_3_2">
+        Sample Logs
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Sample Logs" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          Sample Logs
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/alert.eve.json/" class="md-nav__link">
+        Suricata Alert
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/conn.log/" class="md-nav__link">
+        Zeek Connection
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/dhcp.log/" class="md-nav__link">
+        Zeek DHCP
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/dns.log/" class="md-nav__link">
+        Zeek DNS
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/files.log/" class="md-nav__link">
+        Zeek Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/http.log/" class="md-nav__link">
+        Zeek HTTP
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/pe.log/" class="md-nav__link">
+        Zeek Portable Executables
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/ssh.log/" class="md-nav__link">
+        Zeek SSH
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/ssl.log/" class="md-nav__link">
+        Zeek SSL
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/weird.log/" class="md-nav__link">
+        Zeek Weird
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../about/data_model/samples/x509.log/" class="md-nav__link">
+        Zeek X509
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      <label class="md-nav__link" for="__nav_3">
+        Requirements
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Requirements" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Requirements
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../requirements/01_supported_operating_systems/" class="md-nav__link">
+        Supported Operating Systems
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../requirements/02_agent_specifications/" class="md-nav__link">
+        Agent Specifications
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../requirements/03_monitor_specifications/" class="md-nav__link">
+        Monitor Specifications
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../requirements/04_span_vs_tap/" class="md-nav__link">
+        SPAN vs TAP
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      <label class="md-nav__link" for="__nav_4">
+        Installation
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Installation" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Installation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/01_overview/" class="md-nav__link">
+        Installation Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_2" type="checkbox" id="__nav_4_2" >
+      
+      <label class="md-nav__link" for="__nav_4_2">
+        Agent
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Agent" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          Agent
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/agent/01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/agent/02_configure_inspection_interface/" class="md-nav__link">
+        Preparing Inspection Interfaces
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/agent/03_install_same_instance/" class="md-nav__link">
+        Install on the Same Instance
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/agent/04_install_separate_instances/" class="md-nav__link">
+        Install across Separate Instances
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" >
+      
+      <label class="md-nav__link" for="__nav_4_3">
+        Monitor
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Monitor" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          Monitor
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/monitor/01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/monitor/02_network_interface_configuration/" class="md-nav__link">
+        Setup Management Interface
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/monitor/03_install_same_instance/" class="md-nav__link">
+        Install on the Same Instance
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../installation/monitor/04_install_separate_instances/" class="md-nav__link">
+        Install across Separate Instances
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      <label class="md-nav__link" for="__nav_5">
+        Configuration
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Configuration" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../configuration/01_overview/" class="md-nav__link">
+        Configuration Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_2" type="checkbox" id="__nav_5_2" >
+      
+      <label class="md-nav__link" for="__nav_5_2">
+        Agent
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Agent" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          Agent
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../configuration/agent/01_connectors/" class="md-nav__link">
+        Connectors
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../configuration/agent/02_event_normalization/" class="md-nav__link">
+        Event Normalization
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../configuration/agent/03_scripts_and_rules/" class="md-nav__link">
+        Scripts and Rules
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../configuration/agent/04_inspection_interfaces/" class="md-nav__link">
+        Inspection Interfaces
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_3" type="checkbox" id="__nav_5_3" >
+      
+      <label class="md-nav__link" for="__nav_5_3">
+        Monitor
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Monitor" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_3">
+          <span class="md-nav__icon md-icon"></span>
+          Monitor
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../configuration/monitor/01_elasticsearch/" class="md-nav__link">
+        Elasticsearch
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../configuration/monitor/02_kibana/" class="md-nav__link">
+        Kibana
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      <label class="md-nav__link" for="__nav_6">
+        Services
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Services" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Services
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/01_updates/" class="md-nav__link">
+        Updates
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/02_monitor/" class="md-nav__link">
+        Monitor
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/03_agent/" class="md-nav__link">
+        Agent
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/10_remote/" class="md-nav__link">
+        Remote
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/04_elasticsearch/" class="md-nav__link">
+        Elasticsearch
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/05_logstash/" class="md-nav__link">
+        Logstash
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/06_kibana/" class="md-nav__link">
+        Kibana
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/04_kibana_package/" class="md-nav__link">
+        Kibana Package Manager
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/07_zeek/" class="md-nav__link">
+        Zeek
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/08_suricata/" class="md-nav__link">
+        Suricata
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../services/09_filebeat/" class="md-nav__link">
+        Filebeat
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" checked>
+      
+      <label class="md-nav__link" for="__nav_7">
+        Guides
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../01_quick_start/" class="md-nav__link">
+        Quick Start
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_2" type="checkbox" id="__nav_7_2" >
+      
+      <label class="md-nav__link" for="__nav_7_2">
+        Navigating Kibana
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Navigating Kibana" data-md-level="2">
+        <label class="md-nav__title" for="__nav_7_2">
+          <span class="md-nav__icon md-icon"></span>
+          Navigating Kibana
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../base_views/01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../base_views/02_alerts/" class="md-nav__link">
+        Alert
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../base_views/03_conversations/" class="md-nav__link">
+        Conversations
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../base_views/04_hosts/" class="md-nav__link">
+        Hosts
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../base_views/05_protocols/" class="md-nav__link">
+        Protocols
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../base_views/06_pivot_fields/" class="md-nav__link">
+        Pivot Fields
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../02_using_kibana_package/" class="md-nav__link">
+        Working with Kibana Package Manager
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4" type="checkbox" id="__nav_7_4" checked>
+      
+      <label class="md-nav__link" for="__nav_7_4">
+        Software Developer Guides
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Software Developer Guides" data-md-level="2">
+        <label class="md-nav__title" for="__nav_7_4">
+          <span class="md-nav__icon md-icon"></span>
+          Software Developer Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../02_build_a_commandline_utility/" class="md-nav__link">
+        Create a Commandline Utility
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../02_create_a_kibana_package/" class="md-nav__link">
+        Create a Kibana Package
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4" type="checkbox" id="__nav_7_4_4" checked>
+      
+      <label class="md-nav__link" for="__nav_7_4_4">
+        Software Development Kit
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Software Development Kit" data-md-level="3">
+        <label class="md-nav__title" for="__nav_7_4_4">
+          <span class="md-nav__icon md-icon"></span>
+          Software Development Kit
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_2" type="checkbox" id="__nav_7_4_4_2" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_2">
+        cmd
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="cmd" data-md-level="4">
+        <label class="md-nav__title" for="__nav_7_4_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          cmd
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cmd/base_interface/" class="md-nav__link">
+        base_interface
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cmd/inspection_helpers/" class="md-nav__link">
+        inspection_helpers
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cmd/config_object_interfaces/" class="md-nav__link">
+        config_object_interfaces
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cmd/service_interfaces/" class="md-nav__link">
+        service_interfaces
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3" type="checkbox" id="__nav_7_4_4_3" checked>
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3">
+        services
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="services" data-md-level="4">
+        <label class="md-nav__title" for="__nav_7_4_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          services
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1" type="checkbox" id="__nav_7_4_4_3_1" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1">
+        base
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="base" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          base
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config/" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3" type="checkbox" id="__nav_7_4_4_3_1_3" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3">
+        config_objects
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="config_objects" data-md-level="6">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3">
+          <span class="md-nav__icon md-icon"></span>
+          config_objects
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/generic/" class="md-nav__link">
+        generic.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3_2" type="checkbox" id="__nav_7_4_4_3_1_3_2" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3_2">
+        filebeat
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="filebeat" data-md-level="7">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          filebeat
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/filebeat/misc/" class="md-nav__link">
+        misc.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/filebeat/targets/" class="md-nav__link">
+        targets.py
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3_3" type="checkbox" id="__nav_7_4_4_3_1_3_3" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3_3">
+        suricata
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="suricata" data-md-level="7">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          suricata
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/suricata/misc/" class="md-nav__link">
+        misc.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/suricata/rules/" class="md-nav__link">
+        rules.py
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3_4" type="checkbox" id="__nav_7_4_4_3_1_3_4" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3_4">
+        zeek
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="zeek" data-md-level="7">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          zeek
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/zeek/node/" class="md-nav__link">
+        node.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/zeek/local_site/" class="md-nav__link">
+        local_site.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/zeek/local_network/" class="md-nav__link">
+        local_network.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/config_objects/zeek/bpf_filter/" class="md-nav__link">
+        bpf_filter.py
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../base/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_2" type="checkbox" id="__nav_7_4_4_3_2" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_2">
+        agent
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="agent" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          agent
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agent/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agent/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_3" type="checkbox" id="__nav_7_4_4_3_3" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_3">
+        filebeat
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="filebeat" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          filebeat
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../filebeat/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../filebeat/config/" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../filebeat/logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../filebeat/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../filebeat/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_4" type="checkbox" id="__nav_7_4_4_3_4" checked>
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_4">
+        suricata
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="suricata" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          suricata
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          config
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        config
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config" class="md-nav__link">
+    dynamite_nsm.services.suricata.config
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager" class="md-nav__link">
+    ConfigManager
+  </a>
+  
+    <nav class="md-nav" aria-label="ConfigManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--instance-variables" class="md-nav__link">
+    Instance Variables:
+  </a>
+  
+    <nav class="md-nav" aria-label="Instance Variables:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--directories-and-files" class="md-nav__link">
+    Directories and Files:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--network-interface-setup" class="md-nav__link">
+    Network Interface Setup:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--rules" class="md-nav__link">
+    Rules:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--address-groups" class="md-nav__link">
+    Address Groups:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--port-groups" class="md-nav__link">
+    Port Groups:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.commit" class="md-nav__link">
+    commit()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.from_raw_text" class="md-nav__link">
+    from_raw_text()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_5" type="checkbox" id="__nav_7_4_4_3_5" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_5">
+        zeek
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="zeek" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_5">
+          <span class="md-nav__icon md-icon"></span>
+          zeek
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../zeek/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../zeek/config/" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../zeek/logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../zeek/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../zeek/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_6" type="checkbox" id="__nav_7_4_4_3_6" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_6">
+        elasticsearch
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="elasticsearch" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_6">
+          <span class="md-nav__icon md-icon"></span>
+          elasticsearch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elasticsearch/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../developeers/SDK/services/elasticsearch/config.md" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elasticsearch/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elasticsearch/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      <label class="md-nav__link" for="__nav_8">
+        Resources
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Resources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Resources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../resources/contributing_guide/" class="md-nav__link">
+        Contributing Guide
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../resources/coding_guidelines/" class="md-nav__link">
+        Coding Guidelines
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config" class="md-nav__link">
+    dynamite_nsm.services.suricata.config
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager" class="md-nav__link">
+    ConfigManager
+  </a>
+  
+    <nav class="md-nav" aria-label="ConfigManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--instance-variables" class="md-nav__link">
+    Instance Variables:
+  </a>
+  
+    <nav class="md-nav" aria-label="Instance Variables:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--directories-and-files" class="md-nav__link">
+    Directories and Files:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--network-interface-setup" class="md-nav__link">
+    Network Interface Setup:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--rules" class="md-nav__link">
+    Rules:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--address-groups" class="md-nav__link">
+    Address Groups:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.__init__--port-groups" class="md-nav__link">
+    Port Groups:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.commit" class="md-nav__link">
+    commit()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.from_raw_text" class="md-nav__link">
+    from_raw_text()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                  <h1>config</h1>
+                
+                <p>Configuration wrappers for the main Suricata configuration file.</p>
+<p><strong><em>To import...</em></strong></p>
+<pre><code class="language-python3">from dynamite_nsm.services.suricata import config as suricata_config
+</code></pre>
+
+
+  <div class="doc doc-object doc-module">
+
+<a id="dynamite_nsm.services.suricata.config"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="dynamite_nsm.services.suricata.config.ConfigManager" class="doc doc-heading">
+        <code>ConfigManager</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Manage Suricata.yaml configuration</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.suricata.config.ConfigManager.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Configuration Manager for suricata.yaml file</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>configuration_directory</code></td>
+        <td><code>str</code></td>
+        <td><p>The path to the Suricata configuration directory (E.G /etc/dynamite/suricata)</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>      <hr />
+<h4 id="dynamite_nsm.services.suricata.config.ConfigManager.__init__--instance-variables">Instance Variables:</h4>
+<h5 id="dynamite_nsm.services.suricata.config.ConfigManager.__init__--directories-and-files">Directories and Files:</h5>
+<ul>
+<li><code>suricata_log_output_file</code> - Directory where logs are written</li>
+<li><code>default_rules_directory</code> - Directory where rules live</li>
+<li><code>classification_file</code> - The file (path) that maps severity to various [class]types (classification.config)</li>
+<li><code>reference_config_file</code> - The file (path) to the reference.config file</li>
+</ul>
+<h5 id="dynamite_nsm.services.suricata.config.ConfigManager.__init__--network-interface-setup">Network Interface Setup:</h5>
+<ul>
+<li><code>af_packet_interfaces</code> - A <code>list</code> of <code>misc.AfPacketInterfaces</code> representing suricata monitored interfaces</li>
+<li><code>pcap_interfaces</code> - A <code>list</code> of <code>misc.PcapInterfaces</code> (libpcap support if af_packet isn't possible)</li>
+</ul>
+<h5 id="dynamite_nsm.services.suricata.config.ConfigManager.__init__--rules">Rules:</h5>
+<ul>
+<li><code>rule_files</code> - A <code>list</code> of suricata <code>rules.Rules</code> (rulesets)</li>
+</ul>
+<h5 id="dynamite_nsm.services.suricata.config.ConfigManager.__init__--address-groups">Address Groups:</h5>
+<blockquote>
+<p><sup><a href="https://suricata.readthedocs.io/en/suricata-6.0.0/configuration/suricata-yaml.html#rule-vars">See syntax.</a></sup></p>
+</blockquote>
+<ul>
+<li><code>home_net</code></li>
+<li><code>external_net</code></li>
+<li><code>http_servers</code></li>
+<li><code>sql_servers</code></li>
+<li><code>dns_servers</code></li>
+<li><code>telnet_servers</code></li>
+<li><code>aim_servers</code></li>
+<li><code>dc_servers</code></li>
+<li><code>dnp3_servers</code></li>
+<li><code>modbus_servers</code></li>
+<li><code>enip_server</code></li>
+</ul>
+<h5 id="dynamite_nsm.services.suricata.config.ConfigManager.__init__--port-groups">Port Groups:</h5>
+<blockquote>
+<p><sup><a href="https://suricata.readthedocs.io/en/suricata-6.0.0/configuration/suricata-yaml.html#rule-vars">See syntax.</a></sup></p>
+</blockquote>
+<ul>
+<li><code>http_ports</code></li>
+<li><code>shellcode_ports</code></li>
+<li><code>oracle_ports</code></li>
+<li><code>ssh_ports</code></li>
+<li><code>dnp3_ports</code></li>
+<li><code>modbus_ports</code></li>
+<li><code>file_data_ports</code></li>
+<li><code>ftp_ports</code></li>
+</ul>
+
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/suricata/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Configuration Manager for suricata.yaml file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        configuration_directory: The path to the Suricata configuration directory (E.G /etc/dynamite/suricata)</span>
+<span class="sd">    ___</span>
+
+<span class="sd">    # Instance Variables:</span>
+
+<span class="sd">    ## Directories and Files:</span>
+<span class="sd">    - `suricata_log_output_file` - Directory where logs are written</span>
+<span class="sd">    - `default_rules_directory` - Directory where rules live</span>
+<span class="sd">    - `classification_file` - The file (path) that maps severity to various [class]types (classification.config)</span>
+<span class="sd">    - `reference_config_file` - The file (path) to the reference.config file</span>
+
+<span class="sd">    ## Network Interface Setup:</span>
+<span class="sd">    - `af_packet_interfaces` - A `list` of `misc.AfPacketInterfaces` representing suricata monitored interfaces</span>
+<span class="sd">    - `pcap_interfaces` - A `list` of `misc.PcapInterfaces` (libpcap support if af_packet isn&#39;t possible)</span>
+
+<span class="sd">    ## Rules:</span>
+<span class="sd">    - `rule_files` - A `list` of suricata `rules.Rules` (rulesets)</span>
+
+<span class="sd">    ## Address Groups:</span>
+
+<span class="sd">    &gt; &lt;sup&gt;[See syntax.](https://suricata.readthedocs.io/en/suricata-6.0.0/configuration/suricata-yaml.html#rule-vars)&lt;/sup&gt;</span>
+
+<span class="sd">    - `home_net`</span>
+<span class="sd">    - `external_net`</span>
+<span class="sd">    - `http_servers`</span>
+<span class="sd">    - `sql_servers`</span>
+<span class="sd">    - `dns_servers`</span>
+<span class="sd">    - `telnet_servers`</span>
+<span class="sd">    - `aim_servers`</span>
+<span class="sd">    - `dc_servers`</span>
+<span class="sd">    - `dnp3_servers`</span>
+<span class="sd">    - `modbus_servers`</span>
+<span class="sd">    - `enip_server`</span>
+
+<span class="sd">    ## Port Groups:</span>
+
+<span class="sd">    &gt; &lt;sup&gt;[See syntax.](https://suricata.readthedocs.io/en/suricata-6.0.0/configuration/suricata-yaml.html#rule-vars)&lt;/sup&gt;</span>
+
+<span class="sd">    - `http_ports`</span>
+<span class="sd">    - `shellcode_ports`</span>
+<span class="sd">    - `oracle_ports`</span>
+<span class="sd">    - `ssh_ports`</span>
+<span class="sd">    - `dnp3_ports`</span>
+<span class="sd">    - `modbus_ports`</span>
+<span class="sd">    - `file_data_ports`</span>
+<span class="sd">    - `ftp_ports`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">extract_tokens</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;runmode&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;runmode&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;home_net&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;HOME_NET&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;external_net&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;EXTERNAL_NET&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;http_servers&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;HTTP_SERVERS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;sql_servers&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;SQL_SERVERS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;dns_servers&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;DNS_SERVERS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;telnet_servers&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;TELNET_SERVERS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;aim_servers&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;AIM_SERVERS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;dc_servers&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;DC_SERVERS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;dnp3_servers&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;DNP3_SERVERS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;modbus_client&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;MODBUS_CLIENT&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;modbus_server&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;MODBUS_SERVER&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;enip_client&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;ENIP_CLIENT&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;enip_server&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;address-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;ENIP_SERVER&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;http_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;HTTP_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;shellcode_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;SHELLCODE_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;oracle_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;ORACLE_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;ssh_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;SSH_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;dnp3_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;DNP3_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;modbus_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;MODBUS_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;file_data_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;FILE_DATA_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;ftp_ports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;vars&#39;</span><span class="p">,</span> <span class="s1">&#39;port-groups&#39;</span><span class="p">,</span> <span class="s1">&#39;FTP_PORTS&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;default_log_directory&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;default-log-dir&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;suricata_log_output_file&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;logging&#39;</span><span class="p">,</span> <span class="s1">&#39;outputs&#39;</span><span class="p">,</span> <span class="s1">&#39;file&#39;</span><span class="p">,</span> <span class="s1">&#39;filename&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;default_rules_directory&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;default-rule-path&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;classification_file&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;classification-file&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;reference_config_file&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;reference-config-file&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;_af_packet_interfaces_raw&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;af-packet&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;_pcap_interfaces_raw&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;pcap&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;_rule_files_raw&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;rule-files&#39;</span><span class="p">,),</span>
+        <span class="s1">&#39;_threading_raw&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;threading&#39;</span><span class="p">,)</span>
+    <span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span> <span class="o">=</span> <span class="n">configuration_directory</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">config_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">runmode</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">home_net</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">external_net</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">http_servers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">sql_servers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dns_servers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">telnet_servers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">aim_servers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dc_servers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">modbus_client</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">modbus_server</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enip_client</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enip_server</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">http_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">shellcode_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">oracle_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ssh_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dnp3_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">modbus_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ftp_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">file_data_ports</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">default_log_directory</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">suricata_log_output_file</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">default_rules_directory</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">classification_file</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">reference_config_file</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_af_packet_interfaces_raw</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_pcap_interfaces_raw</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_rule_files_raw</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_threading_raw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">suricata_config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="p">,</span> <span class="s1">&#39;suricata.yaml&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suricata_config_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configyaml</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config_data_raw</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">configyaml</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">Loader</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">general_exceptions</span><span class="o">.</span><span class="n">ReadConfigError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to read or parse </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">suricata_config_file</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_data_raw</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;suricata.config&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">,</span> <span class="o">**</span><span class="n">extract_tokens</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">parse_yaml_file</span><span class="p">()</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="n">rules</span><span class="o">.</span><span class="n">Rules</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">rule_name</span> <span class="ow">in</span> <span class="n">rules</span><span class="o">.</span><span class="n">list_available_rule_names</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">rule_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rule_files_raw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rules</span><span class="o">.</span><span class="n">Rule</span><span class="p">(</span><span class="n">rule_name</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rules</span><span class="o">.</span><span class="n">Rule</span><span class="p">(</span><span class="n">rule_name</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">af_packet_interfaces</span> <span class="o">=</span> <span class="n">misc</span><span class="o">.</span><span class="n">AfPacketInterfaces</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">misc</span><span class="o">.</span><span class="n">AfPacketInterface</span><span class="p">(</span>
+            <span class="n">cluster_id</span><span class="o">=</span><span class="n">af_packet_interface_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cluster-id&#39;</span><span class="p">),</span>
+            <span class="n">cluster_type</span><span class="o">=</span><span class="n">af_packet_interface_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cluster-type&#39;</span><span class="p">),</span>
+            <span class="n">interface_name</span><span class="o">=</span><span class="n">af_packet_interface_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interface&#39;</span><span class="p">),</span>
+            <span class="n">bpf_filter</span><span class="o">=</span><span class="n">af_packet_interface_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpf-filter&#39;</span><span class="p">),</span>
+            <span class="n">threads</span><span class="o">=</span><span class="n">af_packet_interface_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;threads&#39;</span><span class="p">)</span>
+        <span class="p">)</span> <span class="k">for</span> <span class="n">af_packet_interface_raw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_af_packet_interfaces_raw</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">thread_families</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threading_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpu_affinity&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threading</span> <span class="o">=</span> <span class="n">misc</span><span class="o">.</span><span class="n">Threading</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">thread_family</span> <span class="ow">in</span> <span class="n">thread_families</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;management-cpu-set&#39;</span> <span class="ow">in</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">threading</span><span class="o">.</span><span class="n">management_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;management-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpus&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">elif</span> <span class="s1">&#39;receive-cpu-set&#39;</span> <span class="ow">in</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">threading</span><span class="o">.</span><span class="n">receive_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;receive-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpus&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">elif</span> <span class="s1">&#39;worker-cpu-set&#39;</span> <span class="ow">in</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">threading</span><span class="o">.</span><span class="n">worker_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;worker-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpus&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">pcap_interfaces</span> <span class="o">=</span> <span class="n">misc</span><span class="o">.</span><span class="n">PcapInterfaces</span><span class="p">(</span>
+        <span class="n">interface_names</span><span class="o">=</span><span class="p">[</span><span class="n">interface_raw</span> <span class="k">for</span> <span class="n">interface_raw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pcap_interfaces_raw</span><span class="p">]</span>
+    <span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.suricata.config.ConfigManager.commit" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">backup_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">top_text</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Write out an updated configuration file, and optionally backup the old one.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>out_file_path</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The path to the output file; if none given overwrites existing</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>backup_directory</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The path to the backup directory</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>top_text</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>If specified, the first line of the configuration file will be set to the value of your choosing.</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>None</code></td>
+      <td><p>None</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/suricata/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">backup_directory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+           <span class="n">top_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Write out an updated configuration file, and optionally backup the old one.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        out_file_path: The path to the output file; if none given overwrites existing</span>
+<span class="sd">        backup_directory: The path to the backup directory</span>
+<span class="sd">        top_text: If specified, the first line of the configuration file will be set to the value of your choosing.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">out_file_path</span><span class="p">:</span>
+        <span class="n">out_file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/suricata.yaml&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">top_text</span><span class="p">:</span>
+        <span class="n">top_text</span> <span class="o">=</span> <span class="s1">&#39;%YAML 1.1</span><span class="se">\n</span><span class="s1">---&#39;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_rule_files_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="o">.</span><span class="n">get_raw</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_pcap_interfaces_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcap_interfaces</span><span class="o">.</span><span class="n">get_raw</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_af_packet_interfaces_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">af_packet_interfaces</span><span class="o">.</span><span class="n">get_raw</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_threading_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threading</span><span class="o">.</span><span class="n">get_raw</span><span class="p">()</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ConfigManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="n">backup_directory</span><span class="p">,</span> <span class="n">top_text</span><span class="o">=</span><span class="n">top_text</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.suricata.config.ConfigManager.from_raw_text" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">from_raw_text</span><span class="p">(</span><span class="n">raw_text</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Alternative method for creating configuration file from raw text</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>raw_text</code></td>
+        <td><code>str</code></td>
+        <td><p>The string representing the configuration file</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>configuration_directory</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The configuration directory for Suricata</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ConfigManager</code></td>
+      <td><p>An instance of ConfigManager</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/suricata/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">from_raw_text</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">raw_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigManager</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Alternative method for creating configuration file from raw text</span>
+<span class="sd">    Args:</span>
+<span class="sd">        raw_text: The string representing the configuration file</span>
+<span class="sd">        configuration_directory: The configuration directory for Suricata</span>
+<span class="sd">    Returns:</span>
+<span class="sd">         An instance of ConfigManager</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tmp_dir</span> <span class="o">=</span> <span class="s1">&#39;/tmp/dynamite/temp_configs/&#39;</span>
+    <span class="n">tmp_config</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tmp_dir</span><span class="si">}</span><span class="s1">/suricata.yaml&#39;</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp_config</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_f</span><span class="p">:</span>
+        <span class="n">out_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">raw_text</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">configuration_directory</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">configuration_directory</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">configuration_directory</span> <span class="o">=</span> <span class="n">configuration_directory</span>
+    <span class="k">return</span> <span class="n">c</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+                
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../install/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              install
+            </div>
+          </div>
+        </a>
+      
+      
+        <a href="../logs/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              logs
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../../../../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../../../../../../assets/javascripts/workers/search.4fa0e4ee.min.js", "version": null}</script>
+    
+    
+      <script src="../../../../../../assets/javascripts/bundle.1d3bfcf1.min.js"></script>
+      
+    
+  </body>
+</html>

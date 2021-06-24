@@ -1,0 +1,4035 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.4">
+    
+    
+      
+        <title>service_interfaces.py - DynamiteNSM</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.bde7dde4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ef6f36e2.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/_mkdocstrings.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../../../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dynamite_nsm.cmd.service_interfaces" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="DynamiteNSM" class="md-header__button md-logo" aria-label="DynamiteNSM" data-md-component="logo">
+      
+  <img src="../../../../../data/img/logo_inverted.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DynamiteNSM
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              service_interfaces.py
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="DynamiteNSM" class="md-nav__button md-logo" aria-label="DynamiteNSM" data-md-component="logo">
+      
+  <img src="../../../../../data/img/logo_inverted.png" alt="logo">
+
+    </a>
+    DynamiteNSM
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      <label class="md-nav__link" for="__nav_2">
+        About
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="About" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          About
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/01_project_goals/" class="md-nav__link">
+        Project Goals
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/02_architecture/" class="md-nav__link">
+        Architechture
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3" type="checkbox" id="__nav_2_3" >
+      
+      <label class="md-nav__link" for="__nav_2_3">
+        Event Data Model
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Event Data Model" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          Event Data Model
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/01_overview/" class="md-nav__link">
+        Data Model Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3_2" type="checkbox" id="__nav_2_3_2" >
+      
+      <label class="md-nav__link" for="__nav_2_3_2">
+        Sample Logs
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Sample Logs" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          Sample Logs
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/alert.eve.json/" class="md-nav__link">
+        Suricata Alert
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/conn.log/" class="md-nav__link">
+        Zeek Connection
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/dhcp.log/" class="md-nav__link">
+        Zeek DHCP
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/dns.log/" class="md-nav__link">
+        Zeek DNS
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/files.log/" class="md-nav__link">
+        Zeek Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/http.log/" class="md-nav__link">
+        Zeek HTTP
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/pe.log/" class="md-nav__link">
+        Zeek Portable Executables
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/ssh.log/" class="md-nav__link">
+        Zeek SSH
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/ssl.log/" class="md-nav__link">
+        Zeek SSL
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/weird.log/" class="md-nav__link">
+        Zeek Weird
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../about/data_model/samples/x509.log/" class="md-nav__link">
+        Zeek X509
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      <label class="md-nav__link" for="__nav_3">
+        Requirements
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Requirements" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Requirements
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../requirements/01_supported_operating_systems/" class="md-nav__link">
+        Supported Operating Systems
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../requirements/02_agent_specifications/" class="md-nav__link">
+        Agent Specifications
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../requirements/03_monitor_specifications/" class="md-nav__link">
+        Monitor Specifications
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../requirements/04_span_vs_tap/" class="md-nav__link">
+        SPAN vs TAP
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      <label class="md-nav__link" for="__nav_4">
+        Installation
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Installation" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Installation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/01_overview/" class="md-nav__link">
+        Installation Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_2" type="checkbox" id="__nav_4_2" >
+      
+      <label class="md-nav__link" for="__nav_4_2">
+        Agent
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Agent" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          Agent
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/agent/01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/agent/02_configure_inspection_interface/" class="md-nav__link">
+        Preparing Inspection Interfaces
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/agent/03_install_same_instance/" class="md-nav__link">
+        Install on the Same Instance
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/agent/04_install_separate_instances/" class="md-nav__link">
+        Install across Separate Instances
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" >
+      
+      <label class="md-nav__link" for="__nav_4_3">
+        Monitor
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Monitor" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          Monitor
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/monitor/01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/monitor/02_network_interface_configuration/" class="md-nav__link">
+        Setup Management Interface
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/monitor/03_install_same_instance/" class="md-nav__link">
+        Install on the Same Instance
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../installation/monitor/04_install_separate_instances/" class="md-nav__link">
+        Install across Separate Instances
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      <label class="md-nav__link" for="__nav_5">
+        Configuration
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Configuration" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Configuration
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../configuration/01_overview/" class="md-nav__link">
+        Configuration Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_2" type="checkbox" id="__nav_5_2" >
+      
+      <label class="md-nav__link" for="__nav_5_2">
+        Agent
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Agent" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          Agent
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../configuration/agent/01_connectors/" class="md-nav__link">
+        Connectors
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../configuration/agent/02_event_normalization/" class="md-nav__link">
+        Event Normalization
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../configuration/agent/03_scripts_and_rules/" class="md-nav__link">
+        Scripts and Rules
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../configuration/agent/04_inspection_interfaces/" class="md-nav__link">
+        Inspection Interfaces
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_3" type="checkbox" id="__nav_5_3" >
+      
+      <label class="md-nav__link" for="__nav_5_3">
+        Monitor
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Monitor" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_3">
+          <span class="md-nav__icon md-icon"></span>
+          Monitor
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../configuration/monitor/01_elasticsearch/" class="md-nav__link">
+        Elasticsearch
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../configuration/monitor/02_kibana/" class="md-nav__link">
+        Kibana
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      <label class="md-nav__link" for="__nav_6">
+        Services
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Services" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Services
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/01_updates/" class="md-nav__link">
+        Updates
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/02_monitor/" class="md-nav__link">
+        Monitor
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/03_agent/" class="md-nav__link">
+        Agent
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/10_remote/" class="md-nav__link">
+        Remote
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/04_elasticsearch/" class="md-nav__link">
+        Elasticsearch
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/05_logstash/" class="md-nav__link">
+        Logstash
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/06_kibana/" class="md-nav__link">
+        Kibana
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/04_kibana_package/" class="md-nav__link">
+        Kibana Package Manager
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/07_zeek/" class="md-nav__link">
+        Zeek
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/08_suricata/" class="md-nav__link">
+        Suricata
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../services/09_filebeat/" class="md-nav__link">
+        Filebeat
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" checked>
+      
+      <label class="md-nav__link" for="__nav_7">
+        Guides
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../01_quick_start/" class="md-nav__link">
+        Quick Start
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_2" type="checkbox" id="__nav_7_2" >
+      
+      <label class="md-nav__link" for="__nav_7_2">
+        Navigating Kibana
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Navigating Kibana" data-md-level="2">
+        <label class="md-nav__title" for="__nav_7_2">
+          <span class="md-nav__icon md-icon"></span>
+          Navigating Kibana
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../base_views/01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../base_views/02_alerts/" class="md-nav__link">
+        Alert
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../base_views/03_conversations/" class="md-nav__link">
+        Conversations
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../base_views/04_hosts/" class="md-nav__link">
+        Hosts
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../base_views/05_protocols/" class="md-nav__link">
+        Protocols
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../base_views/06_pivot_fields/" class="md-nav__link">
+        Pivot Fields
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../02_using_kibana_package/" class="md-nav__link">
+        Working with Kibana Package Manager
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4" type="checkbox" id="__nav_7_4" checked>
+      
+      <label class="md-nav__link" for="__nav_7_4">
+        Software Developer Guides
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Software Developer Guides" data-md-level="2">
+        <label class="md-nav__title" for="__nav_7_4">
+          <span class="md-nav__icon md-icon"></span>
+          Software Developer Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02_build_a_commandline_utility/" class="md-nav__link">
+        Create a Commandline Utility
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../02_create_a_kibana_package/" class="md-nav__link">
+        Create a Kibana Package
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4" type="checkbox" id="__nav_7_4_4" checked>
+      
+      <label class="md-nav__link" for="__nav_7_4_4">
+        Software Development Kit
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Software Development Kit" data-md-level="3">
+        <label class="md-nav__title" for="__nav_7_4_4">
+          <span class="md-nav__icon md-icon"></span>
+          Software Development Kit
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01_overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_2" type="checkbox" id="__nav_7_4_4_2" checked>
+      
+      <label class="md-nav__link" for="__nav_7_4_4_2">
+        cmd
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="cmd" data-md-level="4">
+        <label class="md-nav__title" for="__nav_7_4_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          cmd
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../base_interface/" class="md-nav__link">
+        base_interface
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inspection_helpers/" class="md-nav__link">
+        inspection_helpers
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config_object_interfaces/" class="md-nav__link">
+        config_object_interfaces
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          service_interfaces
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        service_interfaces
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces" class="md-nav__link">
+    dynamite_nsm.cmd.service_interfaces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface" class="md-nav__link">
+    MultipleResponsibilityInterface
+  </a>
+  
+    <nav class="md-nav" aria-label="MultipleResponsibilityInterface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.build_parser" class="md-nav__link">
+    build_parser()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.execute" class="md-nav__link">
+    execute()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.get_parser" class="md-nav__link">
+    get_parser()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface" class="md-nav__link">
+    SimpleConfigManagerInterface
+  </a>
+  
+    <nav class="md-nav" aria-label="SimpleConfigManagerInterface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.build_parser" class="md-nav__link">
+    build_parser()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.execute" class="md-nav__link">
+    execute()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.get_parser" class="md-nav__link">
+    get_parser()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface" class="md-nav__link">
+    SingleResponsibilityInterface
+  </a>
+  
+    <nav class="md-nav" aria-label="SingleResponsibilityInterface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.build_parser" class="md-nav__link">
+    build_parser()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.execute" class="md-nav__link">
+    execute()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.execute_in_background" class="md-nav__link">
+    execute_in_background()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.get_parser" class="md-nav__link">
+    get_parser()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.append_service_multiple_responsibility_interface_to_parser" class="md-nav__link">
+    append_service_multiple_responsibility_interface_to_parser()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.append_service_simple_config_management_interface_to_parser" class="md-nav__link">
+    append_service_simple_config_management_interface_to_parser()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.append_service_single_responsibility_interface_to_parser" class="md-nav__link">
+    append_service_single_responsibility_interface_to_parser()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3" type="checkbox" id="__nav_7_4_4_3" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3">
+        services
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="services" data-md-level="4">
+        <label class="md-nav__title" for="__nav_7_4_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          services
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1" type="checkbox" id="__nav_7_4_4_3_1" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1">
+        base
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="base" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          base
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config/" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3" type="checkbox" id="__nav_7_4_4_3_1_3" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3">
+        config_objects
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="config_objects" data-md-level="6">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3">
+          <span class="md-nav__icon md-icon"></span>
+          config_objects
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/generic/" class="md-nav__link">
+        generic.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3_2" type="checkbox" id="__nav_7_4_4_3_1_3_2" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3_2">
+        filebeat
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="filebeat" data-md-level="7">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          filebeat
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/filebeat/misc/" class="md-nav__link">
+        misc.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/filebeat/targets/" class="md-nav__link">
+        targets.py
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3_3" type="checkbox" id="__nav_7_4_4_3_1_3_3" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3_3">
+        suricata
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="suricata" data-md-level="7">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          suricata
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/suricata/misc/" class="md-nav__link">
+        misc.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/suricata/rules/" class="md-nav__link">
+        rules.py
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_1_3_4" type="checkbox" id="__nav_7_4_4_3_1_3_4" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_1_3_4">
+        zeek
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="zeek" data-md-level="7">
+        <label class="md-nav__title" for="__nav_7_4_4_3_1_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          zeek
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/zeek/node/" class="md-nav__link">
+        node.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/zeek/local_site/" class="md-nav__link">
+        local_site.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/zeek/local_network/" class="md-nav__link">
+        local_network.py
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/config_objects/zeek/bpf_filter/" class="md-nav__link">
+        bpf_filter.py
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/base/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_2" type="checkbox" id="__nav_7_4_4_3_2" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_2">
+        agent
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="agent" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          agent
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/agent/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/agent/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_3" type="checkbox" id="__nav_7_4_4_3_3" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_3">
+        filebeat
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="filebeat" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          filebeat
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/filebeat/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/filebeat/config/" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/filebeat/logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/filebeat/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/filebeat/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_4" type="checkbox" id="__nav_7_4_4_3_4" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_4">
+        suricata
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="suricata" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          suricata
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/suricata/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/suricata/config/" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/suricata/logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/suricata/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/suricata/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_5" type="checkbox" id="__nav_7_4_4_3_5" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_5">
+        zeek
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="zeek" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_5">
+          <span class="md-nav__icon md-icon"></span>
+          zeek
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/zeek/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/zeek/config/" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/zeek/logs/" class="md-nav__link">
+        logs
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/zeek/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/zeek/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_4_4_3_6" type="checkbox" id="__nav_7_4_4_3_6" >
+      
+      <label class="md-nav__link" for="__nav_7_4_4_3_6">
+        elasticsearch
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="elasticsearch" data-md-level="5">
+        <label class="md-nav__title" for="__nav_7_4_4_3_6">
+          <span class="md-nav__icon md-icon"></span>
+          elasticsearch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/elasticsearch/install/" class="md-nav__link">
+        install
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developeers/SDK/services/elasticsearch/config.md" class="md-nav__link">
+        config
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/elasticsearch/process/" class="md-nav__link">
+        process
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/elasticsearch/profile/" class="md-nav__link">
+        profile
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      <label class="md-nav__link" for="__nav_8">
+        Resources
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Resources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Resources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../resources/contributing_guide/" class="md-nav__link">
+        Contributing Guide
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../resources/coding_guidelines/" class="md-nav__link">
+        Coding Guidelines
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces" class="md-nav__link">
+    dynamite_nsm.cmd.service_interfaces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface" class="md-nav__link">
+    MultipleResponsibilityInterface
+  </a>
+  
+    <nav class="md-nav" aria-label="MultipleResponsibilityInterface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.build_parser" class="md-nav__link">
+    build_parser()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.execute" class="md-nav__link">
+    execute()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.get_parser" class="md-nav__link">
+    get_parser()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface" class="md-nav__link">
+    SimpleConfigManagerInterface
+  </a>
+  
+    <nav class="md-nav" aria-label="SimpleConfigManagerInterface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.build_parser" class="md-nav__link">
+    build_parser()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.execute" class="md-nav__link">
+    execute()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.get_parser" class="md-nav__link">
+    get_parser()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface" class="md-nav__link">
+    SingleResponsibilityInterface
+  </a>
+  
+    <nav class="md-nav" aria-label="SingleResponsibilityInterface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.build_parser" class="md-nav__link">
+    build_parser()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.execute" class="md-nav__link">
+    execute()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.execute_in_background" class="md-nav__link">
+    execute_in_background()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.get_parser" class="md-nav__link">
+    get_parser()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.append_service_multiple_responsibility_interface_to_parser" class="md-nav__link">
+    append_service_multiple_responsibility_interface_to_parser()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.append_service_simple_config_management_interface_to_parser" class="md-nav__link">
+    append_service_simple_config_management_interface_to_parser()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.cmd.service_interfaces.append_service_single_responsibility_interface_to_parser" class="md-nav__link">
+    append_service_single_responsibility_interface_to_parser()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                  <h1>service_interfaces</h1>
+                
+                <p>Contains several classes capable of converting a variety of common design patterns into commandline utilities.</p>
+<p><strong><em>To import...</em></strong></p>
+<pre><code class="language-python3">from dynamite_nsm.cmd import service_interfaces
+</code></pre>
+
+
+  <div class="doc doc-object doc-module">
+
+<a id="dynamite_nsm.cmd.service_interfaces"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface" class="doc doc-heading">
+        <code>MultipleResponsibilityInterface</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Maps a class with several responsibilities to commandline interface
+For example ProcessManager's provides multiple methods that can be invoked to perform various tasks.</p>
+<p>MultipleResponsibilityInterface:</p>
+<ol>
+<li>Takes a single class and supported_method_names.</li>
+<li>Uses several introspection techniques to enumerate instance methods from that class</li>
+<li>Derives the **kwargs params for argparse.ArgumentParser.add_arguments method for the <strong>init</strong>, and
+   selected exec_method</li>
+<li>Generates parser using annotation and docs</li>
+<li>Provide a method for executing the parsed argparse.Namespace against
+   cls.<strong>init</strong>(<strong>base_kwargs).{exec_method(</strong>interface_kwargs)}</li>
+</ol>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">supported_method_names</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Initialize the interface</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>cls</code></td>
+        <td><code>object</code></td>
+        <td><p>The class we wish to turn into a commandline utility</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>supported_method_names</code></td>
+        <td><code>List[str]</code></td>
+        <td><p>A list of methods to create interfaces for</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of this commandline interface</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface_description</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>A description of what this interface is supposed to do</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>defaults</code></td>
+        <td><code>Optional[Dict]</code></td>
+        <td><p>A dictionary where the key a parameter name and the value represents the value to default too.</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">supported_method_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">interface_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+             <span class="n">interface_description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initialize the interface</span>
+<span class="sd">    Args:</span>
+<span class="sd">        cls: The class we wish to turn into a commandline utility</span>
+<span class="sd">        supported_method_names: A list of methods to create interfaces for</span>
+<span class="sd">        interface_name: The name of this commandline interface</span>
+<span class="sd">        interface_description: A description of what this interface is supposed to do</span>
+<span class="sd">        defaults: A dictionary where the key a parameter name and the value represents the value to default too.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cls</span> <span class="o">=</span> <span class="bp">cls</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">supported_method_names</span> <span class="o">=</span> <span class="n">supported_method_names</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">interface_description</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interfaceModuleType_description</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">base_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interface_methods</span> <span class="o">=</span> <span class="n">get_class_instance_methods</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">use_parent_init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.build_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Build a parser from any <code>MultipleResponsibilityInterface</code> and <code>argparse.ArgumentParser</code> derived class</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>parser</code></td>
+        <td><code>argparse.ArgumentParser</code></td>
+        <td><p>The <code>argparse.ArgumentParser</code> instance that you want to add a new parser too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface</code></td>
+        <td><code>MultipleResponsibilityInterface</code></td>
+        <td><p>The <code>MultipleResponsibilityInterface</code> instance you wish to append</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>An argument parser instance for the <code>MultipleResponsibilityInterface</code> derived class</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">:</span> <span class="n">MultipleResponsibilityInterface</span><span class="p">,</span>
+                 <span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build a parser from any `MultipleResponsibilityInterface` and `argparse.ArgumentParser` derived class</span>
+<span class="sd">    Args:</span>
+<span class="sd">        parser: The `argparse.ArgumentParser` instance that you want to add a new parser too</span>
+<span class="sd">        interface: The `MultipleResponsibilityInterface` instance you wish to append</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        An argument parser instance for the `MultipleResponsibilityInterface` derived class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actions_subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">params_group</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">interface_methods</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">supported_method_names</span><span class="p">:</span>
+            <span class="n">action_parser</span> <span class="o">=</span> <span class="n">actions_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">))</span>
+            <span class="n">action_parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">entry_method_name</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">base_params</span><span class="p">:</span>
+                <span class="n">action_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">params_group</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">action_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">parser</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.execute" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Interpret the results of an <code>argparse.ArgumentParser.parse_args()</code> method and perform one or more operations.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>argparse.Namespace</code></td>
+        <td><p>The output of argparse.ArgumentParser.parse_args() function</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Any</code></td>
+      <td><p>Any value; completely depends on the <code>selected_method</code> being invoked</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        args: The output of argparse.ArgumentParser.parse_args() function</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Any value; completely depends on the `selected_method` being invoked</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">constructor_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">entry_method_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_params</span><span class="p">]:</span>
+            <span class="n">constructor_kwargs</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">entry_method_kwargs</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;interface&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sub_interface&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;entry_method_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># Dynamically load our class</span>
+    <span class="n">klass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;cls&#39;</span><span class="p">)</span>
+    <span class="c1"># Instantiate it with the constructor kwargs</span>
+    <span class="n">exec_inst</span> <span class="o">=</span> <span class="n">klass</span><span class="p">(</span><span class="o">**</span><span class="n">constructor_kwargs</span><span class="p">)</span>
+    <span class="c1"># Dynamically load our defined entry_method</span>
+    <span class="n">exec_entry_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">exec_inst</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">entry_method_name</span><span class="p">)</span>
+    <span class="c1"># Call the entry method</span>
+    <span class="k">return</span> <span class="n">exec_entry_method</span><span class="p">(</span><span class="o">**</span><span class="n">entry_method_kwargs</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface.get_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the current interface as an <code>argparse.ArgumentParser</code> instance</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>An argument parser instance for the <code>MultipleResponsibilityInterface</code> derived class</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get the current interface as an `argparse.ArgumentParser` instance</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">         An argument parser instance for the `MultipleResponsibilityInterface` derived class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">interface_name</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">interface_description</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface" class="doc doc-heading">
+        <code>SimpleConfigManagerInterface</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Based upon the SingleResponsibilityInterface maps a class with only one responsibility to commandline interface,
+but also makes all the instance variables of the configuration class available as commandline arguments</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Initialize the interface</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>config</code></td>
+        <td><code>Union[config.GenericConfigManager, config.YamlConfigManager]</code></td>
+        <td><p>The class we wish to turn into a commandline utility</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of this commandline interface</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface_description</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>A description of what this interface is supposed to do</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>defaults</code></td>
+        <td><code>Optional[Dict]</code></td>
+        <td><p>A dictionary where the key a parameter name and the value represents the value to default too.</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">GenericConfigManager</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">YamlConfigManager</span><span class="p">],</span> <span class="n">interface_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+             <span class="n">interface_description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initialize the interface</span>
+<span class="sd">    Args:</span>
+<span class="sd">        config: The class we wish to turn into a commandline utility</span>
+<span class="sd">        interface_name: The name of this commandline interface</span>
+<span class="sd">        interface_description: A description of what this interface is supposed to do</span>
+<span class="sd">        defaults: A dictionary where the key a parameter name and the value represents the value to default too.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">config_module_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="s1">&#39;commit&#39;</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.build_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Build a parser from any <code>SimpleConfigManagerInterface</code> and <code>argparse.ArgumentParser</code> derived class</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>parser</code></td>
+        <td><code>argparse.ArgumentParser</code></td>
+        <td><p>The <code>argparse.ArgumentParser</code> instance that you want to add a new parser too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface</code></td>
+        <td><code>SimpleConfigManagerInterface</code></td>
+        <td><p>The <code>SimpleConfigManagerInterface</code> instance you wish to append</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>An argument parser instance for the <code>SimpleConfigManagerInterface</code> derived class</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">:</span> <span class="n">SimpleConfigManagerInterface</span><span class="p">,</span>
+                 <span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build a parser from any `SimpleConfigManagerInterface` and `argparse.ArgumentParser` derived class</span>
+<span class="sd">    Args:</span>
+<span class="sd">        parser: The `argparse.ArgumentParser` instance that you want to add a new parser too</span>
+<span class="sd">        interface: The `SimpleConfigManagerInterface` instance you wish to append</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        An argument parser instance for the `SimpleConfigManagerInterface` derived class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config_options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;configuration options&#39;</span><span class="p">)</span>
+    <span class="n">config_objects_subparser</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">base_params</span> <span class="o">+</span> <span class="n">interface</span><span class="o">.</span><span class="n">interface_params</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">config</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">RESERVED_VARIABLE_NAMES</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="s1">&#39;_raw&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">var</span> <span class="ow">in</span> <span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">base_params</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="s1">&#39;config_objects&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">var</span><span class="p">))):</span>
+            <span class="n">complex_obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">var</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">,</span> <span class="n">Analyzers</span><span class="p">):</span>
+                <span class="n">config_module_interface</span> <span class="o">=</span> <span class="n">AnalyzersInterface</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">)</span>
+                <span class="n">interface</span><span class="o">.</span><span class="n">config_module_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">config_module_interface</span><span class="p">})</span>
+                <span class="n">interface_operations</span><span class="o">.</span><span class="n">append_service_interface_to_parser</span><span class="p">(</span><span class="n">config_objects_subparser</span><span class="p">,</span>
+                                                                        <span class="n">interface</span><span class="o">=</span><span class="n">config_module_interface</span><span class="p">,</span>
+                                                                        <span class="n">interface_name</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
+                                                                        <span class="n">interface_group_name</span><span class="o">=</span><span class="s1">&#39;config_module&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">,</span> <span class="n">targets</span><span class="o">.</span><span class="n">BaseTargets</span><span class="p">):</span>
+                <span class="n">config_module_interface</span> <span class="o">=</span> <span class="n">FilebeatTargetsInterface</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">)</span>
+                <span class="n">interface</span><span class="o">.</span><span class="n">config_module_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">config_module_interface</span><span class="p">})</span>
+                <span class="n">interface_operations</span><span class="o">.</span><span class="n">append_service_interface_to_parser</span><span class="p">(</span><span class="n">config_objects_subparser</span><span class="p">,</span>
+                                                                        <span class="n">interface</span><span class="o">=</span><span class="n">config_module_interface</span><span class="p">,</span>
+                                                                        <span class="n">interface_name</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
+                                                                        <span class="n">interface_group_name</span><span class="o">=</span><span class="s1">&#39;config_module&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">ArgparseParameters</span><span class="o">.</span><span class="n">create_from_typing_annotation</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">var</span><span class="p">)),</span>
+                                                                    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">config_options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentError</span><span class="p">:</span>
+                <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">parser</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.execute" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Interpret the results of an <code>argparse.ArgumentParser.parse_args()</code> method and perform one or more operations.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>argparse.Namespace</code></td>
+        <td><p>The output of argparse.ArgumentParser.parse_args() function</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Any</code></td>
+      <td><p>Any value; depending on the value returned from the <code>entry_method</code> (usually a <code>ConfigManager.commit</code>)</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        args: The output of argparse.ArgumentParser.parse_args() function</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Any value; depending on the value returned from the `entry_method` (usually a `ConfigManager.commit`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">changed_config</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;config_module&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">config_module</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Config Option&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">]</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="p">[</span><span class="n">headers</span><span class="p">]</span>
+    <span class="n">changed_rows_only</span> <span class="o">=</span> <span class="p">[</span><span class="n">headers</span><span class="p">]</span>
+
+    <span class="c1"># In the scenario we have configuration modules include them as config options in our display table</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="p">[[</span><span class="n">config_module_name</span><span class="p">,</span> <span class="s1">&#39;Configuration Module&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">config_module_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_module_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+
+    <span class="k">for</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">option</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">RESERVED_VARIABLE_NAMES</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">config_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">changed_config</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">changed_config_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="n">changed_rows_only</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">changed_config_value</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">:</span>
+        <span class="c1"># Configuration module interfaces need to pass through relevant commandline defaults from parent interface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_module_map</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">]</span><span class="o">.</span><span class="n">defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span>
+
+        <span class="n">selected_config_module</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_module_map</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">]</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">selected_config_module</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">Analyzers</span><span class="p">):</span>
+            <span class="n">selected_analyzer_header</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">,</span> <span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">]</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">selected_config_module</span><span class="o">.</span><span class="n">changed_rows</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">selected_analyzer_header</span><span class="p">,</span>
+                            <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">targets</span><span class="o">.</span><span class="n">BaseTargets</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">selected_config_module</span><span class="o">.</span><span class="n">changed_rows</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">res</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">changed_config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">changed_rows_only</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.get_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Returns an argparse.ArgumentParser instance before parse_args has been called.</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>argparse.ArgumentParser instance</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Returns an argparse.ArgumentParser instance before parse_args has been called.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">         argparse.ArgumentParser instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface" class="doc doc-heading">
+        <code>SingleResponsibilityInterface</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Maps a class with only one responsibility to commandline interface
+For example InstallManager's only need call one function (perform one responsibility) once instantiated.</p>
+<p>SingleResponsibilityInterface:</p>
+<ol>
+<li>Takes a single class and entry_method_name.</li>
+<li>Uses several introspection techniques to enumerate instance methods from that class</li>
+<li>Derives the **kwargs params for argparse.ArgumentParser.add_arguments method for the <strong>init</strong>, and entry_method</li>
+<li>Generates parser using annotation and docs</li>
+<li>Provide a method for executing the parsed argparse.Namespace against
+   cls.<strong>init</strong>(<strong>base_kwargs).{entry_method(</strong>interface_kwargs)}</li>
+</ol>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">entry_method_name</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Initialize the interface</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>cls</code></td>
+        <td><code>object</code></td>
+        <td><p>The class we wish to turn into a commandline utility</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>entry_method_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the method inside the above class we wish to call at execution time</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of this commandline interface</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface_description</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>A description of what this interface is supposed to do</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>defaults</code></td>
+        <td><code>Optional[Dict]</code></td>
+        <td><p>A dictionary where the key a parameter name and the value represents the value to default too.</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">entry_method_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+             <span class="n">interface_description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initialize the interface</span>
+<span class="sd">    Args:</span>
+<span class="sd">        cls: The class we wish to turn into a commandline utility</span>
+<span class="sd">        entry_method_name: The name of the method inside the above class we wish to call at execution time</span>
+<span class="sd">        interface_name: The name of this commandline interface</span>
+<span class="sd">        interface_description: A description of what this interface is supposed to do</span>
+<span class="sd">        defaults: A dictionary where the key a parameter name and the value represents the value to default too.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cls</span> <span class="o">=</span> <span class="bp">cls</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">entry_method_name</span> <span class="o">=</span> <span class="n">entry_method_name</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span> <span class="o">=</span> <span class="n">defaults</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">interface_description</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interface_description</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">base_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interface_methods</span> <span class="o">=</span> <span class="n">get_class_instance_methods</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">use_parent_init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">interface_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interface_methods</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">entry_method_name</span><span class="p">]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.build_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Build a parser from any <code>SingleResponsibilityInterface</code> and <code>argparse.ArgumentParser</code> derived class</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>parser</code></td>
+        <td><code>argparse.ArgumentParser</code></td>
+        <td><p>The <code>argparse.ArgumentParser</code> instance that you want to add a new parser too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface</code></td>
+        <td><code>SingleResponsibilityInterface</code></td>
+        <td><p>The <code>SingleResponsibilityInterface</code> instance you wish to append</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>An argument parser instance for the <code>SingleResponsibilityInterface</code> derived class</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">:</span> <span class="n">SingleResponsibilityInterface</span><span class="p">,</span>
+                 <span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build a parser from any `SingleResponsibilityInterface` and `argparse.ArgumentParser` derived class</span>
+<span class="sd">    Args:</span>
+<span class="sd">        parser: The `argparse.ArgumentParser` instance that you want to add a new parser too</span>
+<span class="sd">        interface: The `SingleResponsibilityInterface` instance you wish to append</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        An argument parser instance for the `SingleResponsibilityInterface` derived class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">base_params</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">interface_params</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="o">.</span><span class="n">flags</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.execute" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Interpret the results of an <code>argparse.ArgumentParser.parse_args()</code> method and perform one or more operations.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>argparse.Namespace</code></td>
+        <td><p>The output of argparse.ArgumentParser.parse_args() function</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Any</code></td>
+      <td><p>Any value; depending on the value returned from the <code>entry_method</code></p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Interpret the results of an `argparse.ArgumentParser.parse_args()` method and perform one or more operations.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        args: The output of argparse.ArgumentParser.parse_args() function</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Any value; depending on the value returned from the `entry_method`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_in_background</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="n">constructor_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">entry_method_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_params</span><span class="p">]:</span>
+            <span class="n">constructor_kwargs</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">entry_method_kwargs</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;interface&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sub_interface&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">entry_method_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># Dynamically load our class</span>
+    <span class="n">klass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;cls&#39;</span><span class="p">)</span>
+    <span class="c1"># Instantiate it with the constructor kwargs</span>
+    <span class="n">exec_inst</span> <span class="o">=</span> <span class="n">klass</span><span class="p">(</span><span class="o">**</span><span class="n">constructor_kwargs</span><span class="p">)</span>
+    <span class="c1"># Dynamically load our defined entry_method</span>
+    <span class="n">exec_entry_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">exec_inst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry_method_name</span><span class="p">)</span>
+    <span class="c1"># Call the entry method</span>
+    <span class="k">return</span> <span class="n">exec_entry_method</span><span class="p">(</span><span class="o">**</span><span class="n">entry_method_kwargs</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.execute_in_background" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">execute_in_background</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Call execute, but run in the background inside a dedicated process.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>args</code></td>
+        <td><code>argparse.Namespace</code></td>
+        <td><p>The output of argparse.ArgumentParser.parse_args() function</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>None</code></td>
+      <td><p>None</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">execute_in_background</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Call execute, but run in the background inside a dedicated process.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        args: The output of argparse.ArgumentParser.parse_args() function</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">with</span> <span class="n">daemon</span><span class="o">.</span><span class="n">DaemonContext</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface.get_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the current interface as an <code>argparse.ArgumentParser</code> instance</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>An argument parser instance for the <code>SingleResponsibilityInterface</code> derived class</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get the current interface as an `argparse.ArgumentParser` instance</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        An argument parser instance for the `SingleResponsibilityInterface` derived class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">interface_name</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">interface_description</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.cmd.service_interfaces.append_service_multiple_responsibility_interface_to_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">append_service_multiple_responsibility_interface_to_parser</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">interface</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Append an <code>MultipleResponsibilityInterface</code> to an existing parser as a sub-parser.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>parser</code></td>
+        <td><code>argparse.ArgumentParser</code></td>
+        <td><p>The parser to append our interface too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface</code></td>
+        <td><code>MultipleResponsibilityInterface</code></td>
+        <td><p>The new interface to add to the parser</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>A new parser</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">append_service_multiple_responsibility_interface_to_parser</span><span class="p">(</span>
+        <span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">interface</span><span class="p">:</span> <span class="n">MultipleResponsibilityInterface</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Append an `MultipleResponsibilityInterface` to an existing parser as a sub-parser.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        parser: The parser to append our interface too</span>
+<span class="sd">        interface: The new interface to add to the parser</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A new parser</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">interface</span><span class="o">.</span><span class="n">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.cmd.service_interfaces.append_service_simple_config_management_interface_to_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">append_service_simple_config_management_interface_to_parser</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">interface</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Append an <code>SimpleConfigManagerInterface</code> to an existing parser as a sub-parser.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>parser</code></td>
+        <td><code>argparse.ArgumentParser</code></td>
+        <td><p>The parser to append our interface too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface</code></td>
+        <td><code>SimpleConfigManagerInterface</code></td>
+        <td><p>The new interface to add to the parser</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>A new parser</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">append_service_simple_config_management_interface_to_parser</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span>
+                                                                <span class="n">interface</span><span class="p">:</span> <span class="n">SimpleConfigManagerInterface</span><span class="p">)</span> <span class="o">-&gt;</span> \
+        <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Append an `SimpleConfigManagerInterface` to an existing parser as a sub-parser.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        parser: The parser to append our interface too</span>
+<span class="sd">        interface: The new interface to add to the parser</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A new parser</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">interface</span><span class="o">.</span><span class="n">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.cmd.service_interfaces.append_service_single_responsibility_interface_to_parser" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">append_service_single_responsibility_interface_to_parser</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">interface</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Append an <code>SingleResponsibilityInterface</code> to an existing parser as a sub-parser.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>parser</code></td>
+        <td><code>argparse.ArgumentParser</code></td>
+        <td><p>The parser to append our interface too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>interface</code></td>
+        <td><code>SingleResponsibilityInterface</code></td>
+        <td><p>The new interface to add to the parser</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>argparse.ArgumentParser</code></td>
+      <td><p>A new parser</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">append_service_single_responsibility_interface_to_parser</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">,</span>
+                                                             <span class="n">interface</span><span class="p">:</span> <span class="n">SingleResponsibilityInterface</span><span class="p">)</span> <span class="o">-&gt;</span> \
+        <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Append an `SingleResponsibilityInterface` to an existing parser as a sub-parser.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        parser: The parser to append our interface too</span>
+<span class="sd">        interface: The new interface to add to the parser</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A new parser</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">interface</span><span class="o">.</span><span class="n">build_parser</span><span class="p">(</span><span class="n">interface</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+                
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../config_object_interfaces/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              config_object_interfaces
+            </div>
+          </div>
+        </a>
+      
+      
+        <a href="../../services/base/install/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              install
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../../../../../assets/javascripts/workers/search.4fa0e4ee.min.js", "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.1d3bfcf1.min.js"></script>
+      
+    
+  </body>
+</html>
