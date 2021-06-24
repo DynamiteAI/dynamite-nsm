@@ -3,7 +3,7 @@ title: install.py
 ---
 
 Installation Manager that will install Zeek, Suricata, and Filebeat on the same physical instance. 
-Make sure your computer [is up to the task!](/requirements/02_agent_specifications)
+Make sure your computer [is up to the task!](../../../../../../requirements/02_agent_specifications)
 
 ***To import...***
 ```python3

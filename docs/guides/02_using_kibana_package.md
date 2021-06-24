@@ -14,7 +14,7 @@ from many perspectives.
 ### Basic Usage
 Installation of a package is straightforward, supply the path to the package to be installed and the credentials required for authenticating to Kibana.
 ```bash
-~$ sudo dynamite kibana package install --path packages/investigator.tar.xz
+$ sudo dynamite kibana package install --path packages/investigator.tar.xz
 ```
 
 >
@@ -37,7 +37,7 @@ The number of options in the interactive uninstallation flow can be narrowed dow
 If there is only one package installed, or a single result for a provided search query, that package will be uninstalled without asking the user to select it from a list.
 
 ``` bash
-~$ sudo dynamite kibana package uninstall
+$ sudo dynamite kibana package uninstall
 ```
 >
 Select a package to uninstall:  
@@ -52,21 +52,21 @@ Select a package to uninstall:
 
 ## **List installed packages**
 Get meta information about the installed packages and details about the objects contained within them.
-By default listing installed packages returns data in JSON format, use the **`--pretty`** option to get a human readable table.
+By default listing installed packages returns data in JSON format, use the **`--pretty`** option to get a human-readable table.
 ``` bash
 ~$ sudo dynamite kibana package list --pretty
 ```
 
 ## **List installed saved objects**
 Returns information regarding the saved objects installed on the kibana instance whether or not they are part of a package.
-By default listing installed saved returns data in JSON format, use the **`--pretty`** option to get a human readable table.
+By default listing installed saved returns data in JSON format, use the **`--pretty`** option to get a human-readable table.
 ``` bash
-~$ sudo dynamite kibana package list-saved-objects --pretty
+$ sudo dynamite kibana package list-saved-objects --pretty
 ```
 
 ## **List Tenants**
 Lists the available OpenSearch Tenants that can be used as installation destinations, by default packages are installed to the `global` tenant.
-By default listing tenants returns data in JSON format, use the **`--pretty`** option to get a human readable table.
+By default listing tenants returns data in JSON format, use the **`--pretty`** option to get a human-readable table.
 ``` bash
-~$ sudo dynamite kibana package list-tenants --pretty
+$ sudo dynamite kibana package list-tenants --pretty
 ```

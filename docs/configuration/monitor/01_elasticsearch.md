@@ -84,3 +84,38 @@ Two update one or more configuration values:
 ```bash
 sudo dynamite elasticsearch config main --http-port 8080 --search-max-buckets 15000
 ```
+
+## Update Passwords
+
+There are six `internal` Elasticsearch users available at installation time. 
+The passwords of all of these users can be changed once Elasticsearch has been installed.
+
+```bash
+sudo dynamite elasticsearch config users
+```
+
+```markdown
+╒═══════════════════════════╤═════════════════════════════════════════════════════════╕
+│ Config Option             │ Value                                                   │
+├───────────────────────────┼─────────────────────────────────────────────────────────┤
+│ elasticsearch_config_path │ /etc/dynamite/elasticsearch/security/internal_users.yml │
+├───────────────────────────┼─────────────────────────────────────────────────────────┤
+│ admin                     │ Hidden                                                  │
+├───────────────────────────┼─────────────────────────────────────────────────────────┤
+│ kibana_server             │ Hidden                                                  │
+├───────────────────────────┼─────────────────────────────────────────────────────────┤
+│ kibana_readonly           │ Hidden                                                  │
+├───────────────────────────┼─────────────────────────────────────────────────────────┤
+│ logstash                  │ Hidden                                                  │
+├───────────────────────────┼─────────────────────────────────────────────────────────┤
+│ readall                   │ Hidden                                                  │
+├───────────────────────────┼─────────────────────────────────────────────────────────┤
+│ snapshot_restore          │ Hidden                                                  │
+╘═══════════════════════════╧═════════════════════════════════════════════════════════╛
+```
+
+To change a password simply run the below command.
+
+```bash
+sudo dynamite elasticsearch config users --admin "my$ecureP@ss!"
+```

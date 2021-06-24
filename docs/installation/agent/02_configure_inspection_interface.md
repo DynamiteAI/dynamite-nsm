@@ -1,6 +1,6 @@
 ## Inspection Interface(s)
 
-Inspection interfaces receive traffic from a [SPAN port or TAP device](/requirements/04_span_vs_tap). Typically, they do not need IP addresses.
+Inspection interfaces receive traffic from a [SPAN port or TAP device](../../../requirements/04_span_vs_tap). Typically, they do not need IP addresses.
 
 > ⓘ A notable exception is on AWS's [port-mirroring implementation for VPCs](https://docs.aws.amazon.com/vpc/latest/mirroring/what-is-traffic-mirroring.html) which relies on VXLAN 
 > encapsulation requiring the monitored interface to have a routable ip address.

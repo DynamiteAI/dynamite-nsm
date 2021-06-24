@@ -6,7 +6,7 @@ for `service` classes.
 
 ## Service Architecture
 
-![img.png](../../data/img/service_architechture.png)
+![](../../../data/img/service_architechture.png)
 
 Services have three primary design principles:
 
@@ -18,7 +18,7 @@ Services have three primary design principles:
 3. Must expose classes that fit into one of the following paradigms: single-responsibility or multi-responsibility.
 
 ## Single Responsibility Class
-[cmd.service_interfaces.SingleResponsibilityInterface 🔗](/guides/developers/SDK/cmd/service_interfaces#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface)
+[cmd.service_interfaces.SingleResponsibilityInterface 🔗](../../../guides/developers/SDK/cmd/service_interfaces#dynamite_nsm.cmd.service_interfaces.SingleResponsibilityInterface)
 
 A class that when instantiated has one primary method that will be called to make things happen. 
 This pattern works well with many `service` `InstallManager`.
@@ -43,7 +43,7 @@ installer.setup()
 ```
 
 ## Multiple Responsibility Class
-[cmd.service_interfaces.MultipleResponsibilityInterface 🔗](/guides/developers/SDK/cmd/service_interfaces#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface)
+[cmd.service_interfaces.MultipleResponsibilityInterface 🔗](../../../guides/developers/SDK/cmd/service_interfaces#dynamite_nsm.cmd.service_interfaces.MultipleResponsibilityInterface)
 
 A class that when instantiated has multiple methods that can be invoked to perform various actions.
 The `ProcessManager` class commonly falls into this pattern.

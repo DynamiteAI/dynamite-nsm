@@ -7,7 +7,7 @@ Zeek and Suricata can also be installed independently on their own dedicated ins
 be installed alongside for logs to be forwarded downstream.
 
 <p align="center">
-   <img src="/data/img/agent_services_relationship.png" />
+   <img src="../../../data/img/agent_services_relationship.png" />
 </p>
 
 

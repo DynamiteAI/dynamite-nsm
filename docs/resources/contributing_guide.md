@@ -26,5 +26,5 @@ DynamiteNSM consists of several projects that are independent of one another.
 
 3. A pull request is a way to suggest changes in our repository. 
    When one is made, a member of our team will `accept`, `reject` or most often `request changes` before it is scheduled 
-   for a future release. Before going any further please check out our [developer guide](/guides/developers/01_overview) to better understand the areas we 
+   for a future release. Before going any further please check out our [developer guide](/dynamite-nsm/guides/developers/01_overview) to better understand the areas we 
    are receiving pull requests in.

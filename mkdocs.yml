@@ -104,6 +104,9 @@ nav:
                       - logs: guides/developers/SDK/services/base/logs.md
                       - process: guides/developers/SDK/services/base/process.md
                       - profile: guides/developers/SDK/services/base/profile.md
+                - monitor:
+                      - install: guides/developers/SDK/services/monitor/install.md
+                      - process: guides/developers/SDK/services/monitor/process.md
                 - agent:
                       - install: guides/developers/SDK/services/agent/install.md
                       - process: guides/developers/SDK/services/agent/process.md
@@ -127,9 +130,19 @@ nav:
                     - profile: guides/developers/SDK/services/zeek/profile.md
                 - elasticsearch:
                     - install: guides/developers/SDK/services/elasticsearch/install.md
-                    - config: guides/developeers/SDK/services/elasticsearch/config.md
+                    - config: guides/developers/SDK/services/elasticsearch/config.md
                     - process: guides/developers/SDK/services/elasticsearch/process.md
                     - profile: guides/developers/SDK/services/elasticsearch/profile.md
+                - logstash:
+                    - install: guides/developers/SDK/services/logstash/install.md
+                    - config: guides/developers/SDK/services/logstash/config.md
+                    - process: guides/developers/SDK/services/logstash/process.md
+                    - profile: guides/developers/SDK/services/logstash/profile.md
+                - kibana:
+                    - install: guides/developers/SDK/services/kibana/install.md
+                    - config: guides/developers/SDK/services/kibana/config.md
+                    - process: guides/developers/SDK/services/kibana/process.md
+                    - profile: guides/developers/SDK/services/kibana/profile.md
   - Resources:
       - Contributing Guide: resources/contributing_guide.md
       - Coding Guidelines: resources/coding_guidelines.md

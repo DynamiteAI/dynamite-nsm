@@ -10,7 +10,7 @@ sudo dynamite updates install
 
 ## Install Using the Monitor Service
 
-Install Elasticsearch and Kibana with several security features enabled and Dynamite's default [Kibana packages installed](404).
+Install Elasticsearch and Kibana with several security features enabled and Dynamite's default [Kibana packages installed](../../../guides/base_views/01_overview).
 
 Both services will listen on the primary interface (default route). 
 

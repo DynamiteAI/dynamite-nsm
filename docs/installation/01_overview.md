@@ -1,7 +1,9 @@
 # Installation Overview
 
-> ⚠️DynamiteNSM will need to make changes to your system in order to function properly. 
-> We highly recommend installing the `dynamite-nsm` package on a fresh installation of [Linux](/requirements/01_supported_operating_systems).
+> ⚠️ We will need to make changes to your system in order to function properly. 
+> We highly recommend installing the `dynamite-nsm` package on a fresh installation of [Linux](../../requirements/01_supported_operating_systems).
+
+---
 
 > ⚠️ `root` access is needed as `dynamite` will need to be able to install and uninstall services within the
 > Dynamite stack, and perform privileged operations like user creation and `systemctl` management.
@@ -23,7 +25,7 @@ sudo pip install dynamite-nsm/
 ```
 
 > ⓘ If you opt, for this method, and are curious about contributing to this project be sure to check out our 
-[developer guides](/guides/developers/01_overview)!
+[developer guides](../../guides/developers/01_overview)!
 
 Once installed, you should be able to call `dynamite` directly from the commandline. 
 Keep in mind that `dynamite` requires `root` access in order to run basically any command.

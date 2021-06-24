@@ -253,7 +253,7 @@ def create_dynamite_user() -> None:
     """
     password = salt = str(random.randint(10, 99))
     pass_encry = crypt.crypt(password, salt)
-    subprocess.call('useradd -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
+    subprocess.call('useradd -r -p "{}" -s /bin/bash dynamite'.format(pass_encry), shell=True)
 
 
 def create_dynamite_remote_user() -> None:
@@ -263,7 +263,7 @@ def create_dynamite_remote_user() -> None:
     """
     password = salt = str(random.randint(10, 99))
     pass_encry = crypt.crypt(password, salt)
-    subprocess.call('useradd -p "{}" -s /bin/bash dynamite-remote'.format(pass_encry), shell=True)
+    subprocess.call('useradd -r -p "{}" -s /bin/bash dynamite-remote'.format(pass_encry), shell=True)
 
 
 def create_jupyter_user(password: str) -> None:
@@ -274,7 +274,7 @@ def create_jupyter_user(password: str) -> None:
         None
     """
     pass_encry = crypt.crypt(password, str(random.randint(10, 99)))
-    subprocess.call('useradd -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
+    subprocess.call('useradd -r -m -p "{}" -s /bin/bash jupyter'.format(pass_encry),
                     shell=True)
 
 

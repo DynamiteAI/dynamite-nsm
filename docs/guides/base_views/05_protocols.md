@@ -7,6 +7,6 @@ The primary view includes a histogram showing protocol activity over time as wel
 Using the view navigation menu (highlighted below) you can quickly access pre-filtered discovery views for exploring communications for a specific protocol. 
 
 <p align="center">
-    <img src="/data/img/kibana_protocols_view.png" />
+    <img src="../../../data/img/kibana_protocols_view.png" />
 </p>
 

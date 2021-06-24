@@ -19,7 +19,7 @@ They are available [here](https://github.com/DynamiteAI/kibana_packages/blob/mai
 
 ## Setting up a Working Environment
 
-Before you can create a new Kibana package you will need to [setup a working monitor and agent instance](/guides/01_quick_start).
+Before you can create a new Kibana package you will need to [setup a working monitor and agent instance](../../../guides/01_quick_start).
 Once the agent starts sending events Kibana's discovery view will quickly fill up, and you can begin creating new visualisations and dashboards.
 
 ![](/data/img/kibana_discovery.png)
@@ -42,10 +42,10 @@ to enter into the `New Vizualization` interface.
 Dashboards serve as space to present a variety of visualizations that typically share some common theme.
 Kibana dashboards provide the ability to enforce certain global constraints against all visualizations within that dashboard.
 
-For example, the `time-range filter` and any `term filters` or `KQL searches` can be applied consistently accross all visualizations within
+For example, the `time-range filter` and any `term filters` or `KQL searches` can be applied consistently across all visualizations within
 a dashboard.
 
-To create a new `Dashboard` double-click the `Dashboard` tab in left-hand sidebar. You may then add any vizualization or saved_search you have created.
+To create a new `Dashboard` double-click the `Dashboard` tab in left-hand sidebar. You may then add any visualization or saved_search you have created.
 
 ![](/data/img/create_new_dashboard_viz.png)
 
