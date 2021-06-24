@@ -2380,7 +2380,7 @@ from many perspectives.</p>
 <h2 id="install-a-package"><strong>Install a package</strong></h2>
 <h3 id="basic-usage">Basic Usage</h3>
 <p>Installation of a package is straightforward, supply the path to the package to be installed and the credentials required for authenticating to Kibana.</p>
-<pre><code class="language-bash">~$ sudo dynamite kibana package install --path packages/investigator.tar.xz
+<pre><code class="language-bash">$ sudo dynamite kibana package install --path packages/investigator.tar.xz
 </code></pre>
 <blockquote>
 <p>KIBANA.PACKAGE    INFO    | Checking connection to Kibana.<br />
@@ -2399,7 +2399,7 @@ Using the <strong><code>--target</code></strong> flag, the user can specify whic
 <p>By default packages are uninstalled interactively unless the <strong><code>--package-id</code></strong> parameter is passed.<br />
 The number of options in the interactive uninstallation flow can be narrowed down by using the <strong><code>--package-name</code></strong> option, and only packages matching that string will be returned to the uninstaller.</p>
 <p>If there is only one package installed, or a single result for a provided search query, that package will be uninstalled without asking the user to select it from a list.</p>
-<pre><code class="language-bash">~$ sudo dynamite kibana package uninstall
+<pre><code class="language-bash">$ sudo dynamite kibana package uninstall
 </code></pre>
 <blockquote>
 <p>Select a package to uninstall:  </p>
@@ -2411,18 +2411,18 @@ The number of options in the interactive uninstallation flow can be narrowed dow
 </blockquote>
 <h2 id="list-installed-packages"><strong>List installed packages</strong></h2>
 <p>Get meta information about the installed packages and details about the objects contained within them.
-By default listing installed packages returns data in JSON format, use the <strong><code>--pretty</code></strong> option to get a human readable table.</p>
+By default listing installed packages returns data in JSON format, use the <strong><code>--pretty</code></strong> option to get a human-readable table.</p>
 <pre><code class="language-bash">~$ sudo dynamite kibana package list --pretty
 </code></pre>
 <h2 id="list-installed-saved-objects"><strong>List installed saved objects</strong></h2>
 <p>Returns information regarding the saved objects installed on the kibana instance whether or not they are part of a package.
-By default listing installed saved returns data in JSON format, use the <strong><code>--pretty</code></strong> option to get a human readable table.</p>
-<pre><code class="language-bash">~$ sudo dynamite kibana package list-saved-objects --pretty
+By default listing installed saved returns data in JSON format, use the <strong><code>--pretty</code></strong> option to get a human-readable table.</p>
+<pre><code class="language-bash">$ sudo dynamite kibana package list-saved-objects --pretty
 </code></pre>
 <h2 id="list-tenants"><strong>List Tenants</strong></h2>
 <p>Lists the available OpenSearch Tenants that can be used as installation destinations, by default packages are installed to the <code>global</code> tenant.
-By default listing tenants returns data in JSON format, use the <strong><code>--pretty</code></strong> option to get a human readable table.</p>
-<pre><code class="language-bash">~$ sudo dynamite kibana package list-tenants --pretty
+By default listing tenants returns data in JSON format, use the <strong><code>--pretty</code></strong> option to get a human-readable table.</p>
+<pre><code class="language-bash">$ sudo dynamite kibana package list-tenants --pretty
 </code></pre>
                 
               
