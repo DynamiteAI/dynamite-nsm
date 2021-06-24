@@ -43,7 +43,7 @@ sudo dynamite monitor install
 
 Checkout our comprehensive documentation complete with tutorials, guides, and example and quickstart deployments.
 
-Those wishing to contribute may also be interested in our [development guides](https://dynamiteai.github.io/dynamite-nsm/developers/01_overview).
+Those wishing to contribute may also be interested in our [development guides](https://dynamiteai.github.io/dynamite-nsm/guides/developers/01_overview).
 
 [**Read the docs »**](https://dynamiteai.github.io/dynamite-nsm/)
 
