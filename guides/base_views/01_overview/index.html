@@ -2291,29 +2291,29 @@
 of operational and detection use-cases. </p>
 <h2 id="modules">Modules</h2>
 <p>Within the <code>BaseViews</code> Kibana package, <code>modules</code> designate a collection of views built around a specific sub-set of filters.</p>
-<p>These filters slice Dynamite's <a href="../../about/data_model/01_overview">ECS based</a> data into four categories: alerts, events, hosts, and protocols. </p>
+<p>These filters slice Dynamite's <a href="../../../about/data_model/01_overview">ECS based</a> data into four categories: alerts, events, hosts, and protocols. </p>
 <p>Each module provides a unique perspective into one of these categories. To view a specific module, click the module name in the left pane of the view.  Module views are structured in a standard way where you'll find links to additional views within the module at the very top of the page, directly below the view title.  </p>
 <p>Below that you'll find histograms and other visualizations that illuminate porportions of different categorical values in the data set.  Visualizations are interactive, and by clicking on a value you can quickly include or exclude the value from the filter in use by the view.  After you've explored the view's visualizations, use the data table at the bottom for more detailed analysis and to access pivots to other relevant views.  </p>
 <h3 id="alerts">Alerts</h3>
 <p>Alerts are typically indicative of suspicious or malicious behavior. The Alerts module provides different perspectives that make investigating this suspicious traffic, simple and efficient.      </p>
 <blockquote>
-<p>ⓘ You can always <a href="/configuration/agent/03_scripts_and_rules#suricata">adjust</a> the kinds of alerts that get triggered through the dynamite commandline utility.</p>
+<p>ⓘ You can always <a href="../../../configuration/agent/03_scripts_and_rules#suricata">adjust</a> the kinds of alerts that get triggered through the dynamite commandline utility.</p>
 </blockquote>
 <p align="center">
-    <img src="/dynamite/data/img/kibana_dashboard_alerts.png" />
+    <img src="../../../data/img/kibana_dashboard_alerts.png" />
 </p>
 
 <h3 id="conversations">Conversations</h3>
 <p>Conversations represent bi-directional communications between hosts. The Conversations module provides  high-level summaries of top-talkers, ports, and application
 protocols and can serve as a starting point for more focused threat hunts.</p>
 <p align="center">
-    <img src="/dynamite/data/img/kibana_dashboard_conversations.png" />
+    <img src="../../../data/img/kibana_dashboard_conversations.png" />
 </p>
 
 <h3 id="hosts">Hosts</h3>
 <p>The Hosts module contains views that provide metrics from the perspective of internal and external hosts.  This is a host-centric take on analyzing network traffic and allows you to quickly identify specific hosts that can serve as the focal point of your analysis efforts.</p>
 <p align="center">
-    <img src="/dynamite/data/img/kibana_dashboard_hosts.png" />
+    <img src="../../../data/img/kibana_dashboard_hosts.png" />
 </p>
 
 <h3 id="protocols">Protocols</h3>
@@ -2322,7 +2322,7 @@ protocols and can serve as a starting point for more focused threat hunts.</p>
 <p>ⓘ You can always <a href="/configuration/agent/03_scripts_and_rules#zeek">adjust</a> the kinds of protocols that get analyzed through the dynamite commandline utility.</p>
 </blockquote>
 <p align="center">
-    <img src="/dynamite/data/img/kibana_dashboard_protocols.png" />
+    <img src="../../../data/img/kibana_dashboard_protocols.png" />
 </p>
                 
               
