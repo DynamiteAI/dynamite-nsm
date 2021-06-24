@@ -67,7 +67,8 @@ class InstallManager(install.BaseInstallManager):
         """
         zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
         zeek_af_packet_plugin_source = f'{const.DEFAULT_CONFIGS}/zeek/uncompiled_scripts/zeek-af_packet-plugin'
-        configure_args = [f'--zeek-dist={zeek_source_install_cache}', f'--install-root={self.configuration_directory}']
+        configure_args = [f'--zeek-dist={zeek_source_install_cache}', f'--install-root={self.configuration_directory}',
+                          '--with-latest-kernel']
         self.configure_source_package(zeek_af_packet_plugin_source, configure_args=configure_args)
         self.compile_source_package(zeek_af_packet_plugin_source, compile_args=None,
                                     parallel_threads=parallel_threads,
