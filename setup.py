@@ -18,7 +18,7 @@ setup(
         'coloredlogs==15.0',
         'progressbar==2.5',
         'tabulate==0.8.9',
-        'PyYAML==5.3.1',
+        'PyYAML==5.4',
         'psutil==5.8.0',
         'docstring-parser==0.7.3',
         'marshmallow==3.11.1',
