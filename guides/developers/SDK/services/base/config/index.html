@@ -3013,7 +3013,7 @@
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">general_exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="s1">&#39;An error occurred while writing the configuration file to disk.&#39;</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="mi">644</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Configuration updated. Restart this service to apply.&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Configuration updated. Restart this service to apply.&#39;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3538,7 +3538,7 @@
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">general_exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="s1">&#39;An error occurred while writing the configuration file to disk.&#39;</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="mi">644</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Configuration updated. Restart this service to apply.&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Configuration updated. Restart this service to apply.&#39;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
