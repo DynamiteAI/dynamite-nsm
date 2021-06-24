@@ -23,6 +23,7 @@ setup(
         'PyYAML==5.3.1',
         'psutil==5.8.0',
         'docstring-parser==0.7.3',
+        'mkdocstrings==0.15.2',
         'marshmallow==3.11.1',
         'pytest==6.2.2',
         'python-crontab==2.5.1',
