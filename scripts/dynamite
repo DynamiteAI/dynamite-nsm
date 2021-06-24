@@ -1,115 +1,144 @@
 #!/usr/bin/python
+import json
+import sys
+import argparse
 
-import os
-import logging
-import traceback
-from sys import argv
-from datetime import datetime
+import tabulate
 
-from dynamite_nsm import const
-from dynamite_nsm import updater
 from dynamite_nsm import utilities
-from dynamite_nsm.logger import get_logger
-from dynamite_nsm.commandline import component_args
-from dynamite_nsm.commandline import component_parsers
-from dynamite_nsm.components.lab.component import LabCommandlineComponent
-from dynamite_nsm.components.agent.component import AgentCommandlineComponent
-from dynamite_nsm.components.kibana.component import KibanaCommandlineComponent
-from dynamite_nsm.components.monitor.component import MonitorCommandlineComponent
-from dynamite_nsm.components.updates.component import UpdatesCommandlineComponent
-from dynamite_nsm.components.logstash.component import LogstashCommandlineComponent
-from dynamite_nsm.components.dynamited.component import DynamitedCommandlineComponent
-from dynamite_nsm.components.elasticsearch.component import ElasticsearchCommandlineComponent
 
-component_args.register_agent_component_args(
-    component_parsers.agent_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_elasticsearch_component_args(
-    component_parsers.elasticsearch_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_logstash_component_args(
-    component_parsers.logstash_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_kibana_component_args(
-    component_parsers.kibana_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_monitor_component_args(
-    component_parsers.monitor_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_lab_component_args(
-    component_parsers.lab_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_dynamited_component_args(
-    component_parsers.dynamited_component_parser, parent_parsers=[component_parsers.base_parser]
-)
-component_args.register_updates_component_args(
-    component_parsers.update_component_parser, parent_parsers=[component_parsers.base_parser]
-)
+if utilities.is_root() and not utilities.get_environment_file_dict():
+    utilities.create_dynamite_environment_file()
+
+from dynamite_nsm.const import VERSION
+from dynamite_nsm.cmd import process_arguments
+from dynamite_nsm.utilities import print_dynamite_logo
+from dynamite_nsm.cmd import agent, monitor, elasticsearch, logstash, kibana, remote, zeek, suricata, filebeat, updates
+
+
+def print_service_statuses():
+    from dynamite_nsm.services.zeek import profile as zeek_profile
+    from dynamite_nsm.services.suricata import profile as suricata_profile
+    from dynamite_nsm.services.filebeat import profile as filebeat_profile
+
+    from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
+    from dynamite_nsm.services.logstash import profile as logstash_profile
+    from dynamite_nsm.services.kibana import profile as kibana_profile
+    if not utilities.is_root():
+        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))
+        exit(0)
+    profiler_map = dict(
+        elasticsearch=elasticsearch_profile.ProcessProfiler(),
+        logstash=logstash_profile.ProcessProfiler(),
+        kibana=kibana_profile.ProcessProfiler(),
+        zeek=zeek_profile.ProcessProfiler(),
+        suricata=suricata_profile.ProcessProfiler(),
+        filebeat=filebeat_profile.ProcessProfiler()
+    )
+    headers = ['Service', 'Installed', 'Running', 'Service Role']
+    rows = []
+    colorize = utilities.PrintDecorations.colorize
+    for k, v in profiler_map.items():
+        rows.append([k,
+                     colorize('✓', 'green') if v.is_installed() else colorize('X', 'red'),
+                     colorize('✓', 'green') if v.is_running() else colorize('X', 'red'),
+                     colorize('Agent', 'blue') if k in ['zeek', 'suricata', 'filebeat'] else colorize('Monitor',
+                                                                                                      'darkcyan')
+                     ])
+    print(tabulate.tabulate(rows, headers=headers, tablefmt='fancy_grid'))
+
+
+def get_component(component_name: str):
+    """
+    Given the name of a component, return the module by the same name.
+
+    :param component_name: The name of the component
+    """
+    component_map = dict(
+        agent=agent,
+        monitor=monitor,
+        elasticsearch=elasticsearch,
+        logstash=logstash,
+        kibana=kibana,
+        zeek=zeek,
+        suricata=suricata,
+        filebeat=filebeat,
+        updates=updates,
+        remote=remote
+    )
+    selected_component = component_map[component_name]
+    return selected_component
+
+
+def get_interface(component_name: str, interface_name: str):
+    return get_component(component_name).get_interfaces()[interface_name]
+
+
+def get_component_level_args(component_name: str):
+    return get_component(component_name).get_action_parser().parse_args()
+
 
 if __name__ == '__main__':
-    if not utilities.is_root():
-        from sys import stderr
-        stderr.write('\033[91m[-] This script must be run as \033[4mroot\033[0m.\033[0m\n')
-        exit(1)
-    if len(argv) < 2:
-        component_parsers.main_parser.print_help()
-        exit(1)
-    if argv[1] in ["-v", "--version"]:
-        utilities.print_dynamite_logo(const.VERSION)
-        exit(0)
+    dynamite_dummy_parser = argparse.ArgumentParser(f'Dynamite Network Security Monitor [{VERSION}]')
+    dynamite_dummy_parser.add_argument('component', help='A component within the Dynamite stack to manage.', choices=[
+        'agent',
+        'monitor',
+        'zeek',
+        'suricata',
+        'filebeat',
+        'elasticsearch',
+        'logstash',
+        'kibana',
+        'updates',
+        'remote'
+    ])
 
-    utilities.create_dynamite_environment_file()
-    args = component_parsers.main_parser.parse_args()
-    today_formatted_date = datetime.strftime(datetime.today(), '%d-%m-%Y')
-    log_level = logging.INFO
+    dynamite_dummy_parser.add_argument('action',
+                                       help='An action or set of actions that can be performed against a specified '
+                                            'component.',
+                                       choices=['install', 'uninstall', 'config', 'logs', 'process'])
     try:
-        if args.verbose:
-            log_level = logging.DEBUG
-    except AttributeError:
-        log_level = logging.INFO
-    logger = get_logger('DYNAMITE_CMD', level=log_level, stdout=True)
-    logger.info("LOG LEVEL: {}".format(log_level))
-    logger.info("LOG FILE: {}.log".format(os.path.join(const.LOG_PATH, 'dynamite-{}'.format(today_formatted_date))))
-    if 'action_name' not in args:
-        component_parsers.main_parser.print_help()
-        component_parsers.main_parser.error(
-            "Missing {} 'action' (E.G install, uninstall, start, stop, restart, status)".format(args.component_name))
-    if args.component_name:
-        if not os.path.exists(const.MIRRORS):
-            logger.info('Updating mirrors...please wait.')
-            updater.update_mirrors()
-            logger.info('Mirror update complete.')
-        if not os.path.exists(const.DEFAULT_CONFIGS):
-            logger.info('Updating templates...please wait.')
-            updater.update_default_configurations()
-            logger.info('Template update complete. Please re-run: {}'.format(' '.join(argv)))
-            exit(0)
+        component, interface, sub_interface = sys.argv[1], None, None
+        if '--version' in sys.argv:
+            print_dynamite_logo(VERSION)
+            sys.exit(0)
+        if len(sys.argv[1:]) == 1:
+            get_component(sys.argv[1]).get_action_parser().print_help()
+            sys.exit(0)
 
-    try:
-        if args.component_name == "agent":
-            AgentCommandlineComponent(args)
-        elif args.component_name == "elasticsearch":
-            ElasticsearchCommandlineComponent(args)
-        elif args.component_name == "logstash":
-            LogstashCommandlineComponent(args)
-        elif args.component_name == "kibana":
-            KibanaCommandlineComponent(args)
-        elif args.component_name == "monitor":
-            MonitorCommandlineComponent(args)
-        elif args.component_name == "lab":
-            LabCommandlineComponent(args)
-        elif args.component_name == "daemon":
-            DynamitedCommandlineComponent(args)
-        elif args.component_name == "updates":
-            UpdatesCommandlineComponent(args)
-    except KeyboardInterrupt:
-        print("\n[+] Exiting")
-        exit(0)
-    except Exception as e:
-        if log_level != logging.DEBUG:
-            logger.critical("Fatal error. Add --verbose flag for details. Exiting.")
-        else:
-            logger.critical("Fatal error. Exiting.")
-        logger.debug("Fatal error. Exiting; {}".format(e))
-        if log_level == logging.DEBUG:
-            traceback.print_exc(limit=15)
+        if len(sys.argv[1:]) > 2:
+            sub_interface = sys.argv[3]
+        if len(sys.argv[1:]) > 1:
+            interface = sys.argv[2]
+
+        # A workaround for testing whether we are invoking into a sub-interface or calling an interface_method from a
+        # MultiResponsibilityInterface
+
+        try:
+            # Delete the 'component' from sys.sys.argv as process_arguments does not know how to handle it when it's
+            # ingested into a child argparse.Namespace
+            del sys.argv[1]
+            res = process_arguments(args=get_component_level_args(component), component=component, interface=interface,
+                                    sub_interface=sub_interface, print_help_on_error=False)
+            if res:
+                print(res)
+        except ModuleNotFoundError:
+            res = process_arguments(args=get_component_level_args(component), component=component, interface=interface,
+                                    print_help_on_error=True)
+            if isinstance(res, bool):
+                if res:
+                    print(utilities.PrintDecorations.colorize('OK', _color='green'))
+                else:
+                    print(utilities.PrintDecorations.colorize('FAIL', _color='red'))
+            elif isinstance(res, str):
+                print(res)
+            elif isinstance(res, list):
+                print(json.dumps(res, indent=1))
+            elif isinstance(res, dict):
+                print(json.dumps(res, indent=1))
+    except IndexError:
+        print_service_statuses()
+    except KeyError:
+        dynamite_dummy_parser.print_help()
+    except PermissionError:
+        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))

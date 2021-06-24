@@ -1,21 +1,92 @@
-import os
-import json
+from __future__ import annotations
+
 import itertools
+import json
+import os
+import time
 from datetime import datetime
 from datetime import timedelta
+from typing import Dict, Generator, Optional
+
+import tabulate
+
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import logs
-from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
-def parse_zeek_datetime(t):
+def parse_zeek_datetime(t: str) -> datetime:
     return datetime.utcfromtimestamp(int(str(t).split('.')[0]))
 
 
-class BrokerEntry:
+class InvalidZeekStatusLogEntry(Exception):
+    """
+    Thrown when a Zeek stats.log entry is improperly formatted
+    """
 
-    def __init__(self, entry_raw):
+    def __init__(self, message):
+        """
+        Args:
+            message: A more specific error message
+        """
+        msg = f'Zeek status log entry is invalid: {message}'
+        super(InvalidZeekStatusLogEntry, self).__init__(msg)
+
+
+class InvalidZeekBrokerLogEntry(Exception):
+    """
+    Thrown when a Zeek broker.log entry is improperly formatted
+    """
+
+    def __init__(self, message):
+        """
+        Args:
+            message: A more specific error message
+        """
+        msg = f'Zeek broker log entry is invalid: {message}'
+        super(InvalidZeekBrokerLogEntry, self).__init__(msg)
+
+
+class InvalidZeekClusterLogEntry(Exception):
+    """
+    Thrown when a Zeek cluster.log entry is improperly formatted
+    """
+
+    def __init__(self, message):
+        """
+        Args:
+            message: A more specific error message
+        """
+        msg = f'Zeek cluster log entry is invalid: {message}'
+        super(InvalidZeekClusterLogEntry, self).__init__(msg)
+
+
+class InvalidZeekReporterLogEntry(Exception):
+    """
+    Thrown when a Zeek reporter.log entry is improperly formatted
+    """
+
+    def __init__(self, message):
+        """
+        Args:
+            message: A more specific error message
+        """
+        msg = f'Zeek reporter log entry is invalid: {message}'
+        super(InvalidZeekReporterLogEntry, self).__init__(msg)
+
+
+class BrokerEntry:
+    """
+    A single line item entry for Zeek's broker.log
+    """
+
+    def __init__(self, entry_raw: str):
+        """
+        A single line item entry in the broker.log
+
+        Args:
+            entry_raw: A JSON serializable string representing a single line item entry in the broker.log
+        """
         self.entry_raw = entry_raw
         self.time = None
         self.timestamp = None
@@ -26,12 +97,12 @@ class BrokerEntry:
         self.message = None
         self._parse_entry()
 
-    def _parse_entry(self):
+    def _parse_entry(self) -> None:
         log_entry = self.entry_raw.replace("\n", "")
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise zeek_exceptions.InvalidZeekBrokerLogEntry(
+            raise InvalidZeekBrokerLogEntry(
                 'broker.log entry is not JSON formatted. '
                 'Make sure to enable policy/tuning/json-logs is loaded.')
         self.timestamp = entry.get('ts')
@@ -41,10 +112,10 @@ class BrokerEntry:
         self.peer_port = entry.get('peer.bound_port')
         self.message = entry.get('message')
         if not self.timestamp:
-            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+            raise InvalidZeekStatusLogEntry('Missing timestamp field')
         self.time = parse_zeek_datetime(self.timestamp)
 
-    def __str__(self):
+    def __str__(self) -> str:
         log_entry = dict(
             time=str(self.time),
             category=self.category,
@@ -57,30 +128,39 @@ class BrokerEntry:
 
 
 class ClusterEntry:
+    """
+    A single line item entry for Zeek's cluster.log
+    """
 
-    def __init__(self, entry_raw):
+    def __init__(self, entry_raw: str):
+        """
+        A single line item entry in the cluster.log
+
+        Args:
+            entry_raw: A JSON serializable string representing a single line item entry in the cluster.log
+        """
         self.entry_raw = entry_raw
         self.time = None
         self.timestamp = None
         self.message = None
         self._parse_entry()
 
-    def _parse_entry(self):
+    def _parse_entry(self) -> None:
         log_entry = self.entry_raw.replace("\n", "")
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise zeek_exceptions.InvalidZeekClusterLogEntry(
+            raise InvalidZeekClusterLogEntry(
                 'cluster.log entry is not JSON formatted. '
                 'Make sure to enable policy/tuning/json-logs is loaded.')
         self.timestamp = entry.get('ts')
         self.node = entry.get('node')
         self.message = entry.get('message')
         if not self.timestamp:
-            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+            raise InvalidZeekStatusLogEntry('Missing timestamp field')
         self.time = parse_zeek_datetime(self.timestamp)
 
-    def __str__(self):
+    def __str__(self) -> str:
         log_entry = dict(
             time=str(self.time),
             node=self.node,
@@ -90,43 +170,56 @@ class ClusterEntry:
 
 
 class MetricsEntry:
+    """
+    A single Filebeat metrics entry for a specific time-interval
+    """
 
-    def __init__(self, entry_raw):
-        self.entry_raw = entry_raw
-        self.timestamp = entry_raw.get('ts')
+    def __init__(self, entry: Dict):
+        """
+        A metrics entry derived from the stats.log
+
+        Args:
+            entry: A dictionary containing a variety of analyzable fields within a line item metrics entry
+        """
+        self.entry_raw = entry
+        self.timestamp = entry.get('ts')
         self.time = parse_zeek_datetime(self.timestamp)
-        self.peer = entry_raw.get('peer')
+        self.peer = entry.get('peer')
         self.peers = [self.peer]
-        self.memory = entry_raw.get('mem', 0)
-        self.packets_processed = entry_raw.get('pkts_proc', 0)
-        self.bytes_received = entry_raw.get('bytes_recv', 0)
-        self.packets_dropped = entry_raw.get('pkts_dropped', 0)
-        self.packets_link = entry_raw.get('pkts_link', 0)
-        self.packet_lag = entry_raw.get('pkt_lag', 0)
-        self.events_processed = entry_raw.get('events_proc', 0)
-        self.events_queued = entry_raw.get('events_queued', 0)
-        self.active_tcp_connections = entry_raw.get('active_tcp_conns', 0)
-        self.active_udp_connections = entry_raw.get('active_udp_conns', 0)
-        self.active_icmp_connections = entry_raw.get('active_icmp_conns', 0)
-        self.tcp_connections = entry_raw.get('tcp_conns', 0)
-        self.udp_connections = entry_raw.get('udp_conns', 0)
-        self.icmp_connections = entry_raw.get('icmp_conns', 0)
-        self.timers = entry_raw.get('timers', 0)
-        self.files = entry_raw.get('files', 0)
-        self.active_files = entry_raw.get('active_files', 0)
-        self.dns_requests = entry_raw.get('dns_requests', 0)
-        self.active_dns_requests = entry_raw.get('active_dns_requests', 0)
-        self.reassembly_tcp_size = entry_raw.get('reassem_tcp_size', 0)
-        self.reassembly_file_size = entry_raw.get('reassem_file_size', 0)
-        self.reassembly_fragment_size = entry_raw.get('reassem_frag_size', 0)
-        self.reassembly_unknown_size = entry_raw.get('reassem_unknown_size', 0)
+        self.memory = entry.get('mem', 0)
+        self.packets_processed = entry.get('pkts_proc', 0)
+        self.bytes_received = entry.get('bytes_recv', 0)
+        self.packets_dropped = entry.get('pkts_dropped', 0)
+        self.packets_link = entry.get('pkts_link', 0)
+        self.packet_lag = entry.get('pkt_lag', 0)
+        self.events_processed = entry.get('events_proc', 0)
+        self.events_queued = entry.get('events_queued', 0)
+        self.active_tcp_connections = entry.get('active_tcp_conns', 0)
+        self.active_udp_connections = entry.get('active_udp_conns', 0)
+        self.active_icmp_connections = entry.get('active_icmp_conns', 0)
+        self.tcp_connections = entry.get('tcp_conns', 0)
+        self.udp_connections = entry.get('udp_conns', 0)
+        self.icmp_connections = entry.get('icmp_conns', 0)
+        self.timers = entry.get('timers', 0)
+        self.files = entry.get('files', 0)
+        self.active_files = entry.get('active_files', 0)
+        self.dns_requests = entry.get('dns_requests', 0)
+        self.active_dns_requests = entry.get('active_dns_requests', 0)
+        self.reassembly_tcp_size = entry.get('reassem_tcp_size', 0)
+        self.reassembly_file_size = entry.get('reassem_file_size', 0)
+        self.reassembly_fragment_size = entry.get('reassem_frag_size', 0)
+        self.reassembly_unknown_size = entry.get('reassem_unknown_size', 0)
         self.packets_dropped_percentage = 0
         if self.packets_processed > 0:
             self.packets_dropped_percentage = round(self.packets_dropped / self.packets_processed, 2)
 
-    def merge_metric_entry(self, metric_entry):
-        if not isinstance(metric_entry, MetricsEntry):
-            return
+    def merge_metric_entry(self, metric_entry: MetricsEntry) -> None:
+        """Merge another metrics entry into this one
+        Args:
+            metric_entry: The MetricsEntry you wish to merge in
+        Returns:
+            None
+        """
         self.peer = None
         self.peers.append(metric_entry.peer)
         self.memory = self.memory + metric_entry.memory
@@ -155,7 +248,7 @@ class MetricsEntry:
         if self.packets_processed > 0:
             self.packets_dropped_percentage = round(self.packets_dropped / self.packets_processed, 6)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return json.dumps(dict(
             timestamp=self.timestamp,
             time=str(self.time),
@@ -189,8 +282,17 @@ class MetricsEntry:
 
 
 class ReporterEntry:
+    """
+    A single line item entry for Zeek's reporter.log
+    """
 
-    def __init__(self, entry_raw):
+    def __init__(self, entry_raw: str):
+        """
+        A single line item entry in the reporter.log
+
+        Args:
+            entry_raw: A JSON serializable string representing a single line item entry in the reporter.log
+        """
         self.entry_raw = entry_raw
         self.time = None
         self.timestamp = None
@@ -199,12 +301,12 @@ class ReporterEntry:
         self.location = None
         self._parse_entry()
 
-    def _parse_entry(self):
+    def _parse_entry(self) -> None:
         log_entry = self.entry_raw.replace("\n", "")
         try:
             entry = json.loads(log_entry)
         except ValueError:
-            raise zeek_exceptions.InvalidZeekReporterLogEntry(
+            raise InvalidZeekReporterLogEntry(
                 'reporter.log entry is not JSON formatted. '
                 'Make sure to enable policy/tuning/json-logs is loaded.')
         self.timestamp = entry.get('ts')
@@ -212,12 +314,12 @@ class ReporterEntry:
         self.location = entry.get('location')
         self.message = entry.get('message')
         if not self.timestamp:
-            raise zeek_exceptions.InvalidZeekStatusLogEntry('Missing timestamp field')
+            raise InvalidZeekReporterLogEntry('Missing timestamp field')
         if self.log_level:
             self.log_level = str(self.log_level.replace('Reporter::', ''))
         self.time = parse_zeek_datetime(self.timestamp)
 
-    def __str__(self):
+    def __str__(self) -> str:
         log_entry = dict(
             time=str(self.time),
             log_level=self.log_level,
@@ -229,10 +331,15 @@ class ReporterEntry:
 
 class ZeekLogsProxy:
     """
-    This class makes it easy to access a Zeek log and all subsequent archived logs related to it
+    A convenience class providing accessibility to Zeek's archived logs; supports gzipped content
     """
 
-    def __init__(self, log_name, log_sample_size=10000):
+    def __init__(self, log_name: str, log_sample_size: Optional[int] = 1000):
+        """Access a log and all of its corresponding archived logs until log_sample_size is reached.
+        Args:
+            log_name: The name of the Zeek log to retrieve
+            log_sample_size: The max number of log entries to retrieve
+        """
         self.entries = []
         self.log_name = log_name
         self.log_sample_size = log_sample_size
@@ -243,7 +350,13 @@ class ZeekLogsProxy:
         self.log_archive_directory = os.path.join(self.zeek_home, 'logs')
         self.load_all_logs()
 
-    def load_all_logs(self):
+    def load_all_logs(self) -> None:
+        """
+        Load all logs into memory up to self.log_sample_size
+        
+        Returns:
+            None
+        """
         archive_directories = []
         sorted_log_paths = []
         for log_archive_directory in os.listdir(self.log_archive_directory):
@@ -278,13 +391,24 @@ class ZeekLogsProxy:
             else:
                 break
 
-    def iter_entries(self):
+    def iter_entries(self) -> Generator[str]:
         for log_entry in self.entries:
             yield log_entry
 
 
 class BrokerLog(logs.LogFile):
-    def __init__(self, log_sample_size=10000, include_archived_logs=False):
+    """
+    Provides an interface for working with Zeek's broker.log
+    """
+
+    def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
+        """
+        Work with Zeek's broker.log
+
+        Args:
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -296,9 +420,16 @@ class BrokerLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('broker.log', log_sample_size=log_sample_size).entries
 
-    def iter_entries(self, start=None, end=None):
+    def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[BrokerEntry]:
+        """Iterate through BrokerEntries while providing some basic filtering options
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a BrokerEntry for every iteration
+        """
 
-        def filter_entries(s=None, e=None):
+        def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
             if not e:
                 e = datetime.utcnow()
             if not s:
@@ -311,10 +442,48 @@ class BrokerLog(logs.LogFile):
         for log_entry in filter_entries(start, end):
             yield log_entry
 
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Category', 'Peer', 'Message'],
+                                [entry.time, entry.category, f'{entry.peer_address}:{entry.peer_port}', entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
+
 
 class ClusterLog(logs.LogFile):
+    """
+    Provides an interface for working with Zeek's cluster.log
+    """
 
-    def __init__(self, log_sample_size=10000, include_archived_logs=False):
+    def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
+        """Work with Zeek's cluster.log
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs
+        """
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -326,9 +495,16 @@ class ClusterLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('cluster.log', log_sample_size=log_sample_size).entries
 
-    def iter_entries(self, start=None, end=None):
+    def iter_entries(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[ClusterEntry]:
+        """Iterate through ClusterEntries while providing some basic filtering options
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a ClusterEntry for every iteration
+        """
 
-        def filter_entries(s=None, e=None):
+        def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
             if not e:
                 e = datetime.utcnow()
             if not s:
@@ -341,10 +517,50 @@ class ClusterLog(logs.LogFile):
         for log_entry in filter_entries(start, end):
             yield log_entry
 
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Node', 'Message'],
+                                [entry.time, entry.node, entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
+
 
 class StatusLog(logs.LogFile):
+    """
+    Provides an interface for working with Zeek's stats.log
+    """
 
-    def __init__(self, log_sample_size=500, include_archived_logs=False):
+    def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
+        """Work with Zeek's stats.log
+        Args:
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs content
+        """
+
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -356,8 +572,17 @@ class StatusLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('stats.log', log_sample_size=log_sample_size).entries
 
-    def iter_metrics(self, start=None, end=None):
-        def filter_metrics(s=None, e=None):
+    def iter_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> Generator[MetricsEntry]:
+        """Iterate through metrics entries individually. Metrics are given for each individual Zeek peer.
+
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a MetricsEntry for every iteration
+        """
+
+        def filter_metrics(s: Optional[datetime] = None, e: Optional[datetime] = None):
             if not e:
                 e = datetime.utcnow()
             if not s:
@@ -370,19 +595,18 @@ class StatusLog(logs.LogFile):
         for log_entry in filter_metrics(start, end):
             yield log_entry
 
-    def iter_aggregated_metrics(self, start=None, end=None, tolerance_seconds=60):
+    def iter_aggregated_metrics(self, start: Optional[datetime] = None, end: Optional[datetime] = None,
+                                tolerance_seconds: Optional[int] = 60) -> Generator[MetricsEntry]:
+
+        """Aggregate peers and combine events within tolerance_seconds into the same entry.
+
+        Args:
+            start: UTC start time
+            end: UTC end time
+            tolerance_seconds: Specifies the maximum time distance between entries to combine them
+        Returns:
+             yields a MetricsEntry for every iteration
         """
-        Zeek's stats.log returns a metric entry for every peer. This aggregation method will group events
-        by the tolerance_seconds parameter
-
-        In practice metrics aggregated like this will provide an accurate summation of Zeek resources at each point
-
-        :param start: UTC start time
-        :param end: UTC end time
-        :param tolerance_seconds: Specifies the maximum numbers seconds between entries to consider them common,
-                                  and therefore aggregate.
-        """
-
         sorted_by_time = [metric for metric in self.iter_metrics(start, end)]
         if not sorted_by_time:
             return
@@ -398,10 +622,52 @@ class StatusLog(logs.LogFile):
                     aggregated_entry.merge_metric_entry(entry)
             yield aggregated_entry
 
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for metric in self.iter_aggregated_metrics(start=start, end=end):
+                    if metric.timestamp not in visited:
+                        visited.append(metric.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(metric)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Memory', 'Timers', 'Packets on Link', 'Packets Processed', 'Packets Dropped',
+                                 'Peers'],
+                                [metric.time, metric.memory, metric.timers, metric.packets_link,
+                                 metric.packets_processed, metric.packets_dropped, '\n'.join(metric.peers)]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print(utilities.PrintDecorations.colorize('OK', 'green'))
+
 
 class ReporterLog(logs.LogFile):
+    """
+    Provides an interface for working with Zeek's reporter.log
+    """
 
-    def __init__(self, log_sample_size=10000, include_archived_logs=False):
+    def __init__(self, log_sample_size: Optional[int] = 500, include_archived_logs: Optional[bool] = False):
+        """Work with Zeek's reporter.log
+        Args:
+            log_sample_size: The maximum number of log entries to load into memory
+            include_archived_logs: If True, include gzipped archive logs content
+        """
+
         self.env_file = os.path.join(const.CONFIG_PATH, 'environment')
         self.env_dict = utilities.get_environment_file_dict()
         self.zeek_home = self.env_dict.get('ZEEK_HOME')
@@ -413,9 +679,17 @@ class ReporterLog(logs.LogFile):
         if include_archived_logs:
             self.entries = ZeekLogsProxy('reporter.log', log_sample_size=log_sample_size).entries
 
-    def iter_entries(self, start=None, end=None):
+    def iter_entries(self, start: Optional[datetime] = None,
+                     end: Optional[datetime] = None) -> Generator[ReporterEntry]:
+        """Iterate through ReporterEntries while providing some basic filtering options
+        Args:
+            start: UTC start time
+            end: UTC end time
+        Returns:
+             yields a ReporterEntry for every iteration
+        """
 
-        def filter_entries(s=None, e=None):
+        def filter_entries(s: Optional[datetime], e: Optional[datetime] = None):
             if not e:
                 e = datetime.utcnow()
             if not s:
@@ -427,3 +701,34 @@ class ReporterLog(logs.LogFile):
 
         for log_entry in filter_entries(start, end):
             yield log_entry
+
+    def tail(self, pretty_print: Optional[bool] = True) -> None:
+        """Tail and follow a log to console
+        Args:
+            pretty_print: Print the log entry in a nice tabular view
+        Returns:
+            None
+        """
+        visited = []
+        start = datetime.utcnow() - timedelta(days=365)
+        try:
+            while True:
+                end = datetime.utcnow()
+                self.refresh()
+                for entry in self.iter_entries(start=start, end=end):
+                    if entry.timestamp not in visited:
+                        visited.append(entry.timestamp)
+                        if not pretty_print:
+                            print(json.dumps(json.loads(str(entry)), indent=1))
+                        else:
+                            status_table = [
+                                ['Time', 'Log Level', 'Location', 'Message'],
+                                [entry.time, entry.log_level, entry.location, entry.message]
+                            ]
+                            print(tabulate.tabulate(status_table, tablefmt='fancy_grid'))
+                    if len(visited) > 100:
+                        visited = []
+                start = datetime.utcnow() - timedelta(seconds=60)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print(utilities.PrintDecorations.colorize('OK', 'green'))

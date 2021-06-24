@@ -1,38 +1,42 @@
-
 from setuptools import setup, find_packages
-
-with open("PROJECT_DESCRIPTION.md", "r") as fh:
-    long_description = fh.read()
 
 setup(
     name='dynamite-nsm',
-    version='0.8.0',
+    version='1.0.0',
     packages=find_packages(),
     scripts=['scripts/dynamite'],
-    url='http://dynamite.ai',
-    long_description=long_description,
+    url='https://github.com/DynamiteAI/dynamite-nsm',
     long_description_content_type="text/markdown",
     license='GPL 3',
-    author='Jamin Becker',
-    author_email='jamin@dynamite.ai',
-    description='DynamiteNSM is an network security monitor with an emphasis on very fast deployment, '
-                'minimal configuration, and intuitive management.',
+    author='Dynamite Analytics',
+    author_email='admin@dynamite.ai',
+    description='DynamiteNSM is a lightweight, versatile network security monitor designed to '
+                'make securing your network environment simple and intuitive.',
     include_package_data=True,
     install_requires=[
-        'coloredlogs',
-        'progressbar',
-        'tabulate',
-        'pyyaml',
-        'npyscreen',
-        'psutil'
+        'bcrypt==3.2.0',
+        'coloredlogs==15.0',
+        'progressbar==2.5',
+        'tabulate==0.8.9',
+        'PyYAML==5.3.1',
+        'psutil==5.8.0',
+        'docstring-parser==0.7.3',
+        'marshmallow==3.11.1',
+        'pytest==6.2.2',
+        'python-crontab==2.5.1',
+        'python-daemon==2.3.0',
+        'requests==2.24.0',
+        'sqlalchemy==1.3.18',
+        'Unidecode==1.2.0',
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Natural Language :: English',
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.7',
         'Operating System :: POSIX :: Linux',
         'Environment :: Console',
         'Topic :: System :: Networking :: Monitoring',
-        'Topic :: Security'
+        'Topic :: Security',
+        'License :: OSI Approved :: GNU General Public License (GPL)'
     ]
 )

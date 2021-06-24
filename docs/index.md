@@ -1,38 +1,51 @@
-# Dynamite Network Security Monitor
-<p align="center">
-<a href="http://dynamite.ai"><img src="img/dynamite_analytics.png" width="350" height="auto"></a>
+# Introduction
+
+### What is Dynamite Network Security Monitor?
+
+DynamiteNSM is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive.
+
+It has two main components: `agent` and `monitor`. Dynamite agents can easily be deployed to monitor dedicated network segments while the monitor provides
+a powerful query interface and in-depth analytics.
+
+<center>
+    <img src="./data/img/demos/intro.gif">
+</center>
+
+<p style="text-align: right;">
+    <a href="./about/01_project_goals"> Read More »</a>
 </p>
 
-**Discover your network!**
+### Checkout the Dashboards
 
-Welcome to DynamiteNSM a powerful toolset for monitoring your network with lighting fast deployment and minimal configuration.
+DynamiteNSM ships with a powerful set of visualizations, saved queries, and dashboards purpose built to provide useful analytics
+for a variety of operational and security use-cases.
 
-## Table of Contents
+<p align="center">
+    <img src="./data/img/kibana_alerts_map.png" />
+</p>
 
-- [About](about.md)
-     - [Project Goals](about/project_goals.md)
-- [Introduction](introduction.md)
-     - [Components](introduction/components.md)
-     - [Supported Operating Systems](introduction/supported_operating_systems.md)
-     - [Deployment Considerations](introduction/deployment_considerations.md)
-         - [Deployment Scenarios](introduction/deployment_considerations/deployment_scenarios.md)
-         - [Agent Considerations](introduction/deployment_considerations/agent_deployment.md)
-         - [Monitor Considerations](introduction/deployment_considerations/monitor_deployment.md)
-- [Getting Started](getting_started.md)
-     - [Prerequisites](getting_started/prerequisites.md)
-     - [Commandline Installation](getting_started/cmd_installation.md)
-     - [Commandline Overview](getting_started/cmd_overview.md)
-     - [Agent Setup](getting_started/agent_setup.md)
-     - [Monitor Setup](getting_started/monitor_setup.md)
-     - [Updating](getting_started/updating.md)
-- [Kibana Dashboards](kibana_dashboards.md)
-    - [Events](kibana_dashboards/event_dashboards.md)
-    - [Alerts](kibana_dashboards/alert_dashboards.md)
-    - [Files](kibana_dashboards/files_dashboards.md)
-    - [Baselines <sub>Experimental</sub>](kibana_dashboards/baseline_dashboards.md)
-    - [Statistics](kibana_dashboards/statistics_dashboards.md)
-- [DynamiteLab <sub>Experimental</sub>](dynamite_lab.md)
-  
+<p style="text-align: right;">
+    <a href="./guides/base_views/01_overview"> Read More »</a>
+</p>
+
+### Dive Right In.
+
+Learn by doing. Read our [quick-start guide](/guides/01_quick_start), and quickly setup a working environment perfect for 
+monitoring a home network or lab environment.
+
+<center>
+    <img src="./data/img/example_deployment.png" style="width:80%;height:auto">
+</center>
+
+<p style="text-align: right;">
+    <a href="./requirements/01_supported_operating_systems"> Read More »</a>
+</p>
 
 
- 
+### Contribute
+
+Whether you have a cool detection, visualisation, or SDK contribution we welcome collaboration!
+
+<p style="text-align: right;">
+    <a href="./guides/developers/01_overview"> Read More »</a>
+</p>

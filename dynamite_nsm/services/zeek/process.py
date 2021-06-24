@@ -1,36 +1,43 @@
 import os
 import re
 import subprocess
+from typing import Dict, Optional, Union
 
 import tabulate
 
+from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import process
-from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm.services.zeek import profile as zeek_profile
-from dynamite_nsm.services.zeek import exceptions as zeek_exceptions
 
 
 class ProcessManager(process.BaseProcessManager):
-    """
-    Zeek Process Manager
-    """
 
-    def __init__(self, stdout=True, verbose=False, pretty_print_status=False):
+    def __init__(self, stdout: Optional[bool] = True, verbose: Optional[bool] = False,
+                 pretty_print_status: Optional[bool] = False):
+        """Manage Zeek processes and sub-processes
+        Args:
+            stdout: Print output to console
+            verbose: Include detailed debug messages
+            pretty_print_status: If true, status will be printed in a tabular form
+        """
         self.environment_variables = utilities.get_environment_file_dict()
         self.install_directory = self.environment_variables.get('ZEEK_HOME')
+        process.BaseProcessManager.__init__(self, 'zeek.service', 'zeek.process', log_path=None,
+                                            stdout=stdout, verbose=verbose,
+                                            pretty_print_status=pretty_print_status)
 
-        try:
-            process.BaseProcessManager.__init__(self, 'zeek.service', 'zeek', log_path=None,
-                                                pid_file=None, stdout=stdout, verbose=verbose,
-                                                pretty_print_status=pretty_print_status)
-        except general_exceptions.CallProcessError:
-            raise zeek_exceptions.CallZeekProcessError("Could not find systemctl.")
         if not zeek_profile.ProcessProfiler().is_installed():
-            self.logger.error("Zeek is not installed. Install it with 'dynamite agent install -h'")
-            raise zeek_exceptions.CallZeekProcessError("Zzeek is not installed.")
+            raise general_exceptions.CallProcessError("Zeek is not installed.")
 
-    def status(self):
+    def status(self) -> Union[Dict, str]:
+        """
+        Get the status of Zeek processes
+
+        Returns:
+            A dictionary or string depending on the value of self.pretty_print_status
+
+        """
         p = subprocess.Popen('{} status'.format(os.path.join(self.install_directory, 'bin', 'zeekctl')), shell=True,
                              stdout=subprocess.PIPE)
         out, err = p.communicate()
@@ -77,19 +84,12 @@ class ProcessManager(process.BaseProcessManager):
             zeek_status.update({'logs': self.log_path})
         zeek_status['info'] = systemd_info_dict
         if self.pretty_print_status:
-            status_tbl = [
-                [
-                    'Service', self.name,
-                ]
-            ]
-            if zeek_status['running']:
-                status_tbl.append([
-                    'Running', '\033[92myes\033[0m'
-                ])
-            else:
-                status_tbl.append([
-                    'Running', '\033[91mno\033[0m'
-                ])
+            colorize = utilities.PrintDecorations.colorize
+            status_tbl = [[
+                'Service', self.name,
+            ], ['Running', colorize('yes', 'green') if zeek_status['running'] else colorize('no', 'red')],
+                ['Enabled on Startup',
+                 colorize('yes', 'green') if zeek_status['enabled_on_startup'] else colorize('no', 'red')]]
             if self.verbose:
                 for sp in zeek_subprocesses:
                     status_tbl.append(
@@ -117,21 +117,4 @@ class ProcessManager(process.BaseProcessManager):
                     'STDERR', zeek_status['info'].get('stderr')
                 ])
             return tabulate.tabulate(status_tbl, tablefmt='fancy_grid')
-
         return zeek_status
-
-
-def start(stdout=True, verbose=False, pretty_print_status=False):
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).start()
-
-
-def stop(stdout=True, verbose=False, pretty_print_status=False):
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).stop()
-
-
-def restart(stdout=True, verbose=False, pretty_print_status=False):
-    ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).restart()
-
-
-def status(stdout=True, verbose=False, pretty_print_status=False):
-    return ProcessManager(stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status).status()
