@@ -8,7 +8,7 @@
 
 Dynamite Network Security Monitor is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive. With DynamiteNSM you can deploy only the sensor and monitoring components you need without having to download and install a dedicated operating system. Everything in DynamiteNSM is backed up by a well-documented SDK, providing unlimted opportunities for extension and integration.
 
-**To get started. Simply install via PIP on a supported [operating system]():**
+**To get started. Simply install via PIP on a supported [operating system](https://dynamiteai.github.io/dynamite-nsm/requirements/01_supported_operating_systems):**
 
 ```
 sudo pip3 install dynamite-nsm
@@ -26,7 +26,7 @@ sudo pip3 install dynamite-nsm
 sudo dynamite agent install --inspect-interfaces=<iface1> <iface2> <iface3>
 ```
 
-[**More Info »**](https://dynamite-nsm.readthedocs.io/en/latest/installation/01_overview)
+[**More Info »**](https://dynamiteai.github.io/dynamite-nsm/installation/01_overview)
 
 <p align="center">
  <img src="docs/data/img/arch_monitor.png" width="75%" height="auto"></img>
@@ -43,8 +43,8 @@ sudo dynamite monitor install
 
 Checkout our comprehensive documentation complete with tutorials, guides, and example and quickstart deployments.
 
-Those wishing to contribute may also be interested in our [development guides](https://dynamite-nsm.readthedocs.io/en/latest/developers/01_overview).
+Those wishing to contribute may also be interested in our [development guides](https://dynamiteai.github.io/dynamite-nsm/guides/developers/01_overview).
 
-[**Read the docs »**](https://dynamite-nsm.readthedocs.io/en/latest/)
+[**Read the docs »**](https://dynamiteai.github.io/dynamite-nsm/)
 
 
