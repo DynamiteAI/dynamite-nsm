@@ -8,7 +8,7 @@
 
 Dynamite Network Security Monitor is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive. With DynamiteNSM you can deploy only the sensor and monitoring components you need without having to download and install a dedicated operating system. Everything in DynamiteNSM is backed up by a well-documented SDK, providing unlimted opportunities for extension and integration.
 
-**To get started. Simply install via PIP on a supported [operating system](https://dynamiteai.github.io/dynamite-nsm/requirements/01_overview):**
+**To get started. Simply install via PIP on a supported [operating system](https://dynamiteai.github.io/dynamite-nsm/requirements/01_supported_operating_systems):**
 
 ```
 sudo pip3 install dynamite-nsm
