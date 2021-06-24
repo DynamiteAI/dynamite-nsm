@@ -4,7 +4,7 @@ from typing import List, Optional
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.kibana import config
-from dynamite_nsm.services.kibana.tasks import install_dynamite_investigator
+from dynamite_nsm.services.kibana.tasks import install_dynamite_base_views
 
 
 class InstallManager(install.BaseInstallManager):
@@ -122,10 +122,10 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/kibana.service')
         sysctl.install_and_enable(f'{const.DEFAULT_CONFIGS}/systemd/kibana.service')
 
-        self.logger.info('Installing "Dynamite Investigator" Kibana package')
-        task = install_dynamite_investigator.InstallKibanaDynamiteInvestigatorPackage(username='admin',
-                                                                                      password='admin',
-                                                                                      target=f"http://{host}:{port}")
+        self.logger.info('Installing "BaseViews" Kibana package')
+        task = install_dynamite_base_views.InstallKibanaDynamiteBaseViewsPackage(username='admin',
+                                                                                 password='admin',
+                                                                                 target=f"http://{host}:{port}")
         task.download_and_install()
 
 

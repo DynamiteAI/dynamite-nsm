@@ -73,7 +73,7 @@ class InstallManager(install.BaseInstallManager):
                                         download_filebeat_archive=True, stdout=self.stdout,
                                         verbose=self.verbose).setup(targets=targets, target_type=target_type)
         optimize.OptimizeThreadingManager(self.suricata_configuration_directory, self.zeek_install_directory,
-                                          stdout=self.stdout, verbose=self.verbose)
+                                          stdout=self.stdout, verbose=self.verbose).optimize(inspect_interfaces)
 
 
 class UninstallManager(install.BaseUninstallManager):
