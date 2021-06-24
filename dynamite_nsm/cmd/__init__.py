@@ -43,5 +43,4 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
     try:
         return component_interface.interface.execute(args)
     except AttributeError as e:
-        print(e)
         component_modules[component].get_action_parser().print_help()

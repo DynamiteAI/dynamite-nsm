@@ -11,10 +11,6 @@ common dependencies. For some of these operating systems we have compiled some b
 | ![centos-logo](../data/img/operating_system_icons/centos.png) CentOs 8     | ✅                  | ✅                    |                                                     |
 | ![debian-logo](../data/img/operating_system_icons/debian.png) Debian 9     | ✅                  | ✅                    |                                                     |
 | ![debian-logo](../data/img/operating_system_icons/debian.png) Debian 10    | ✅                  | ✅                    |                                                     |
-| ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 16.04 | ✅                  | ✅                    |                                                     |
-| ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 16.10 | ✅                  | ✅                    |                                                     |
-| ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 17.04 | ✅                  | ✅                    |                                                     |
-| ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 17.10 | ✅                  | ✅                    |                                                     |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 18.04 | ✅                  | ✅                    | [View](../../requirements/os_setup_guides/09_ubuntu1804)                                                    |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 18.10 | ✅                  | ✅                    |                                                     |
 | ![ubuntu-logo](../data/img/operating_system_icons/ubuntu.png) Ubuntu 19.04 | ✅                  | ✅                    |                                                     |
