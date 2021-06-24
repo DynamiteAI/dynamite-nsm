@@ -6,9 +6,6 @@ TargetClass = TypeVar('TargetClass')
 
 
 class InvalidTargetString(TypeError):
-    """
-    Thrown when target is invalid
-    """
 
     def __init__(self, target_string):
         """Invalid Filebeat Target

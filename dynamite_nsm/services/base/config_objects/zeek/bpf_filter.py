@@ -28,7 +28,8 @@ class BpfFilter(GenericItem):
     def get_raw(self) -> str:
         """Get the representation of the value as it would appear the config.
 
-        Returns: A line containing both the network interface and pattern associated with it.
+        Returns:
+            A line containing both the network interface and pattern associated with it.
         """
         return f'{self.interface}\t{self.pattern}'
 
@@ -36,6 +37,10 @@ class BpfFilter(GenericItem):
 class BpfFilters(GenericItemGroup):
 
     def __init__(self, bpf_filters: Optional[List[BpfFilter]] = None):
+        """A collection of BpfFilters
+        Args:
+            bpf_filters: A collection of BpfFilter objects
+        """
         super().__init__('interface', bpf_filters)
         self.bpf_filters = self.items
         self._idx = 0

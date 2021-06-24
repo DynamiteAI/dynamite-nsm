@@ -26,13 +26,23 @@ available_rules_names = [
 ]
 
 
-def list_available_rule_names():
+def list_available_rule_names() -> List[str]:
+    """List the names of all available Suricata rules.
+    Returns:
+        A list of Suricata rule names that can be enabled
+    """
     return available_rules_names
 
 
 class Rule(Analyzer):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
+        """
+        Represents a Suricata ruleset that can be enabled or disabled.
+        Args:
+            name: The name of the ruleset
+            enabled: Whether or not the ruleset is enabled
+        """
         self.value = None
         super().__init__(name, enabled)
 
@@ -40,6 +50,10 @@ class Rule(Analyzer):
 class Rules(Analyzers):
 
     def __init__(self, rules: Optional[List[Rule]] = None):
+        """A collection of Suricata rulesets
+        Args:
+            rules: A list of Rule objects
+        """
         super().__init__(rules)
         self.rules = self.analyzers
 

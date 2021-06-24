@@ -65,9 +65,13 @@ nav:
       - Filebeat: services/09_filebeat.md
   - Guides:
       - Quick Start: guides/01_quick_start.md
-      - BaseViews Kibana Package:
+      - Navigating Kibana:
           - Overview: guides/base_views/01_overview.md
-          - Pivot Fields: guides/base_views/02_pivot_fields.md
+          - Alert: guides/base_views/02_alerts.md
+          - Conversations: guides/base_views/03_conversations.md
+          - Hosts: guides/base_views/04_hosts.md
+          - Protocols: guides/base_views/05_protocols.md
+          - Pivot Fields: guides/base_views/06_pivot_fields.md
       - Working with Kibana Package Manager: guides/02_using_kibana_package.md
       - Software Developer Guides:
           - Overview: guides/developers/01_overview.md
@@ -89,6 +93,14 @@ nav:
                             - filebeat:
                               - guides/developers/SDK/services/base/config_objects/filebeat/misc.md
                               - guides/developers/SDK/services/base/config_objects/filebeat/targets.md
+                            - suricata:
+                              - guides/developers/SDK/services/base/config_objects/suricata/misc.md
+                              - guides/developers/SDK/services/base/config_objects/suricata/rules.md
+                            - zeek:
+                              - guides/developers/SDK/services/base/config_objects/zeek/node.md
+                              - guides/developers/SDK/services/base/config_objects/zeek/local_site.md
+                              - guides/developers/SDK/services/base/config_objects/zeek/local_network.md
+                              - guides/developers/SDK/services/base/config_objects/zeek/bpf_filter.md
                       - logs: guides/developers/SDK/services/base/logs.md
                       - process: guides/developers/SDK/services/base/process.md
                       - profile: guides/developers/SDK/services/base/profile.md

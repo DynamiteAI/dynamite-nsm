@@ -56,17 +56,34 @@ class BaseComponents(GenericItemGroup):
 class Logger(BaseComponent):
 
     def __init__(self, logger_name: str, host: str):
+        """
+        A Zeek logger process
+        Args:
+            logger_name: The name of the logger
+            host: The host to bind to
+        """
         super().__init__(logger_name, 'logger', host)
 
 
 class Manager(BaseComponent):
 
     def __init__(self, manager_name: str, host: str):
+        """
+        A Zeek manager process
+        Args:
+            manager_name: The name of the logger
+            host: The host to bind to
+        """
         super().__init__(manager_name, 'manager', host)
 
 
 class Proxy(BaseComponent):
-
+    """
+    A Zeek proxy process
+    Args:
+        proxy_name: The name of the logger
+        host: The host to bind to
+    """
     def __init__(self, proxy_name: str, host: str):
         super().__init__(proxy_name, 'proxy', host)
 
@@ -76,17 +93,17 @@ class Worker(BaseComponent):
     def __init__(self, worker_name: str, interface_name: str, cluster_id: int,
                  cluster_type: Optional[str] = 'FANOUT_HASH', load_balance_processes: Optional[int] = 1,
                  pinned_cpus: Optional[Tuple] = (0,), host: Optional[str] = 'localhost'):
-        """
-        A Zeek worker process
-
-        :param worker_name: The name of the worker
-        :param interface_name: The name of a network interface
-        :param cluster_id: A unique integer associated with this worker maps to af_packet_fanout_id
-        :param cluster_type: The algorithm used to spread traffic between sockets. cluster_flow (FANOUT_HASH),
-                             cluster_cpu (FANOUT_CPU), cluster_qm (FANOUT_QM). Maps to af_packet_fanout_mode
-        :param load_balance_processes: The number of Zeek processes associated with a given worker
-        :param pinned_cpus: Core affinity for the processes (iterable),
-        :param host: The host on which the worker is running
+        """A Zeek worker process that uses AF_PACKET for packet acquisition
+        Args:
+            worker_name: The name of the worker
+            interface_name: The name of a network interface to monitor
+            cluster_id: A unique integer associated with this worker. Maps to af_packet_fanout_id
+            cluster_type: The algorithm used to spread traffic between sockets. Maps to af_packet_fanout_mode
+            load_balance_processes: The number of Zeek processes associated with a given worker
+            pinned_cpus: List of CPU cores that are dedicated to this worker
+            host: The host to bind to
+        Returns:
+            None
         """
         super().__init__(worker_name, 'worker', host)
 
@@ -128,6 +145,12 @@ class Worker(BaseComponent):
 
 class Loggers(BaseComponents):
     def __init__(self, loggers: Optional[List[Logger]] = None):
+        """
+        A collection of one or more loggers
+
+        Args:
+            loggers: A Logger object
+        """
         super().__init__(components=loggers)
 
     def add_logger(self, logger: Logger):
@@ -135,6 +158,12 @@ class Loggers(BaseComponents):
 
 
 class Proxies(BaseComponents):
+    """
+    A collection of one or more proxies
+
+    Args:
+        proxies: A Proxy object
+    """
     def __init__(self, proxies: Optional[List[Proxy]] = None):
         super().__init__(components=proxies)
 
@@ -145,6 +174,12 @@ class Proxies(BaseComponents):
 class Workers(BaseComponents):
 
     def __init__(self, workers: Optional[List[Worker]] = None):
+        """
+        A collection of one or more workers
+
+        Args:
+            workers: A Worker object
+        """
         super().__init__(components=workers)
 
     def add_worker(self, worker: Worker):

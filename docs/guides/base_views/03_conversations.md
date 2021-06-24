@@ -7,7 +7,7 @@ The `Conversations` module contains views built for the analysis of host-to-host
 The `Conversations Map` view includes a world map with individual countries colorized to depict the volume of connections that originated from within.  Click on a specific country to filter the conversations for traffic that it was involved in.  
 
 <p align="center">
-    <img src="../../data/img/kibana_conversation_map.png" />
+    <img src="/data/img/kibana_conversation_map.png" />
 </p>
 
 ## Discovery View
@@ -15,5 +15,5 @@ The `Conversations Map` view includes a world map with individual countries colo
 The conversations `Discovery View` is a customized data table built for exploring conversation records.  Use the search bar and filters to refine the conversations included in the data table.  Expand the details to learn more about the nature of the conversation and to access pivots to other related views. 
 
 <p align="center">
-    <img src="../../data/img/kibana_conversations_discovery_view.png" />
+    <img src="/data/img/kibana_conversations_discovery_view.png" />
 </p>

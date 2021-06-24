@@ -37,6 +37,11 @@ IPV6_AND_CIDR_PATTERN = r'^(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,4}:[0-9A-
 class LocalNetwork(GenericItem):
 
     def __init__(self, ip_and_cidr: str, description: Optional[str] = None):
+        """A local network denoted by a IP/CIDR
+        Args:
+            ip_and_cidr: An IP/CIDR string representing a local network.
+            description: A description of that network's purpose
+        """
         self.ip_and_cidr = ip_and_cidr
         self.description = description
 
@@ -50,6 +55,10 @@ class LocalNetwork(GenericItem):
         )
 
     def get_raw(self) -> str:
+        """Get a raw representation of this LocalNetwork
+        Returns:
+            An assignment statement that can be inserted directly into Zeek's networks.cfg
+        """
         if self.description:
             return '{0: <64} {1}\n'.format(self.ip_and_cidr, self.description)
         return '{0: <64} {1}\n'.format(self.ip_and_cidr, 'Undocumented Network')
@@ -58,6 +67,10 @@ class LocalNetwork(GenericItem):
 class LocalNetworks(GenericItemGroup):
 
     def __init__(self, local_networks: Optional[List[LocalNetwork]] = None):
+        """A collection of LocalNetworks
+        Args:
+            local_networks: A collection of LocalNetwork objects
+        """
         super().__init__('ip_and_cidr', local_networks)
         self.local_networks = self.items
         self._idx = 0
@@ -72,4 +85,8 @@ class LocalNetworks(GenericItemGroup):
         )
 
     def get_raw(self) -> List[str]:
+        """Get a list of LocalNetworks that can be inserted directly into the network.cfg file
+        Returns:
+            A list of local network assignments
+        """
         return [local_network.get_raw() for local_network in self.local_networks]

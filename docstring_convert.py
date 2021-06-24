@@ -1,8 +1,14 @@
 text = '''
-        """Manage Kibana Configuration
-        :param configuration_directory: Path to the configuration directory (E.G /etc/dynamite/logstash/)
-        :param stdout: Print output to console
-        :param verbose: Include detailed debug messages
+        """
+        A Zeek worker process
+
+        :param worker_name: The name of the worker
+        :param interface_name: The name of a network interface
+        :param cluster_id: A unique integer associated with this worker maps to af_packet_fanout_id
+        :param cluster_type: The algorithm used to spread traffic between sockets. cluster_flow (FANOUT_HASH), cluster_cpu (FANOUT_CPU), cluster_qm (FANOUT_QM). Maps to af_packet_fanout_mode
+        :param load_balance_processes: The number of Zeek processes associated with a given worker
+        :param pinned_cpus: Core affinity for the processes (iterable),
+        :param host: The host on which the worker is running
         """
 '''
 params = []
