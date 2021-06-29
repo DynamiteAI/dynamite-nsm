@@ -6,9 +6,11 @@
 
 ### What is Dynamite Network Security Monitor?
 
-DynamiteNSM is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive.
+DynamiteNSM is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive. It is easily deployed in different environments including high-speed data centers, small-to-large enterprises, IoT & industrial networks, and even at home.
 
-It has two main components: agent and monitor. Dynamite agents can easily be deployed to monitor dedicated network segments while the monitor provides a powerful query interface and in-depth analytics.
+DynamiteNSM includes two key components: the agent and the monitor. The agent extracts Zeek network metadata coupled with Suricata IDS security alerts and forwards them to the monitor. The monitor processes incoming events and presents analytic information via dashboards and a powerful query interface.
+
+DynamiteNSM can handle massive volumes of network traffic. Unlike many other tools, it can be installed and managed with a standalone command-line utility. The system is inherently passive without disruption to the network. There is no need to install agents on every computer, perform network scans, or directly interact with network assets.
 
 **To get started. Simply install via PIP on a supported [operating system](https://dynamiteai.github.io/dynamite-nsm/requirements/01_supported_operating_systems):**
 
