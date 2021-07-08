@@ -7,3 +7,6 @@
 [submodule "utilities"]
 	path = extras/utilities
 	url = https://github.com/DynamiteAI/utilities
+[submodule "extras/kibana_packages"]
+	path = extras/kibana_packages
+	url = https://github.com/DynamiteAI/kibana_packages
