@@ -39,6 +39,12 @@ class GenericItemGroup:
     def add(self, item: GenericItem) -> None:
         self.__add__(item)
 
+    def get(self, identifier_value_str: str) -> Optional[GenericItem]:
+        for i, item in enumerate(self.items):
+            if getattr(item, self.identifier_attribute) == identifier_value_str:
+                return self.items[i]
+        return None
+
     def remove(self, identifier_value_str: str):
         for i, item in enumerate(self.items):
             if getattr(item, self.identifier_attribute) == identifier_value_str:

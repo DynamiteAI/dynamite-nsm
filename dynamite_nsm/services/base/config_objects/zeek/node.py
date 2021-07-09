@@ -153,6 +153,9 @@ class Loggers(BaseComponents):
         """
         super().__init__(components=loggers)
 
+    def get(self, name) -> Optional[Logger]:
+        return super(Loggers, self).get(name)
+
     def add_logger(self, logger: Logger):
         super().add(logger)
 
@@ -166,6 +169,9 @@ class Proxies(BaseComponents):
     """
     def __init__(self, proxies: Optional[List[Proxy]] = None):
         super().__init__(components=proxies)
+
+    def get(self, name) -> Optional[Proxy]:
+        return super(Proxies, self).get(name)
 
     def add_proxy(self, proxy: Proxy):
         super().add(proxy)
@@ -181,6 +187,9 @@ class Workers(BaseComponents):
             workers: A Worker object
         """
         super().__init__(components=workers)
+
+    def get(self, name) -> Optional[Worker]:
+        return super(Workers, self).get(name)
 
     def add_worker(self, worker: Worker):
         super().add(worker)

@@ -1,11 +1,22 @@
-import os
-from typing import Dict, Optional, Union
+from typing import Optional
 
 from dynamite_nsm.services.base import process
 from dynamite_nsm.services.suricata import profile
-from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm import exceptions
 
 PID_DIRECTORY = '/var/run/dynamite/suricata/'
+
+
+class CallSuricataProcessError(exceptions.CallProcessError):
+    def __init__(self, message):
+        """Thrown when suricata process encounters an error state
+        Args:
+            message: A more specific error message
+        Returns:
+            None
+        """
+        msg = "An error occurred while calling suricata process: {}".format(message)
+        super(CallSuricataProcessError, self).__init__(msg)
 
 
 class ProcessManager(process.BaseProcessManager):

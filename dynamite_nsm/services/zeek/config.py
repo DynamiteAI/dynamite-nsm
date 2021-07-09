@@ -39,8 +39,8 @@ class BpfConfigManager(GenericConfigManager):
         self.add_parser(
             parser=lambda data: bpf_filter.BpfFilters(
                 [bpf_filter.BpfFilter(
-                    interface_name=line.split('\t')[0],
-                    pattern=line.split('\t')[1]
+                    interface_name=line.split('\t')[0].strip(),
+                    pattern=line.split('\t')[1].strip()
                 )
                     for line in data['data']
                     if '\t' in line.strip().replace(' ', '')]
