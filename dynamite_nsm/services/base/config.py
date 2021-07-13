@@ -271,20 +271,22 @@ class YamlConfigManager:
                  None
             """
             partial_config_data = self.config_data
-            for i in range(0, len(path) - 1):
-                k = path[i]
-                if isinstance(partial_config_data, dict):
-                    partial_config_data = partial_config_data[k]
-                elif isinstance(partial_config_data, list):
-                    for list_entry in partial_config_data:
-                        if isinstance(list_entry, dict):
-                            if k in list_entry.keys():
-                                partial_config_data = list_entry[k]
-                else:
-                    break
-            if not value:
-                return
-            partial_config_data.update({path[-1]: value})
+            if len(path) > 1:
+                for i in range(0, len(path) - 1):
+                    k = path[i]
+                    if isinstance(partial_config_data, dict):
+                        partial_config_data = partial_config_data[k]
+                    elif isinstance(partial_config_data, list):
+                        for list_entry in partial_config_data:
+                            if isinstance(list_entry, dict):
+                                if k in list_entry.keys():
+                                    partial_config_data = list_entry[k]
+                    else:
+                        break
+            else:
+                if value is None:
+                    return
+                partial_config_data.update({path[-1]: value})
 
         # Backup old configuration first
         if backup_directory:

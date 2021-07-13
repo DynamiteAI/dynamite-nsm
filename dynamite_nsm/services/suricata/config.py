@@ -99,7 +99,6 @@ class ConfigManager(YamlConfigManager):
             'classification_file': ('classification-file',),
             'reference_config_file': ('reference-config-file',),
             '_af_packet_interfaces_raw': ('af-packet',),
-            '_pcap_interfaces_raw': ('pcap',),
             '_rule_files_raw': ('rule-files',),
             '_threading_raw': ('threading',)
         }
@@ -133,7 +132,6 @@ class ConfigManager(YamlConfigManager):
         self.classification_file = None
         self.reference_config_file = None
         self._af_packet_interfaces_raw = []
-        self._pcap_interfaces_raw = []
         self._rule_files_raw = []
         self._threading_raw = {}
         self.suricata_config_file = os.path.join(self.configuration_directory, 'suricata.yaml')
@@ -173,10 +171,6 @@ class ConfigManager(YamlConfigManager):
                 self.threading.receive_cpu_set = thread_family.get('receive-cpu-set', {}).get('cpus', [])
             elif 'worker-cpu-set' in thread_family.keys():
                 self.threading.worker_cpu_set = thread_family.get('worker-cpu-set', {}).get('cpus', [])
-
-        self.pcap_interfaces = misc.PcapInterfaces(
-            interface_names=[interface_raw for interface_raw in self._pcap_interfaces_raw]
-        )
 
     @classmethod
     def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None) -> ConfigManager:
@@ -227,7 +221,6 @@ class ConfigManager(YamlConfigManager):
         if not top_text:
             top_text = '%YAML 1.1\n---'
         self._rule_files_raw = self.rules.get_raw()
-        self._pcap_interfaces_raw = self.pcap_interfaces.get_raw()
         self._af_packet_interfaces_raw = self.af_packet_interfaces.get_raw()
         self._threading_raw = self.threading.get_raw()
         super(ConfigManager, self).commit(out_file_path, backup_directory, top_text=top_text)
