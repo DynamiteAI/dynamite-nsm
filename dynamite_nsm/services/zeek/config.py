@@ -1,8 +1,6 @@
-import math
 from io import StringIO
 from re import findall
 from random import randint
-from itertools import zip_longest
 from configparser import ConfigParser
 from typing import Dict, List, Optional, Tuple
 
@@ -195,7 +193,7 @@ class NodeConfigManager(GenericConfigManager):
         - `manager` - A basic `node.Manager` instance representing a manager configuration (one per cluster)
         - `loggers` - A `node.Loggers` instance representing one or more loggers. Loggers alleviate manager load
         - `proxies` A `node.Proxies` instance representing one or more proxies. Offload workloads.
-        - `workers` A `node.Workers` instance reprsenting one or more workers. The worker is the Zeek process that
+        - `workers` A `node.Workers` instance representing one or more workers. The worker is the Zeek process that
         sniffs network traffic and does protocol analysis on the reassembled traffic streams.
         """
         self.install_directory = install_directory
@@ -310,7 +308,7 @@ class NodeConfigManager(GenericConfigManager):
                     load_balance_processes=lb_processes,
                     pinned_cpus=pinned_cpus,
                     cluster_id=randint(1, 32768),
-                    cluster_type='AF_Packet::FANOUT_HASH'
+                    cluster_type='AF_Packet::FANOUT_QM'
                 )
             )
 
