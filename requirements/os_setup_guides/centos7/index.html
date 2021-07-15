@@ -2457,7 +2457,7 @@ sudo yum -y install gcc gcc-c++ openssl-devel bzip2-devel libffi-devel wget
 <h4 id="compile-from-source">Compile from Source</h4>
 <pre><code class="language-bash">tar xvf Python-3.8.3.tgz
 cd Python-3.8*/
-./configure --enable-optimizations
+./configure --enable-optimizations --enable-loadable-sqlite-extensions
 sudo make altinstall
 </code></pre>
 <h2 id="install-dynamitensm-package">Install DynamiteNSM Package</h2>

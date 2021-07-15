@@ -2861,6 +2861,7 @@ For example ProcessManager's provides multiple methods that can be invoked to pe
     <span class="k">if</span> <span class="ow">not</span> <span class="n">interface_description</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interfaceModuleType_description</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">base_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interface_methods</span> <span class="o">=</span> <span class="n">get_class_instance_methods</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">use_parent_init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># print(self.cls, [(item.name, item.flags, item.kwargs) for item in self.base_params])</span>
 </code></pre></div>
         </details>
     </div>

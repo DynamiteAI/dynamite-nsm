@@ -2924,8 +2924,8 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="n">parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="n">bpf_filter</span><span class="o">.</span><span class="n">BpfFilters</span><span class="p">(</span>
             <span class="p">[</span><span class="n">bpf_filter</span><span class="o">.</span><span class="n">BpfFilter</span><span class="p">(</span>
-                <span class="n">interface_name</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="n">pattern</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">interface_name</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="n">pattern</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="p">)</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)]</span>
@@ -3385,7 +3385,7 @@ by this cluster.</li>
 <li><code>manager</code> - A basic <code>node.Manager</code> instance representing a manager configuration (one per cluster)</li>
 <li><code>loggers</code> - A <code>node.Loggers</code> instance representing one or more loggers. Loggers alleviate manager load</li>
 <li><code>proxies</code> A <code>node.Proxies</code> instance representing one or more proxies. Offload workloads.</li>
-<li><code>workers</code> A <code>node.Workers</code> instance reprsenting one or more workers. The worker is the Zeek process that
+<li><code>workers</code> A <code>node.Workers</code> instance representing one or more workers. The worker is the Zeek process that
 sniffs network traffic and does protocol analysis on the reassembled traffic streams.</li>
 </ul>
 
@@ -3402,7 +3402,7 @@ sniffs network traffic and does protocol analysis on the reassembled traffic str
 <span class="sd">    - `manager` - A basic `node.Manager` instance representing a manager configuration (one per cluster)</span>
 <span class="sd">    - `loggers` - A `node.Loggers` instance representing one or more loggers. Loggers alleviate manager load</span>
 <span class="sd">    - `proxies` A `node.Proxies` instance representing one or more proxies. Offload workloads.</span>
-<span class="sd">    - `workers` A `node.Workers` instance reprsenting one or more workers. The worker is the Zeek process that</span>
+<span class="sd">    - `workers` A `node.Workers` instance representing one or more workers. The worker is the Zeek process that</span>
 <span class="sd">    sniffs network traffic and does protocol analysis on the reassembled traffic streams.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span> <span class="o">=</span> <span class="n">install_directory</span>
@@ -3745,7 +3745,7 @@ sniffs network traffic and does protocol analysis on the reassembled traffic str
                 <span class="n">load_balance_processes</span><span class="o">=</span><span class="n">lb_processes</span><span class="p">,</span>
                 <span class="n">pinned_cpus</span><span class="o">=</span><span class="n">pinned_cpus</span><span class="p">,</span>
                 <span class="n">cluster_id</span><span class="o">=</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32768</span><span class="p">),</span>
-                <span class="n">cluster_type</span><span class="o">=</span><span class="s1">&#39;AF_Packet::FANOUT_HASH&#39;</span>
+                <span class="n">cluster_type</span><span class="o">=</span><span class="s1">&#39;AF_Packet::FANOUT_QM&#39;</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
