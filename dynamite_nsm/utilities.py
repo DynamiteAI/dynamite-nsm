@@ -581,6 +581,10 @@ def get_network_interface_configurations() -> List[Dict]:
             continue
         elif intface.startswith('lo'):
             continue
+        elif intface.startswith('veth'):
+            continue
+        elif intface.startswith('br-'):
+            continue
         elif intface in stats and getattr(stats[intface], "isup"):
             name = intface
             speed = stats[intface].speed
