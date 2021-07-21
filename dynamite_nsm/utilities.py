@@ -555,6 +555,10 @@ def get_network_interface_names() -> List[str]:
             continue
         elif intface.startswith('lo'):
             continue
+        elif intface.startswith('veth'):
+            continue
+        elif intface.startswith('br-'):
+            continue
         elif intface in stats and getattr(stats[intface], "isup"):
             available_networks.append(intface)
     return available_networks
