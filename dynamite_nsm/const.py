@@ -5,7 +5,7 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.0.tar.gz'
+DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.1.tar.gz'
 CONFIG_DELTA_CHANGE_SET = None  # We'll support these later
 
 EMERGING_THREATS_OPEN = 'http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz'
