@@ -1,8 +1,6 @@
-import os
-
-from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import profile
+from dynamite_nsm.services.zeek import config as zeek_config
 from dynamite_nsm.services.zeek import process as zeek_process
 
 
@@ -33,3 +31,16 @@ class ProcessProfiler(profile.BaseProcessProfiler):
             except KeyError:
                 return zeek_process.ProcessManager().status()['RUNNING']
         return False
+
+    def is_attached_to_network(self) -> bool:
+        """Determine if Zeek is bound to one or more network interfaces
+        Returns:
+            True, if attached to one or more network interfaces
+
+        """
+        conf_mng = zeek_config.NodeConfigManager(install_directory=self.install_directory, stdout=False,
+                                                 verbose=False)
+        if not conf_mng.workers:
+            return False
+        return any([worker.interface for worker in conf_mng.workers if
+                    worker.interface in utilities.get_network_interface_names()])

@@ -5,6 +5,7 @@ except ImportError:
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import profile
+from dynamite_nsm.services.suricata import config as suricata_config
 from dynamite_nsm.services.suricata import process as suricata_process
 
 
@@ -35,3 +36,16 @@ class ProcessProfiler(profile.BaseProcessProfiler):
             except KeyError:
                 return suricata_process.ProcessManager().status()['RUNNING']
         return False
+
+    def is_attached_to_network(self) -> bool:
+        """Determine if Suricata is bound to one or more network interfaces
+        Returns:
+            True, if attached to one or more network interfaces
+
+        """
+        conf_mng = suricata_config.ConfigManager(configuration_directory=self.config_directory, stdout=False,
+                                                 verbose=False)
+        if not conf_mng.af_packet_interfaces:
+            return False
+        return any([iface.interface for iface in conf_mng.af_packet_interfaces if
+                    iface.interface in utilities.get_network_interface_names()])

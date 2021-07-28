@@ -32,7 +32,38 @@ class OptimizeThreadingManager:
             log_level = logging.DEBUG
         self.logger = get_logger('agent.thread_optimize', level=log_level, stdout=stdout)
 
-    def optimize(self, inspect_interfaces: List[str]) -> None:
+    def get_available_cpus(self) -> list:
+        """Get the CPU core numbers that are not currently being utilized
+        Returns:
+            A list of available CPUs
+        """
+        zeek_profiler = zeek_profile.ProcessProfiler()
+        suricata_profiler = suricata_profile.ProcessProfiler()
+        available_cpus = [c for c in range(0, utilities.get_cpu_core_count())]
+        reserved_cpus = []
+        zeek_cpus = []
+        suricata_cpus = []
+        if zeek_profiler.is_installed():
+            zeek_node_config_mng = zeek_config.NodeConfigManager(install_directory=self.zeek_install_directory,
+                                                                 stdout=self.stdout, verbose=self.verbose)
+            for worker in zeek_node_config_mng.workers:
+                zeek_cpus.extend(worker.pinned_cpus)
+
+        if suricata_profiler.is_installed():
+            suricata_config_mng = suricata_config.ConfigManager(
+                configuration_directory=self.suricata_configuration_directory, stdout=self.stdout, verbose=self.verbose)
+            if suricata_config_mng.threading.worker_cpu_set:
+                suricata_cpus.extend(suricata_config_mng.threading.worker_cpu_set)
+            if suricata_config_mng.threading.receive_cpu_set:
+                suricata_cpus.extend(suricata_config_mng.threading.receive_cpu_set)
+            if suricata_config_mng.threading.management_cpu_set:
+                suricata_cpus.extend(suricata_config_mng.threading.management_cpu_set)
+
+        reserved_cpus.extend(suricata_cpus)
+        reserved_cpus.extend(zeek_cpus)
+        return list(set([c for c in available_cpus if c not in reserved_cpus]))
+
+    def optimize(self, inspect_interfaces: List[str], available_cpus: Optional[List[int]] = None) -> None:
         """Apply the best CPU-affinity related configurations to Zeek and Suricata
         Args:
             inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1", "mon2"])
@@ -45,19 +76,19 @@ class OptimizeThreadingManager:
             return None
         zeek_profiler = zeek_profile.ProcessProfiler()
         suricata_profiler = suricata_profile.ProcessProfiler()
-
-        available_cpus = [c for c in range(0, utilities.get_cpu_core_count())]
+        if not available_cpus:
+            available_cpus = self.get_available_cpus()
         self.logger.info(f'{len(available_cpus)} CPU cores detected.')
-        if zeek_profiler.is_installed() and suricata_profiler.is_installed():
+        if zeek_profiler.is_attached_to_network() and suricata_profiler.is_attached_to_network():
             self.logger.info(
                 'Both Zeek and Suricata are installed. Allocating 60% of resources to Zeek, '
                 '30% to Suricata, and 10% to Kernel.')
             kern_alloc, zeek_alloc, suricata_alloc = .1, .6, .3
-        elif zeek_profiler.is_installed():
+        elif zeek_profiler.is_attached_to_network():
             self.logger.info(
                 'Only Zeek is installed. Allocating 90% of resources to it and 10% to Kernel.')
             kern_alloc, zeek_alloc, suricata_alloc = .1, .9, 0
-        elif suricata_profiler.is_installed():
+        elif suricata_profiler.is_attached_to_network():
             self.logger.info(
                 'Only Suricata is installed. Allocating 90% of resources to it and 10% to Kernel.')
             kern_alloc, zeek_alloc, suricata_alloc = .1, 0, .9
