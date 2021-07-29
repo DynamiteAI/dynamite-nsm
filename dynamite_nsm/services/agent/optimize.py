@@ -77,7 +77,7 @@ class OptimizeThreadingManager:
         zeek_profiler = zeek_profile.ProcessProfiler()
         suricata_profiler = suricata_profile.ProcessProfiler()
         if not available_cpus:
-            available_cpus = self.get_available_cpus()
+            available_cpus = [c for c in range(0, utilities.get_cpu_core_count())]
         self.logger.info(f'{len(available_cpus)} CPU cores detected.')
         if zeek_profiler.is_attached_to_network() and suricata_profiler.is_attached_to_network():
             self.logger.info(
