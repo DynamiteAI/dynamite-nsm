@@ -106,13 +106,13 @@ class OptimizeThreadingManager:
             c for c in
             available_cpus[kern_cpu_count + zeek_cpu_count: kern_cpu_count + zeek_cpu_count + suricata_cpu_count]]
 
-        if zeek_profiler.is_installed():
+        if zeek_profiler.is_attached_to_network():
             zeek_node_config_mng = zeek_config.NodeConfigManager(install_directory=self.zeek_install_directory,
                                                                  stdout=self.stdout, verbose=self.verbose)
             zeek_node_config_mng.workers = zeek_node_config_mng.get_optimal_zeek_worker_config(
                 inspect_interfaces, available_cpus=tuple(zeek_cpus))
             zeek_node_config_mng.commit()
-        if suricata_profiler.is_installed():
+        if suricata_profiler.is_attached_to_network():
             suricata_config_mng = suricata_config.ConfigManager(
                 configuration_directory=self.suricata_configuration_directory, stdout=self.stdout, verbose=self.verbose)
             suricata_config_mng.threading = suricata_config_mng.get_optimal_suricata_threading_config(

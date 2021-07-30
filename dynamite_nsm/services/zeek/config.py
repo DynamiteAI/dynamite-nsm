@@ -148,14 +148,13 @@ class SiteLocalConfigManager(GenericConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/sites'
+        tmp_root = '/tmp/dynamite/temp_configs/'
+        tmp_dir = f'{tmp_root}/site'
         tmp_config = f'{tmp_dir}/local.zeek'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
             out_f.write(raw_text)
-        # little hack because this class has the /sites/ folder prefix preended to provided config dir
-        cfgdir = f"{tmp_dir}/../"
-        c = cls(configuration_directory=cfgdir)
+        c = cls(configuration_directory=tmp_root)
         if configuration_directory:
             c.configuration_directory = configuration_directory
         return c
