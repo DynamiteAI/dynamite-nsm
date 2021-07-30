@@ -148,7 +148,8 @@ class ConfigManager(YamlConfigManager):
             target_strings=self._kafka_targets_raw.get('hosts'),
             index=self._kafka_targets_raw.get('index'),
             password=self._redis_targets_raw.get('password'),
-            load_balance=self._redis_targets_raw.get('loadbalance'),
+            load_balance=self._redis_targets_raw.get('loadbalance'
+                                                     ''),
             db=self._redis_targets_raw.get('db'),
             ssl_enabled=self._redis_targets_raw.get('ssl', False),
             ssl_certificate_authorities=self._redis_targets_raw.get('ssl', {}).get('certificate_authorities'),
