@@ -196,9 +196,9 @@ class ConfigManager(YamlConfigManager):
         management_cpu_set = set()
         receive_cpu_set = set()
         worker_cpu_set = set()
-
+        management_cpu_set.add(0)
         for i, c in enumerate(available_cpus):
-            if i % 8 == 0:
+            if i % 8 == 0 and i != 0:
                 management_cpu_set.add(c)
             else:
                 receive_cpu_set.add(c)
