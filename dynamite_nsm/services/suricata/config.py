@@ -162,15 +162,16 @@ class ConfigManager(YamlConfigManager):
                 threads=af_packet_interface_raw.get('threads')
             ) for af_packet_interface_raw in self._af_packet_interfaces_raw]
         )
-        thread_families = self._threading_raw.get('cpu_affinity', [])
-        self.threading = misc.Threading()
+        thread_families = self._threading_raw.get('cpu-affinity', [])
+        management_cpu_set, receive_cpu_set, worker_cpu_set = None, None, None
         for thread_family in thread_families:
             if 'management-cpu-set' in thread_family.keys():
-                self.threading.management_cpu_set = thread_family.get('management-cpu-set', {}).get('cpus', [])
+                management_cpu_set = thread_family.get('management-cpu-set', {}).get('cpu', [])
             elif 'receive-cpu-set' in thread_family.keys():
-                self.threading.receive_cpu_set = thread_family.get('receive-cpu-set', {}).get('cpus', [])
+                receive_cpu_set = thread_family.get('receive-cpu-set', {}).get('cpu', [])
             elif 'worker-cpu-set' in thread_family.keys():
-                self.threading.worker_cpu_set = thread_family.get('worker-cpu-set', {}).get('cpus', [])
+                worker_cpu_set = thread_family.get('worker-cpu-set', {}).get('cpu', [])
+        self.threading = misc.Threading(management_cpu_set, receive_cpu_set, worker_cpu_set)
 
     @classmethod
     def from_raw_text(cls, raw_text: str, configuration_directory: Optional[str] = None) -> ConfigManager:
