@@ -113,6 +113,7 @@ class OptimizeThreadingManager:
                 available_cpus=tuple(suricata_cpus))
             suricata_config_mng.runmode = 'workers'
             for suricata_iface in suricata_config_mng.af_packet_interfaces:
-                suricata_iface.threads = len(suricata_config_mng.threading.worker_cpu_set)
+                suricata_iface.threads = math.ceil(len(suricata_config_mng.threading.worker_cpu_set) /
+                                                   len(suricata_profiler.get_attached_interfaces()))
                 suricata_iface.cluster_type = 'cluster_qm'
             suricata_config_mng.commit()
