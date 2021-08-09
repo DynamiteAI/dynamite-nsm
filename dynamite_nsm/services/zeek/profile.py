@@ -1,3 +1,5 @@
+from typing import List
+
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import profile
 from dynamite_nsm.services.zeek import config as zeek_config
@@ -19,6 +21,14 @@ class ProcessProfiler(profile.BaseProcessProfiler):
                                              required_install_files=['bin', 'etc', 'lib'],
                                              required_config_files=['site'])
 
+    def get_attached_interfaces(self) -> List[str]:
+        conf_mng = zeek_config.NodeConfigManager(install_directory=self.install_directory, stdout=False,
+                                                 verbose=False)
+        if not conf_mng.workers:
+            return []
+        return [worker.interface for worker in conf_mng.workers if
+                worker.interface in utilities.get_network_interface_names()]
+
     def is_running(self) -> bool:
         """
         Determine of Zeek is running
@@ -38,9 +48,4 @@ class ProcessProfiler(profile.BaseProcessProfiler):
             True, if attached to one or more network interfaces
 
         """
-        conf_mng = zeek_config.NodeConfigManager(install_directory=self.install_directory, stdout=False,
-                                                 verbose=False)
-        if not conf_mng.workers:
-            return False
-        return any([worker.interface for worker in conf_mng.workers if
-                    worker.interface in utilities.get_network_interface_names()])
+        return any(self.get_attached_interfaces())

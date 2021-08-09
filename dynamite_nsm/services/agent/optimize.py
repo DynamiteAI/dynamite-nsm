@@ -63,17 +63,12 @@ class OptimizeThreadingManager:
         reserved_cpus.extend(zeek_cpus)
         return list(set([c for c in available_cpus if c not in reserved_cpus]))
 
-    def optimize(self, inspect_interfaces: List[str], available_cpus: Optional[List[int]] = None) -> None:
+    def optimize(self, available_cpus: Optional[List[int]] = None) -> None:
         """Apply the best CPU-affinity related configurations to Zeek and Suricata
-        Args:
-            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1", "mon2"])
 
         Returns:
             None
         """
-        if not inspect_interfaces:
-            self.logger.error('Please specify the \'inspect-interfaces\' you wish to capture on.')
-            return None
         zeek_profiler = zeek_profile.ProcessProfiler()
         suricata_profiler = suricata_profile.ProcessProfiler()
         if not available_cpus:
@@ -100,7 +95,6 @@ class OptimizeThreadingManager:
         kern_cpu_count = math.ceil(kern_alloc * len(available_cpus))
         zeek_cpu_count = math.ceil(zeek_alloc * len(available_cpus))
         suricata_cpu_count = math.ceil(suricata_alloc * len(available_cpus))
-
         zeek_cpus = [c for c in available_cpus[kern_cpu_count: kern_cpu_count + zeek_cpu_count]]
         suricata_cpus = [
             c for c in
@@ -110,7 +104,7 @@ class OptimizeThreadingManager:
             zeek_node_config_mng = zeek_config.NodeConfigManager(install_directory=self.zeek_install_directory,
                                                                  stdout=self.stdout, verbose=self.verbose)
             zeek_node_config_mng.workers = zeek_node_config_mng.get_optimal_zeek_worker_config(
-                inspect_interfaces, available_cpus=tuple(zeek_cpus))
+                zeek_profiler.get_attached_interfaces(), available_cpus=tuple(zeek_cpus))
             zeek_node_config_mng.commit()
         if suricata_profiler.is_attached_to_network():
             suricata_config_mng = suricata_config.ConfigManager(
