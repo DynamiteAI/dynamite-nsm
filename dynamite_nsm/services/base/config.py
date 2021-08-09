@@ -283,10 +283,9 @@ class YamlConfigManager:
                                     partial_config_data = list_entry[k]
                     else:
                         break
-            else:
-                if value is None:
-                    return
-                partial_config_data.update({path[-1]: value})
+            if value is None:
+                return
+            partial_config_data.update({path[-1]: value})
 
         # Backup old configuration first
         if backup_directory:
