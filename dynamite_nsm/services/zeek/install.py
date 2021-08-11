@@ -8,7 +8,7 @@ from dynamite_nsm.services.base.config_objects.zeek import node, local_site
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.zeek import config
 
-COMPILE_PROCESS_EXPECTED_LINE_COUNT = 6779
+COMPILE_PROCESS_EXPECTED_LINE_COUNT = 7392
 
 
 class InstallManager(install.BaseInstallManager):
@@ -86,8 +86,9 @@ class InstallManager(install.BaseInstallManager):
         zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
         zeek_community_id_plugin_source = f'{const.DEFAULT_CONFIGS}/zeek/uncompiled_scripts/zeek-community-id'
         configure_args = [f'--zeek-dist={zeek_source_install_cache}', f'--install-root={self.configuration_directory}']
+        zeek_community_id_plugin_build = f'{zeek_community_id_plugin_source}/build'
         self.configure_source_package(zeek_community_id_plugin_source, configure_args=configure_args)
-        self.compile_source_package(zeek_community_id_plugin_source, compile_args=None,
+        self.compile_source_package(zeek_community_id_plugin_build, compile_args=None,
                                     parallel_threads=parallel_threads,
                                     expected_lines_printed=None)
         self.copy_file_or_directory_to_destination(f'{self.configuration_directory}/Corelight_CommunityID',
