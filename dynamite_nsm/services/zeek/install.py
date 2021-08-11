@@ -51,7 +51,7 @@ class InstallManager(install.BaseInstallManager):
         """
         zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
         configure_args = [f'--prefix={self.install_directory}', f'--scriptdir={self.configuration_directory}',
-                          '--enable-jemalloc']
+                          '--enable-jemalloc', '--with-python=/usr/bin/python3']
         self.configure_source_package(zeek_source_install_cache, configure_args=configure_args)
         time.sleep(1)
         self.compile_source_package(zeek_source_install_cache,
