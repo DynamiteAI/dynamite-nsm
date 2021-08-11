@@ -238,4 +238,4 @@ if __name__ == '__main__':
         stdout=True,
         verbose=True
     )
-    install_mngr.setup()
+    install_mngr.setup(['eth0'])
