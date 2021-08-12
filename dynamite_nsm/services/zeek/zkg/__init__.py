@@ -50,6 +50,7 @@ def install_zeek_package(package_git_url: str, stdout: Optional[bool] = True, ve
             f'ZKG returned a non-zero exit-code during install: {zkg_install_p.returncode}; err: {err}.')
     zkg_load_p = subprocess.Popen(f'./zkg load {package_git_url}',
                                   cwd=zkg_binary_dir, shell=True, stderr=subprocess.PIPE)
+    err = zkg_load_p.communicate()
     if zkg_load_p.returncode != 0:
         logger.error(f'ZKG returned a non-zero exit-code during load: {zkg_load_p.returncode}.')
         raise InstallZeekPackageError(
