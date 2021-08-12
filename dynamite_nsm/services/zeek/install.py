@@ -4,9 +4,11 @@ import time
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
+from dynamite_nsm.services.zeek import config
+from dynamite_nsm.services.zeek import package
+from dynamite_nsm.services.zeek.zkg import install as zkg_install
 from dynamite_nsm.services.base.config_objects.zeek import node, local_site
 from dynamite_nsm.services.base import install, systemctl
-from dynamite_nsm.services.zeek import config
 
 COMPILE_PROCESS_EXPECTED_LINE_COUNT = 7392
 
@@ -57,42 +59,6 @@ class InstallManager(install.BaseInstallManager):
         self.compile_source_package(zeek_source_install_cache,
                                     parallel_threads=parallel_threads,
                                     expected_lines_printed=COMPILE_PROCESS_EXPECTED_LINE_COUNT)
-
-    def configure_compile_zeek_af_packet_plugin(self, parallel_threads: Optional[int] = None) -> None:
-        """Configure and build AF_PACKET plugin
-        Args:
-            parallel_threads: Number of parallel threads to use during the compiling process
-        Returns:
-            None
-        """
-        zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
-        zeek_af_packet_plugin_source = f'{const.DEFAULT_CONFIGS}/zeek/uncompiled_scripts/zeek-af_packet-plugin'
-        configure_args = [f'--zeek-dist={zeek_source_install_cache}', f'--install-root={self.configuration_directory}',
-                          '--with-latest-kernel']
-        self.configure_source_package(zeek_af_packet_plugin_source, configure_args=configure_args)
-        self.compile_source_package(zeek_af_packet_plugin_source, compile_args=None,
-                                    parallel_threads=parallel_threads,
-                                    expected_lines_printed=None)
-        self.copy_file_or_directory_to_destination(f'{self.configuration_directory}/Zeek_AF_Packet',
-                                                   f'{self.install_directory}/lib/zeek/plugins/Zeek_AF_Packet')
-
-    def configure_compile_zeek_community_id_plugin(self, parallel_threads: Optional[int] = None) -> None:
-        """Configure and build Community_ID plugin
-        Args:
-            parallel_threads: Number of parallel threads to use during the compiling process
-        Returns:
-            None
-        """
-        zeek_source_install_cache = os.path.join(const.INSTALL_CACHE, self.local_mirror_root)
-        zeek_community_id_plugin_source = f'{const.DEFAULT_CONFIGS}/zeek/uncompiled_scripts/zeek-community-id'
-        configure_args = [f'--zeek-dist={zeek_source_install_cache}', f'--install-root={self.configuration_directory}']
-        zeek_community_id_plugin_build = f'{zeek_community_id_plugin_source}/build'
-        self.configure_source_package(zeek_community_id_plugin_source, configure_args=configure_args)
-        self.compile_source_package(zeek_community_id_plugin_build, compile_args=None,
-                                    parallel_threads=parallel_threads,
-                                    expected_lines_printed=None)
-        self.copy_file_or_directory_to_destination(f'{self.configuration_directory}/Corelight_CommunityID',
-                                                   f'{self.install_directory}/lib/zeek/plugins/Corelight_CommunityID')
 
     def create_update_zeek_environment_variables(self) -> None:
         """Creates all the required Zeek environmental variables
@@ -160,10 +126,10 @@ class InstallManager(install.BaseInstallManager):
         if self.stdout:
             utilities.print_coffee_art()
         self.configure_compile_zeek()
-        self.logger.info('Adding AF_PACKET socket support.')
-        self.configure_compile_zeek_af_packet_plugin()
-        self.logger.info('Adding CommunityID support.')
-        self.configure_compile_zeek_community_id_plugin()
+        self.logger.info('Setting up Zeek package manager.')
+        zkg_installer = zkg_install.InstallManager()
+        zkg_installer.setup()
+        package.InstallPackageManager(const.ZEEK_PACKAGES, stdout=self.stdout, verbose=self.verbose).setup()
 
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/zeek/broctl-nodes.cfg',
                                                    f'{self.install_directory}/etc/node.cfg')
@@ -238,4 +204,4 @@ if __name__ == '__main__':
         stdout=True,
         verbose=True
     )
-    install_mngr.setup(['eth0'])
+    install_mngr.setup(utilities.get_network_interface_names())

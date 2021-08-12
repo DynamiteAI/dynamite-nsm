@@ -1,4 +1,5 @@
 from typing import List, Optional
+from dynamite_nsm import const
 from dynamite_nsm.services.zeek.zkg import install_zeek_package
 from dynamite_nsm.services.base.install import BaseInstallManager
 
@@ -29,4 +30,4 @@ class InstallPackageManager(BaseInstallManager):
 
 
 if __name__ == '__main__':
-    InstallPackageManager(['https://github.com/J-Gras/zeek-af_packet-plugin.git']).setup()
+    InstallPackageManager(const.ZEEK_PACKAGES).setup()

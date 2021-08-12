@@ -83,6 +83,7 @@ class InstallManager(install.BaseInstallManager):
         """
         try:
             shutil.rmtree(f'{const.INSTALL_CACHE}/configurations')
+            shutil.rmtree(const.DEFAULT_CONFIGS)
         except FileNotFoundError:
             pass
         with tarfile.open(archive_path) as tar:

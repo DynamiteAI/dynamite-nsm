@@ -7,12 +7,17 @@ except ImportError:
 
 DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.1.1.tar.gz'
 CONFIG_DELTA_CHANGE_SET = None  # We'll support these later
+ZEEK_PACKAGES = [
+    'https://github.com/DynamiteAI/dynamite-community-id.git',
+    'https://github.com/J-Gras/zeek-af_packet-plugin.git',
+    'https://github.com/DynamiteAI/zeek-utils.git'
+]
 
 EMERGING_THREATS_OPEN = 'http://rules.emergingthreats.net/open/suricata/emerging.rules.tar.gz'
-DEFAULT_CONFIGS = "/etc/dynamite/default_configs/"
+CONFIG_PATH = "/etc/dynamite/"
+DEFAULT_CONFIGS = f"{CONFIG_PATH}/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
 INSTALL_PATH = "/opt/dynamite"
-CONFIG_PATH = "/etc/dynamite"
 LOG_PATH = '/var/log/dynamite/'
 PID_PATH = '/var/run/dynamite/'
 STATE_PATH = '/var/dynamite/'
