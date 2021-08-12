@@ -41,9 +41,16 @@ def install_zeek_package(package_git_url: str, stdout: Optional[bool] = True, ve
         logger.error("Could not resolve ZEEK_HOME environment_variable. Is Zeek installed?")
         raise InstallZeekPackageError('Could not resolve ZEEK_HOME environment_variable. Is ZKG installed? ')
     zkg_binary_dir = f'{zeek_install_dir}/bin'
-    p = subprocess.Popen(f'./zkg install {package_git_url} --force',
-                         cwd=zkg_binary_dir, shell=True, stderr=subprocess.PIPE)
-    err = p.communicate()
-    if p.returncode != 0:
-        logger.error(f'ZKG returned a non-zero exit-code: {p.returncode}.')
-        raise InstallZeekPackageError(f'ZKG returned a non-zero exit-code: {p.returncode}; err: {err}.')
+    zkg_install_p = subprocess.Popen(f'./zkg install {package_git_url} --force',
+                                     cwd=zkg_binary_dir, shell=True, stderr=subprocess.PIPE)
+    err = zkg_install_p.communicate()
+    if zkg_install_p.returncode != 0:
+        logger.error(f'ZKG returned a non-zero exit-code: {zkg_install_p.returncode}.')
+        raise InstallZeekPackageError(
+            f'ZKG returned a non-zero exit-code during install: {zkg_install_p.returncode}; err: {err}.')
+    zkg_load_p = subprocess.Popen(f'./zkg load {package_git_url}',
+                                  cwd=zkg_binary_dir, shell=True, stderr=subprocess.PIPE)
+    if zkg_load_p.returncode != 0:
+        logger.error(f'ZKG returned a non-zero exit-code during load: {zkg_load_p.returncode}.')
+        raise InstallZeekPackageError(
+            f'ZKG returned a non-zero exit-code during load: {zkg_load_p.returncode}; err: {err}.')

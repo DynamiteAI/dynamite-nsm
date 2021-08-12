@@ -150,18 +150,6 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Applying node configuration.')
         node_config.commit()
 
-        # Enable our extra scripts
-        extra_scripts_destination_directory = f'{self.configuration_directory}/dynamite_extra_scripts'
-        for script_dir in os.listdir(extra_scripts_destination_directory):
-            site_local_config.scripts.add(
-                local_site.Script(
-                    name=f'{extra_scripts_destination_directory}/{script_dir}',
-                    enabled=True
-                )
-            )
-        self.logger.info('Applying local site configuration.')
-        site_local_config.commit()
-
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
