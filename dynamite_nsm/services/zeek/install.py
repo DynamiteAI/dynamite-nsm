@@ -135,8 +135,6 @@ class InstallManager(install.BaseInstallManager):
                                                    f'{self.install_directory}/etc/node.cfg')
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/zeek/local.zeek',
                                                    f'{self.configuration_directory}/site/local.zeek')
-        self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/zeek/dynamite_extra_scripts',
-                                                   self.configuration_directory)
 
         # Optimize Configurations
         site_local_config = config.SiteLocalConfigManager(self.configuration_directory, stdout=self.stdout,

@@ -18,7 +18,7 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         profile.BaseProcessProfiler.__init__(self,
                                              install_directory=self.zeek_home,
                                              config_directory=self.zeek_scripts,
-                                             required_install_files=['bin', 'etc', 'lib'],
+                                             required_install_files=['bin', 'etc'],
                                              required_config_files=['site'])
 
     def get_attached_interfaces(self) -> List[str]:
