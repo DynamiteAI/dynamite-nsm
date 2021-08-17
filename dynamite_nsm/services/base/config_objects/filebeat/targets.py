@@ -21,7 +21,7 @@ class BaseTargets:
     def __init__(self, target_strings: List[str], ssl_certificate_authorities: Optional[str] = None,
                  ssl_certificate: Optional[str] = None,
                  ssl_key: Optional[str] = None, ssl_verification_mode: Optional[str] = 'certificate',
-                 enabled: Optional[bool] = False):
+                 enabled: Optional[bool] = False, ssl_enabled: Optional[bool] = False):
         """An abstract object from which all Filebeat targets are derived
         Args:
             target_strings: The list of downstream servers to connect to
@@ -35,6 +35,7 @@ class BaseTargets:
                 This option is required if ssl_certificate is specified.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
             enabled: If True, Filebeat will attempt to send events to this target
+            ssl_enabled: If True, The SSL transport settings will be used
             ssl_certificate_authorities: The list of root certificates for server verifications.
                 If certificate_authorities is empty or not set, the trusted certificate authorities of the host
                 system are used. (E.G ["/etc/pki/root/ca.pem"])
@@ -46,11 +47,12 @@ class BaseTargets:
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
         self.target_strings = target_strings
-        self.ssl_certificate_authorities = ssl_certificate_authorities if None else []
+        self.ssl_certificate_authorities = ssl_certificate_authorities if not None else []
         self.ssl_certificate = ssl_certificate
         self.ssl_key = ssl_key
         self.ssl_verification_mode = ssl_verification_mode
         self.enabled = enabled
+        self.ssl_enabled = ssl_enabled
 
     def __str__(self) -> str:
         return json.dumps(
@@ -75,12 +77,13 @@ class BaseTargets:
             verification_mode=self.ssl_verification_mode
         )
         ssl = {k: v for k, v in ssl.items() if v is not None}
-        return dict(
+        raw = dict(
             hosts=self.target_strings,
             enabled=self.enabled,
-            ssl=ssl
-
         )
+        if self.ssl_enabled:
+            raw.update(ssl=ssl)
+        return raw
 
 
 class ElasticsearchTargets(BaseTargets):
@@ -89,7 +92,8 @@ class ElasticsearchTargets(BaseTargets):
                  username: Optional[str] = None, password: Optional[str] = None,
                  ssl_certificate_authorities: Optional[str] = None,
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
-                 ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False):
+                 ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False,
+                 ssl_enabled: Optional[bool] = False):
         """Elasticsearch endpoint configuration where events should be sent
         Args:
             target_strings: The list of Elasticsearch nodes to connect to.
@@ -97,13 +101,14 @@ class ElasticsearchTargets(BaseTargets):
             username: The basic authentication username for connecting to Elasticsearch.
             password: The basic authentication password for connecting to Elasticsearch.
             enabled: If True, Filebeat will attempt to send events to this target
+            ssl_enabled: If True, The SSL transport settings will be used
             ssl_certificate_authorities: The list of root certificates for server verifications.
             ssl_certificate: The path to the certificate for SSL client authentication.
             ssl_key: The client certificate key used for client authentication.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
         super().__init__(target_strings, ssl_certificate_authorities, ssl_certificate, ssl_key, ssl_verification_mode,
-                         enabled=enabled)
+                         enabled=enabled, ssl_enabled=ssl_enabled)
         self.index = index
         self.username = username
         self.password = password
@@ -130,7 +135,8 @@ class KafkaTargets(BaseTargets):
     def __init__(self, target_strings: List[str], topic: Optional[str] = None, username: Optional[str] = None,
                  password: Optional[str] = None, ssl_certificate_authorities: Optional[str] = None,
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
-                 ssl_verification_mode: Optional[str] = None, enabled: Optional[bool] = False):
+                 ssl_verification_mode: Optional[str] = None, enabled: Optional[bool] = False,
+                 ssl_enabled: Optional[bool] = False):
         """Kafka endpoint configuration where events should be sent
         Args:
             target_strings: A list of Kafka brokers, and their service port (E.G ["192.168.0.9 5044"])
@@ -138,13 +144,14 @@ class KafkaTargets(BaseTargets):
             username: The username used to authenticate to Kafka broker
             password: The password used to authenticate to Kafka broker
             enabled: If True, Filebeat will attempt to send events to this target
+            ssl_enabled: If True, The SSL transport settings will be used
             ssl_certificate_authorities: The list of root certificates for server verifications.
             ssl_certificate: The path to the certificate for SSL client authentication.
             ssl_key: The client certificate key used for client authentication.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
         super().__init__(target_strings, ssl_certificate_authorities, ssl_certificate, ssl_key, ssl_verification_mode,
-                         enabled)
+                         enabled, ssl_enabled=ssl_enabled)
         self.topic = topic
         self.username = username
         self.password = password
@@ -179,7 +186,8 @@ class LogstashTargets(BaseTargets):
                  pipelines: Optional[int] = 2, max_batch_size: Optional[int] = 2048,
                  ssl_certificate_authorities: Optional[str] = None,
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
-                 ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False):
+                 ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False,
+                 ssl_enabled: Optional[bool] = False):
         """Logstash endpoint configuration where events should be sent
         Args:
             target_strings: A list of Logstash hosts, and their service port (E.G ["192.168.0.9 5044"])
@@ -189,6 +197,7 @@ class LogstashTargets(BaseTargets):
             pipelines: Configures the number of batches to be sent asynchronously to Logstash
             max_batch_size: The maximum number of events to bulk in a single Logstash request.
             enabled: If True, Filebeat will attempt to send events to this target
+            ssl_enabled: If True, The SSL transport settings will be used
             ssl_certificate_authorities: The list of root certificates for server verifications.
             ssl_certificate: The path to the certificate for SSL client authentication.
             ssl_key: The client certificate key used for client authentication.
@@ -196,12 +205,12 @@ class LogstashTargets(BaseTargets):
         """
 
         self.index = index
-        self.load_balance = load_balance if None else False
+        self.load_balance = load_balance
         self.socks_5_proxy_url = socks_5_proxy_url
         self.pipelines = pipelines
         self.max_batch_size = max_batch_size
         super().__init__(target_strings, ssl_certificate_authorities, ssl_certificate, ssl_key, ssl_verification_mode,
-                         enabled)
+                         enabled, ssl_enabled=ssl_enabled)
 
     def __str__(self) -> str:
         orig_raw = self.get_raw()
@@ -234,8 +243,8 @@ class RedisTargets(BaseTargets):
                  workers: Optional[int] = 1, max_batch_size: Optional[int] = 2048, db: Optional[int] = 0,
                  password: Optional[str] = None, ssl_certificate_authorities: Optional[str] = None,
                  ssl_certificate: Optional[str] = None, ssl_key: Optional[str] = None,
-                 ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False):
-
+                 ssl_verification_mode: Optional[str] = 'certificate', enabled: Optional[bool] = False,
+                 ssl_enabled: Optional[bool] = False):
         """Redis endpoint configuration where events should be sent
         Args:
             target_strings: A list of Redis hosts, and their service port (E.G ["192.168.0.9 6379"]
@@ -247,19 +256,20 @@ class RedisTargets(BaseTargets):
             password: The password to authenticate with. The default is no authentication.
             db: The Redis database number where the events are published. The default is 0.
             enabled: If True, Filebeat will attempt to send events to this target
+            ssl_enabled: If True, The SSL transport settings will be used
             ssl_certificate_authorities: The list of root certificates for server verifications.
             ssl_certificate: The path to the certificate for SSL client authentication.
             ssl_key: The client certificate key used for client authentication.
             ssl_verification_mode: This option controls whether the client verifies server certificates and host names.
         """
         super().__init__(target_strings, ssl_certificate_authorities, ssl_certificate, ssl_key, ssl_verification_mode,
-                         enabled)
+                         enabled, ssl_enabled=ssl_enabled)
         self.index = index
         self.socks_5_proxy_url = socks_5_proxy_url
         self.workers = workers
         self.max_batch_size = max_batch_size
         self.db = db
-        self.load_balance = load_balance if None else False
+        self.load_balance = load_balance
         self.password = password
 
     def __str__(self) -> str:

@@ -1,8 +1,8 @@
-import os
+from typing import List
 
-from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import profile
+from dynamite_nsm.services.zeek import config as zeek_config
 from dynamite_nsm.services.zeek import process as zeek_process
 
 
@@ -18,8 +18,16 @@ class ProcessProfiler(profile.BaseProcessProfiler):
         profile.BaseProcessProfiler.__init__(self,
                                              install_directory=self.zeek_home,
                                              config_directory=self.zeek_scripts,
-                                             required_install_files=['bin', 'etc', 'lib'],
+                                             required_install_files=['bin', 'etc'],
                                              required_config_files=['site'])
+
+    def get_attached_interfaces(self) -> List[str]:
+        conf_mng = zeek_config.NodeConfigManager(install_directory=self.install_directory, stdout=False,
+                                                 verbose=False)
+        if not conf_mng.workers:
+            return []
+        return [worker.interface for worker in conf_mng.workers if
+                worker.interface in utilities.get_network_interface_names()]
 
     def is_running(self) -> bool:
         """
@@ -33,3 +41,11 @@ class ProcessProfiler(profile.BaseProcessProfiler):
             except KeyError:
                 return zeek_process.ProcessManager().status()['RUNNING']
         return False
+
+    def is_attached_to_network(self) -> bool:
+        """Determine if Zeek is bound to one or more network interfaces
+        Returns:
+            True, if attached to one or more network interfaces
+
+        """
+        return any(self.get_attached_interfaces())

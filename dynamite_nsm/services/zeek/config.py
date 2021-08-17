@@ -1,8 +1,6 @@
-import math
 from io import StringIO
 from re import findall
 from random import randint
-from itertools import zip_longest
 from configparser import ConfigParser
 from typing import Dict, List, Optional, Tuple
 
@@ -39,8 +37,8 @@ class BpfConfigManager(GenericConfigManager):
         self.add_parser(
             parser=lambda data: bpf_filter.BpfFilters(
                 [bpf_filter.BpfFilter(
-                    interface_name=line.split('\t')[0],
-                    pattern=line.split('\t')[1]
+                    interface_name=line.split('\t')[0].strip(),
+                    pattern=line.split('\t')[1].strip()
                 )
                     for line in data['data']
                     if '\t' in line.strip().replace(' ', '')]
@@ -150,14 +148,13 @@ class SiteLocalConfigManager(GenericConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/sites'
+        tmp_root = '/tmp/dynamite/temp_configs/'
+        tmp_dir = f'{tmp_root}/site'
         tmp_config = f'{tmp_dir}/local.zeek'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
             out_f.write(raw_text)
-        # little hack because this class has the /sites/ folder prefix preended to provided config dir
-        cfgdir = f"{tmp_dir}/../"
-        c = cls(configuration_directory=cfgdir)
+        c = cls(configuration_directory=tmp_root)
         if configuration_directory:
             c.configuration_directory = configuration_directory
         return c
@@ -195,7 +192,7 @@ class NodeConfigManager(GenericConfigManager):
         - `manager` - A basic `node.Manager` instance representing a manager configuration (one per cluster)
         - `loggers` - A `node.Loggers` instance representing one or more loggers. Loggers alleviate manager load
         - `proxies` A `node.Proxies` instance representing one or more proxies. Offload workloads.
-        - `workers` A `node.Workers` instance reprsenting one or more workers. The worker is the Zeek process that
+        - `workers` A `node.Workers` instance representing one or more workers. The worker is the Zeek process that
         sniffs network traffic and does protocol analysis on the reassembled traffic streams.
         """
         self.install_directory = install_directory
@@ -310,7 +307,7 @@ class NodeConfigManager(GenericConfigManager):
                     load_balance_processes=lb_processes,
                     pinned_cpus=pinned_cpus,
                     cluster_id=randint(1, 32768),
-                    cluster_type='AF_Packet::FANOUT_HASH'
+                    cluster_type='AF_Packet::FANOUT_QM'
                 )
             )
 

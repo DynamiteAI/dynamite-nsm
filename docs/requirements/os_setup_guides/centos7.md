@@ -24,7 +24,7 @@ wget https://www.python.org/ftp/python/3.8.3/Python-3.8.3.tgz
 ```bash
 tar xvf Python-3.8.3.tgz
 cd Python-3.8*/
-./configure --enable-optimizations
+./configure --enable-optimizations --enable-loadable-sqlite-extensions
 sudo make altinstall
 ```
 

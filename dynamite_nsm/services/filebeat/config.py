@@ -109,6 +109,7 @@ class ConfigManager(YamlConfigManager):
             ssl_certificate_authorities=self._elasticsearch_targets_raw.get('ssl', {}).get('certificate_authorities'),
             username=self._elasticsearch_targets_raw.get('username'),
             password=self._elasticsearch_targets_raw.get('password'),
+            ssl_enabled=self._elasticsearch_targets_raw.get('ssl', False),
             ssl_certificate=self._elasticsearch_targets_raw.get('ssl', {}).get('certificate'),
             ssl_key=self._elasticsearch_targets_raw.get('ssl', {}).get('key'),
             ssl_verification_mode=self._elasticsearch_targets_raw.get('ssl', {}).get('verification_mode'),
@@ -118,10 +119,11 @@ class ConfigManager(YamlConfigManager):
         self.logstash_targets = LogstashTargets(
             target_strings=self._logstash_targets_raw.get('hosts'),
             index=self._logstash_targets_raw.get('index'),
-            load_balance=self._logstash_targets_raw.get('loadbalancing'),
+            load_balance=self._logstash_targets_raw.get('loadbalance'),
             socks_5_proxy_url=self._logstash_targets_raw.get('proxy_url'),
             pipelines=self._logstash_targets_raw.get('pipelining'),
             max_batch_size=self._logstash_targets_raw.get('bulk_max_size'),
+            ssl_enabled=self._logstash_targets_raw.get('ssl', False),
             ssl_certificate_authorities=self._logstash_targets_raw.get('ssl', {}).get('certificate_authorities'),
             ssl_certificate=self._logstash_targets_raw.get('ssl', {}).get('certificate'),
             ssl_key=self._logstash_targets_raw.get('ssl', {}).get('key'),
@@ -134,6 +136,7 @@ class ConfigManager(YamlConfigManager):
             topic=self._kafka_targets_raw.get('topic'),
             username=self._kafka_targets_raw.get('username'),
             password=self._kafka_targets_raw.get('password'),
+            ssl_enabled=self._kafka_targets_raw.get('ssl', False),
             ssl_certificate_authorities=self._kafka_targets_raw.get('ssl', {}).get('certificate_authorities'),
             ssl_certificate=self._kafka_targets_raw.get('ssl', {}).get('certificate'),
             ssl_key=self._kafka_targets_raw.get('ssl', {}).get('key'),
@@ -145,8 +148,10 @@ class ConfigManager(YamlConfigManager):
             target_strings=self._kafka_targets_raw.get('hosts'),
             index=self._kafka_targets_raw.get('index'),
             password=self._redis_targets_raw.get('password'),
-            load_balance=self._redis_targets_raw.get('loadbalancing'),
+            load_balance=self._redis_targets_raw.get('loadbalance'
+                                                     ''),
             db=self._redis_targets_raw.get('db'),
+            ssl_enabled=self._redis_targets_raw.get('ssl', False),
             ssl_certificate_authorities=self._redis_targets_raw.get('ssl', {}).get('certificate_authorities'),
             ssl_certificate=self._redis_targets_raw.get('ssl', {}).get('certificate'),
             ssl_key=self._redis_targets_raw.get('ssl', {}).get('key'),
@@ -333,7 +338,7 @@ class ConfigManager(YamlConfigManager):
             None
         """
         if not out_file_path:
-            out_file_path = self.filebeat_config_path
+            out_file_path = f'{self.install_directory}/filebeat.yml'
         self._inputs_raw = self.input_logs.get_raw()
         self._processors_raw = self.field_processors.get_raw()
         self._index_template_settings_raw = self.index_template_settings.get_raw()
