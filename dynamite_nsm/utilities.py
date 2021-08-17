@@ -555,6 +555,10 @@ def get_network_interface_names() -> List[str]:
             continue
         elif intface.startswith('lo'):
             continue
+        elif intface.startswith('veth'):
+            continue
+        elif intface.startswith('br-'):
+            continue
         elif intface in stats and getattr(stats[intface], "isup"):
             available_networks.append(intface)
     return available_networks
@@ -576,6 +580,10 @@ def get_network_interface_configurations() -> List[Dict]:
         if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
             continue
         elif intface.startswith('lo'):
+            continue
+        elif intface.startswith('veth'):
+            continue
+        elif intface.startswith('br-'):
             continue
         elif intface in stats and getattr(stats[intface], "isup"):
             name = intface

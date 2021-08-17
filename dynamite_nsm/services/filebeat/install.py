@@ -176,12 +176,12 @@ class InstallManager(install.BaseInstallManager):
         # Setting up permissions
         self.logger.info('Setting up file permissions.')
         config_file = f'{self.install_directory}/filebeat.yml'
-        utilities.set_ownership_of_file(self.install_directory, user='root', group='root')
+        utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_permissions_of_file(f'{self.install_directory}/modules.d/',
                                           unix_permissions_integer='go-w')
         utilities.set_permissions_of_file(f'{self.install_directory}/module/', unix_permissions_integer='go-w')
-        utilities.set_ownership_of_file(config_file, user='root', group='root')
-        utilities.set_permissions_of_file(config_file, unix_permissions_integer=501)
+        utilities.set_ownership_of_file(config_file, user='dynamite', group='dynamite')
+        utilities.set_permissions_of_file(config_file, unix_permissions_integer=644)
         filebeat_config.enable_ecs_normalization()
 
         # Install and enable service

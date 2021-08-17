@@ -44,6 +44,9 @@ class BpfFilters(GenericItemGroup):
         super().__init__('interface', bpf_filters)
         self.bpf_filters = self.items
         self._idx = 0
+
+    def get(self, interface) -> Optional[BpfFilter]:
+        return super(BpfFilters, self).get(interface)
     
     def __str__(self) -> str:
         return json.dumps(

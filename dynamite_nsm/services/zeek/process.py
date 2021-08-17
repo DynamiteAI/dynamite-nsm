@@ -49,7 +49,7 @@ class ProcessManager(process.BaseProcessManager):
         }
 
         zeek_status = {
-            'running': False,
+            'running': systemd_info.exit == 0,
             'enabled_on_startup': self.sysctl.is_enabled(self.systemd_service)
         }
         zeek_subprocesses = []
@@ -57,7 +57,6 @@ class ProcessManager(process.BaseProcessManager):
             tokenized_line = re.findall(r'\S+', line)
             if len(tokenized_line) == 8:
                 name, _type, host, status, pid, _, _, _ = tokenized_line
-                zeek_status['running'] = True
             elif len(tokenized_line) == 4:
                 name, _type, host, status = tokenized_line
                 pid = None
