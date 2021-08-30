@@ -145,8 +145,8 @@ class ConfigManager(YamlConfigManager):
         )
 
         self.redis_targets = RedisTargets(
-            target_strings=self._kafka_targets_raw.get('hosts'),
-            index=self._kafka_targets_raw.get('index'),
+            target_strings=self._redis_targets_raw.get('hosts'),
+            index=self._redis_targets_raw.get('index'),
             password=self._redis_targets_raw.get('password'),
             load_balance=self._redis_targets_raw.get('loadbalance'
                                                      ''),
