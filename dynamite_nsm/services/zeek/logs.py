@@ -211,7 +211,7 @@ class MetricsEntry:
         self.reassembly_unknown_size = entry.get('reassem_unknown_size', 0)
         self.packets_dropped_percentage = 0
         if self.packets_processed > 0:
-            self.packets_dropped_percentage = round(self.packets_dropped / self.packets_processed, 2)
+            self.packets_dropped_percentage = round(self.packets_dropped / self.packets_link, 2)
 
     def merge_metric_entry(self, metric_entry: MetricsEntry) -> None:
         """Merge another metrics entry into this one
@@ -246,7 +246,7 @@ class MetricsEntry:
         self.reassembly_fragment_size = self.reassembly_fragment_size + metric_entry.reassembly_fragment_size
         self.reassembly_unknown_size = self.reassembly_unknown_size + metric_entry.reassembly_unknown_size
         if self.packets_processed > 0:
-            self.packets_dropped_percentage = round(self.packets_dropped / self.packets_processed, 6)
+            self.packets_dropped_percentage = round(self.packets_dropped / self.packets_link, 6)
 
     def __str__(self) -> str:
         return json.dumps(dict(
