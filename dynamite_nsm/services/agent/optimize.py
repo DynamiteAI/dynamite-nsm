@@ -92,9 +92,14 @@ class OptimizeThreadingManager:
                 'Neither Zeek nor Suricata is installed. You must install at least one of these in order '
                 'to run this command.')
             return None
-        kern_cpu_count = math.ceil(kern_alloc * len(available_cpus))
-        zeek_cpu_count = math.ceil(zeek_alloc * len(available_cpus))
-        suricata_cpu_count = math.ceil(suricata_alloc * len(available_cpus))
+        if len(available_cpus) > 4:
+            round_func = math.ceil
+        else:
+            round_func = math.floor
+
+        kern_cpu_count = round_func(kern_alloc * len(available_cpus))
+        zeek_cpu_count = round_func(zeek_alloc * len(available_cpus))
+        suricata_cpu_count = round_func(suricata_alloc * len(available_cpus))
         zeek_cpus = [c for c in available_cpus[kern_cpu_count: kern_cpu_count + zeek_cpu_count]]
         suricata_cpus = [
             c for c in
@@ -113,7 +118,7 @@ class OptimizeThreadingManager:
                 available_cpus=tuple(suricata_cpus))
             suricata_config_mng.runmode = 'workers'
             for suricata_iface in suricata_config_mng.af_packet_interfaces:
-                suricata_iface.threads = math.ceil(len(suricata_config_mng.threading.worker_cpu_set) /
-                                                   len(suricata_profiler.get_attached_interfaces()))
+                suricata_iface.threads = round_func(len(suricata_config_mng.threading.worker_cpu_set) /
+                                                    len(suricata_profiler.get_attached_interfaces()))
                 suricata_iface.cluster_type = 'cluster_qm'
             suricata_config_mng.commit()
