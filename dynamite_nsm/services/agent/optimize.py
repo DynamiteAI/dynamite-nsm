@@ -97,7 +97,7 @@ class OptimizeThreadingManager:
         else:
             round_func = math.floor
 
-        kern_cpu_count = round_func(kern_alloc * len(available_cpus))
+        kern_cpu_count = math.ceil(kern_alloc * len(available_cpus))
         zeek_cpu_count = round_func(zeek_alloc * len(available_cpus))
         suricata_cpu_count = round_func(suricata_alloc * len(available_cpus))
         zeek_cpus = [c for c in available_cpus[kern_cpu_count: kern_cpu_count + zeek_cpu_count]]
