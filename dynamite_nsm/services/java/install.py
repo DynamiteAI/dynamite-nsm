@@ -25,9 +25,9 @@ class InstallManager(install.BaseInstallManager):
 
     def copy_java_files_and_directories(self) -> None:
         """
-        Copy the required Logstash files from the install cache to their respective directories
+        Copy the required Java files from the install cache to their respective directories
         """
-        elasticsearch_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
+        java_tarball_extracted = f'{const.INSTALL_CACHE}/{self.directory_name}'
         install_paths = [
             'bin/',
             'conf/',
@@ -38,7 +38,7 @@ class InstallManager(install.BaseInstallManager):
             'release'
         ]
         for inst in install_paths:
-            self.copy_file_or_directory_to_destination(f'{elasticsearch_tarball_extracted}/{inst}',
+            self.copy_file_or_directory_to_destination(f'{java_tarball_extracted}/{inst}',
                                                        f'{self.install_directory}/{self.directory_name}')
 
     def create_update_java_environment_variables(self) -> None:
