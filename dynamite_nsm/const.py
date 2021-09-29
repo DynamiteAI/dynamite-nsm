@@ -5,7 +5,7 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.1.1.tar.gz'
+DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.1.2.tar.gz'
 CONFIG_DELTA_CHANGE_SET = None  # We'll support these later
 ZEEK_PACKAGES = [
     'https://github.com/DynamiteAI/dynamite-community-id.git',
