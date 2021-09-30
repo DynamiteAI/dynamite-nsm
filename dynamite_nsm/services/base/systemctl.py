@@ -163,11 +163,31 @@ class FallbackCtl:
         for proc in psutil.process_iter():
             try:
                 if proc_name.lower() in proc.name().lower():
+                    if proc.status() == 'zombie':
+                        continue
                     self.logger.debug(f'Found {proc_name} running on {proc.pid}')
                     return proc.pid
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return None
+
+    def status(self, svc: str) -> CmdResult:
+        """Displays the full systemctl status output for the given service.
+        Args:
+            svc: The name of the service or target
+        Returns:
+             A the current status of the service
+        """
+        process_name = svc.replace(".service", "")
+        cmd_result = CmdResult()
+        for proc in psutil.process_iter():
+            if process_name.lower() in proc.name().lower():
+                cmd_result.cmd = ' '.join(proc.cmdline())
+                cmd_result.exit = 0
+                cmd_result.out = None
+                cmd_result.err = None
+        cmd_result.svc = svc
+        return cmd_result
 
     def start(self, svc: str):
         """Start the specified service using the fallback method.
@@ -181,15 +201,15 @@ class FallbackCtl:
         pid_file_name = process_name + '.pid'
         process_name = svc.replace(".service", "")
         self.logger.debug(f'Attempting to start {svc}.')
-        with daemon.DaemonContext(
-                pidfile=daemon.pidfile.PIDLockFile(f'{PID_FILE_DIR}/{pid_file_name}'), detach_process=True):
-            for pre_start_cmd in systemd_commands['ExecStartPre']:
-                subprocess.Popen(pre_start_cmd.split(' '), env=utilities.get_environment_file_dict(),
-                                 preexec_fn=self._demote_to_user(systemd_commands['User']))
+        # with daemon.DaemonContext(
+        #        pidfile=daemon.pidfile.PIDLockFile(f'{PID_FILE_DIR}/{pid_file_name}'), detach_process=True):
+        for pre_start_cmd in systemd_commands['ExecStartPre']:
+            subprocess.Popen(pre_start_cmd.split(' '), env=utilities.get_environment_file_dict(),
+                             preexec_fn=self._demote_to_user(systemd_commands['User']))
         for start_cmd in systemd_commands['ExecStart']:
             subprocess.Popen(start_cmd.split(' '), env=utilities.get_environment_file_dict(),
                              preexec_fn=self._demote_to_user(systemd_commands['User']))
-            time.sleep(1)
+            time.sleep(5)
         return self.search_process(process_name) is not None
 
     def stop(self, svc: str):
@@ -224,7 +244,7 @@ class FallbackCtl:
             os.kill(pid, 9)
         utilities.safely_remove_file(f'{PID_FILE_DIR}/{pid_file_name}')
         self.logger.debug(f'Removing PID file: {PID_FILE_DIR}/{pid_file_name}')
-        time.sleep(1)
+        time.sleep(5)
         return self.search_process(process_name) is None
 
 
@@ -254,7 +274,7 @@ class SystemCtl(FallbackCtl):
 
         # Verify systemctl is installed and in path, bail if not
         super().__init__(stdout=stdout, verbose=verbose)
-        p = subprocess.Popen('which systemctl', stdout=subprocess.PIPE,
+        p = subprocess.Popen('systemctl', stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True)
         self.fallback_mode = False
         p.communicate()
@@ -409,6 +429,8 @@ class SystemCtl(FallbackCtl):
         Returns:
              True if enabled
         """
+        if self.fallback_mode:
+            return False
         svc = format_svc_string(svc)
         cmd = self._exec("is-enabled", svc)
         return cmd.out == "enabled"
@@ -471,7 +493,6 @@ class SystemCtl(FallbackCtl):
 
     def start(self, svc: str) -> bool:
         """Start the specified service.
-
         Args:
             svc: The name of the service or target
         Returns:
@@ -490,7 +511,8 @@ class SystemCtl(FallbackCtl):
         Returns:
              A the current status of the service
         """
-
+        if self.fallback_mode:
+            return super().status(svc)
         svc = format_svc_string(svc)
         return self._get_svc_status(svc)
 
@@ -502,7 +524,7 @@ class SystemCtl(FallbackCtl):
              True if stopped
         """
         if self.fallback_mode:
-            return super().start(svc)
+            return super().stop(svc)
         svc = format_svc_string(svc)
         _, running, _ = self._exec_update("stop", svc)
         return not running
@@ -553,8 +575,3 @@ class SystemCtl(FallbackCtl):
         os.remove(os.path.join(UNIT_FILE_DIR, svc))
 
         return res
-
-
-if __name__ == '__main__':
-    fallbackctl = FallbackCtl()
-    print(fallbackctl.stop('elasticsearch'))

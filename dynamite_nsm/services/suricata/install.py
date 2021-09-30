@@ -80,6 +80,7 @@ class InstallManager(install.BaseInstallManager):
         configure_args = [f'--prefix={self.install_directory}',
                           f'--sysconfdir={suricata_config_parent_directory} ',
                           f'--localstatedir={const.STATE_PATH}/suricata']
+        self.logger.debug(f'Configuring with: {configure_args}')
         self.configure_source_package(suricata_source_install_cache, configure_args=configure_args)
         time.sleep(1)
         self.compile_source_package(suricata_source_install_cache,

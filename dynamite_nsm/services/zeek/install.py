@@ -5,9 +5,9 @@ from typing import List, Optional
 
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.zeek import config
-from dynamite_nsm.services.zeek import package
+from dynamite_nsm.services.zeek import package, zkg
 from dynamite_nsm.services.zeek.zkg import install as zkg_install
-from dynamite_nsm.services.base.config_objects.zeek import node, local_site
+from dynamite_nsm.services.base.config_objects.zeek import node
 from dynamite_nsm.services.base import install, systemctl
 
 COMPILE_PROCESS_EXPECTED_LINE_COUNT = 7392
@@ -129,7 +129,10 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Setting up Zeek package manager.')
         zkg_installer = zkg_install.InstallManager()
         zkg_installer.setup()
-        package.InstallPackageManager(const.ZEEK_PACKAGES, stdout=self.stdout, verbose=self.verbose).setup()
+        try:
+            package.InstallPackageManager(const.ZEEK_PACKAGES, stdout=self.stdout, verbose=self.verbose).setup()
+        except zkg.InstallZeekPackageError as e:
+            self.logger.error(f'An error occurred while installing one or more Zeek packages: {e}')
 
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/zeek/broctl-nodes.cfg',
                                                    f'{self.install_directory}/etc/node.cfg')
