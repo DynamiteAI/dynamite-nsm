@@ -8,6 +8,10 @@ jobs:
         os: [centos-7, centos-8, ubuntu-18.04, ubuntu-20.04]
         python-version: [3.7, 3.8]
     steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
     - uses: actions/checkout@v1
     - name: Install DynamiteNSM
       run: |
