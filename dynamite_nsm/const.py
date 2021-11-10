@@ -43,7 +43,7 @@ def bootstrap_constants_from_const_environment_file():
 
 extracted_constants = bootstrap_constants_from_const_environment_file()
 
-VERSION = extracted_constants.get('VERSION', '1.0.0')
+VERSION = extracted_constants.get('VERSION', '1.1.2')
 ELASTICSEARCH_MIRRORS = extracted_constants.get('ELASTICSEARCH_MIRRORS', '/etc/dynamite/mirrors/elasticsearch')
 LOGSTASH_MIRRORS = extracted_constants.get('LOGSTASH_MIRRORS', '/etc/dynamite/mirrors/logstash')
 KIBANA_MIRRORS = extracted_constants.get('KIBANA_MIRRORS', '/etc/dynamite/mirrors/kibana')

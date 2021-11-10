@@ -19,7 +19,7 @@ def append_service_interface_to_parser(parent_parser: argparse, interface_name: 
     from dynamite_nsm.cmd import service_interfaces
     from dynamite_nsm.cmd import config_object_interfaces
     from dynamite_nsm.cmd.config_object_interfaces import AnalyzersInterface, FilebeatTargetsInterface, \
-        ZeekNodeConfigObjectInterface, ZeekNodeConfigObjectsInterface
+        SuricataInterfaceConfigObjectsInterface, ZeekNodeConfigObjectInterface, ZeekNodeConfigObjectsInterface
     from dynamite_nsm.cmd.service_interfaces import MultipleResponsibilityInterface, SingleResponsibilityInterface, \
         SimpleConfigManagerInterface
 
@@ -44,6 +44,9 @@ def append_service_interface_to_parser(parent_parser: argparse, interface_name: 
     elif isinstance(interface, FilebeatTargetsInterface):
         config_object_interfaces.append_config_object_filebeat_targets_to_parser(parser=sub_interface_parser,
                                                                                  interface=interface)
+    elif isinstance(interface, SuricataInterfaceConfigObjectsInterface):
+        config_object_interfaces.append_config_object_suricata_interface_obj_to_parser(parser=sub_interface_parser,
+                                                                                       interface=interface)
     elif isinstance(interface, ZeekNodeConfigObjectInterface):
         config_object_interfaces.append_config_object_zeek_node_obj_to_parser(parser=sub_interface_parser,
                                                                               interface=interface)

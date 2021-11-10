@@ -13,7 +13,8 @@ from dynamite_nsm.cmd.inspection_helpers import ArgparseParameters
 from dynamite_nsm.cmd.inspection_helpers import get_function_definition
 from dynamite_nsm.services.base.config_objects import generic
 from dynamite_nsm.services.base.config_objects.filebeat import targets
-from dynamite_nsm.services.base.config_objects.zeek import node
+from dynamite_nsm.services.base.config_objects.zeek import node as zeek_node_config
+from dynamite_nsm.services.base.config_objects.suricata import misc as suricata_misc_config
 
 """
 Commandline interface wrappers for services.base.config_objects
@@ -209,12 +210,80 @@ class FilebeatTargetsInterface(BaseInterface):
         return self.config_obj
 
 
+class SuricataInterfaceConfigObjectsInterface(BaseInterface):
+
+    def __init__(self, config_obj: suricata_misc_config.AfPacketInterfaces):
+        super().__init__()
+        self.changed_rows = []
+        self.config_obj = config_obj
+
+    @staticmethod
+    def build_parser(interface: SuricataInterfaceConfigObjectsInterface, parser: argparse.ArgumentParser):
+        """Build a parser from a `node.AfPacketInterfaces` and `argparse.ArgumentParser` derived class
+        Args:
+            interface: The `SuricataInterfaceConfigObjectsInterface` instance you wish to append
+            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+
+        Returns:
+            An argument parser instance for the instantiated `BaseTargets` derived class
+        """
+        component_select = parser.add_argument_group('component editor')
+        component_select.add_argument('--select', dest='select', help='The interface you want to modify.')
+        component_select.add_argument('--interface', dest='inspect_interface', required=False,
+                                      help='A new inspection interface to monitor.')
+        component_select.add_argument('--bpf-filter', dest='bpf_filter', required=False,
+                                      help='A filter that can be used to drop packets before they are analyzed.')
+
+        return parser
+
+    def get_parser(self):
+        """ For the given interface return an `argparse.ArgumentParser` object for a Zeek `node.BaseComponents` object
+        Returns:
+            An argument parser instance for the instantiated `node.BaseComponents` derived class
+        """
+        parser = argparse.ArgumentParser()
+        return self.build_parser(self, parser)
+
+    def execute(self, args: argparse.Namespace) -> Any:
+        headers = ['Interface Name', 'BPF Filter']
+        changed_values_table = []
+        changed_value_headers = ['Interface Name', 'Config Option', 'Value']
+        component_summaries = [(component.interface, component.bpf_filter) for component in self.config_obj.interfaces]
+
+        if not args.select:
+            return tabulate(headers=headers, tabular_data=component_summaries, tablefmt='fancy_grid')
+        else:
+            modified_component = self.config_obj.get(args.select)
+            if not modified_component:
+                return None
+            for option, value in args.__dict__.items():
+                if option in self.defaults:
+                    continue
+                if option in RESERVED_VARIABLE_NAMES:
+                    continue
+                if option not in ['bpf_filter', 'inspect_interface']:
+                    continue
+                if option == 'inspect_interface':
+                    option = 'interface'
+                if not value:
+                    config_value = (args.select, option.replace('_', '-'), getattr(modified_component, option, None))
+                    if not config_value[1]:
+                        config_value = option.replace('_', '-'), 'N/A'
+                    changed_values_table.append(config_value)
+                else:
+                    self.changed_rows.append([args.select, option.replace('_', '-'), value])
+                    setattr(modified_component, option, value)
+            if not self.changed_rows:
+                return tabulate(changed_values_table, headers=changed_value_headers, tablefmt='fancy_grid')
+        return self.config_obj
+
+
 class ZeekNodeConfigObjectInterface(BaseInterface):
     """
     Convert any Zeek node `BaseComponent` derived class into a commandline utility.
     """
 
-    def __init__(self, config_obj: node.BaseComponent):
+    def __init__(self, config_obj: zeek_node_config.BaseComponent):
         super().__init__()
         self.changed_rows = []
         self.config_obj = config_obj
@@ -283,7 +352,7 @@ class ZeekNodeConfigObjectInterface(BaseInterface):
 
 class ZeekNodeConfigObjectsInterface(BaseInterface):
 
-    def __init__(self, config_obj: node.BaseComponents):
+    def __init__(self, config_obj: zeek_node_config.BaseComponents):
         super().__init__()
         self.changed_rows = []
         self.config_obj = config_obj
@@ -292,8 +361,8 @@ class ZeekNodeConfigObjectsInterface(BaseInterface):
     def build_parser(interface: ZeekNodeConfigObjectsInterface, parser: argparse.ArgumentParser):
         """Build a parser from any `node.BaseComponents` and `argparse.ArgumentParser` derived class
         Args:
-            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
             interface: The `ZeekNodeConfigObjectsInterface` instance you wish to append
+            parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
 
         Returns:
             An argument parser instance for the instantiated `BaseTargets` derived class
@@ -306,7 +375,7 @@ class ZeekNodeConfigObjectsInterface(BaseInterface):
 
         # Dirty hack to add worker specific arguments
         if 'workers' in sys.argv:
-            component_select.add_argument('--inspect-interface', dest='inspect_interface', required=False,
+            component_select.add_argument('--interface', dest='inspect_interface', required=False,
                                           help='A new inspection interface for the selected worker.')
         return parser
 
@@ -323,7 +392,7 @@ class ZeekNodeConfigObjectsInterface(BaseInterface):
         changed_values_table = []
         changed_value_headers = ['Component Name', 'Config Option', 'Value']
         component_summaries = [(component.name, component.host) for component in self.config_obj.components]
-        if isinstance(self.config_obj, node.Workers):
+        if isinstance(self.config_obj, zeek_node_config.Workers):
             headers = ['Component Name', 'Host', 'Inspection Interface']
             component_summaries = [(component.name, component.host, component.interface) for component in
                                    self.config_obj.components]
@@ -332,6 +401,8 @@ class ZeekNodeConfigObjectsInterface(BaseInterface):
             return tabulate(headers=headers, tabular_data=component_summaries, tablefmt='fancy_grid')
         else:
             modified_component = self.config_obj.get(args.select)
+            if not modified_component:
+                return None
             for option, value in args.__dict__.items():
                 if option in self.defaults:
                     continue
@@ -378,6 +449,20 @@ def append_config_object_filebeat_targets_to_parser(parser: argparse.ArgumentPar
         The modified parser
     """
 
+    return interface.build_parser(interface, parser)
+
+
+def append_config_object_suricata_interface_obj_to_parser(parser: argparse.ArgumentParser,
+                                                          interface: SuricataInterfaceConfigObjectsInterface) -> \
+        argparse.ArgumentParser:
+    """Append an `SuricataInterfaceConfigObjectsInterface` interface into an existing parser.
+    Args:
+        parser: The `argparse.ArgumentParser` instance that you want to add a new parser too
+        interface: The `SuricataInterfaceConfigObjectsInterface` instance you wish to append
+
+    Returns:
+        The modified parser
+    """
     return interface.build_parser(interface, parser)
 
 

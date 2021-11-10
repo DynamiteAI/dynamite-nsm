@@ -10,6 +10,7 @@ ADD . dynamite-nsm/
 RUN python3.8 -m pip install dynamite-nsm/ GitPython semantic-version
 RUN sed -i 's/#!python/#!\/usr\/bin\/python3.8/g' /usr/local/bin/dynamite
 
+
 # Install Zeek
 RUN dynamite zeek install --inspect-interfaces=eth0 --verbose
 WORKDIR /tmp/zeek-af_packet-plugin
@@ -26,4 +27,4 @@ RUN dynamite suricata install --inspect-interfaces=eth0 --verbose
 RUN dynamite filebeat install --targets=localhost:9200 --verbose
 
 # Start
-CMD dynamite agent process start && dynamite filebeat logs main --pretty
+# CMD dynamite agent process start && dynamite filebeat logs main --pretty
