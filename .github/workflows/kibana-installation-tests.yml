@@ -1,4 +1,4 @@
-name: Elasticsearch Installation
+name: Kibana Installation
 on: [push]
 jobs:
   build:
