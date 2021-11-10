@@ -1,4 +1,4 @@
-name: install-zeek
+name: Zeek Tests
 on: [push]
 jobs:
   build:
@@ -14,4 +14,4 @@ jobs:
         sudo pip install .
     - name: Install Zeek
       run: |
-        sudo dynamite zeek install --inspect-interfaces lo
+        sudo dynamite zeek install --inspect-interfaces lo --skip-interface-validation --verbose
