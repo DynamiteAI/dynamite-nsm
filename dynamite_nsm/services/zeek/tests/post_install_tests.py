@@ -2,7 +2,7 @@ import os
 import shutil
 import unittest
 
-from dynamite_nsm.services.base.config_objects.zeek import Logger, Proxy, Worker, Workers
+from dynamite_nsm.services.base.config_objects.zeek.node import Logger, Proxy, Worker, Workers
 from dynamite_nsm.services.zeek.config import NodeConfigManager
 from dynamite_nsm.utilities import get_environment_file_dict, makedirs
 
@@ -49,14 +49,14 @@ class TestZeekNodeConfigManager(unittest.TestCase):
         NodeConfigManager(self.zeek_home).workers = Workers()
 
         optimal_workers = NodeConfigManager(self.zeek_home).get_optimal_zeek_worker_config(
-            interface_names=CAPTURE_NETWORK_INTERFACES, cpus=None)
+            interface_names=CAPTURE_NETWORK_INTERFACES, available_cpus=None)
         assert len(optimal_workers.get_raw()) == len(CAPTURE_NETWORK_INTERFACES)
 
     def test_zeek_node_config_optimal_worker_configurations_4_cpus(self):
         NodeConfigManager.workers = Workers()
         optimal_workers = NodeConfigManager(self.zeek_home).get_optimal_zeek_worker_config(
             interface_names=CAPTURE_NETWORK_INTERFACES,
-            cpus=(0, 1, 2, 3))
+            available_cpus=(0, 1, 2, 3))
         assert len(optimal_workers.get_raw()) == len(CAPTURE_NETWORK_INTERFACES)
 
     def test_zeek_node_add_logger_and_commit(self):

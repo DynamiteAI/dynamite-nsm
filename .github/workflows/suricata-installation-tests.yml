@@ -1,0 +1,21 @@
+name: Suricata Installation Tests
+on: [push]
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [centos-7, centos-8, ubuntu-18.04, ubuntu-20.04]
+        python-version: [3.7, 3.8]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install DynamiteNSM
+      run: |
+        sudo python -m pip install --upgrade pip
+        sudo pip install .
+    - name: Install Suricata
+      run: |
+        sudo dynamite suricata install --inspect-interfaces lo --skip-interface-validation --verbose
+    - name: Run Post-Install Tests
+      run: |
+        sudo python -m pytest dynamite_nsm/services/suricata/tests/post_install_tests.py
