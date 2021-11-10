@@ -1,4 +1,4 @@
-name: Zeek Installation
+name: Elasticsearch Installation
 on: [push]
 jobs:
   build:
@@ -17,15 +17,21 @@ jobs:
       run: |
         sudo python -m pip install --upgrade pip
         sudo pip install .
-    - name: Install Zeek
+    - name: Install Elasticsearch
       run: |
-        sudo dynamite zeek install --inspect-interfaces lo --skip-interface-validation --verbose
+        sudo dynamite elasticsearch install --verbose
     - name: Run Post-Install Tests
       run: |
-        sudo python -m pytest dynamite_nsm/services/zeek/tests/post_install_tests.py
-    - name: Start Zeek Processes
+        echo Skipping for now.
+    - name: Install Kibana
       run: |
-        sudo dynamite zeek process start
-    - name: Stop Zeek Processes
+        sudo dynamite kibana install --verbose
+    - name: Run Post-Install Tests
       run: |
-        sudo dynamite zeek process stop
+        echo Skipping for now.
+    - name: Start Elasticsearch & Kibana Processes
+      run: |
+        sudo dynamite monitor process start
+    - name: Stop Elasticsearch & Kibana Processes
+      run: |
+        sudo dynamite monitor process stop
