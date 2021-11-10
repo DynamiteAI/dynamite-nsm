@@ -5,6 +5,7 @@
 </p>
 
 ---
+[![Zeek Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/zeek-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/zeek-installation-tests.yml) [![Suricata Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/suricata-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/suricata-installation-tests.yml) [![Filebeat Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/filebeat-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/filebeat-installation-tests.yml) [![Elasticsearch Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/elasticsearch-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/elasticsearch-installation-tests.yml) [![Logstash Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/logstash-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/logstash-installation-tests.yml) [![Kibana Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/kibana-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/kibana-installation-tests.yml)
 
 ### What is Dynamite Network Security Monitor?
 
