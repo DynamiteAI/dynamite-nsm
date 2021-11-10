@@ -19,18 +19,21 @@ class InstallManager(install.BaseInstallManager):
     """
 
     def __init__(self, configuration_directory: str, install_directory: str,
-                 download_zeek_archive: Optional[bool] = True, stdout: Optional[bool] = False,
+                 download_zeek_archive: Optional[bool] = True, skip_interface_validation: Optional[bool] = False,
+                 stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
         """Install Zeek
         Args:
             configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek/)
             install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)
             download_zeek_archive: If True, download the Zeek archive from a mirror
+            skip_interface_validation: If included we don't check if the interface is available on the system
             stdout: Print output to console
             verbose: Include detailed debug messages
         """
         self.configuration_directory = configuration_directory
         self.install_directory = install_directory
+        self.skip_interface_validation = skip_interface_validation
         self.stdout = stdout
         self.verbose = verbose
 
@@ -113,8 +116,9 @@ class InstallManager(install.BaseInstallManager):
         Returns:
             None
         """
-        if not self.validate_inspect_interfaces(inspect_interfaces):
-            raise install.NetworkInterfaceNotFound(inspect_interfaces)
+        if not self.skip_interface_validation:
+            if not self.validate_inspect_interfaces(inspect_interfaces):
+                raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()
         self.install_zeek_dependencies()
         self.create_update_zeek_environment_variables()
