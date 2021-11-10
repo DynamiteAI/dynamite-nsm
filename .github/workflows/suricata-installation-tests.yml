@@ -16,7 +16,6 @@ jobs:
     - name: Install DynamiteNSM
       run: |
         sudo python -m pip install --upgrade pip
-        sudo pip uninstall PyYaml
         sudo pip install .
     - name: Install Suricata
       run: |
