@@ -5,8 +5,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-latest]
-        python-version: [3.7, 3.8]
+        os: [ubuntu-20.04]
+        python-version: [3.7, 3.8, 3.9]
     steps:
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -23,3 +23,9 @@ jobs:
     - name: Run Post-Install Tests
       run: |
         sudo python -m pytest dynamite_nsm/services/suricata/tests/post_install_tests.py
+    - name: Start Suricata Processes
+      run: |
+        - sudo dynamite suricata process start --verbose
+    - name: Stop Suricata Processes
+      run: |
+        - sudo dynamite suricata process stop --verbose

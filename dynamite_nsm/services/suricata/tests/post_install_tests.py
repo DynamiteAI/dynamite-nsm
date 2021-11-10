@@ -28,7 +28,7 @@ class TestSuricataConfigManager(unittest.TestCase):
         assert self.suricata_config and os.path.exists(self.suricata_config)
 
     def test_suricata_config_parsable(self):
-        assert ConfigManager(self.suricata_config).runmode == 'workers'
+        assert ConfigManager(self.suricata_config).runmode == 'autofp'
 
     def test_suricata_update_home_net_and_commit(self):
         conf = ConfigManager(self.suricata_config)
