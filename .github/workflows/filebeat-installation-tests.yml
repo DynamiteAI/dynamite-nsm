@@ -22,7 +22,7 @@ jobs:
         sudo dynamite filebeat install --targets=localhost:5601 --verbose
     - name: Run Post-Install Tests
       run: |
-        echo Skipping for now.
+        echo Skipping for now...
     - name: Start Filebeat Processes
       run: |
         sudo dynamite filebeat process start
