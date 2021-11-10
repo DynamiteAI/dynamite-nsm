@@ -1,0 +1,31 @@
+name: Filebeat Installer
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/checkout@v1
+    - name: Install DynamiteNSM
+      run: |
+        sudo python -m pip install --upgrade pip
+        sudo pip install .
+    - name: Install Filebeat
+      run: |
+        sudo dynamite filebeat install --targets=localhost:5601 --verbose
+    - name: Run Post-Install Tests
+      run: |
+        echo Skipping for now.
+    - name: Start Filebeat Processes
+      run: |
+        sudo dynamite filebeat process start
+    - name: Stop Filebeat Processes
+      run: |
+        sudo dynamite filebeat process stop
