@@ -1,0 +1,31 @@
+name: Elasticsearch Installer
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/checkout@v1
+    - name: Install DynamiteNSM
+      run: |
+        sudo python -m pip install --upgrade pip
+        sudo pip install .
+    - name: Install Elasticsearch
+      run: |
+        sudo dynamite elasticsearch install --verbose
+    - name: Run Post-Install Tests
+      run: |
+        echo Skipping for now.
+    - name: Start Elasticsearch Processes
+      run: |
+        sudo dynamite elasticsearch process start
+    - name: Stop Elasticsearch Processes
+      run: |
+        sudo dynamite elasticsearch process stop

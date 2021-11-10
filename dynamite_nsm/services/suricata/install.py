@@ -38,14 +38,15 @@ class InstallManager(install.BaseInstallManager):
     """
 
     def __init__(self, configuration_directory: str, install_directory: str, log_directory: str,
-                 download_suricata_archive: Optional[bool] = True, stdout: Optional[bool] = False,
-                 verbose: Optional[bool] = False):
+                 download_suricata_archive: Optional[bool] = True, skip_interface_validation: Optional[bool] = False,
+                 stdout: Optional[bool] = False, verbose: Optional[bool] = False):
         """Install Suricata
         Args:
             configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)
             install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)
             log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)
             download_suricata_archive: If True, download the Suricata archive from a mirror
+            skip_interface_validation: If included we don't check if the interface is available on the system
             stdout: Print the output to console
             verbose: Include detailed debug messages
         """
@@ -53,6 +54,7 @@ class InstallManager(install.BaseInstallManager):
         self.install_directory = install_directory
         self.log_directory = log_directory
         self.download_suricata_archive = download_suricata_archive
+        self.skip_interface_validation = skip_interface_validation
         self.stdout = stdout
         self.verbose = verbose
         install.BaseInstallManager.__init__(self, 'suricata.install', verbose=self.verbose, stdout=stdout)
@@ -136,8 +138,9 @@ class InstallManager(install.BaseInstallManager):
         Returns:
             None
         """
-        if not self.validate_inspect_interfaces(inspect_interfaces):
-            raise install.NetworkInterfaceNotFound(inspect_interfaces)
+        if not self.skip_interface_validation:
+            if not self.validate_inspect_interfaces(inspect_interfaces):
+                raise install.NetworkInterfaceNotFound(inspect_interfaces)
         sysctl = systemctl.SystemCtl()
         self.install_suricata_dependencies()
         self.create_update_suricata_environment_variables()
