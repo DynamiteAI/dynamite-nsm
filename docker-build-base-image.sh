@@ -1,2 +1,2 @@
 #! /bin/bash
-sudo docker build . --tag nsm:1.2
+sudo docker build . --tag nsm:1.1.2
