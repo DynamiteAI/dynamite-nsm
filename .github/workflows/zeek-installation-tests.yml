@@ -1,4 +1,4 @@
-name: Zeek Installation
+name: Zeek Installer
 on: [push]
 jobs:
   build:

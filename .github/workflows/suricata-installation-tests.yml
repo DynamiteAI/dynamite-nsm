@@ -1,4 +1,4 @@
-name: Suricata Installation
+name: Suricata Installer
 on: [push]
 jobs:
   build:

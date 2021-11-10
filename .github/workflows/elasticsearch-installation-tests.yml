@@ -1,4 +1,4 @@
-name: Elasticsearch Installation
+name: Elasticsearch Installer
 on: [push]
 jobs:
   build:

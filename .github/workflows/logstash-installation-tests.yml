@@ -1,4 +1,4 @@
-name: Kibana Installer
+name: Logstash Installer
 on: [push]
 jobs:
   build:
@@ -17,24 +17,15 @@ jobs:
       run: |
         sudo python -m pip install --upgrade pip
         sudo pip install .
-    - name: Install Elasticsearch
+    - name: Install Logstash
       run: |
-        sudo dynamite elasticsearch install --verbose
+        sudo dynamite logstash install --verbose
     - name: Run Post-Install Tests
       run: |
         echo Skipping for now.
-    - name: Start Elasticsearch
+    - name: Start Logstash Processes
       run: |
-        sudo dynamite elasticsearch process start
-    - name: Install Kibana
+        sudo dynamite logstash process start
+    - name: Stop Logstash Processes
       run: |
-        sudo dynamite kibana install --verbose
-    - name: Run Post-Install Tests
-      run: |
-        echo Skipping for now.
-    - name: Start Elasticsearch & Kibana Processes
-      run: |
-        sudo dynamite monitor process start
-    - name: Stop Elasticsearch & Kibana Processes
-      run: |
-        sudo dynamite monitor process stop
+        sudo dynamite logstash process stop
