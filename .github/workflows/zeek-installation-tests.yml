@@ -5,7 +5,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [centos-7, centos-8, ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-20.04, ubuntu-latest]
         python-version: [3.7, 3.8]
     steps:
     - name: Set up Python ${{ matrix.python-version }}
