@@ -1,0 +1,17 @@
+name: install-zeek
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install DynamiteNSM
+      run: |
+        sudo python -m pip install --upgrade pip
+        sudo pip install .
+    - name: Install Zeek
+      run: |
+        sudo dynamite zeek install --inspect-interfaces lo
