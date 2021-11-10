@@ -20,7 +20,7 @@ setup(
         'tabulate==0.8.9',
         'PyYAML==5.3.1',
         'psutil==5.8.0',
-        'docstring-parser==0.7.3',
+        'docstring-parser=>0.5',
         'marshmallow==3.11.1',
         'pytest==6.2.2',
         'python-crontab==2.5.1',
