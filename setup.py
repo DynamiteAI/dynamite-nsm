@@ -14,7 +14,7 @@ setup(
                 'make securing your network environment simple and intuitive.',
     include_package_data=True,
     install_requires=[
-        'bcrypt==3.2.0',
+        'bcrypt==3.1.7',
         'coloredlogs==15.0',
         'progressbar==2.5',
         'tabulate==0.8.9',
