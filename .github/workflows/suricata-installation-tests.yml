@@ -25,7 +25,7 @@ jobs:
         sudo python -m pytest dynamite_nsm/services/suricata/tests/post_install_tests.py
     - name: Start Suricata Processes
       run: |
-        - sudo dynamite suricata process start
+        sudo dynamite suricata process start
     - name: Stop Suricata Processes
       run: |
-        - sudo dynamite suricata process stop
+        sudo dynamite suricata process stop
