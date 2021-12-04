@@ -234,7 +234,7 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
     """
 
     def __init__(self, config: Union[config.GenericConfigManager, config.YamlConfigManager], interface_name: str,
-                 interface_description: Optional[str] = None, defaults: Optional[Dict] = None):
+                 interface_description: Optional[str] = None, pretty_print_status: Optional[bool] = True, defaults: Optional[Dict] = None):
         """Initialize the interface
         Args:
             config: The class we wish to turn into a commandline utility
@@ -244,6 +244,7 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         """
         self.config = config
         self.config_module_map = {}
+        self.pretty_print_status = pretty_print_status
         super().__init__(self.config.__class__, 'commit', interface_name, interface_description, defaults)
 
     @staticmethod
@@ -317,7 +318,7 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         headers = ['Config Option', 'Value']
         table = [headers]
         changed_rows_only = [headers]
-
+        
         # In the scenario we have configuration modules include them as config options in our display table
         table.extend(
             [[config_module_name, 'Configuration Module'] for config_module_name in self.config_module_map.keys()])
@@ -356,9 +357,13 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
         else:
             if changed_config:
                 self.config.commit()
-                return tabulate(changed_rows_only, tablefmt='fancy_grid')
+                if self.pretty_print_status:
+                    return tabulate(changed_rows_only, tablefmt='fancy_grid')
+                return dict(changed_rows_only)
             else:
-                return tabulate(table, tablefmt='fancy_grid')
+                if self.pretty_print_status:
+                    return tabulate(table, tablefmt='fancy_grid')
+                return dict(table)
 
 
 def append_service_multiple_responsibility_interface_to_parser(
