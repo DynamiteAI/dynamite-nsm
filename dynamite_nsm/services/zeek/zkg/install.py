@@ -23,8 +23,8 @@ class InstallManager(install.BaseInstallManager):
         self.verbose = verbose
         install.BaseInstallManager.__init__(self, 'zkg.install', stdout=self.stdout, verbose=self.verbose)
 
-    @staticmethod
-    def install_zkg_dependencies():
+    def install_zkg_dependencies(self):
+        self.install_dependencies(apt_get_packages=['git'], yum_packages=['git'])
         git_python_package = tasks.BasePythonPackageInstallTask(
             name='GitPython', package_link='GitPython==3.1.18',
             description='A Python library used to interact with git repositories',

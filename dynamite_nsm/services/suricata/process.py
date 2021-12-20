@@ -4,8 +4,6 @@ from dynamite_nsm.services.base import process
 from dynamite_nsm.services.suricata import profile
 from dynamite_nsm import exceptions
 
-PID_DIRECTORY = '/var/run/dynamite/suricata/'
-
 
 class CallSuricataProcessError(exceptions.CallProcessError):
     def __init__(self, message):

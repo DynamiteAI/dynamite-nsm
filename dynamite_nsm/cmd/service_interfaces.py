@@ -10,10 +10,13 @@ from tabulate import tabulate
 from dynamite_nsm.cmd import interface_operations
 from dynamite_nsm.cmd.base_interface import BaseInterface
 from dynamite_nsm.cmd.base_interface import RESERVED_VARIABLE_NAMES
-from dynamite_nsm.cmd.config_object_interfaces import AnalyzersInterface, FilebeatTargetsInterface
+from dynamite_nsm.cmd.config_object_interfaces import AnalyzersInterface, FilebeatTargetsInterface, \
+    SuricataInterfaceConfigObjectsInterface, ZeekNodeConfigObjectInterface, ZeekNodeConfigObjectsInterface
 from dynamite_nsm.cmd.inspection_helpers import ArgparseParameters
 from dynamite_nsm.cmd.inspection_helpers import get_class_instance_methods
 from dynamite_nsm.services.base import config
+from dynamite_nsm.services.base.config_objects.zeek import node
+from dynamite_nsm.services.base.config_objects.suricata import misc
 from dynamite_nsm.services.base.config_objects.filebeat import targets
 from dynamite_nsm.services.base.config_objects.generic import Analyzers
 
@@ -286,6 +289,27 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
                                                                             interface=config_module_interface,
                                                                             interface_name=var,
                                                                             interface_group_name='config_module')
+                elif isinstance(complex_obj, node.BaseComponent):
+                    config_module_interface = ZeekNodeConfigObjectInterface(complex_obj)
+                    interface.config_module_map.update({var: config_module_interface})
+                    interface_operations.append_service_interface_to_parser(config_objects_subparser,
+                                                                            interface=config_module_interface,
+                                                                            interface_name=var,
+                                                                            interface_group_name='config_module')
+                elif isinstance(complex_obj, node.BaseComponents):
+                    config_module_interface = ZeekNodeConfigObjectsInterface(complex_obj)
+                    interface.config_module_map.update({var: config_module_interface})
+                    interface_operations.append_service_interface_to_parser(config_objects_subparser,
+                                                                            interface=config_module_interface,
+                                                                            interface_name=var,
+                                                                            interface_group_name='config_module')
+                elif isinstance(complex_obj, misc.AfPacketInterfaces):
+                    config_module_interface = SuricataInterfaceConfigObjectsInterface(complex_obj)
+                    interface.config_module_map.update({var: config_module_interface})
+                    interface_operations.append_service_interface_to_parser(config_objects_subparser,
+                                                                            interface=config_module_interface,
+                                                                            interface_name=var,
+                                                                            interface_group_name='config_module')
             else:
                 args = ArgparseParameters.create_from_typing_annotation(var, type(getattr(interface.config, var)),
                                                                         required=False)
@@ -349,6 +373,17 @@ class SimpleConfigManagerInterface(SingleResponsibilityInterface):
                                 tablefmt='fancy_grid')
             elif isinstance(res, targets.BaseTargets):
                 setattr(self.config, args.config_module, res)
+                self.config.commit()
+                return tabulate(selected_config_module.changed_rows, headers=headers, tablefmt='fancy_grid')
+            elif isinstance(res, node.BaseComponent):
+                setattr(self.config, args.config_module, res)
+                self.config.commit()
+                return tabulate(selected_config_module.changed_rows, headers=headers, tablefmt='fancy_grid')
+            elif isinstance(res, node.BaseComponents):
+                setattr(self.config, args.config_module, res)
+                self.config.commit()
+                return tabulate(selected_config_module.changed_rows, headers=headers, tablefmt='fancy_grid')
+            elif isinstance(res, misc.AfPacketInterfaces):
                 self.config.commit()
                 return tabulate(selected_config_module.changed_rows, headers=headers, tablefmt='fancy_grid')
             else:

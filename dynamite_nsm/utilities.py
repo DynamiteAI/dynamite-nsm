@@ -161,7 +161,7 @@ def restore_backup_configuration(configuration_backup_filepath: str, config_file
 def check_pid(pid: int) -> bool:
     """:return: True, if the process is running
     Args:
-
+        The process id
     Returns:
         None
     """

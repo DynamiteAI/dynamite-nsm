@@ -1,15 +1,13 @@
 text = '''
-        """
-        A Zeek worker process
+    """
+    Add an interface to an existing parser.
 
-        :param worker_name: The name of the worker
-        :param interface_name: The name of a network interface
-        :param cluster_id: A unique integer associated with this worker maps to af_packet_fanout_id
-        :param cluster_type: The algorithm used to spread traffic between sockets. cluster_flow (FANOUT_HASH), cluster_cpu (FANOUT_CPU), cluster_qm (FANOUT_QM). Maps to af_packet_fanout_mode
-        :param load_balance_processes: The number of Zeek processes associated with a given worker
-        :param pinned_cpus: Core affinity for the processes (iterable),
-        :param host: The host on which the worker is running
-        """
+    :param parent_parser: The parent parser to add the interface too
+    :param interface_name: The name of this interface as it will appear in the commandline utility
+    :param interface: The interface object itself
+    :param interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy this service_interface should be placed
+    :return: The parser object
+    """
 '''
 params = []
 return_val = 'None'
