@@ -551,16 +551,17 @@ def get_network_interface_names() -> List[str]:
 
     available_networks = []
     for intface, addr_list in addresses.items():
-        if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
+        if intface.startswith('lo'):
             continue
-        elif intface.startswith('lo'):
+        elif intface.startswith('docker'):
             continue
         elif intface.startswith('veth'):
             continue
         elif intface.startswith('br-'):
             continue
-        elif intface in stats and getattr(stats[intface], "isup"):
-            available_networks.append(intface)
+        elif intface not in stats:
+            continue
+        available_networks.append(intface)
     return available_networks
 
 
@@ -577,25 +578,26 @@ def get_network_interface_configurations() -> List[Dict]:
 
     available_networks = []
     for intface, addr_list in addresses.items():
-        if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
+        if intface.startswith('lo'):
             continue
-        elif intface.startswith('lo'):
+        elif intface.startswith('docker'):
             continue
         elif intface.startswith('veth'):
             continue
         elif intface.startswith('br-'):
             continue
-        elif intface in stats and getattr(stats[intface], "isup"):
-            name = intface
-            speed = stats[intface].speed
-            duplex = str(stats[intface].duplex)
-            mtu = stats[intface].mtu
-            available_networks.append({
-                'name': name,
-                'speed': speed,
-                'duplex': duplex,
-                'mtu': mtu
-            })
+        elif intface not in stats:
+            continue
+        name = intface
+        speed = stats[intface].speed
+        duplex = str(stats[intface].duplex)
+        mtu = stats[intface].mtu
+        available_networks.append({
+            'name': name,
+            'speed': speed,
+            'duplex': duplex,
+            'mtu': mtu
+        })
     return available_networks
 
 
