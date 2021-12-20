@@ -912,6 +912,7 @@ def test_bpf_filter(expr: str, include_message: bool = False) -> Union[bool, Tup
         The result and optional result message
     """
     bin_path = pkg_resources.resource_filename('dynamite_nsm', 'bin/bpf_validate')
+    set_permissions_of_file(bin_path, '+x')
     p = subprocess.Popen([bin_path] + expr.split(' '), stdout=subprocess.PIPE)
     output, _ = p.communicate()
     serialized_values = json.loads(output)
