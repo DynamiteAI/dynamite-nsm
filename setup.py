@@ -13,6 +13,9 @@ setup(
     description='DynamiteNSM is a lightweight, versatile network security monitor designed to '
                 'make securing your network environment simple and intuitive.',
     include_package_data=True,
+    package_data={
+        'dynamite_nsm': ['bin/*']
+    },
     install_requires=[
         'bcrypt==3.2.0',
         'coloredlogs==15.0',

@@ -4,9 +4,11 @@ import crypt
 import fcntl
 import getpass
 import grp
+import json
 import multiprocessing
 import os
 import pwd
+import pkg_resources
 import random
 import re
 import shutil
@@ -898,6 +900,25 @@ def set_permissions_of_file(file_path: str, unix_permissions_integer: Union[str,
         None
     """
     subprocess.call('chmod -R {} {}'.format(unix_permissions_integer, file_path), shell=True)
+
+
+def test_bpf_filter(expr: str, include_message: bool = False) -> Union[bool, Tuple[bool, str]]:
+    """Given a BPF expression determine if it is valid, and optionally return a message if not
+    Args:
+        expr: A valid Berkeley Packet Filter
+        include_message: If True, Include an error message if expression is not valid.
+
+    Returns:
+        The result and optional result message
+    """
+    bin_path = pkg_resources.resource_filename('dynamite_nsm', 'bin/bpf_validate')
+    p = subprocess.Popen([bin_path] + expr.split(' '), stdout=subprocess.PIPE)
+    output, _ = p.communicate()
+    serialized_values = json.loads(output)
+    if not include_message:
+        return serialized_values['success']
+    else:
+        return serialized_values['success'], serialized_values['msg']
 
 
 def update_sysctl(verbose: Optional[bool] = False) -> None:
