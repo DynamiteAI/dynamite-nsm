@@ -155,6 +155,10 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Applying node configuration.')
         node_config.commit()
 
+        self.logger.info('Setting up BPF input configuration')
+        bpf_config = config.BpfConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
+        bpf_config.commit()
+
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')

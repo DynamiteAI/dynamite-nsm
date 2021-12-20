@@ -1,15 +1,34 @@
 from __future__ import annotations
 
 import os
+import json
 from typing import Optional, Tuple
 
 from yaml import Loader
 from yaml import load
 
 from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm import utilities
+
+from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base.config import YamlConfigManager
 from dynamite_nsm.services.base.config_objects.suricata import misc, rules
+
+
+def lookup_rule_definition(rule_id: int):
+    """Return the definition, categories, and friendly_name of a given script
+    Args:
+        rule_id: A numeric identifier representing a Suricata rule.
+    Returns:
+         A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}
+    """
+    try:
+        suricata_rule_defs = os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata_rule_definitions.json')
+        with open(suricata_rule_defs) as f:
+            suricata_defs = json.load(f)
+    except FileNotFoundError:
+        suricata_defs = {}
+    definition = suricata_defs.get(str(rule_id))
+    return definition
 
 
 class ConfigManager(YamlConfigManager):
