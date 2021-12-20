@@ -1,13 +1,32 @@
+import os
+import json
 from io import StringIO
 from re import findall
 from random import randint
 from configparser import ConfigParser
 from typing import Dict, List, Optional, Tuple
 
-from dynamite_nsm import utilities
+from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base.config import GenericConfigManager
 from dynamite_nsm.services.base.config_objects.zeek import local_network, local_site, node
 from dynamite_nsm.services.base.config_objects.zeek import bpf_filter
+
+
+def lookup_script_definition(rule_id: int):
+    """Return the definition, categories, and friendly_name of a given script
+    Args:
+        rule_id: A numeric identifier representing a Zeek script.
+    Returns:
+         A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}
+    """
+    try:
+        suricata_rule_defs = os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'zeek_script_definitions.json')
+        with open(suricata_rule_defs) as f:
+            suricata_defs = json.load(f)
+    except FileNotFoundError:
+        suricata_defs = {}
+    definition = suricata_defs.get(str(rule_id))
+    return definition
 
 
 class BpfConfigManager(GenericConfigManager):
