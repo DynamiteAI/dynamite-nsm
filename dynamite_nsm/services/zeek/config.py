@@ -12,20 +12,20 @@ from dynamite_nsm.services.base.config_objects.zeek import local_network, local_
 from dynamite_nsm.services.base.config_objects.zeek import bpf_filter
 
 
-def lookup_script_definition(rule_id: int):
+def lookup_script_definition(script_id: int):
     """Return the definition, categories, and friendly_name of a given script
     Args:
-        rule_id: A numeric identifier representing a Zeek script.
+        script_id: A numeric identifier representing a Zeek script.
     Returns:
          A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}
     """
     try:
-        suricata_rule_defs = os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'zeek_script_definitions.json')
-        with open(suricata_rule_defs) as f:
-            suricata_defs = json.load(f)
+        zeek_script_defs = os.path.join(const.DEFAULT_CONFIGS, 'zeek', 'zeek_script_definitions.json')
+        with open(zeek_script_defs) as f:
+            zeek_defs = json.load(f)
     except FileNotFoundError:
-        suricata_defs = {}
-    definition = suricata_defs.get(str(rule_id))
+        zeek_defs = {}
+    definition = zeek_defs.get(str(script_id))
     return definition
 
 
