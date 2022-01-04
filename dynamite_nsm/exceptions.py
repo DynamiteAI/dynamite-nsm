@@ -52,6 +52,12 @@ class MethodNotImplementedError(Exception):
         super(MethodNotImplementedError, self).__init__(msg)
 
 
+class DynamiteNotSetupError(Exception):
+    def __init__(self):
+        msg = "You must run dynamite setup install before you can continue."
+        super(DynamiteNotSetupError, self).__init__(msg)
+
+
 class ReadConfigError(Exception):
 
     def __init__(self, message):

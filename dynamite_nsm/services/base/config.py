@@ -8,9 +8,9 @@ from yaml import dump
 
 from tabulate import tabulate
 
-from dynamite_nsm.logger import get_logger
-from dynamite_nsm import exceptions as general_exceptions
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
+from dynamite_nsm import exceptions as exceptions
 
 
 class NoAliasDumper(SafeDumper):
@@ -24,6 +24,8 @@ class BackupConfigManager:
     """
 
     def __init__(self, backup_directory: str):
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.backup_directory = backup_directory
 
     def list_backup_configs(self) -> List:
@@ -61,6 +63,8 @@ class GenericConfigManager:
             verbose: Include detailed debug messages
             stdout: Print output to console
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.config_data = config_data
         self.formatted_data = json.dumps(config_data)
         log_level = logging.INFO
@@ -92,7 +96,7 @@ class GenericConfigManager:
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
         except IOError:
-            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+            raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
         self.logger.warning('Configuration updated. Restart this service to apply.')
 
@@ -181,7 +185,7 @@ class JavaOptionsConfigManager(GenericConfigManager):
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
         except IOError:
-            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+            raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
 
 
@@ -202,6 +206,8 @@ class YamlConfigManager:
             **extract_tokens: A dictionary object, where the keys represent the names of instance variables to create
             if the path to that variable exists. Paths are given using dot notation or as a Tuple.
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.config_data = config_data
         self.extract_tokens = extract_tokens
         log_level = logging.INFO
@@ -306,7 +312,7 @@ class YamlConfigManager:
                 except RecursionError:
                     dump(self.config_data, config_yaml_f, default_flow_style=False)
         except IOError:
-            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+            raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
         self.logger.warning('Configuration updated. Restart this service to apply.')
 

@@ -1,7 +1,8 @@
 import argparse
 from typing import Optional
 
-from dynamite_nsm.cmd import agent, monitor, elasticsearch, logstash, kibana, suricata, zeek, filebeat, updates, remote
+from dynamite_nsm.cmd import setup, agent, monitor, elasticsearch, logstash, kibana, suricata, zeek, filebeat, \
+    updates, remote
 
 
 def process_arguments(args: argparse.Namespace, component: Optional[str], interface: Optional[str] = None,
@@ -16,6 +17,7 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
     :return: The results of the executed context.
     """
     component_modules = dict(
+        setup=setup,
         agent=agent,
         monitor=monitor,
         elasticsearch=elasticsearch,

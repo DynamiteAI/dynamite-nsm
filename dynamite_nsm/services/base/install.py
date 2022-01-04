@@ -48,15 +48,18 @@ class BaseInstallManager:
             verbose: Include detailed debug messages
             log_level: The minimum logging.LOG_LEVEL to be handled
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
+        if not utilities.is_root():
+            raise PermissionError('You must be root to install services.')
         if verbose:
             log_level = logging.DEBUG
         self.stdout = stdout
         self.verbose = verbose
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
         self.dynamite_environ = utilities.get_environment_file_dict()
+        utilities.makedirs(const.INSTALL_CACHE)
         utilities.create_dynamite_user()
-        utilities.makedirs(const.PID_PATH, exist_ok=True)
-        utilities.set_ownership_of_file(const.PID_PATH, user='dynamite', group='dynamite')
 
     def compile_source_package(self, source_root_directory: str, compile_args: Optional[List[str]] = None,
                                parallel_threads: Optional[int] = None,
@@ -172,6 +175,7 @@ class BaseInstallManager:
                 read_lines[overwrite_line_no] = f'{name}={value}\n'
             with open(env_file_path, 'w') as env_fw:
                 env_fw.writelines(read_lines)
+        utilities.set_ownership_of_file(env_file_path)
 
     def download_from_mirror(self, mirror_path: str) -> Tuple[str, str, Optional[str]]:
         """Download a Dynamite service from a mirror
@@ -362,6 +366,8 @@ class BaseUninstallManager:
         if verbose:
             log_level = logging.DEBUG
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
+        if not utilities.is_root():
+            raise PermissionError('You must be root to uninstall services.')
 
     @staticmethod
     def delete_env_variable(name: str):

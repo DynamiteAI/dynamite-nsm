@@ -2,7 +2,7 @@
 import json
 import sys
 import argparse
-
+import traceback
 import tabulate
 
 from dynamite_nsm import utilities
@@ -10,10 +10,12 @@ from dynamite_nsm import utilities
 if utilities.is_root() and not utilities.get_environment_file_dict():
     utilities.create_dynamite_environment_file()
 
+from dynamite_nsm.exceptions import DynamiteNotSetupError
 from dynamite_nsm.const import VERSION
 from dynamite_nsm.cmd import process_arguments
 from dynamite_nsm.utilities import print_dynamite_logo
-from dynamite_nsm.cmd import agent, monitor, elasticsearch, logstash, kibana, remote, zeek, suricata, filebeat, updates
+from dynamite_nsm.cmd import setup, agent, monitor, elasticsearch, logstash, kibana, remote, zeek, suricata, \
+    filebeat, updates
 
 
 def print_service_statuses():
@@ -24,9 +26,6 @@ def print_service_statuses():
     from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
     from dynamite_nsm.services.logstash import profile as logstash_profile
     from dynamite_nsm.services.kibana import profile as kibana_profile
-    if not utilities.is_root():
-        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))
-        exit(0)
     profiler_map = dict(
         elasticsearch=elasticsearch_profile.ProcessProfiler(),
         logstash=logstash_profile.ProcessProfiler(),
@@ -55,6 +54,7 @@ def get_component(component_name: str):
     :param component_name: The name of the component
     """
     component_map = dict(
+        setup=setup,
         agent=agent,
         monitor=monitor,
         elasticsearch=elasticsearch,
@@ -81,6 +81,7 @@ def get_component_level_args(component_name: str):
 if __name__ == '__main__':
     dynamite_dummy_parser = argparse.ArgumentParser(f'Dynamite Network Security Monitor [{VERSION}]')
     dynamite_dummy_parser.add_argument('component', help='A component within the Dynamite stack to manage.', choices=[
+        'setup',
         'agent',
         'monitor',
         'zeek',
@@ -142,3 +143,11 @@ if __name__ == '__main__':
         dynamite_dummy_parser.print_help()
     except PermissionError:
         print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))
+    except DynamiteNotSetupError as e:
+        traceback.print_exc()
+        print(
+            utilities.PrintDecorations.colorize('Your environment is not setup yet.',
+                                                _color='red'))
+        print(
+            utilities.PrintDecorations.colorize('Run \'sudo dynamite setup install\' to setup the environment.',
+                                                _color='yellow'))

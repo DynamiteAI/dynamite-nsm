@@ -34,7 +34,7 @@ class ProcessManager(process.BaseProcessManager):
         environ = utilities.get_environment_file_dict()
         process.BaseProcessManager.__init__(self, 'elasticsearch.service', 'elasticsearch.process',
                                             log_path=environ.get('ES_LOGS'),
-                                            create_pid_file=True,
+                                            create_pid_file=False,
                                             stdout=stdout, verbose=verbose, pretty_print_status=pretty_print_status)
 
         if not elasticsearch_profile.ProcessProfiler().is_installed():

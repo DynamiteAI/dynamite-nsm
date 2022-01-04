@@ -285,9 +285,9 @@ class SystemCtl(FallbackCtl):
             # raise exceptions.CallProcessError('Systemctl not found, is it installed?  {}'.format(p.stderr.read()))
 
         # Update the status for Dynamite services based on the active roles
-        svcs = self._get_svc_units(roles)
-        for s in svcs:
-            self._update_comp_status(s)
+        # svcs = self._get_svc_units(roles)
+        # for s in svcs:
+        #    self._update_comp_status(s)
 
     def _get_svc_units(self, roles: Tuple) -> set:
         """
@@ -365,7 +365,6 @@ class SystemCtl(FallbackCtl):
             setattr(self, comp_running, True)
         else:
             setattr(self, comp_running, False)
-
         return comp, getattr(self, comp_running), getattr(self, comp_enabled)
 
     @staticmethod

@@ -156,6 +156,8 @@ class InstallManager(install.BaseInstallManager):
         node_config.commit()
 
         self.logger.info('Setting up BPF input configuration')
+        with open(f'{self.install_directory}/bpf_map_file.input', 'w') as bpf_config_f:
+            bpf_config_f.write('')
         bpf_config = config.BpfConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
         bpf_config.commit()
 
