@@ -51,7 +51,7 @@ class BpfConfigManager(GenericConfigManager):
 
         with open(f'{self.configuration_directory}/bpf_map_file.input') as config_f:
             config_data = dict(data=config_f.readlines())
-        super().__init__(config_data, name='ZEEKBPF', verbose=verbose, stdout=stdout)
+        super().__init__(config_data, name='zeek.config.bpf', verbose=verbose, stdout=stdout)
 
         self.add_parser(
             parser=lambda data: bpf_filter.BpfFilters(

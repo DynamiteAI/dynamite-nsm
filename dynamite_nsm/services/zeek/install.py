@@ -91,8 +91,8 @@ class InstallManager(install.BaseInstallManager):
             if pacman_type != 'yum':
                 self.logger.info('Skipping RHEL PowerTools install, as it is not needed on this distribution.')
                 return
-            self.install_dependencies(yum_packages=['dnf-plugins-core'])
-            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'PowerTools'],
+            self.install_dependencies(yum_packages=['dnf-plugins-core', 'epel-release'])
+            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'powertools'],
                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             enable_powertools_p.communicate()
             if enable_powertools_p.returncode == 0:
