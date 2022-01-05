@@ -6,10 +6,6 @@ import argparse
 import tabulate
 
 from dynamite_nsm import utilities
-
-if utilities.is_root() and not utilities.get_environment_file_dict():
-    utilities.create_dynamite_environment_file()
-
 from dynamite_nsm import exceptions
 from dynamite_nsm.const import VERSION
 from dynamite_nsm.cmd import process_arguments

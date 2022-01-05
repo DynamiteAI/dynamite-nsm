@@ -78,6 +78,8 @@ class InstallManager:
     def setup(self):
         fresh_install_paths = [const.LOG_PATH, const.CONFIG_PATH, const.INSTALL_PATH]
         try:
+            self.logger.info('Creating dynamite user and group.')
+            utilities.create_dynamite_user()
             for path in fresh_install_paths:
                 self.logger.info(f'Reserving {path}.')
                 utilities.makedirs(path)
