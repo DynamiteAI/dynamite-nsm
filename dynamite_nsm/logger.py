@@ -36,6 +36,9 @@ def get_logger(component_name, level=logging.INFO, stdout=True, stdout_only=Fals
                 '%(asctime)s | %(name)20s | %(module)20s | %(funcName)45s | %(lineno)4s | %(levelname)8s |  %(message)s')
             fh.setFormatter(fformatter)
             logger.addHandler(fh)
+            if utilities.is_root():
+                utilities.set_ownership_of_file(log_out_path)
+                utilities.set_permissions_of_file(log_out_path, 660)
         else:
             stdout = True
     if stdout:

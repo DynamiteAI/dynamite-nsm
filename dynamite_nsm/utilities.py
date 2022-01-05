@@ -667,6 +667,19 @@ def is_root() -> bool:
     return os.getuid() == 0
 
 
+def is_dynamite_member(user: str) -> bool:
+    """
+    Check if a user is a member of the dynamite group
+    Args:
+        user: A username
+
+    Returns:
+        True, if the user is a member of the dynamite group
+    """
+    group = grp.getgrnam('dynamite')
+    return user in group[3]
+
+
 def is_setup() -> bool:
     """Check if DynamiteNSM has required directories created.
     Returns:
@@ -677,8 +690,6 @@ def is_setup() -> bool:
     elif not os.path.exists(const.INSTALL_PATH):
         return False
     elif not os.path.exists(const.LOG_PATH):
-        return False
-    elif not os.path.exists(f'{const.CONFIG_PATH}/environment'):
         return False
     return True
 

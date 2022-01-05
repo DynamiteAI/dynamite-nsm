@@ -51,7 +51,7 @@ class BaseInstallManager:
         if not utilities.is_setup():
             raise exceptions.DynamiteNotSetupError()
         if not utilities.is_root():
-            raise PermissionError('You must be root to install services.')
+            raise exceptions.RequiresRootError()
         if verbose:
             log_level = logging.DEBUG
         self.stdout = stdout
@@ -367,7 +367,7 @@ class BaseUninstallManager:
             log_level = logging.DEBUG
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
         if not utilities.is_root():
-            raise PermissionError('You must be root to uninstall services.')
+            raise exceptions.RequiresRootError()
 
     @staticmethod
     def delete_env_variable(name: str):

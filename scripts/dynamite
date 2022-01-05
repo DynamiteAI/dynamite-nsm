@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import json
 import sys
+import getpass
 import argparse
-import traceback
 import tabulate
 
 from dynamite_nsm import utilities
@@ -10,7 +10,7 @@ from dynamite_nsm import utilities
 if utilities.is_root() and not utilities.get_environment_file_dict():
     utilities.create_dynamite_environment_file()
 
-from dynamite_nsm.exceptions import DynamiteNotSetupError
+from dynamite_nsm import exceptions
 from dynamite_nsm.const import VERSION
 from dynamite_nsm.cmd import process_arguments
 from dynamite_nsm.utilities import print_dynamite_logo
@@ -26,6 +26,22 @@ def print_service_statuses():
     from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
     from dynamite_nsm.services.logstash import profile as logstash_profile
     from dynamite_nsm.services.kibana import profile as kibana_profile
+    if not utilities.is_setup():
+        print(
+            utilities.PrintDecorations.colorize('Your environment is not setup yet.',
+                                                _color='red'))
+        print(
+            utilities.PrintDecorations.colorize('Run \'sudo dynamite setup install\' to setup the environment.',
+                                                _color='yellow'))
+        exit(0)
+    elif not utilities.is_root() and not utilities.is_dynamite_member(getpass.getuser()):
+        print(
+            utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
+        print(
+            utilities.PrintDecorations.colorize(
+                f'Run \'sudo usermod -aG dynamite {getpass.getuser()}\' to add your current user to the dynamite group.',
+                _color='yellow'))
+        exit(0)
     profiler_map = dict(
         elasticsearch=elasticsearch_profile.ProcessProfiler(),
         logstash=logstash_profile.ProcessProfiler(),
@@ -141,10 +157,18 @@ if __name__ == '__main__':
         print_service_statuses()
     except KeyError:
         dynamite_dummy_parser.print_help()
+    except exceptions.RequiresRootError:
+        print(
+            utilities.PrintDecorations.colorize('You must be root to run this command.',
+                                                _color='red'))
     except PermissionError:
-        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))
-    except DynamiteNotSetupError as e:
-        traceback.print_exc()
+        print(
+            utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
+        print(
+            utilities.PrintDecorations.colorize(
+                f'Run \'sudo usermod -aG dynamite {getpass.getuser()}\' to add your current user to the dynamite group.',
+                _color='yellow'))
+    except exceptions.DynamiteNotSetupError as e:
         print(
             utilities.PrintDecorations.colorize('Your environment is not setup yet.',
                                                 _color='red'))
