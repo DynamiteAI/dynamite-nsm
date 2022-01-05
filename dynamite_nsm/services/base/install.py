@@ -392,14 +392,14 @@ class BaseUninstallManager:
         if self.process:
             self.process.stop()
         for dir in self.directories:
-            self.logger.debug(f'Removing {dir}')
+            self.logger.info(f'Removing {dir}')
             shutil.rmtree(dir, ignore_errors=True)
         if self.environ_vars:
             for var in self.environ_vars:
                 self.delete_env_variable(var)
         if self.sysctl_service_name:
             try:
-                self.logger.debug(f'Uninstalling {self.sysctl_service_name}')
+                self.logger.info(f'Uninstalling {self.sysctl_service_name}')
                 sysctl.uninstall_and_disable(self.sysctl_service_name)
             except FileNotFoundError:
                 self.logger.debug('Skipping service uninstallation as systemd was not implemented in this setup.')
