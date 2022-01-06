@@ -8,13 +8,12 @@ import subprocess
 from shutil import copy2
 from typing import Dict, List, Optional, Tuple
 
-import daemon
-import daemon.pidfile
+from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
-from dynamite_nsm import exceptions, utilities
+
 
 UNIT_FILE_DIR = '/etc/systemd/system/'
-PID_FILE_DIR = '/var/run/dynamite/'
+PID_FILE_DIR = '/var/run/'
 
 
 def install(path_to_svc: str) -> None:
@@ -176,7 +175,7 @@ class FallbackCtl:
         Args:
             svc: The name of the service or target
         Returns:
-             A the current status of the service
+             The current status of the service
         """
         process_name = svc.replace(".service", "")
         cmd_result = CmdResult()
@@ -254,11 +253,6 @@ class SystemCtl(FallbackCtl):
     """
 
     # Map each role type to a list of associated service unit files
-    ROLE_SVCS = {
-        'agent': ['dynamite-agent.target', 'filebeat.service', 'suricata.service', 'zeek.service'],
-        'monitor': ['dynamite-monitor.target', 'elastic.service', 'logstash.service', 'kibana.service'],
-        'scanner': ['dynamite-scanner.target', 'rumble.service', 'filebeat.service']
-    }
 
     def __init__(self, roles: Optional[Tuple] = ('agent',), stdout: Optional[bool] = True,
                  verbose: Optional[bool] = False):
@@ -283,22 +277,6 @@ class SystemCtl(FallbackCtl):
                                 'you will not be able to enable or disable services.')
             self.fallback_mode = True
             # raise exceptions.CallProcessError('Systemctl not found, is it installed?  {}'.format(p.stderr.read()))
-
-        # Update the status for Dynamite services based on the active roles
-        # svcs = self._get_svc_units(roles)
-        # for s in svcs:
-        #    self._update_comp_status(s)
-
-    def _get_svc_units(self, roles: Tuple) -> set:
-        """
-        Returns a unique list of service unit files used by the given roles.
-        """
-        svcs = set()
-        for r in roles:
-            if r in self.ROLE_SVCS:
-                for s in self.ROLE_SVCS[r]:
-                    svcs.add(s)
-        return svcs
 
     def _get_svc_status(self, svc: str) -> CmdResult:
         """

@@ -164,8 +164,10 @@ class InstallManager(install.BaseInstallManager):
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/site/local.zeek', 660)
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
-
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/node.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/network.cfg', 660)
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/zeek.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'zeek.service'))
 

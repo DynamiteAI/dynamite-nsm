@@ -225,6 +225,20 @@ class ConfigManager(YamlConfigManager):
                 worker_cpu_set.add(c)
         return misc.Threading(management_cpu_set, receive_cpu_set, worker_cpu_set)
 
+    def reset(self, out_file_path: Optional[str] = None, default_config_path: Optional[str] = None):
+        """Reset a configuration file back to its default
+        Args:
+            out_file_path: The path to the output file
+            default_config_path: The path to the default configuration
+        Returns:
+            None
+        """
+        if not out_file_path:
+            out_file_path = f'{self.configuration_directory}/suricata.yaml'
+        if not default_config_path:
+            default_config_path = f'{const.DEFAULT_CONFIGS}/suricata/suricata.yaml'
+        super(ConfigManager, self).reset(out_file_path, default_config_path)
+
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:
 

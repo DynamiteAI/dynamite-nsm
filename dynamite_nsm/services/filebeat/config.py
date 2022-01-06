@@ -5,6 +5,7 @@ from typing import Optional
 from yaml import Loader
 from yaml import load, dump
 
+from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base.config import YamlConfigManager
 from dynamite_nsm.services.base.config_objects.filebeat.misc import IndexTemplateSettings, InputLogs, FieldProcessors, \
@@ -326,6 +327,20 @@ class ConfigManager(YamlConfigManager):
         self.kafka_targets.enabled = False
         self.logstash_targets.enabled = False
         self.redis_targets.enabled = True
+
+    def reset(self, out_file_path: Optional[str] = None, default_config_path: Optional[str] = None):
+        """Reset a configuration file back to its default
+        Args:
+            out_file_path: The path to the output file
+            default_config_path: The path to the default configuration
+        Returns:
+            None
+        """
+        if not out_file_path:
+            out_file_path = f'{self.install_directory}/filebeat.yml'
+        if not default_config_path:
+            default_config_path = f'{const.DEFAULT_CONFIGS}/filebeat/filebeat.yml'
+        super(ConfigManager, self).reset(out_file_path, default_config_path)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:

@@ -178,6 +178,20 @@ class SiteLocalConfigManager(GenericConfigManager):
             c.configuration_directory = configuration_directory
         return c
 
+    def reset(self, out_file_path: Optional[str] = None, default_config_path: Optional[str] = None):
+        """Reset a configuration file back to its default
+        Args:
+            out_file_path: The path to the output file
+            default_config_path: The path to the default configuration
+        Returns:
+            None
+        """
+        if not out_file_path:
+            out_file_path = f'{self.configuration_directory}/site/local.zeek'
+        if not default_config_path:
+            default_config_path = f'{const.DEFAULT_CONFIGS}/zeek/local.zeek'
+        super(SiteLocalConfigManager, self).reset(out_file_path, default_config_path)
+
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """Write the changes out to configuration file
         Args:
@@ -332,6 +346,20 @@ class NodeConfigManager(GenericConfigManager):
 
         return zeek_worker_configs
 
+    def reset(self, out_file_path: Optional[str] = None, default_config_path: Optional[str] = None):
+        """Reset a configuration file back to its default
+        Args:
+            out_file_path: The path to the output file
+            default_config_path: The path to the default configuration
+        Returns:
+            None
+        """
+        if not out_file_path:
+            out_file_path = f'{self.install_directory}/etc/node.cfg'
+        if not default_config_path:
+            default_config_path = f'{const.DEFAULT_CONFIGS}/zeek/broctl-nodes.cfg'
+        super(NodeConfigManager, self).reset(out_file_path, default_config_path)
+
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """Write the changes out to configuration file
         Args:
@@ -398,12 +426,12 @@ class LocalNetworksConfigManager(GenericConfigManager):
             )
         return local_networks
 
-    def __init__(self, installation_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+    def __init__(self, install_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         """
         Configure the networks Zeek will consider local to the monitoring environment
 
         Args:
-            installation_directory: The path to the installation directory (E.G /opt/dynamite/zeek)
+            install_directory: The path to the installation directory (E.G /opt/dynamite/zeek)
             verbose: Include detailed debug messages
             stdout: Print output to console
         ___
@@ -412,10 +440,10 @@ class LocalNetworksConfigManager(GenericConfigManager):
         - `local_networks` - A `local_network.LocalNetworks` instance representing a list of networks considered local 
         by this cluster.
         """
-        self.installation_directory = installation_directory
+        self.install_directory = install_directory
         self.local_networks = local_network.LocalNetworks()
 
-        with open(f'{self.installation_directory}/etc/networks.cfg') as config_f:
+        with open(f'{self.install_directory}/etc/networks.cfg') as config_f:
             config_data = dict(data=config_f.readlines())
         super().__init__(config_data, name='zeek.config.networks', verbose=verbose, stdout=stdout)
 
@@ -434,12 +462,12 @@ class LocalNetworksConfigManager(GenericConfigManager):
             None
         """
         if not out_file_path:
-            out_file_path = f'{self.installation_directory}/etc/networks.cfg'
+            out_file_path = f'{self.install_directory}/etc/networks.cfg'
         self.formatted_data = '\n'.join(self.local_networks.get_raw())
         super(LocalNetworksConfigManager, self).commit(out_file_path, backup_directory)
 
     @classmethod
-    def from_raw_text(cls, raw_text: str, installation_directory: Optional[str] = None):
+    def from_raw_text(cls, raw_text: str, install_directory: Optional[str] = None):
         """Alternative method for creating configuration file from raw text
         Args:
             raw_text: The string representing the configuration file
@@ -452,7 +480,7 @@ class LocalNetworksConfigManager(GenericConfigManager):
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
             out_f.write(raw_text)
-        c = cls(installation_directory=f"{tmp_dir}/../")
-        if installation_directory:
-            c.installation_directory = installation_directory
+        c = cls(install_directory=f"{tmp_dir}/../")
+        if install_directory:
+            c.install_directory = install_directory
         return c

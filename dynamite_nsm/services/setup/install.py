@@ -60,6 +60,9 @@ def get_sudoers_directory_path():
 class InstallManager:
 
     def __init__(self):
+        """
+        Prepare this environment for DynamiteNSM
+        """
         if not utilities.is_root():
             raise PermissionError('You must be root to setup DynamiteNSM.')
         self.logger = logger.get_logger('setup.install', stdout=True, stdout_only=True)
@@ -76,7 +79,7 @@ class InstallManager:
             dynamite_sudoers_out.write(sudoers_patch)
 
     def setup(self):
-        fresh_install_paths = [const.LOG_PATH, const.CONFIG_PATH, const.INSTALL_PATH]
+        fresh_install_paths = [const.LOG_PATH, const.CONFIG_PATH, const.INSTALL_PATH, const.INSTALL_CACHE]
         try:
             self.logger.info('Creating dynamite user and group.')
             utilities.create_dynamite_user()
@@ -99,6 +102,9 @@ class InstallManager:
 class UninstallManager:
 
     def __init__(self):
+        """
+        Completely remove DynamiteNSM from this environment
+        """
         if not utilities.is_root():
             raise PermissionError('You must be root to uninstall DynamiteNSM.')
         self.logger = logger.get_logger('setup.install', stdout=True, stdout_only=True)
@@ -140,7 +146,7 @@ class UninstallManager:
                     uninstallers[i]().uninstall()
             self.logger.info('Removing patched sudoers file.')
             utilities.safely_remove_file(f'{get_sudoers_directory_path()}/dynamite')
-            for directory in [const.LOG_PATH, const.CONFIG_PATH, const.INSTALL_PATH]:
+            for directory in [const.LOG_PATH, const.CONFIG_PATH, const.INSTALL_PATH, const.INSTALL_PATH]:
                 self.logger.info(f'Removing {directory}.')
                 if os.path.exists(directory):
                     shutil.rmtree(directory)
