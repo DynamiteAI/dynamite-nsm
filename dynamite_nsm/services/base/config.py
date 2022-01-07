@@ -78,7 +78,7 @@ class GenericConfigManager:
     def add_parser(self, parser: Callable, attribute_name):
         setattr(self, attribute_name, parser(self.config_data))
 
-    def reset(self, out_file_path: str, default_config_path: str):
+    def reset(self, out_file_path: Optional[str], default_config_path: Optional[str]):
         """Reset a configuration file back to its default
         Args:
         out_file_path: The path to the output file
@@ -112,7 +112,6 @@ class GenericConfigManager:
                 config_raw_f.write(self.formatted_data)
         except IOError:
             raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
-        utilities.set_permissions_of_file(out_file_path, 644)
         self.logger.warning('Configuration updated. Restart this service to apply.')
 
     def get_printable_config(self) -> Dict:
@@ -329,7 +328,6 @@ class YamlConfigManager(GenericConfigManager):
                     dump(self.config_data, config_yaml_f, default_flow_style=False)
         except IOError:
             raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
-        utilities.set_permissions_of_file(out_file_path, 644)
         self.logger.warning('Configuration updated. Restart this service to apply.')
 
     def get_printable_config(self, pretty_print: Optional[bool] = False) -> str:

@@ -169,7 +169,9 @@ def get_class_instance_methods(cls: object, defaults: Optional[Dict] = None, use
                 # Store the rest of our method parameters in a dictionary
                 # {func_name: [ArgparseParameters, ArgparseParam...], func_name_2: [ArgparseParameters, Argp...]}
                 else:
-                    interface_functions[func_name] = get_argparse_parameters(func_def, defaults=defaults)
+                    # Look first in the top level class then parent classes
+                    if func_name not in interface_functions.keys():
+                        interface_functions[func_name] = get_argparse_parameters(func_def, defaults=defaults)
             # and parent class is selected
     try:
         parent_class = method_resolution_order[1]

@@ -341,6 +341,7 @@ class ConfigManager(YamlConfigManager):
         if not default_config_path:
             default_config_path = f'{const.DEFAULT_CONFIGS}/filebeat/filebeat.yml'
         super(ConfigManager, self).reset(out_file_path, default_config_path)
+        self.commit(out_file_path=out_file_path)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:

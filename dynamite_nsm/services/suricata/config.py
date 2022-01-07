@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import os
 import json
-from typing import Optional, Tuple
+import random
+from typing import List, Optional, Tuple
 
 from yaml import Loader
 from yaml import load
@@ -10,6 +11,7 @@ from yaml import load
 from dynamite_nsm import exceptions as general_exceptions
 
 from dynamite_nsm import const, utilities
+from dynamite_nsm.services.base import install
 from dynamite_nsm.services.base.config import YamlConfigManager
 from dynamite_nsm.services.base.config_objects.suricata import misc, rules
 
@@ -225,19 +227,32 @@ class ConfigManager(YamlConfigManager):
                 worker_cpu_set.add(c)
         return misc.Threading(management_cpu_set, receive_cpu_set, worker_cpu_set)
 
-    def reset(self, out_file_path: Optional[str] = None, default_config_path: Optional[str] = None):
+    def reset(self, inspect_interfaces: List[str], out_file_path: Optional[str] = None,
+              default_config_path: Optional[str] = None):
         """Reset a configuration file back to its default
         Args:
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
             out_file_path: The path to the output file
             default_config_path: The path to the default configuration
         Returns:
             None
         """
+        if not install.BaseInstallManager.validate_inspect_interfaces(inspect_interfaces):
+            raise install.NetworkInterfaceNotFound(inspect_interfaces)
         if not out_file_path:
             out_file_path = f'{self.configuration_directory}/suricata.yaml'
         if not default_config_path:
             default_config_path = f'{const.DEFAULT_CONFIGS}/suricata/suricata.yaml'
         super(ConfigManager, self).reset(out_file_path, default_config_path)
+        self.af_packet_interfaces = misc.AfPacketInterfaces()
+        for interface in inspect_interfaces:
+            self.af_packet_interfaces.add(
+                misc.AfPacketInterface(
+                    interface_name=interface, threads='auto', cluster_id=random.randint(1, 50000),
+                    cluster_type='cluster_qm'
+                )
+            )
+        self.commit(out_file_path=out_file_path)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:

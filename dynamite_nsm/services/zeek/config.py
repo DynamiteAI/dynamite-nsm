@@ -7,6 +7,7 @@ from configparser import ConfigParser
 from typing import Dict, List, Optional, Tuple
 
 from dynamite_nsm import const, utilities
+from dynamite_nsm.services.base import install
 from dynamite_nsm.services.base.config import GenericConfigManager
 from dynamite_nsm.services.base.config_objects.zeek import local_network, local_site, node
 from dynamite_nsm.services.base.config_objects.zeek import bpf_filter
@@ -191,6 +192,7 @@ class SiteLocalConfigManager(GenericConfigManager):
         if not default_config_path:
             default_config_path = f'{const.DEFAULT_CONFIGS}/zeek/local.zeek'
         super(SiteLocalConfigManager, self).reset(out_file_path, default_config_path)
+        self.commit(out_file_path=out_file_path)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """Write the changes out to configuration file
@@ -346,19 +348,29 @@ class NodeConfigManager(GenericConfigManager):
 
         return zeek_worker_configs
 
-    def reset(self, out_file_path: Optional[str] = None, default_config_path: Optional[str] = None):
+    def reset(self, inspect_interfaces: List[str], out_file_path: Optional[str] = None,
+              default_config_path: Optional[str] = None):
         """Reset a configuration file back to its default
         Args:
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
             out_file_path: The path to the output file
             default_config_path: The path to the default configuration
         Returns:
             None
         """
+        if not install.BaseInstallManager.validate_inspect_interfaces(inspect_interfaces):
+            raise install.NetworkInterfaceNotFound(inspect_interfaces)
         if not out_file_path:
             out_file_path = f'{self.install_directory}/etc/node.cfg'
         if not default_config_path:
             default_config_path = f'{const.DEFAULT_CONFIGS}/zeek/broctl-nodes.cfg'
         super(NodeConfigManager, self).reset(out_file_path, default_config_path)
+        self.workers = node.Workers()
+        for worker in self.get_optimal_zeek_worker_config(inspect_interfaces):
+            self.workers.add_worker(
+                worker=worker
+            )
+        self.commit(out_file_path=out_file_path)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
         """Write the changes out to configuration file
