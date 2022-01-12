@@ -1,6 +1,6 @@
 import argparse
 
-from dynamite_nsm.cmd.filebeat import logs, install, process, uninstall
+from dynamite_nsm.cmd.filebeat import logs, install, process, uninstall, reset
 from dynamite_nsm.cmd.filebeat.logs import get_interfaces as get_logs_interfaces
 from dynamite_nsm.cmd.filebeat.config import get_interfaces as get_config_interfaces
 from dynamite_nsm.cmd.interface_operations import append_service_interface_to_parser, \
@@ -18,6 +18,7 @@ def get_action_parser():
     append_service_interface_to_parser(subparsers, 'install', install.interface, interface_group_name='interface')
     append_service_interface_to_parser(subparsers, 'uninstall', uninstall.interface, interface_group_name='interface')
     append_service_interface_to_parser(subparsers, 'process', process.interface, interface_group_name='interface')
+    append_service_interface_to_parser(subparsers, 'reset', reset.interface, interface_group_name='interface')
     config_parser = subparsers.add_parser('config', help=FILEBEAT_CONFIG_HELP)
     config_parser.set_defaults(interface='config')
     config_sub_parsers = config_parser.add_subparsers()

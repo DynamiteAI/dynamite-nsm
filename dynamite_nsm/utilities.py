@@ -245,7 +245,8 @@ def create_dynamite_environment_file() -> None:
     env_file_f = open(env_file, 'a')
     env_file_f.write('')
     env_file_f.close()
-    set_permissions_of_file(env_file, 700)
+    set_ownership_of_file(env_file, user='dynamite', group='dynamite')
+    set_permissions_of_file(env_file, 770)
 
 
 def create_dynamite_user() -> None:
@@ -664,6 +665,33 @@ def is_root() -> bool:
          True, if the user is root
     """
     return os.getuid() == 0
+
+
+def is_dynamite_member(user: str) -> bool:
+    """
+    Check if a user is a member of the dynamite group
+    Args:
+        user: A username
+
+    Returns:
+        True, if the user is a member of the dynamite group
+    """
+    group = grp.getgrnam('dynamite')
+    return user in group[3]
+
+
+def is_setup() -> bool:
+    """Check if DynamiteNSM has required directories created.
+    Returns:
+        True if setup properly
+    """
+    if not os.path.exists(const.CONFIG_PATH):
+        return False
+    elif not os.path.exists(const.INSTALL_PATH):
+        return False
+    elif not os.path.exists(const.LOG_PATH):
+        return False
+    return True
 
 
 def makedirs(path: str, exist_ok: Optional[bool] = True) -> None:

@@ -3,6 +3,8 @@ import gzip
 import linecache
 from typing import Generator, Optional
 
+from dynamite_nsm import exceptions, utilities
+
 
 class LogFileSize:
 
@@ -26,6 +28,8 @@ class LogFile:
             log_sample_size: The number of most recent entries to include
             gzip_decode: If True, we'll decode the log before reading it in
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.log_path = log_path
         self.log_sample_size = log_sample_size
         self.exists = False

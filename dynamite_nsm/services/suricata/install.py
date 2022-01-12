@@ -152,7 +152,7 @@ class InstallManager(install.BaseInstallManager):
         self.logger.debug(f'Creating directory: {self.log_directory}')
         utilities.makedirs(self.log_directory)
         self.copy_suricata_files_and_directories()
-        self.logger.info('Setting up Suricata from source. This can a few minutes.')
+        self.logger.info('Setting up Suricata from source. This can take a few minutes.')
         if self.stdout:
             utilities.print_coffee_art()
         self.configure_compile_suricata()
@@ -191,7 +191,7 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
-
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/suricata.yaml', 660)
         post_install_bootstrap_updater(self.install_directory, stdout=self.stdout, verbose=self.verbose)
 
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/suricata.service')

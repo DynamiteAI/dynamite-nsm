@@ -91,8 +91,8 @@ class InstallManager(install.BaseInstallManager):
             if pacman_type != 'yum':
                 self.logger.info('Skipping RHEL PowerTools install, as it is not needed on this distribution.')
                 return
-            self.install_dependencies(yum_packages=['dnf-plugins-core'])
-            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'PowerTools'],
+            self.install_dependencies(yum_packages=['dnf-plugins-core', 'epel-release'])
+            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'powertools'],
                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             enable_powertools_p.communicate()
             if enable_powertools_p.returncode == 0:
@@ -156,14 +156,18 @@ class InstallManager(install.BaseInstallManager):
         node_config.commit()
 
         self.logger.info('Setting up BPF input configuration')
+        with open(f'{self.install_directory}/bpf_map_file.input', 'w') as bpf_config_f:
+            bpf_config_f.write('')
         bpf_config = config.BpfConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
         bpf_config.commit()
 
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/site/local.zeek', 660)
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
-
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/node.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/network.cfg', 660)
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/zeek.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'zeek.service'))
 

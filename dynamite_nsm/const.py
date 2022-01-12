@@ -5,7 +5,7 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.2.tar.gz'
+DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.1.3.tar.gz'
 CONFIG_DELTA_CHANGE_SET = None  # We'll support these later
 ZEEK_PACKAGES = [
     'https://github.com/DynamiteAI/dynamite-community-id.git',
@@ -19,12 +19,16 @@ DEFAULT_CONFIGS = f"{CONFIG_PATH}/default_configs/"
 MIRRORS = "/etc/dynamite/mirrors/"
 INSTALL_PATH = "/opt/dynamite"
 LOG_PATH = '/var/log/dynamite/'
-PID_PATH = '/var/run/dynamite/'
 STATE_PATH = '/var/dynamite/'
-JVM_ROOT = '/usr/lib/jvm/'
-SYS_BIN = '/usr/bin/'
+
 INSTALL_CACHE = "/tmp/dynamite/install_cache/"
 PCAP_PATH = "/etc/dynamite/pcaps/"
+
+JVM_ROOT = '/usr/lib/jvm/'
+PID_PATH = '/var/run/'
+SYS_BIN = '/usr/bin/'
+SUDOERS_FILE = '/etc/sudoers'
+SUDOERS_DIRECTORY = '/etc/sudoers.d/'
 
 
 def bootstrap_constants_from_const_environment_file():

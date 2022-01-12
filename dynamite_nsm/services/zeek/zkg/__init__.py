@@ -21,8 +21,7 @@ class InstallZeekPackageError(Exception):
 
 
 def install_zeek_package(package_git_url: str, stdout: Optional[bool] = True, verbose: Optional[bool] = False):
-    """
-    Update Suricata rules specified in the oinkmaster.conf file
+    """Install a Zeek package via ZKG
 
     Args:
         package_git_url: The path to the git repo containing the Zeek package

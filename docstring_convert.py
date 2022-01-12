@@ -1,12 +1,12 @@
 text = '''
     """
-    Add an interface to an existing parser.
-
-    :param parent_parser: The parent parser to add the interface too
-    :param interface_name: The name of this interface as it will appear in the commandline utility
-    :param interface: The interface object itself
-    :param interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy this service_interface should be placed
-    :return: The parser object
+    """
+    Given a rule_id (and optionally the R.O file-handle associated with the suricata_rule_definitions.json file
+    Return the definition, categories, and friendly_name of a given script
+    :param rule_id: A numeric identifier representing a Suricata rule.
+    :param fh: File handle of the definitions file
+    :return: A dictionary of the format {"friendly_name": <str>, "description": <str>, "categories": <list>}
+    """
     """
 '''
 params = []

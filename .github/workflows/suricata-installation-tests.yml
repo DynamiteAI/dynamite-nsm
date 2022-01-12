@@ -17,6 +17,9 @@ jobs:
       run: |
         sudo python -m pip install --upgrade pip
         sudo pip install .
+    - name: Setup DynamiteNSM
+      run: |
+        sudo dynamite setup install
     - name: Install Suricata
       run: |
         sudo dynamite suricata install --inspect-interfaces lo --skip-interface-validation --verbose

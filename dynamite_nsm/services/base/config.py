@@ -8,9 +8,10 @@ from yaml import dump
 
 from tabulate import tabulate
 
-from dynamite_nsm.logger import get_logger
-from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm import const
 from dynamite_nsm import utilities
+from dynamite_nsm.logger import get_logger
+from dynamite_nsm import exceptions as exceptions
 
 
 class NoAliasDumper(SafeDumper):
@@ -24,6 +25,8 @@ class BackupConfigManager:
     """
 
     def __init__(self, backup_directory: str):
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.backup_directory = backup_directory
 
     def list_backup_configs(self) -> List:
@@ -61,6 +64,8 @@ class GenericConfigManager:
             verbose: Include detailed debug messages
             stdout: Print output to console
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.config_data = config_data
         self.formatted_data = json.dumps(config_data)
         log_level = logging.INFO
@@ -73,10 +78,24 @@ class GenericConfigManager:
     def add_parser(self, parser: Callable, attribute_name):
         setattr(self, attribute_name, parser(self.config_data))
 
-    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+    def reset(self, out_file_path: Optional[str], default_config_path: Optional[str]):
+        """Reset a configuration file back to its default
+        Args:
+        out_file_path: The path to the output file
+            default_config_path: The path to the default configuration
+
+        Returns:
+            None
+        """
+        self.logger.info(f'Restoring {out_file_path} to default state.')
+        with open(default_config_path, 'r') as default_conf_f_in:
+            with open(out_file_path, 'w') as conf_f_out:
+                conf_f_out.write(default_conf_f_in.read())
+
+    def commit(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
         """Write out an updated configuration file, and optionally backup the old one.
         Args:
-            out_file_path: The path to the output file; if none given overwrites existing
+            out_file_path: The path to the output file
             backup_directory: The path to the backup directory
         Returns:
             None
@@ -92,8 +111,7 @@ class GenericConfigManager:
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
         except IOError:
-            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
-        utilities.set_permissions_of_file(out_file_path, 644)
+            raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         self.logger.warning('Configuration updated. Restart this service to apply.')
 
     def get_printable_config(self) -> Dict:
@@ -181,11 +199,11 @@ class JavaOptionsConfigManager(GenericConfigManager):
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
         except IOError:
-            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+            raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
 
 
-class YamlConfigManager:
+class YamlConfigManager(GenericConfigManager):
     """
     A configuration manager for working with any YAML formatted configuration file
     """
@@ -202,6 +220,9 @@ class YamlConfigManager:
             **extract_tokens: A dictionary object, where the keys represent the names of instance variables to create
             if the path to that variable exists. Paths are given using dot notation or as a Tuple.
         """
+        super().__init__(config_data, name, verbose, stdout)
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.config_data = config_data
         self.extract_tokens = extract_tokens
         log_level = logging.INFO
@@ -306,8 +327,7 @@ class YamlConfigManager:
                 except RecursionError:
                     dump(self.config_data, config_yaml_f, default_flow_style=False)
         except IOError:
-            raise general_exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
-        utilities.set_permissions_of_file(out_file_path, 644)
+            raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         self.logger.warning('Configuration updated. Restart this service to apply.')
 
     def get_printable_config(self, pretty_print: Optional[bool] = False) -> str:
