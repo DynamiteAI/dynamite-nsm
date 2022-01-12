@@ -388,7 +388,7 @@ class BaseUninstallManager:
         Returns:
             None
         """
-        sysctl = systemctl.SystemCtl()
+        sysctl = systemctl.SystemCtl(stdout=self.stdout, verbose=self.verbose)
         if self.process:
             self.process.stop()
         for dir in self.directories:
