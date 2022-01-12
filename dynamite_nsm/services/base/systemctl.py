@@ -5,7 +5,7 @@ import time
 import psutil
 import logging
 import subprocess
-from shutil import copy2
+from shutil import copy
 from typing import Dict, List, Optional, Tuple
 
 from dynamite_nsm import utilities
@@ -465,7 +465,7 @@ class SystemCtl(FallbackCtl):
             True if enabled
         """
 
-        copy2(path_to_svc, UNIT_FILE_DIR)
+        copy(path_to_svc, UNIT_FILE_DIR)
         return self.enable(os.path.basename(path_to_svc))
 
     def start(self, svc: str) -> bool:
