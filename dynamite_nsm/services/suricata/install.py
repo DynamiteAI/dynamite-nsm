@@ -7,6 +7,7 @@ from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base.config_objects.suricata import misc
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.suricata import config
+from dynamite_nsm.services.suricata.tasks import set_caps
 
 COMPILE_PROCESS_EXPECTED_LINE_COUNT = 935
 
@@ -194,6 +195,9 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_permissions_of_file(f'{self.configuration_directory}/suricata.yaml', 660)
         post_install_bootstrap_updater(self.install_directory, stdout=self.stdout, verbose=self.verbose)
 
+        self.logger.info('Setting up Suricata capture rules for dynamite user.')
+        set_caps.SetCapturePermissions(self.install_directory).invoke()
+
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/suricata.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))
 
@@ -233,4 +237,4 @@ if __name__ == '__main__':
         stdout=True,
         verbose=False
     )
-    install_mngr.setup()
+    install_mngr.setup([utilities.get_network_interface_names()[0]])
