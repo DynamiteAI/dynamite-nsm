@@ -5,7 +5,7 @@ import time
 import psutil
 import logging
 import subprocess
-from shutil import copy2
+from shutil import copy
 from typing import Dict, List, Optional, Tuple
 
 from dynamite_nsm import utilities
@@ -24,7 +24,7 @@ def install(path_to_svc: str) -> None:
         None
     """
 
-    copy2(path_to_svc, UNIT_FILE_DIR)
+    copy(path_to_svc, UNIT_FILE_DIR)
 
 
 def uninstall(svc: str) -> None:
@@ -48,9 +48,7 @@ def format_svc_string(svc: str) -> str:
         The full name of the systemd unit file
 
     """
-    if str(svc).startswith('dynamite-') and not str(svc).endswith('.target'):
-        svc = svc + '.target'
-    elif not str(svc).endswith('.service'):
+    if not str(svc).endswith('.service'):
         svc = svc + '.service'
     return svc
 
@@ -465,7 +463,8 @@ class SystemCtl(FallbackCtl):
             True if enabled
         """
 
-        copy2(path_to_svc, UNIT_FILE_DIR)
+        copy(path_to_svc, UNIT_FILE_DIR)
+        self.logger.debug(f'Copying {path_to_svc} -> {UNIT_FILE_DIR}')
         return self.enable(os.path.basename(path_to_svc))
 
     def start(self, svc: str) -> bool:
@@ -549,6 +548,7 @@ class SystemCtl(FallbackCtl):
 
         svc = format_svc_string(svc)
         res = self.disable(svc)
+        self.logger.debug(f'Removing {svc} from {UNIT_FILE_DIR}')
         os.remove(os.path.join(UNIT_FILE_DIR, svc))
 
         return res
