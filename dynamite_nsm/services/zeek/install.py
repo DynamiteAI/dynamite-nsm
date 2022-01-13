@@ -101,11 +101,11 @@ class InstallManager(install.BaseInstallManager):
 
         apt_get_packages = \
             ['bison', 'cmake', 'cmake3', 'flex', 'g++', 'gcc', 'libjemalloc-dev', 'libpcap-dev', 'libssl-dev',
-             'linux-headers-$(uname -r)', 'linux-headers-generic', 'make', 'swig', 'tar', 'sqlite3', 'zlib1g-dev']
+             'linux-headers-$(uname -r)', 'linux-headers-generic', 'make', 'python3-dev', 'swig', 'tar', 'sqlite3', 'zlib1g-dev']
 
         yum_packages = \
             ['bison', 'cmake', 'cmake3', 'flex', 'gcc', 'gcc-c++', 'jemalloc-devel', 'kernel-devel', 'libpcap-devel',
-             'make', 'openssl-devel', 'swig', 'tar', 'sqlite-devel', 'zlib-devel']
+             'make', 'openssl-devel', 'python3-devel', 'swig', 'tar', 'sqlite-devel', 'zlib-devel']
 
         self.install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
                                   pre_install_function=install_powertools_rhel)
@@ -157,7 +157,7 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Setting up BPF input configuration')
         with open(f'{self.configuration_directory}/bpf_map_file.input', 'w') as bpf_config_f:
             bpf_config_f.write('')
-        bpf_config = config.BpfConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
+        bpf_config = config.BpfConfigManager(self.configuration_directory, stdout=self.stdout, verbose=self.verbose)
         bpf_config.commit()
 
         # Fix Permissions
