@@ -110,12 +110,12 @@ class InstallManager(install.BaseInstallManager):
         apt_get_packages = ['automake', 'bison', 'cargo', 'cmake', 'flex', 'g++', 'gcc', 'libcap-ng-dev',
                             'libjansson-dev', 'libjemalloc-dev', 'liblz4-dev', 'libmagic-dev', 'libnspr4-dev',
                             'libnss3-dev', 'libpcap-dev', 'libpcre3-dev', 'libtool', 'libyaml-dev', 'make',
-                            'pkg-config', 'rustc', 'tar', 'wget', 'wireshark', 'zlib1g-dev']
+                            'pkg-config', 'rustc', 'tar', 'wget', 'zlib1g-dev']
 
         yum_packages = ['automake', 'bison', 'cargo', 'cmake', 'file-devel', 'flex', 'gcc', 'gcc-c++', 'jansson-devel',
                         'jemalloc-devel', 'libcap-ng-devel', 'libpcap-devel', 'libtool', 'libyaml-devel', 'lz4-devel',
                         'make', 'nspr-devel', 'nss-devel', 'pcre-devel', 'pkgconfig', 'rustc', 'tar',
-                        'wget', 'wireshark', 'zlib-devel']
+                        'wget', 'zlib-devel']
 
         def install_powertools_rhel(pacman_type):
             """Install Zeek dependencies (And PowerTools repo if on redhat based distro)
