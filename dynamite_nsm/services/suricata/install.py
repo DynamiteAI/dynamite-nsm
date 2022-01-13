@@ -1,6 +1,7 @@
 import os
 import random
 import time
+import subprocess
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
@@ -116,7 +117,25 @@ class InstallManager(install.BaseInstallManager):
                         'make', 'nspr-devel', 'nss-devel', 'pcre-devel', 'pkgconfig', 'rustc', 'tar',
                         'wget', 'wireshark', 'zlib-devel']
 
-        super(InstallManager, self).install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages)
+        def install_powertools_rhel(pacman_type):
+            """Install Zeek dependencies (And PowerTools repo if on redhat based distro)
+            Args:
+
+            Returns:
+                None
+            """
+            if pacman_type != 'yum':
+                self.logger.info('Skipping RHEL PowerTools install, as it is not needed on this distribution.')
+                return
+            self.install_dependencies(yum_packages=['dnf-plugins-core', 'epel-release'])
+            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'powertools'],
+                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            enable_powertools_p.communicate()
+            if enable_powertools_p.returncode == 0:
+                self.logger.info("Installed PowerTools.")
+
+        super(InstallManager, self).install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
+                                                         pre_install_function=install_powertools_rhel)
 
     def copy_suricata_files_and_directories(self) -> None:
         """Copy the required Suricata files from the install cache to their respective directories
