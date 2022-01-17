@@ -203,7 +203,7 @@ class ConfigManager(YamlConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_dir = f'{const.CONFIG_PATH}/.tmp'
         tmp_config = f'{tmp_dir}/suricata.yaml'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:

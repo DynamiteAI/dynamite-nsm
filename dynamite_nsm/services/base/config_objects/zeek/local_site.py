@@ -67,7 +67,7 @@ class Script(Analyzer):
         """A script that performs some form of analysis
         Args:
             name: The name of the definition
-            enabled: Whether or not this script should be enabled
+            enabled: Whether this script should be enabled or not
         """
         self.value = None
         super().__init__(name, enabled)
@@ -155,3 +155,4 @@ class Signatures(Analyzers):
             A list of @load-sigs statements
         """
         return [signature.get_raw() for signature in self.signatures]
+

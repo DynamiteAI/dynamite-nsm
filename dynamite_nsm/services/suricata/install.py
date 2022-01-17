@@ -215,7 +215,7 @@ class InstallManager(install.BaseInstallManager):
         post_install_bootstrap_updater(self.install_directory, stdout=self.stdout, verbose=self.verbose)
 
         self.logger.info('Setting up Suricata capture rules for dynamite user.')
-        set_caps.SetCapturePermissions(self.install_directory).invoke()
+        set_caps.SetCapturePermissions(self.install_directory).invoke(shell=True)
 
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/suricata.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))

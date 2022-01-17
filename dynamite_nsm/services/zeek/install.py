@@ -157,8 +157,6 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Setting up BPF input configuration')
         with open(f'{self.configuration_directory}/bpf_map_file.input', 'w') as bpf_config_f:
             bpf_config_f.write('')
-        bpf_config = config.BpfConfigManager(self.configuration_directory, stdout=self.stdout, verbose=self.verbose)
-        bpf_config.commit()
 
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
@@ -167,10 +165,10 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_permissions_of_file(f'{self.configuration_directory}/site/bpf_map_file.input', 660)
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_permissions_of_file(f'{self.install_directory}/etc/node.cfg', 660)
-        utilities.set_permissions_of_file(f'{self.install_directory}/etc/network.cfg', 660)
-        utilities.set_permissions_of_file(f'{self.install_directory}/etc/network.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/networks.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/networks.cfg', 660)
         self.logger.info('Setting up Zeek capture rules for dynamite user.')
-        set_caps.SetCapturePermissions(self.install_directory).invoke()
+        set_caps.SetCapturePermissions(self.install_directory).invoke(shell=True)
 
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/zeek.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'zeek.service'))

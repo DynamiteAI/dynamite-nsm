@@ -60,17 +60,22 @@ class Analyzer(GenericItem):
     """
     Analyzers are packages used for identifying Zeek scripts and signatures as well as Suricata rule-sets
     """
-    def __init__(self, name: str, enabled: Optional[bool] = False):
+    def __init__(self, name: str, enabled: Optional[bool] = False, content: Optional[str] = None):
         """
         Create a simple analyzer object
 
         Args:
-            name: The name (or often path) to the the analyzer
+            name: The name (or often path) to the analyzer
             enabled: True, if enabled
+            content: If included the contents of the analyzer will be used to generate a unique hash.
         """
         self.name = name
-        self.id = adler32(str(name).encode("utf-8")) % 15000
         self.enabled = enabled
+
+        if not content:
+            self.id = adler32(str(name).encode("utf-8")) % 15000
+        else:
+            self.id = adler32(content.encode('utf-8') % 15000)
 
     def __str__(self):
         return json.dumps(dict(
