@@ -8,7 +8,6 @@ from yaml import dump
 
 from tabulate import tabulate
 
-from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm import exceptions as exceptions
@@ -91,6 +90,7 @@ class GenericConfigManager:
         with open(default_config_path, 'r') as default_conf_f_in:
             with open(out_file_path, 'w') as conf_f_out:
                 conf_f_out.write(default_conf_f_in.read())
+        utilities.set_ownership_of_file(out_file_path)
 
     def commit(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
         """Write out an updated configuration file, and optionally backup the old one.
@@ -110,8 +110,9 @@ class GenericConfigManager:
         try:
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
-        except IOError:
-            raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
+            utilities.set_ownership_of_file(out_file_path)
+        except IOError as e:
+            raise exceptions.WriteConfigError(f'An error occurred while writing the configuration file to disk. {e}')
         self.logger.warning('Configuration updated. Restart this service to apply.')
 
     def get_printable_config(self) -> Dict:
@@ -198,6 +199,7 @@ class JavaOptionsConfigManager(GenericConfigManager):
         try:
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
+            utilities.set_ownership_of_file(out_file_path)
         except IOError:
             raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         utilities.set_permissions_of_file(out_file_path, 644)
@@ -326,6 +328,7 @@ class YamlConfigManager(GenericConfigManager):
                     dump(self.config_data, config_yaml_f, default_flow_style=False, Dumper=NoAliasDumper)
                 except RecursionError:
                     dump(self.config_data, config_yaml_f, default_flow_style=False)
+            utilities.set_ownership_of_file(out_file_path)
         except IOError:
             raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         self.logger.warning('Configuration updated. Restart this service to apply.')

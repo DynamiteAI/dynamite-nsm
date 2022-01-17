@@ -81,6 +81,35 @@ class BpfConfigManager(GenericConfigManager):
         super(BpfConfigManager, self).commit(out_file_path, backup_directory)
 
 
+class SiteLocalPackageManager:
+
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        """
+        Configure Zeek packages installed through ZKG
+
+        Args:
+            configuration_directory: The path to the Zeek configuration directory (E.G /etc/dynamite/zeek)
+            verbose: Include detailed debug messages
+            stdout: Print output to console
+        ___
+
+        # Instance Variables:
+        - `scripts` - A `local_site.Scripts` instance representing a set of enabled (and disabled) Zeek scripts.
+        """
+        self.configuration_directory = configuration_directory
+        self.packages = []
+        self._load_packages()
+
+    def _load_packages(self):
+        package_root = f'{self.configuration_directory}/site/packages/'
+        for package in os.listdir(package_root):
+            if os.path.isfile(f'{package_root}/{package}'):
+                continue
+            package_path = f'{package_root}/{package}/__load__.zeek'
+            with open(package_path, 'r') as package_in:
+                self.packages.append((package_path, SiteLocalConfigManager.from_raw_text(package_in.read())))
+
+
 class SiteLocalConfigManager(GenericConfigManager):
     """
     Manage local/site.zeek file (contains scripts, definitions, and signatures to be loaded)
@@ -168,7 +197,7 @@ class SiteLocalConfigManager(GenericConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_root = '/tmp/dynamite/temp_configs/'
+        tmp_root = f'{const.CONFIG_PATH}/.tmp'
         tmp_dir = f'{tmp_root}/site'
         tmp_config = f'{tmp_dir}/local.zeek'
         utilities.makedirs(tmp_dir)
@@ -178,6 +207,54 @@ class SiteLocalConfigManager(GenericConfigManager):
         if configuration_directory:
             c.configuration_directory = configuration_directory
         return c
+
+    def disable_all_definitions(self) -> None:
+        """Disable all definitions
+           Returns:
+                None
+        """
+        for definition in self.definitions:
+            definition.enabled = False
+
+    def disable_all_signatures(self) -> None:
+        """Disable all scripts
+           Returns:
+                None
+        """
+        for sig in self.signatures:
+            sig.enabled = False
+
+    def disable_all_scripts(self) -> None:
+        """Disable all scripts
+           Returns:
+                None
+        """
+        for script in self.scripts:
+            script.enabled = False
+
+    def enable_all_definitions(self) -> None:
+        """Enable all definitions
+           Returns:
+               None
+        """
+        for definition in self.definitions:
+            definition.enabled = False
+
+    def enable_all_signatures(self) -> None:
+        """Enable all signatures
+           Returns:
+               None
+        """
+        for sig in self.signatures:
+            sig.enabled = True
+
+    def enable_all_scripts(self) -> None:
+        """Enable all scripts
+           Returns:
+               None
+        """
+        for script in self.scripts:
+            script.enabled = True
 
     def reset(self, out_file_path: Optional[str] = None, default_config_path: Optional[str] = None):
         """Reset a configuration file back to its default
@@ -304,7 +381,7 @@ class NodeConfigManager(GenericConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/etc'
+        tmp_dir = f'{const.CONFIG_PATH}/.tmp/etc'
         tmp_config = f'{tmp_dir}/node.cfg'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
@@ -487,7 +564,8 @@ class LocalNetworksConfigManager(GenericConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/etc'
+
+        tmp_dir = f'{const.CONFIG_PATH}/.tmp/etc'
         tmp_config = f'{tmp_dir}/networks.cfg'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:

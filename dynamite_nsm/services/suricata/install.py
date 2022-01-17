@@ -1,12 +1,14 @@
 import os
 import random
 import time
+import subprocess
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base.config_objects.suricata import misc
 from dynamite_nsm.services.base import install, systemctl
 from dynamite_nsm.services.suricata import config
+from dynamite_nsm.services.suricata.tasks import set_caps
 
 COMPILE_PROCESS_EXPECTED_LINE_COUNT = 935
 
@@ -108,14 +110,32 @@ class InstallManager(install.BaseInstallManager):
         apt_get_packages = ['automake', 'bison', 'cargo', 'cmake', 'flex', 'g++', 'gcc', 'libcap-ng-dev',
                             'libjansson-dev', 'libjemalloc-dev', 'liblz4-dev', 'libmagic-dev', 'libnspr4-dev',
                             'libnss3-dev', 'libpcap-dev', 'libpcre3-dev', 'libtool', 'libyaml-dev', 'make',
-                            'pkg-config', 'rustc', 'tar', 'wget', 'wireshark', 'zlib1g-dev']
+                            'pkg-config', 'rustc', 'tar', 'wget', 'zlib1g-dev']
 
         yum_packages = ['automake', 'bison', 'cargo', 'cmake', 'file-devel', 'flex', 'gcc', 'gcc-c++', 'jansson-devel',
                         'jemalloc-devel', 'libcap-ng-devel', 'libpcap-devel', 'libtool', 'libyaml-devel', 'lz4-devel',
                         'make', 'nspr-devel', 'nss-devel', 'pcre-devel', 'pkgconfig', 'rustc', 'tar',
-                        'wget', 'wireshark', 'zlib-devel']
+                        'wget', 'zlib-devel']
 
-        super(InstallManager, self).install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages)
+        def install_powertools_rhel(pacman_type):
+            """Install Zeek dependencies (And PowerTools repo if on redhat based distro)
+            Args:
+
+            Returns:
+                None
+            """
+            if pacman_type != 'yum':
+                self.logger.info('Skipping RHEL PowerTools install, as it is not needed on this distribution.')
+                return
+            self.install_dependencies(yum_packages=['dnf-plugins-core', 'epel-release'])
+            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'powertools'],
+                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            enable_powertools_p.communicate()
+            if enable_powertools_p.returncode == 0:
+                self.logger.info("Installed PowerTools.")
+
+        super(InstallManager, self).install_dependencies(apt_get_packages=apt_get_packages, yum_packages=yum_packages,
+                                                         pre_install_function=install_powertools_rhel)
 
     def copy_suricata_files_and_directories(self) -> None:
         """Copy the required Suricata files from the install cache to their respective directories
@@ -194,6 +214,9 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_permissions_of_file(f'{self.configuration_directory}/suricata.yaml', 660)
         post_install_bootstrap_updater(self.install_directory, stdout=self.stdout, verbose=self.verbose)
 
+        self.logger.info('Setting up Suricata capture rules for dynamite user.')
+        set_caps.SetCapturePermissions(self.install_directory).invoke(shell=True)
+
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/suricata.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'suricata.service'))
 
@@ -233,4 +256,4 @@ if __name__ == '__main__':
         stdout=True,
         verbose=False
     )
-    install_mngr.setup()
+    install_mngr.setup([utilities.get_network_interface_names()[0]])

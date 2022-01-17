@@ -88,6 +88,7 @@ def backup_configuration_file(source_file: str, configuration_backup_directory: 
                                                                  timestamp))
     try:
         makedirs(configuration_backup_directory, exist_ok=True)
+        set_ownership_of_file(configuration_backup_directory)
     except Exception as e:
         raise exceptions.WriteConfigError(
             "General error while attempting to create backup directory at {}; {}".format(configuration_backup_directory,

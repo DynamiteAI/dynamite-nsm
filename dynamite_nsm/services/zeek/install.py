@@ -6,6 +6,7 @@ from typing import List, Optional
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.zeek import config
 from dynamite_nsm.services.zeek import package, zkg
+from dynamite_nsm.services.zeek.tasks import set_caps
 from dynamite_nsm.services.zeek.zkg import install as zkg_install
 from dynamite_nsm.services.base.config_objects.zeek import node
 from dynamite_nsm.services.base import install, systemctl
@@ -144,8 +145,6 @@ class InstallManager(install.BaseInstallManager):
                                                    f'{self.configuration_directory}/site/local.zeek')
 
         # Optimize Configurations
-        site_local_config = config.SiteLocalConfigManager(self.configuration_directory, stdout=self.stdout,
-                                                          verbose=self.verbose)
         node_config = config.NodeConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
         node_config.workers = node.Workers()
         for worker in node_config.get_optimal_zeek_worker_config(inspect_interfaces):
@@ -156,18 +155,21 @@ class InstallManager(install.BaseInstallManager):
         node_config.commit()
 
         self.logger.info('Setting up BPF input configuration')
-        with open(f'{self.install_directory}/bpf_map_file.input', 'w') as bpf_config_f:
+        with open(f'{self.configuration_directory}/bpf_map_file.input', 'w') as bpf_config_f:
             bpf_config_f.write('')
-        bpf_config = config.BpfConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
-        bpf_config.commit()
 
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
         utilities.set_permissions_of_file(f'{self.configuration_directory}/site/local.zeek', 660)
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/site/bpf_map_file.input', 660)
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_permissions_of_file(f'{self.install_directory}/etc/node.cfg', 660)
-        utilities.set_permissions_of_file(f'{self.install_directory}/etc/network.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/networks.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/networks.cfg', 660)
+        self.logger.info('Setting up Zeek capture rules for dynamite user.')
+        set_caps.SetCapturePermissions(self.install_directory).invoke(shell=True)
+
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/zeek.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'zeek.service'))
 
