@@ -33,8 +33,14 @@ class BaseShellCommandsTask(BaseTask):
     def invoke(self, shell: Optional[bool] = False, cwd: Optional[str] = os.getcwd()) -> List[Tuple[List, bytes, bytes]]:
         results = []
         for command in self.commands:
-            p = subprocess.Popen(' '.join(command), shell=shell, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, cwd=cwd, env=utilities.get_environment_file_dict())
+            if not shell:
+                _bin, args = command[0], command[1:]
+                p = subprocess.Popen(executable=_bin, args=args, shell=shell, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, cwd=cwd, env=utilities.get_environment_file_dict())
+            else:
+
+                p = subprocess.Popen(' '.join(command), shell=shell, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, cwd=cwd, env=utilities.get_environment_file_dict())
             out, err = p.communicate()
             results.append((command, out, err))
         return results
