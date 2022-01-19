@@ -37,20 +37,21 @@ class BaseInstallManager:
     An interface used to assist with a variety of common service installation tasks
     """
 
-    def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
-                 log_level=logging.INFO):
+    def __init__(self, name: str, verbose: Optional[bool] = False, requires_root: Optional[bool] = True,
+                 stdout: Optional[bool] = True, log_level=logging.INFO):
         """
         Build a custom service installer
 
         Args:
             name: The name of the service
+            requires_root: If True, then the uninstaller will check that the user is root
             stdout: Print output to console
             verbose: Include detailed debug messages
             log_level: The minimum logging.LOG_LEVEL to be handled
         """
         if not utilities.is_setup():
             raise exceptions.DynamiteNotSetupError()
-        if not utilities.is_root():
+        if requires_root and not utilities.is_root():
             raise exceptions.RequiresRootError()
         if verbose:
             log_level = logging.DEBUG
@@ -345,13 +346,16 @@ class BaseUninstallManager:
 
     def __init__(self, name: str, directories: List[str], environ_vars: Optional[List[str]] = None,
                  process: Optional[process.BaseProcessManager] = None,
-                 sysctl_service_name: Optional[str] = None, verbose: Optional[bool] = False,
+                 sysctl_service_name: Optional[str] = None, requires_root: Optional[bool] = True,
+                 verbose: Optional[bool] = False,
                  stdout: Optional[bool] = True, log_level=logging.INFO):
         """Remove installed files for a given service
         Args:
             name: The name of the process
             directories: The directories to be removed
             process: The process to be terminated
+            sysctl_service_name: The name any associated systemd unit file.
+            requires_root: If True, then the uninstaller will check that the user is root
             stdout: Print output to console
             verbose: Include detailed debug messages
             log_level: The logging.LOG_LEVEL to use when logging
@@ -366,7 +370,7 @@ class BaseUninstallManager:
         if verbose:
             log_level = logging.DEBUG
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
-        if not utilities.is_root():
+        if requires_root and not utilities.is_root():
             raise exceptions.RequiresRootError()
 
     @staticmethod

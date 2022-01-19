@@ -14,7 +14,7 @@ class RuleUpdateManager(BaseInstallManager):
         Returns:
             None
         """
-        super().__init__('suricata.update', stdout=stdout, verbose=verbose)
+        super().__init__('suricata.update', stdout=stdout, verbose=verbose, requires_root=False)
 
     def update(self):
         """Start the update process
