@@ -112,8 +112,10 @@ class Script(Analyzer):
         for path_match in search_paths:
             if os.path.exists(path_match):
                 if os.path.isdir(path_match):
-                    zeek_scripts = [s for s in os.listdir(path_match) if s.endswith('.bro') or s.endswith('.zeek')]
-                    content_script = f'{path_match}/{zeek_scripts[0]}'
+                    load_directives = \
+                        [s for s in os.listdir(path_match) if
+                         s.endswith('.bro') or s.endswith('.zeek') and '__load__' in s]
+                    content_script = f'{path_match}/{load_directives[0]}'
                     with open(content_script, 'r') as content_script_in:
                         return content_script_in.read(5120)
                 elif os.path.isfile(path_match):
