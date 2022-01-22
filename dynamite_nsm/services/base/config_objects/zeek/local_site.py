@@ -1,6 +1,8 @@
 import json
+import os.path
 from typing import Optional, List
 
+from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base.config_objects.generic import Analyzer, Analyzers
 
 
@@ -70,7 +72,55 @@ class Script(Analyzer):
             enabled: Whether this script should be enabled or not
         """
         self.value = None
-        super().__init__(name, enabled)
+        self.name = name
+        content = self.get_contents()
+        super().__init__(name, enabled, content=content)
+
+    def get_contents(self) -> Optional[str]:
+        """Get the content of the Zeek script.
+
+        Returns:
+            The contents of the Zeek script, if a directory is referenced then the contents of the first Zeek script
+            located within the directory (ASCII order)
+        """
+        env = utilities.get_environment_file_dict()
+        zeek_scripts_root = env.get('ZEEK_SCRIPTS', f'{const.CONFIG_PATH}/zeek/')
+
+        path_pattern_1 = f'{zeek_scripts_root}/{self.name}'
+        path_pattern_2 = f'{zeek_scripts_root}/{self.name}.bro'
+        path_pattern_3 = f'{zeek_scripts_root}/{self.name}.zeek'
+
+        path_pattern_4 = f'{zeek_scripts_root}/base/{self.name}'
+        path_pattern_5 = f'{zeek_scripts_root}/base/{self.name}.bro'
+        path_pattern_6 = f'{zeek_scripts_root}/base/{self.name}.zeek'
+
+        path_pattern_7 = f'{zeek_scripts_root}/policy/{self.name}'
+        path_pattern_8 = f'{zeek_scripts_root}/policy/{self.name}.bro'
+        path_pattern_9 = f'{zeek_scripts_root}/policy/{self.name}.zeek'
+
+        path_pattern_10 = f'{zeek_scripts_root}/site/{self.name}'
+        path_pattern_11 = f'{zeek_scripts_root}/site/{self.name}.bro'
+        path_pattern_12 = f'{zeek_scripts_root}/site/{self.name}.zeek'
+
+        path_pattern_13 = f'{zeek_scripts_root}/site/packages/{self.name}'
+        path_pattern_14 = f'{zeek_scripts_root}/site/packages/{self.name}.bro'
+        path_pattern_15 = f'{zeek_scripts_root}/site/packages/{self.name}.zeek'
+
+        search_paths = [path_pattern_1, path_pattern_2, path_pattern_3, path_pattern_4, path_pattern_5, path_pattern_6,
+                        path_pattern_7, path_pattern_8, path_pattern_9, path_pattern_10, path_pattern_11,
+                        path_pattern_12, path_pattern_13, path_pattern_14, path_pattern_15]
+        for path_match in search_paths:
+            if os.path.exists(path_match):
+                if os.path.isdir(path_match):
+                    zeek_scripts = [s for s in os.listdir(path_match) if s.endswith('.bro') or s.endswith('.zeek')]
+                    content_script = f'{path_match}/{zeek_scripts[0]}'
+                    with open(content_script, 'r') as content_script_in:
+                        return content_script_in.read(5120)
+                elif os.path.isfile(path_match):
+                    content_script = path_match
+                    with open(content_script, 'r') as content_script_in:
+                        return content_script_in.read(5120)
+        return None
 
     def get_raw(self) -> str:
         """Get a raw representation of this Script
@@ -115,7 +165,7 @@ class Signature(Analyzer):
         """A signature set made available at runtime.
         Args:
             name: The name of the signature
-            enabled: Whether or not this definition should be enabled
+            enabled: Whether this definition should be enabled
         """
         self.value = None
         super().__init__(name, enabled)
@@ -155,4 +205,3 @@ class Signatures(Analyzers):
             A list of @load-sigs statements
         """
         return [signature.get_raw() for signature in self.signatures]
-
