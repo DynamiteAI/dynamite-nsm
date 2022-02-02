@@ -3,7 +3,7 @@
 The `monitor` is a convenience `service` that provides a single interface around some of Elasticsearch and Kibana's interfaces. 
 
 ```bash
-$ sudo dynamite monitor -h
+$ dynamite monitor -h
 
 usage: dynamite [-h] {install,uninstall,process} ...
 
@@ -33,14 +33,14 @@ The `monitor` service does not present a wrapper interface for underlying config
 These configurations must be accessed directly through the [Elasticsearch](/services/04_elasticsearch) or [Kibana](/services/06_kibana) service commands.
 
 ```bash
-sudo dynamite elasticsearch config -h
-sudo dynamite kibana config -h
+dynamite elasticsearch config -h
+dynamite kibana config -h
 ```
 
 
 ## Process Management
 ```markdown
-sudo dynamite agent process -h
+dynamite agent process -h
 ```
 
 

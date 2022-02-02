@@ -33,12 +33,12 @@ sudo dynamite kibana install -h
 
 ## Configuration
 ```markdown
-sudo dynamite kibana config -h
+dynamite kibana config -h
 ```
 
 ## Process Management
 ```markdown
-sudo dynamite kibana process -h
+dynamite kibana process -h
 ```
 
 ## Defaults
@@ -50,7 +50,6 @@ sudo dynamite kibana process -h
 - Logs: `/var/log/dynamite/kibana/`
 
 ### Access
-
 
 - API URL: `http://<management-ip>:5601`
 - Default User: `admin`

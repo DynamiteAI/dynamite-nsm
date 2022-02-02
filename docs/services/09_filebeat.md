@@ -30,13 +30,18 @@ sudo dynamite filebeat install -h
 ```
 
 ## Configuration
-```markdown
-sudo dynamite filebeat config -h
+```bash
+dynamite filebeat config -h
 ```
 
 ## Process Management
-```markdown
-sudo dynamite filebeat process -h
+```bash
+dynamite filebeat process -h
+```
+
+## View Logs
+```bash
+dynamite suricata logs -h
 ```
 
 ## Defaults
