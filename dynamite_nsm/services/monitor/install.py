@@ -50,9 +50,26 @@ class InstallManager(install.BaseInstallManager):
         Returns:
             None
         """
+        es_install = self.elasticsearch_install_directory or self.elasticsearch_configuration_directory or \
+                     self.elasticsearch_log_directory
 
-        if self.elasticsearch_install_directory or self.elasticsearch_configuration_directory or \
-                self.elasticsearch_log_directory:
+        ls_install = self.logstash_install_directory or self.logstash_configuration_directory or \
+                     self.logstash_log_directory
+
+        kb_install = self.kibana_install_directory or self.kibana_configuration_directory or self.kibana_log_directory
+
+        # Determine how much heap space to pre-allocate to Elasticsearch and Logstash one or both are
+        # specified for installation
+        reserved_memory = utilities.get_memory_available_bytes() * .75
+        heap_size_gigs = int((reserved_memory / 10 ** 9) / 2)
+        ls_heap_size_gigs, es_heap_size_gigs = heap_size_gigs, heap_size_gigs
+        if es_install and ls_install:
+            ls_reserved_memory = utilities.get_memory_available_bytes() * .25
+            ls_heap_size_gigs = int((ls_reserved_memory / 10 ** 9) / 2)
+            es_reserved_memory = utilities.get_memory_available_bytes() * .50
+            es_heap_size_gigs = int((es_reserved_memory / 10 ** 9) / 2)
+
+        if es_install:
             if not (
                     self.elasticsearch_install_directory and self.elasticsearch_configuration_directory
                     and self.elasticsearch_log_directory
@@ -66,8 +83,8 @@ class InstallManager(install.BaseInstallManager):
                                                  log_directory=self.elasticsearch_log_directory,
                                                  stdout=self.stdout, verbose=self.verbose).setup(
                 node_name=utilities.get_default_es_node_name(), network_host=utilities.get_primary_ip_address(),
-                port=9200)
-        if self.logstash_install_directory or self.logstash_configuration_directory or self.logstash_log_directory:
+                port=9200, heap_size_gigs=es_heap_size_gigs)
+        if ls_install:
             if not (
                     self.logstash_install_directory and self.logstash_configuration_directory
                     and self.logstash_log_directory
@@ -81,8 +98,9 @@ class InstallManager(install.BaseInstallManager):
                                             log_directory=self.logstash_log_directory,
                                             stdout=self.stdout, verbose=self.verbose).setup(
                 node_name=utilities.get_default_es_node_name().replace('es', 'ls'),
-                elasticsearch_host=utilities.get_primary_ip_address(), elasticsearch_port=9200)
-        if self.kibana_install_directory or self.kibana_configuration_directory or self.kibana_log_directory:
+                elasticsearch_host=utilities.get_primary_ip_address(), elasticsearch_port=9200,
+                heap_size_gigs=es_heap_size_gigs)
+        if kb_install:
             from dynamite_nsm.services.elasticsearch import process as elasticsearch_process
             if not (
                     self.kibana_install_directory and self.kibana_configuration_directory
