@@ -137,7 +137,10 @@ if __name__ == '__main__':
                                     sub_interface=sub_interface, print_help_on_error=False)
             if res:
                 print(res)
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as e:
+            if '--verbose' in sys.argv:
+                print(
+                    utilities.PrintDecorations.colorize(str(e), _color='red'))
             res = process_arguments(args=get_component_level_args(component), component=component, interface=interface,
                                     print_help_on_error=True)
             if isinstance(res, bool):
@@ -161,7 +164,8 @@ if __name__ == '__main__':
                                                 _color='red'))
     except PermissionError as e:
         if '--verbose' in sys.argv:
-            traceback.print_stack()
+            print(
+                utilities.PrintDecorations.colorize(str(e), _color='red'))
         print(
             utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
         print(
@@ -169,6 +173,9 @@ if __name__ == '__main__':
                 f'Run \'sudo usermod -aG dynamite {getpass.getuser()}\' to add your current user to the dynamite group.',
                 _color='yellow'))
     except exceptions.DynamiteNotSetupError as e:
+        if '--verbose' in sys.argv:
+            print(
+                utilities.PrintDecorations.colorize(str(e), _color='red'))
         print(
             utilities.PrintDecorations.colorize('Your environment is not setup yet.',
                                                 _color='red'))
