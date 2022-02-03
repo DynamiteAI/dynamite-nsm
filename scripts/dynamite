@@ -3,6 +3,8 @@ import json
 import sys
 import getpass
 import argparse
+import traceback
+
 import tabulate
 
 from dynamite_nsm import utilities
@@ -157,7 +159,9 @@ if __name__ == '__main__':
         print(
             utilities.PrintDecorations.colorize('You must be root to run this command.',
                                                 _color='red'))
-    except PermissionError:
+    except PermissionError as e:
+        if '--verbose' in sys.argv:
+            traceback.print_stack()
         print(
             utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
         print(
