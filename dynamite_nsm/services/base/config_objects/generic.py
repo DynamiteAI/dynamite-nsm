@@ -1,5 +1,5 @@
 import json
-from zlib import adler32
+from hashlib import sha256
 from typing import List, Optional, Union
 
 
@@ -73,9 +73,9 @@ class Analyzer(GenericItem):
         self.enabled = enabled
 
         if not content:
-            self.id = adler32(str(name).encode("utf-8")) % 15000
+            self.id = sha256(str(name).encode("utf-8")).hexdigest()[0:7]
         else:
-            self.id = adler32(content.encode('utf-8') % 15000)
+            self.id = sha256(str(content).encode("utf-8")).hexdigest()[0:7]
 
     def __str__(self):
         return json.dumps(dict(
@@ -90,7 +90,7 @@ class Analyzers(GenericItemGroup):
     """A Group of Analyzers; provides some basic methods for filtering and display"""
 
     def __init__(self, analyzers: Optional[List[Analyzer]] = None):
-        super().__init__('name', analyzers)
+        super().__init__('id', analyzers)
         self.analyzers = self.items
 
     def get_disabled(self) -> List[Analyzer]:

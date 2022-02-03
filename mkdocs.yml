@@ -52,6 +52,7 @@ nav:
           - Elasticsearch: configuration/monitor/01_elasticsearch.md
           - Kibana: configuration/monitor/02_kibana.md
   - Services:
+      - Setup: services/00_setup.md
       - Updates: services/01_updates.md
       - Monitor: services/02_monitor.md
       - Agent: services/03_agent.md

@@ -30,9 +30,9 @@ This setup will work with small lab environments, but is not suggested for scena
 pip install dynamite-nsm
 ```
 
-- Download any default configuration or mirror updates.
+- Initialize the environment enabling services to be installed and managed.
 ```bash
-sudo dynamite updates install
+sudo dynamite setup install
 ```
 
 ## Install the Monitor
@@ -132,8 +132,28 @@ sudo dynamite filebeat logs main --pretty
 ╘════════════════════════════╧═══════════╧═══════════════════════════╧════════════════════════════════════════════════════════════════════════════════╛
 ```
 
-- If you ever change the hardware specifications or wish to monitor an additional network interface be sure to run the below command, which will automatically recalibrate `zeek` and `suricata` for efficient resource utilization.
+## Adding Additional Inspection Interfaces
+
+Users can easily add new network interfaces for both Zeek and Suricata.
+
 
 ```bash
-sudo dynamite agent optimize --inspect-interfaces=<mon_iface0> <mon_iface1>
+dynamite zeek reset node --inspect-interfaces=<inspect-iface-1> <inspect-iface-2>
+```
+
+```bash
+dynamite suricata reset --inspect-interfaces=<inspect-iface-1> <inspect-iface-2>
+```
+
+Once your desired configurations are applied to be sure to run the `agent optimize` command to ensure resources are being
+balanced between Zeek and Suricata sanely.
+
+```bash
+dynamite agent optimize
+```
+
+You must restart the agent for changes to be applied.
+
+```bash
+dynamite agent process restart
 ```

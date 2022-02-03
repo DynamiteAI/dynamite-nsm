@@ -15,7 +15,7 @@ DynamiteNSM includes two key components: the agent and the monitor. The agent ex
 
 DynamiteNSM can handle massive volumes of network traffic. Unlike many other tools, it can be installed and managed with a standalone command-line utility. The system is inherently passive without disruption to the network. There is no need to install agents on every computer, perform network scans, or directly interact with network assets.
 
-**To get started. Simply install via PIP on a supported [operating system](https://dynamiteai.github.io/dynamite-nsm/requirements/01_supported_operating_systems):**
+**To get started. Simply install via `pip3` on a supported [operating system](https://dynamiteai.github.io/dynamite-nsm/requirements/01_supported_operating_systems):**
 
 ```
 sudo pip3 install dynamite-nsm

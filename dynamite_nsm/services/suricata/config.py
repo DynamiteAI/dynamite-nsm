@@ -168,7 +168,7 @@ class ConfigManager(YamlConfigManager):
 
         self.rules = rules.Rules()
 
-        for rule_name in rules.list_available_rule_names():
+        for rule_name in self.list_available_rule_names():
             if rule_name in self._rule_files_raw:
                 self.rules.add(rules.Rule(rule_name, enabled=True))
             else:
@@ -226,6 +226,13 @@ class ConfigManager(YamlConfigManager):
                 receive_cpu_set.add(c)
                 worker_cpu_set.add(c)
         return misc.Threading(management_cpu_set, receive_cpu_set, worker_cpu_set)
+
+    def list_available_rule_names(self) -> List[str]:
+        """List the names of all available Suricata rules.
+        Returns:
+            A list of Suricata rule names that can be enabled
+        """
+        return [rule for rule in os.listdir(f'{self.configuration_directory}/rules') if rule.endswith('.rules')]
 
     def reset(self, inspect_interfaces: List[str], out_file_path: Optional[str] = None,
               default_config_path: Optional[str] = None):

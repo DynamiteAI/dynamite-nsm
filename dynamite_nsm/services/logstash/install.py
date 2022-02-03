@@ -122,14 +122,15 @@ class InstallManager(install.BaseInstallManager):
         if not pipeline_batch_delay:
             pipeline_batch_delay = 50
         if not heap_size_gigs:
-            heap_size_gigs = int((utilities.get_memory_available_bytes() / 10 ** 9) / 2)
+            reserved_memory = utilities.get_memory_available_bytes() * .75
+            heap_size_gigs = int((reserved_memory / 10 ** 9) / 2)
         self.logger.debug(f'Logstash will connect to Elasticsearch on {elasticsearch_host}:{elasticsearch_port}')
         ls_main_config.node_name = node_name
         ls_main_config.host = host
         ls_main_config.pipeline_batch_size = pipeline_batch_size
         ls_main_config.pipeline_batch_delay = pipeline_batch_delay
         self.create_update_env_variable('LS_ES_HOST', elasticsearch_host)
-        self.create_update_env_variable('LS_ES_PORT', elasticsearch_port)
+        self.create_update_env_variable('LS_ES_PORT', str(elasticsearch_port))
         ls_java_config.initial_memory = f'{heap_size_gigs}g'
         ls_java_config.maximum_memory = f'{heap_size_gigs}g'
         self.logger.debug(f'Java Heap Initial & Max Memory = {heap_size_gigs} GB')

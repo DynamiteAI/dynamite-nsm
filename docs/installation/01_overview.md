@@ -5,8 +5,7 @@
 
 ---
 
-> ⚠️ `root` access is needed as `dynamite` will need to be able to install and uninstall services within the
-> Dynamite stack, and perform privileged operations like user creation and `systemctl` management.
+> ⚠️ `root` access is needed as `dynamite` will need to be able to install and uninstall services.
 
 
 `dynamite-nsm` is a [Python3.7+](https://www.python.org/downloads/) compatible package that can be installed directly through [pip](https://pip.pypa.io/en/stable/installing/).
@@ -28,13 +27,16 @@ sudo pip install dynamite-nsm/
 [developer guides](../../guides/developers/01_overview)!
 
 Once installed, you should be able to call `dynamite` directly from the commandline. 
-Keep in mind that `dynamite` requires `root` access in order to run basically any command.
 We will use the `dynamite` commandline utility for setting up and managing all the services we install.
+Keep in mind that the `dynamite` utility requires `root` access in order to run `install` and `uninstall` commands.
 
-Download any default configuration or mirror updates.
+Before you can begin installing services you must initialize the system with the `setup` bootstrapper as root.
 ```bash
-sudo dynamite updates install
+sudo dynamite setup install
 ```
+
+This command will download configuration updates, setup directory structure, and add a `sudoers.d/` policy 
+allowing users in the `dynamite` group to run some elevated commands.
 
 ## Troubleshooting
 
