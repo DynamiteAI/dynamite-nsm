@@ -207,3 +207,4 @@ class Signatures(Analyzers):
             A list of @load-sigs statements
         """
         return [signature.get_raw() for signature in self.signatures]
+
