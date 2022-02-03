@@ -172,7 +172,7 @@ if __name__ == '__main__':
         print(
             utilities.PrintDecorations.colorize(
                 f'Run \'sudo usermod -a -G dynamite {getpass.getuser()}\' to add your current user to the dynamite '
-                f'group.',
+                f'group. You may have to logout of your current shell before the change takes affect.',
                 _color='yellow'))
     except exceptions.DynamiteNotSetupError as e:
         if '--verbose' in sys.argv:
