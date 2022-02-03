@@ -37,7 +37,8 @@ def print_service_statuses():
             utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
         print(
             utilities.PrintDecorations.colorize(
-                f'Run \'sudo usermod -aG dynamite {getpass.getuser()}\' to add your current user to the dynamite group.',
+                f'Run \'sudo usermod -a - G dynamite {getpass.getuser()}\' to add your current user to the dynamite '
+                f'group.',
                 _color='yellow'))
         exit(0)
     profiler_map = dict(
@@ -138,9 +139,6 @@ if __name__ == '__main__':
             if res:
                 print(res)
         except ModuleNotFoundError as e:
-            if '--verbose' in sys.argv:
-                print(
-                    utilities.PrintDecorations.colorize(str(e), _color='red'))
             res = process_arguments(args=get_component_level_args(component), component=component, interface=interface,
                                     print_help_on_error=True)
             if isinstance(res, bool):
@@ -158,7 +156,10 @@ if __name__ == '__main__':
         print_service_statuses()
     except KeyError:
         dynamite_dummy_parser.print_help()
-    except exceptions.RequiresRootError:
+    except exceptions.RequiresRootError as e:
+        if '--verbose' in sys.argv:
+            print(
+                utilities.PrintDecorations.colorize(str(e), _color='red'))
         print(
             utilities.PrintDecorations.colorize('You must be root to run this command.',
                                                 _color='red'))
@@ -170,7 +171,8 @@ if __name__ == '__main__':
             utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
         print(
             utilities.PrintDecorations.colorize(
-                f'Run \'sudo usermod -aG dynamite {getpass.getuser()}\' to add your current user to the dynamite group.',
+                f'Run \'sudo usermod -a -G dynamite {getpass.getuser()}\' to add your current user to the dynamite '
+                f'group.',
                 _color='yellow'))
     except exceptions.DynamiteNotSetupError as e:
         if '--verbose' in sys.argv:

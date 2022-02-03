@@ -902,10 +902,12 @@ def safely_remove_file(path: str) -> None:
 
 def set_ownership_of_file(path: str, user: Optional[str] = 'dynamite', group: Optional[str] = 'dynamite') -> None:
     """Set the ownership of a file given a user/group and a path
-
-    :param path: The path to the file
-    :param user: The name of the user
-    :param group: The group of the user
+    Args:
+        path: The path to the file
+        user: The name of the user
+        group: The group of the user
+    Returns:
+        None
     """
 
     uid = pwd.getpwnam(user).pw_uid
@@ -1014,7 +1016,7 @@ def wrap_text(s: str) -> str:
     Args:
         s: A string
     Returns:
-         A new line deliminated string
+         A new line delaminated string
     """
     if not s:
         return ""
