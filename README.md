@@ -1,7 +1,7 @@
  <!-- ## *DISCOVER YOUR NETWORK* -->
 
 <p align="center">
- <a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_analytics_tm.png" width="400" height="auto"></a>
+ <a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_analytics.png" width="400" height="auto"></a>
 </p>
 
 
