@@ -37,8 +37,8 @@ def print_service_statuses():
             utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
         print(
             utilities.PrintDecorations.colorize(
-                f'Run \'sudo usermod -a - G dynamite {getpass.getuser()}\' to add your current user to the dynamite '
-                f'group.',
+                f'Run \'sudo usermod -a -G dynamite {getpass.getuser()}\' to add your current user to the dynamite '
+                f'group. You may have to logout of your current shell before the change takes affect.',
                 _color='yellow'))
         exit(0)
     profiler_map = dict(
