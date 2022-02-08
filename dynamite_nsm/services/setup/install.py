@@ -64,10 +64,11 @@ sudoers_patch = f"""
 
 
 def get_sudoers_directory_path():
+    include_directory = None
     with open(const.SUDOERS_FILE, 'r') as sudoers_in:
         for i, line in enumerate(sudoers_in.readlines()):
             line = line.strip()
-            if line.startswith('#includedir'):
+            if line.startswith('#includedir') or line.startswith('@includedir'):
                 include_directory = ' '.join(line.split(' ')[1:])
                 break
     return include_directory
