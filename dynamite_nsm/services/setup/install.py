@@ -81,7 +81,7 @@ class InstallManager:
         Prepare this environment for DynamiteNSM
         """
         if not utilities.is_root():
-            raise PermissionError('You must be root to setup DynamiteNSM.')
+            raise exceptions.RequiresRootError()
         self.logger = logger.get_logger('setup.install', stdout=True, stdout_only=True)
 
     @staticmethod
@@ -123,7 +123,7 @@ class UninstallManager:
         Completely remove DynamiteNSM from this environment
         """
         if not utilities.is_root():
-            raise PermissionError('You must be root to uninstall DynamiteNSM.')
+            raise exceptions.RequiresRootError()
         self.logger = logger.get_logger('setup.install', stdout=True, stdout_only=True)
 
     def uninstall(self):
