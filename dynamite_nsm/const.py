@@ -10,7 +10,7 @@ CONFIG_DELTA_CHANGE_SET = None  # We'll support these later
 ZEEK_PACKAGES = [
     'https://github.com/DynamiteAI/dynamite-community-id.git',
     'https://github.com/J-Gras/zeek-af_packet-plugin.git',
-    'https://github.com/corelight/cve-2021-44228.git'
+    'https://github.com/corelight/cve-2021-44228.git',
     'https://github.com/DynamiteAI/zeek-utils.git',
 ]
 
