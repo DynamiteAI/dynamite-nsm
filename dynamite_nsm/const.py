@@ -5,7 +5,7 @@ except ImportError:
     from configparser import ConfigParser
 
 
-DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.1.3.tar.gz'
+DEFAULT_CONFIGURATIONS_URL = 'https://github.com/DynamiteAI/configurations/archive/refs/tags/1.1.4.tar.gz'
 CONFIG_DELTA_CHANGE_SET = None  # We'll support these later
 ZEEK_PACKAGES = [
     'https://github.com/DynamiteAI/dynamite-community-id.git',
@@ -48,7 +48,7 @@ def bootstrap_constants_from_const_environment_file():
 
 extracted_constants = bootstrap_constants_from_const_environment_file()
 
-VERSION = '1.1.2'
+VERSION = '1.1.4'
 ELASTICSEARCH_MIRRORS = extracted_constants.get('ELASTICSEARCH_MIRRORS', '/etc/dynamite/mirrors/elasticsearch')
 LOGSTASH_MIRRORS = extracted_constants.get('LOGSTASH_MIRRORS', '/etc/dynamite/mirrors/logstash')
 KIBANA_MIRRORS = extracted_constants.get('KIBANA_MIRRORS', '/etc/dynamite/mirrors/kibana')
