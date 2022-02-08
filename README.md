@@ -1,12 +1,10 @@
  <!-- ## *DISCOVER YOUR NETWORK* -->
 
 <p align="center">
- <a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_analytics_tm.png" width="400" height="auto"></a>
+ <a href="http://dynamite.ai"><img src="https://github.com/vlabsio/dynamite-nsm/raw/master/img/dynamite_analytics.png" width="400" height="auto"></a>
 </p>
 
 ---
-[![Zeek Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/zeek-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/zeek-installation-tests.yml) [![Suricata Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/suricata-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/suricata-installation-tests.yml) [![Filebeat Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/filebeat-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/filebeat-installation-tests.yml) [![Elasticsearch Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/elasticsearch-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/elasticsearch-installation-tests.yml) [![Logstash Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/logstash-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/logstash-installation-tests.yml) [![Kibana Installer](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/kibana-installation-tests.yml/badge.svg)](https://github.com/DynamiteAI/dynamite-nsm/actions/workflows/kibana-installation-tests.yml)
-
 ### What is Dynamite Network Security Monitor?
 
 DynamiteNSM is a lightweight, versatile network security monitor conveniently bundled as a `Python 3.7+` package. It is designed to make securing your network environment simple and intuitive, and can be deployed in a variety of environments including high-speed data centers, small-to-large enterprises, IoT & industrial networks, and even at home.
