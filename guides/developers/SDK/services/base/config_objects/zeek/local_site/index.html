@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -1693,6 +1705,13 @@
           <li class="md-nav__item">
   <a href="#dynamite_nsm.services.base.config_objects.zeek.local_site.Script.__init__" class="md-nav__link">
     __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.base.config_objects.zeek.local_site.Script.get_contents" class="md-nav__link">
+    get_contents()
   </a>
   
 </li>
@@ -2642,6 +2661,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.base.config_objects.zeek.local_site.Script.get_contents" class="md-nav__link">
+    get_contents()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dynamite_nsm.services.base.config_objects.zeek.local_site.Script.get_raw" class="md-nav__link">
     get_raw()
   </a>
@@ -3123,7 +3149,7 @@
       <tr>
         <td><code>enabled</code></td>
         <td><code>Optional[bool]</code></td>
-        <td><p>Whether or not this script should be enabled</p></td>
+        <td><p>Whether this script should be enabled or not</p></td>
         <td><code>False</code></td>
       </tr>
   </tbody>
@@ -3134,10 +3160,99 @@
     <span class="sd">&quot;&quot;&quot;A script that performs some form of analysis</span>
 <span class="sd">    Args:</span>
 <span class="sd">        name: The name of the definition</span>
-<span class="sd">        enabled: Whether or not this script should be enabled</span>
+<span class="sd">        enabled: Whether this script should be enabled or not</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">enabled</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_contents</span><span class="p">()</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">enabled</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.base.config_objects.zeek.local_site.Script.get_contents" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_contents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the content of the Zeek script.</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Optional[str]</code></td>
+      <td><p>The contents of the Zeek script, if a directory is referenced then the contents of the first Zeek script
+located within the directory (ASCII order)</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/base/config_objects/zeek/local_site.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_contents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Get the content of the Zeek script.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The contents of the Zeek script, if a directory is referenced then the contents of the first Zeek script</span>
+<span class="sd">        located within the directory (ASCII order)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_environment_file_dict</span><span class="p">()</span>
+    <span class="n">zeek_scripts_root</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ZEEK_SCRIPTS&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_PATH</span><span class="si">}</span><span class="s1">/zeek/&#39;</span><span class="p">)</span>
+
+    <span class="n">path_pattern_1</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">path_pattern_2</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.bro&#39;</span>
+    <span class="n">path_pattern_3</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.zeek&#39;</span>
+
+    <span class="n">path_pattern_4</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/base/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">path_pattern_5</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/base/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.bro&#39;</span>
+    <span class="n">path_pattern_6</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/base/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.zeek&#39;</span>
+
+    <span class="n">path_pattern_7</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/policy/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">path_pattern_8</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/policy/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.bro&#39;</span>
+    <span class="n">path_pattern_9</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/policy/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.zeek&#39;</span>
+
+    <span class="n">path_pattern_10</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/site/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">path_pattern_11</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/site/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.bro&#39;</span>
+    <span class="n">path_pattern_12</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/site/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.zeek&#39;</span>
+
+    <span class="n">path_pattern_13</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/site/packages/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">path_pattern_14</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/site/packages/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.bro&#39;</span>
+    <span class="n">path_pattern_15</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">zeek_scripts_root</span><span class="si">}</span><span class="s1">/site/packages/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">.zeek&#39;</span>
+
+    <span class="n">search_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">path_pattern_1</span><span class="p">,</span> <span class="n">path_pattern_2</span><span class="p">,</span> <span class="n">path_pattern_3</span><span class="p">,</span> <span class="n">path_pattern_4</span><span class="p">,</span> <span class="n">path_pattern_5</span><span class="p">,</span> <span class="n">path_pattern_6</span><span class="p">,</span>
+                    <span class="n">path_pattern_7</span><span class="p">,</span> <span class="n">path_pattern_8</span><span class="p">,</span> <span class="n">path_pattern_9</span><span class="p">,</span> <span class="n">path_pattern_10</span><span class="p">,</span> <span class="n">path_pattern_11</span><span class="p">,</span>
+                    <span class="n">path_pattern_12</span><span class="p">,</span> <span class="n">path_pattern_13</span><span class="p">,</span> <span class="n">path_pattern_14</span><span class="p">,</span> <span class="n">path_pattern_15</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">path_match</span> <span class="ow">in</span> <span class="n">search_paths</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path_match</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path_match</span><span class="p">):</span>
+                <span class="n">load_directives</span> <span class="o">=</span> \
+                    <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path_match</span><span class="p">)</span> <span class="k">if</span>
+                     <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.bro&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">s</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.zeek&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;__load__&#39;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+                <span class="n">content_script</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">path_match</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">load_directives</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">content_script</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">content_script_in</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">content_script_in</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">5120</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path_match</span><span class="p">):</span>
+                <span class="n">content_script</span> <span class="o">=</span> <span class="n">path_match</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">content_script</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">content_script_in</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">content_script_in</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">5120</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
 </code></pre></div>
         </details>
     </div>
@@ -3403,7 +3518,7 @@
       <tr>
         <td><code>enabled</code></td>
         <td><code>Optional[bool]</code></td>
-        <td><p>Whether or not this definition should be enabled</p></td>
+        <td><p>Whether this definition should be enabled</p></td>
         <td><code>False</code></td>
       </tr>
   </tbody>
@@ -3414,7 +3529,7 @@
     <span class="sd">&quot;&quot;&quot;A signature set made available at runtime.</span>
 <span class="sd">    Args:</span>
 <span class="sd">        name: The name of the signature</span>
-<span class="sd">        enabled: Whether or not this definition should be enabled</span>
+<span class="sd">        enabled: Whether this definition should be enabled</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">enabled</span><span class="p">)</span>

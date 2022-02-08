@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2736,7 +2748,7 @@
 
 
 <h3 id="dynamite_nsm.services.base.install.BaseInstallManager.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">requires_root</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -2766,6 +2778,12 @@
         <td><em>required</em></td>
       </tr>
       <tr>
+        <td><code>requires_root</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If True, then the uninstaller will check that the user is root</p></td>
+        <td><code>True</code></td>
+      </tr>
+      <tr>
         <td><code>stdout</code></td>
         <td><code>Optional[bool]</code></td>
         <td><p>Print output to console</p></td>
@@ -2787,26 +2805,30 @@
 </table>
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/services/base/install.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-             <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">requires_root</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a custom service installer</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        name: The name of the service</span>
+<span class="sd">        requires_root: If True, then the uninstaller will check that the user is root</span>
 <span class="sd">        stdout: Print output to console</span>
 <span class="sd">        verbose: Include detailed debug messages</span>
 <span class="sd">        log_level: The minimum logging.LOG_LEVEL to be handled</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_setup</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">DynamiteNotSetupError</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">requires_root</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">RequiresRootError</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">dynamite_environ</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_environment_file_dict</span><span class="p">()</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">INSTALL_CACHE</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">create_dynamite_user</span><span class="p">()</span>
-    <span class="n">utilities</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PID_PATH</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PID_PATH</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3211,6 +3233,7 @@
             <span class="n">read_lines</span><span class="p">[</span><span class="n">overwrite_line_no</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">=</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">env_file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">env_fw</span><span class="p">:</span>
             <span class="n">env_fw</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">read_lines</span><span class="p">)</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">env_file_path</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3689,7 +3712,7 @@
 
 
 <h3 id="dynamite_nsm.services.base.install.BaseUninstallManager.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">directories</span><span class="p">,</span> <span class="n">environ_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">process</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sysctl_service_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">directories</span><span class="p">,</span> <span class="n">environ_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">process</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sysctl_service_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">requires_root</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3731,6 +3754,18 @@
         <td><code>None</code></td>
       </tr>
       <tr>
+        <td><code>sysctl_service_name</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The name any associated systemd unit file.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>requires_root</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If True, then the uninstaller will check that the user is root</p></td>
+        <td><code>True</code></td>
+      </tr>
+      <tr>
         <td><code>stdout</code></td>
         <td><code>Optional[bool]</code></td>
         <td><p>Print output to console</p></td>
@@ -3754,13 +3789,16 @@
           <summary>Source code in <code>dynamite_nsm/services/base/install.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">directories</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">environ_vars</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">process</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">process</span><span class="o">.</span><span class="n">BaseProcessManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">sysctl_service_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">sysctl_service_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">requires_root</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
              <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Remove installed files for a given service</span>
 <span class="sd">    Args:</span>
 <span class="sd">        name: The name of the process</span>
 <span class="sd">        directories: The directories to be removed</span>
 <span class="sd">        process: The process to be terminated</span>
+<span class="sd">        sysctl_service_name: The name any associated systemd unit file.</span>
+<span class="sd">        requires_root: If True, then the uninstaller will check that the user is root</span>
 <span class="sd">        stdout: Print output to console</span>
 <span class="sd">        verbose: Include detailed debug messages</span>
 <span class="sd">        log_level: The logging.LOG_LEVEL to use when logging</span>
@@ -3775,6 +3813,8 @@
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">requires_root</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">RequiresRootError</span><span class="p">()</span>
 </code></pre></div>
         </details>
     </div>
@@ -3820,18 +3860,18 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">sysctl</span> <span class="o">=</span> <span class="n">systemctl</span><span class="o">.</span><span class="n">SystemCtl</span><span class="p">()</span>
+    <span class="n">sysctl</span> <span class="o">=</span> <span class="n">systemctl</span><span class="o">.</span><span class="n">SystemCtl</span><span class="p">(</span><span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
     <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">directories</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Removing </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Removing </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">environ_vars</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">environ_vars</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">delete_env_variable</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sysctl_service_name</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Uninstalling </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sysctl_service_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Uninstalling </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sysctl_service_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">sysctl</span><span class="o">.</span><span class="n">uninstall_and_disable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sysctl_service_name</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Skipping service uninstallation as systemd was not implemented in this setup.&#39;</span><span class="p">)</span>

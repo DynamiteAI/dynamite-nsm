@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -1496,6 +1508,13 @@
           <li class="md-nav__item">
   <a href="#dynamite_nsm.services.base.config.GenericConfigManager.get_printable_config" class="md-nav__link">
     get_printable_config()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.base.config.GenericConfigManager.reset" class="md-nav__link">
+    reset()
   </a>
   
 </li>
@@ -2591,6 +2610,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.base.config.GenericConfigManager.reset" class="md-nav__link">
+    reset()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2919,6 +2945,8 @@
 <span class="sd">        verbose: Include detailed debug messages</span>
 <span class="sd">        stdout: Print output to console</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_setup</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">DynamiteNotSetupError</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">config_data</span> <span class="o">=</span> <span class="n">config_data</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">formatted_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">config_data</span><span class="p">)</span>
     <span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
@@ -2941,7 +2969,7 @@
 
 
 <h3 id="dynamite_nsm.services.base.config.GenericConfigManager.commit" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">backup_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">backup_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 
 </h3>
@@ -2963,9 +2991,9 @@
   <tbody>
       <tr>
         <td><code>out_file_path</code></td>
-        <td><code>Optional[str]</code></td>
-        <td><p>The path to the output file; if none given overwrites existing</p></td>
-        <td><code>None</code></td>
+        <td><code>str</code></td>
+        <td><p>The path to the output file</p></td>
+        <td><em>required</em></td>
       </tr>
       <tr>
         <td><code>backup_directory</code></td>
@@ -2992,10 +3020,10 @@
 </table>
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/services/base/config.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">backup_directory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">backup_directory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Write out an updated configuration file, and optionally backup the old one.</span>
 <span class="sd">    Args:</span>
-<span class="sd">        out_file_path: The path to the output file; if none given overwrites existing</span>
+<span class="sd">        out_file_path: The path to the output file</span>
 <span class="sd">        backup_directory: The path to the backup directory</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
@@ -3010,9 +3038,9 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">config_raw_f</span><span class="p">:</span>
             <span class="n">config_raw_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formatted_data</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">general_exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="s1">&#39;An error occurred while writing the configuration file to disk.&#39;</span><span class="p">)</span>
-    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="mi">644</span><span class="p">)</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;An error occurred while writing the configuration file to disk. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Configuration updated. Restart this service to apply.&#39;</span><span class="p">)</span>
 </code></pre></div>
         </details>
@@ -3065,6 +3093,61 @@
             <span class="k">continue</span>
         <span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">variables</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.base.config.GenericConfigManager.reset" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">,</span> <span class="n">default_config_path</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Reset a configuration file back to its default</p>
+      <p>!!! out_file_path "The path to the output file"
+    default_config_path: The path to the default configuration</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code></code></td>
+      <td><p>None</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/base/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">default_config_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Reset a configuration file back to its default</span>
+<span class="sd">    Args:</span>
+<span class="sd">    out_file_path: The path to the output file</span>
+<span class="sd">        default_config_path: The path to the default configuration</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Restoring </span><span class="si">{</span><span class="n">out_file_path</span><span class="si">}</span><span class="s1"> to default state.&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">default_config_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">default_conf_f_in</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">conf_f_out</span><span class="p">:</span>
+            <span class="n">conf_f_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">default_conf_f_in</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3278,8 +3361,9 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">config_raw_f</span><span class="p">:</span>
             <span class="n">config_raw_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formatted_data</span><span class="p">)</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">general_exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="s1">&#39;An error occurred while writing the configuration file to disk.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="s1">&#39;An error occurred while writing the configuration file to disk.&#39;</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="mi">644</span><span class="p">)</span>
 </code></pre></div>
         </details>
@@ -3402,6 +3486,9 @@
 <span class="sd">        **extract_tokens: A dictionary object, where the keys represent the names of instance variables to create</span>
 <span class="sd">        if the path to that variable exists. Paths are given using dot notation or as a Tuple.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config_data</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">stdout</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_setup</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">DynamiteNotSetupError</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">config_data</span> <span class="o">=</span> <span class="n">config_data</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">extract_tokens</span> <span class="o">=</span> <span class="n">extract_tokens</span>
     <span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
@@ -3514,10 +3601,9 @@
                                 <span class="n">partial_config_data</span> <span class="o">=</span> <span class="n">list_entry</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">break</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span>
-            <span class="n">partial_config_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="n">value</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">partial_config_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="n">value</span><span class="p">})</span>
 
     <span class="c1"># Backup old configuration first</span>
     <span class="k">if</span> <span class="n">backup_directory</span><span class="p">:</span>
@@ -3537,9 +3623,9 @@
                 <span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_data</span><span class="p">,</span> <span class="n">config_yaml_f</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">Dumper</span><span class="o">=</span><span class="n">NoAliasDumper</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
                 <span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_data</span><span class="p">,</span> <span class="n">config_yaml_f</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">general_exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="s1">&#39;An error occurred while writing the configuration file to disk.&#39;</span><span class="p">)</span>
-    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="mi">644</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span><span class="s1">&#39;An error occurred while writing the configuration file to disk.&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Configuration updated. Restart this service to apply.&#39;</span><span class="p">)</span>
 </code></pre></div>
         </details>

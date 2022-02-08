@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -3067,7 +3079,9 @@
                 <span class="c1"># Store the rest of our method parameters in a dictionary</span>
                 <span class="c1"># {func_name: [ArgparseParameters, ArgparseParam...], func_name_2: [ArgparseParameters, Argp...]}</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">interface_functions</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_argparse_parameters</span><span class="p">(</span><span class="n">func_def</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
+                    <span class="c1"># Look first in the top level class then parent classes</span>
+                    <span class="k">if</span> <span class="n">func_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">interface_functions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">interface_functions</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_argparse_parameters</span><span class="p">(</span><span class="n">func_def</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
             <span class="c1"># and parent class is selected</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">parent_class</span> <span class="o">=</span> <span class="n">method_resolution_order</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>

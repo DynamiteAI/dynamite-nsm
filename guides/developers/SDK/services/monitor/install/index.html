@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2755,9 +2767,26 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">es_install</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_install_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_configuration_directory</span> <span class="ow">or</span> \
+                 <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_log_directory</span>
 
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_install_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_configuration_directory</span> <span class="ow">or</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_log_directory</span><span class="p">:</span>
+    <span class="n">ls_install</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logstash_install_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">logstash_configuration_directory</span> <span class="ow">or</span> \
+                 <span class="bp">self</span><span class="o">.</span><span class="n">logstash_log_directory</span>
+
+    <span class="n">kb_install</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kibana_install_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kibana_configuration_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kibana_log_directory</span>
+
+    <span class="c1"># Determine how much heap space to pre-allocate to Elasticsearch and Logstash one or both are</span>
+    <span class="c1"># specified for installation</span>
+    <span class="n">reserved_memory</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_memory_available_bytes</span><span class="p">()</span> <span class="o">*</span> <span class="mf">.75</span>
+    <span class="n">heap_size_gigs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">reserved_memory</span> <span class="o">/</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">ls_heap_size_gigs</span><span class="p">,</span> <span class="n">es_heap_size_gigs</span> <span class="o">=</span> <span class="n">heap_size_gigs</span><span class="p">,</span> <span class="n">heap_size_gigs</span>
+    <span class="k">if</span> <span class="n">es_install</span> <span class="ow">and</span> <span class="n">ls_install</span><span class="p">:</span>
+        <span class="n">ls_reserved_memory</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_memory_available_bytes</span><span class="p">()</span> <span class="o">*</span> <span class="mf">.25</span>
+        <span class="n">ls_heap_size_gigs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">ls_reserved_memory</span> <span class="o">/</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">es_reserved_memory</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_memory_available_bytes</span><span class="p">()</span> <span class="o">*</span> <span class="mf">.50</span>
+        <span class="n">es_heap_size_gigs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">es_reserved_memory</span> <span class="o">/</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">es_install</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_install_directory</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_configuration_directory</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_log_directory</span>
@@ -2771,8 +2800,8 @@
                                              <span class="n">log_directory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">elasticsearch_log_directory</span><span class="p">,</span>
                                              <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span>
             <span class="n">node_name</span><span class="o">=</span><span class="n">utilities</span><span class="o">.</span><span class="n">get_default_es_node_name</span><span class="p">(),</span> <span class="n">network_host</span><span class="o">=</span><span class="n">utilities</span><span class="o">.</span><span class="n">get_primary_ip_address</span><span class="p">(),</span>
-            <span class="n">port</span><span class="o">=</span><span class="mi">9200</span><span class="p">)</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logstash_install_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">logstash_configuration_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">logstash_log_directory</span><span class="p">:</span>
+            <span class="n">port</span><span class="o">=</span><span class="mi">9200</span><span class="p">,</span> <span class="n">heap_size_gigs</span><span class="o">=</span><span class="n">es_heap_size_gigs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ls_install</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logstash_install_directory</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">logstash_configuration_directory</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">logstash_log_directory</span>
@@ -2786,8 +2815,9 @@
                                         <span class="n">log_directory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logstash_log_directory</span><span class="p">,</span>
                                         <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span>
             <span class="n">node_name</span><span class="o">=</span><span class="n">utilities</span><span class="o">.</span><span class="n">get_default_es_node_name</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;es&#39;</span><span class="p">,</span> <span class="s1">&#39;ls&#39;</span><span class="p">),</span>
-            <span class="n">elasticsearch_host</span><span class="o">=</span><span class="n">utilities</span><span class="o">.</span><span class="n">get_primary_ip_address</span><span class="p">(),</span> <span class="n">elasticsearch_port</span><span class="o">=</span><span class="mi">9200</span><span class="p">)</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kibana_install_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kibana_configuration_directory</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">kibana_log_directory</span><span class="p">:</span>
+            <span class="n">elasticsearch_host</span><span class="o">=</span><span class="n">utilities</span><span class="o">.</span><span class="n">get_primary_ip_address</span><span class="p">(),</span> <span class="n">elasticsearch_port</span><span class="o">=</span><span class="mi">9200</span><span class="p">,</span>
+            <span class="n">heap_size_gigs</span><span class="o">=</span><span class="n">es_heap_size_gigs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kb_install</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">dynamite_nsm.services.elasticsearch</span> <span class="kn">import</span> <span class="n">process</span> <span class="k">as</span> <span class="n">elasticsearch_process</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">kibana_install_directory</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">kibana_configuration_directory</span>

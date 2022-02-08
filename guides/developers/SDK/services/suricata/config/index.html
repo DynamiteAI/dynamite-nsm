@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2019,8 +2031,29 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.list_available_rule_names" class="md-nav__link">
+    list_available_rule_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.reset" class="md-nav__link">
+    reset()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.lookup_rule_definition" class="md-nav__link">
+    lookup_rule_definition()
+  </a>
   
 </li>
       
@@ -2577,8 +2610,29 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.list_available_rule_names" class="md-nav__link">
+    list_available_rule_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.ConfigManager.reset" class="md-nav__link">
+    reset()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.suricata.config.lookup_rule_definition" class="md-nav__link">
+    lookup_rule_definition()
+  </a>
   
 </li>
       
@@ -2864,7 +2918,7 @@
 
     <span class="bp">self</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="n">rules</span><span class="o">.</span><span class="n">Rules</span><span class="p">()</span>
 
-    <span class="k">for</span> <span class="n">rule_name</span> <span class="ow">in</span> <span class="n">rules</span><span class="o">.</span><span class="n">list_available_rule_names</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">rule_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_available_rule_names</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">rule_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rule_files_raw</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rules</span><span class="o">.</span><span class="n">Rule</span><span class="p">(</span><span class="n">rule_name</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2879,15 +2933,16 @@
             <span class="n">threads</span><span class="o">=</span><span class="n">af_packet_interface_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;threads&#39;</span><span class="p">)</span>
         <span class="p">)</span> <span class="k">for</span> <span class="n">af_packet_interface_raw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_af_packet_interfaces_raw</span><span class="p">]</span>
     <span class="p">)</span>
-    <span class="n">thread_families</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threading_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpu_affinity&#39;</span><span class="p">,</span> <span class="p">[])</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">threading</span> <span class="o">=</span> <span class="n">misc</span><span class="o">.</span><span class="n">Threading</span><span class="p">()</span>
+    <span class="n">thread_families</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threading_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpu-affinity&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">management_cpu_set</span><span class="p">,</span> <span class="n">receive_cpu_set</span><span class="p">,</span> <span class="n">worker_cpu_set</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">thread_family</span> <span class="ow">in</span> <span class="n">thread_families</span><span class="p">:</span>
         <span class="k">if</span> <span class="s1">&#39;management-cpu-set&#39;</span> <span class="ow">in</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">threading</span><span class="o">.</span><span class="n">management_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;management-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpus&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">management_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;management-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="k">elif</span> <span class="s1">&#39;receive-cpu-set&#39;</span> <span class="ow">in</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">threading</span><span class="o">.</span><span class="n">receive_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;receive-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpus&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">receive_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;receive-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="k">elif</span> <span class="s1">&#39;worker-cpu-set&#39;</span> <span class="ow">in</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">threading</span><span class="o">.</span><span class="n">worker_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;worker-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpus&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">worker_cpu_set</span> <span class="o">=</span> <span class="n">thread_family</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;worker-cpu-set&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threading</span> <span class="o">=</span> <span class="n">misc</span><span class="o">.</span><span class="n">Threading</span><span class="p">(</span><span class="n">management_cpu_set</span><span class="p">,</span> <span class="n">receive_cpu_set</span><span class="p">,</span> <span class="n">worker_cpu_set</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3053,7 +3108,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">         An instance of ConfigManager</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">tmp_dir</span> <span class="o">=</span> <span class="s1">&#39;/tmp/dynamite/temp_configs/&#39;</span>
+    <span class="n">tmp_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_PATH</span><span class="si">}</span><span class="s1">/.tmp&#39;</span>
     <span class="n">tmp_config</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tmp_dir</span><span class="si">}</span><span class="s1">/suricata.yaml&#39;</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp_config</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_f</span><span class="p">:</span>
@@ -3071,6 +3126,147 @@
 
 
 
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.suricata.config.ConfigManager.list_available_rule_names" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">list_available_rule_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>List the names of all available Suricata rules.</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>List[str]</code></td>
+      <td><p>A list of Suricata rule names that can be enabled</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/suricata/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">list_available_rule_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;List the names of all available Suricata rules.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        A list of Suricata rule names that can be enabled</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">rule</span> <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/rules&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.rules&#39;</span><span class="p">)]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.suricata.config.ConfigManager.reset" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inspect_interfaces</span><span class="p">,</span> <span class="n">out_file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Reset a configuration file back to its default</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>inspect_interfaces</code></td>
+        <td><code>List[str]</code></td>
+        <td><p>A list of network interfaces to capture on (E.G ["mon0", "mon1"])</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>out_file_path</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The path to the output file</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>default_config_path</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The path to the default configuration</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code></code></td>
+      <td><p>None</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/suricata/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inspect_interfaces</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">out_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+          <span class="n">default_config_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reset a configuration file back to its default</span>
+<span class="sd">    Args:</span>
+<span class="sd">        inspect_interfaces: A list of network interfaces to capture on (E.G [&quot;mon0&quot;, &quot;mon1&quot;])</span>
+<span class="sd">        out_file_path: The path to the output file</span>
+<span class="sd">        default_config_path: The path to the default configuration</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">install</span><span class="o">.</span><span class="n">BaseInstallManager</span><span class="o">.</span><span class="n">validate_inspect_interfaces</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">install</span><span class="o">.</span><span class="n">NetworkInterfaceNotFound</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">out_file_path</span><span class="p">:</span>
+        <span class="n">out_file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/suricata.yaml&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">default_config_path</span><span class="p">:</span>
+        <span class="n">default_config_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/suricata/suricata.yaml&#39;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ConfigManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="n">default_config_path</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">af_packet_interfaces</span> <span class="o">=</span> <span class="n">misc</span><span class="o">.</span><span class="n">AfPacketInterfaces</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">interface</span> <span class="ow">in</span> <span class="n">inspect_interfaces</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">af_packet_interfaces</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">misc</span><span class="o">.</span><span class="n">AfPacketInterface</span><span class="p">(</span>
+                <span class="n">interface_name</span><span class="o">=</span><span class="n">interface</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">cluster_id</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">50000</span><span class="p">),</span>
+                <span class="n">cluster_type</span><span class="o">=</span><span class="s1">&#39;cluster_qm&#39;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">out_file_path</span><span class="o">=</span><span class="n">out_file_path</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
 
 
   </div>
@@ -3079,6 +3275,79 @@
 
   </div>
 
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.services.suricata.config.lookup_rule_definition" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">lookup_rule_definition</span><span class="p">(</span><span class="n">rule_id</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Return the definition, categories, and friendly_name of a given script</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>rule_id</code></td>
+        <td><code>int</code></td>
+        <td><p>A numeric identifier representing a Suricata rule.</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code></code></td>
+      <td><p>A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/suricata/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">lookup_rule_definition</span><span class="p">(</span><span class="n">rule_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the definition, categories, and friendly_name of a given script</span>
+<span class="sd">    Args:</span>
+<span class="sd">        rule_id: A numeric identifier representing a Suricata rule.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">         A dictionary of the format {&quot;friendly_name&quot; &lt;str&gt;, &quot;description&quot; &lt;str&gt;, &quot;categories&quot; &lt;list&gt;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">suricata_rule_defs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="p">,</span> <span class="s1">&#39;suricata&#39;</span><span class="p">,</span> <span class="s1">&#39;suricata_rule_definitions.json&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">suricata_rule_defs</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">suricata_defs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="n">suricata_defs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">definition</span> <span class="o">=</span> <span class="n">suricata_defs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">rule_id</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">definition</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
 
 
 

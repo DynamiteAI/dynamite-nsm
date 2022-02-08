@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -1115,6 +1127,13 @@
         <li class="md-nav__item">
   <a href="#install-the-agent" class="md-nav__link">
     Install the Agent
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-additional-inspection-interfaces" class="md-nav__link">
+    Adding Additional Inspection Interfaces
   </a>
   
 </li>
@@ -2446,6 +2465,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#adding-additional-inspection-interfaces" class="md-nav__link">
+    Adding Additional Inspection Interfaces
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2506,9 +2532,9 @@ however this may result in dropped packets depending on your average throughput.
 <pre><code class="language-bash">pip install dynamite-nsm
 </code></pre>
 <ul>
-<li>Download any default configuration or mirror updates.</li>
+<li>Initialize the environment enabling services to be installed and managed.</li>
 </ul>
-<pre><code class="language-bash">sudo dynamite updates install
+<pre><code class="language-bash">sudo dynamite setup install
 </code></pre>
 <h2 id="install-the-monitor">Install the Monitor</h2>
 <p>The monitor consists of the services which receive network events/alerts from the agent(s), and normalize/visualize 
@@ -2607,10 +2633,18 @@ events and alerts that can be sent to a Dynamite Monitor or supported collector.
 │ 2021-04-25 17:06:50.780000 │ INFO      │ publisher_pipeline_output │ Connection to backoff(elasticsearch(https://192.168.194.143:9200)) established │
 ╘════════════════════════════╧═══════════╧═══════════════════════════╧════════════════════════════════════════════════════════════════════════════════╛
 </code></pre>
-<ul>
-<li>If you ever change the hardware specifications or wish to monitor an additional network interface be sure to run the below command, which will automatically recalibrate <code>zeek</code> and <code>suricata</code> for efficient resource utilization.</li>
-</ul>
-<pre><code class="language-bash">sudo dynamite agent optimize --inspect-interfaces=&lt;mon_iface0&gt; &lt;mon_iface1&gt;
+<h2 id="adding-additional-inspection-interfaces">Adding Additional Inspection Interfaces</h2>
+<p>Users can easily add new network interfaces for both Zeek and Suricata.</p>
+<pre><code class="language-bash">dynamite zeek reset node --inspect-interfaces=&lt;inspect-iface-1&gt; &lt;inspect-iface-2&gt;
+</code></pre>
+<pre><code class="language-bash">dynamite suricata reset --inspect-interfaces=&lt;inspect-iface-1&gt; &lt;inspect-iface-2&gt;
+</code></pre>
+<p>Once your desired configurations are applied to be sure to run the <code>agent optimize</code> command to ensure resources are being
+balanced between Zeek and Suricata sanely.</p>
+<pre><code class="language-bash">dynamite agent optimize
+</code></pre>
+<p>You must restart the agent for changes to be applied.</p>
+<pre><code class="language-bash">dynamite agent process restart
 </code></pre>
                 
               

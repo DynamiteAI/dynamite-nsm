@@ -897,6 +897,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2531,7 +2543,7 @@ language that can be used for everything from protocol parsing to file carving.<
 <p>Within DynamiteNSM, Zeek serves as the primary mechanism for harvesting metadata around network conversations.</p>
 <p>Through its scripting framework, Zeek is capable of generating <a href="https://docs.zeek.org/en/master/script-reference/log-files.html">many logs</a> that provide rich context
 around and alerts.</p>
-<pre><code class="language-bash">$ sudo dynamite zeek -h 
+<pre><code class="language-bash">$ dynamite zeek -h 
 
 usage: dynamite [-h] {install,uninstall,process,config,logs} ...
 
@@ -2555,16 +2567,16 @@ optional arguments:
 <pre><code class="language-bash">sudo dynamite zeek install -h
 </code></pre>
 <h2 id="configuration">Configuration</h2>
-<pre><code class="language-bash">sudo dynamite zeek config -h
+<pre><code class="language-bash">dynamite zeek config -h
 </code></pre>
 <h3 id="scripts-configuration">Scripts Configuration</h3>
-<pre><code class="language-bash">sudo dynamite zeek config site scripts -h
+<pre><code class="language-bash">dynamite zeek config site scripts -h
 </code></pre>
 <h2 id="process-management">Process Management</h2>
 <pre><code class="language-bash">sudo dynamite zeek process -h
 </code></pre>
 <h2 id="view-logs">View Logs</h2>
-<pre><code class="language-bash">sudo dynamite zeek logs -h
+<pre><code class="language-bash">dynamite zeek logs -h
 </code></pre>
 <h2 id="defaults">Defaults</h2>
 <h3 id="directories">Directories</h3>

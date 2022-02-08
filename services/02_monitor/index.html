@@ -897,6 +897,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2461,7 +2473,7 @@
                 
                 <h1 id="monitor">Monitor</h1>
 <p>The <code>monitor</code> is a convenience <code>service</code> that provides a single interface around some of Elasticsearch and Kibana's interfaces. </p>
-<pre><code class="language-bash">$ sudo dynamite monitor -h
+<pre><code class="language-bash">$ dynamite monitor -h
 
 usage: dynamite [-h] {install,uninstall,process} ...
 
@@ -2484,11 +2496,11 @@ optional arguments:
 <h2 id="configuration">Configuration</h2>
 <p>The <code>monitor</code> service does not present a wrapper interface for underlying configurations.</p>
 <p>These configurations must be accessed directly through the <a href="/services/04_elasticsearch">Elasticsearch</a> or <a href="/services/06_kibana">Kibana</a> service commands.</p>
-<pre><code class="language-bash">sudo dynamite elasticsearch config -h
-sudo dynamite kibana config -h
+<pre><code class="language-bash">dynamite elasticsearch config -h
+dynamite kibana config -h
 </code></pre>
 <h2 id="process-management">Process Management</h2>
-<pre><code class="language-markdown">sudo dynamite agent process -h
+<pre><code class="language-markdown">dynamite agent process -h
 </code></pre>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <table>

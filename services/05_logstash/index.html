@@ -897,6 +897,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2495,7 +2507,7 @@ DynamiteNSM does not currently provide an automated integration strategy with Lo
 to a collector of your choice.</p>
 </blockquote>
 <p>DynamiteNSM pre-configures Logstash with several useful defaults, and automatically optimizes its use of the JVM heap.</p>
-<pre><code class="language-bash">$ sudo dynamite logstash -h
+<pre><code class="language-bash">$ dynamite logstash -h
 
 usage: dynamite [-h] {install,uninstall,process,config} ...
 
@@ -2516,10 +2528,10 @@ optional arguments:
 <pre><code class="language-bash">sudo dynamite logstash install -h
 </code></pre>
 <h2 id="configuration">Configuration</h2>
-<pre><code class="language-markdown">sudo dynamite logstash config -h
+<pre><code class="language-markdown">dynamite logstash config -h
 </code></pre>
 <h2 id="process-management">Process Management</h2>
-<pre><code class="language-markdown">sudo dynamite logstash process -h
+<pre><code class="language-markdown">dynamite logstash process -h
 </code></pre>
 <h2 id="defaults">Defaults</h2>
 <h3 id="directories">Directories</h3>

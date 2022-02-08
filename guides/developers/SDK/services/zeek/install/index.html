@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2034,20 +2046,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dynamite_nsm.services.zeek.install.InstallManager.configure_compile_zeek_af_packet_plugin" class="md-nav__link">
-    configure_compile_zeek_af_packet_plugin()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dynamite_nsm.services.zeek.install.InstallManager.configure_compile_zeek_community_id_plugin" class="md-nav__link">
-    configure_compile_zeek_community_id_plugin()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#dynamite_nsm.services.zeek.install.InstallManager.create_update_zeek_environment_variables" class="md-nav__link">
     create_update_zeek_environment_variables()
   </a>
@@ -2511,20 +2509,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dynamite_nsm.services.zeek.install.InstallManager.configure_compile_zeek_af_packet_plugin" class="md-nav__link">
-    configure_compile_zeek_af_packet_plugin()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dynamite_nsm.services.zeek.install.InstallManager.configure_compile_zeek_community_id_plugin" class="md-nav__link">
-    configure_compile_zeek_community_id_plugin()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#dynamite_nsm.services.zeek.install.InstallManager.create_update_zeek_environment_variables" class="md-nav__link">
     create_update_zeek_environment_variables()
   </a>
@@ -2641,7 +2625,7 @@
 
 
 <h3 id="dynamite_nsm.services.zeek.install.InstallManager.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">,</span> <span class="n">install_directory</span><span class="p">,</span> <span class="n">download_zeek_archive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">,</span> <span class="n">install_directory</span><span class="p">,</span> <span class="n">download_zeek_archive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_interface_validation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -2683,6 +2667,12 @@
         <td><code>True</code></td>
       </tr>
       <tr>
+        <td><code>skip_interface_validation</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If included we don't check if the interface is available on the system</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
         <td><code>stdout</code></td>
         <td><code>Optional[bool]</code></td>
         <td><p>Print output to console</p></td>
@@ -2699,18 +2689,21 @@
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/services/zeek/install.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">install_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-             <span class="n">download_zeek_archive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">download_zeek_archive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">skip_interface_validation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
              <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Install Zeek</span>
 <span class="sd">    Args:</span>
 <span class="sd">        configuration_directory: Path to the configuration directory (E.G /etc/dynamite/zeek/)</span>
 <span class="sd">        install_directory: Path to the install directory (E.G /opt/dynamite/zeek/)</span>
 <span class="sd">        download_zeek_archive: If True, download the Zeek archive from a mirror</span>
+<span class="sd">        skip_interface_validation: If included we don&#39;t check if the interface is available on the system</span>
 <span class="sd">        stdout: Print output to console</span>
 <span class="sd">        verbose: Include detailed debug messages</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span> <span class="o">=</span> <span class="n">configuration_directory</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span> <span class="o">=</span> <span class="n">install_directory</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">skip_interface_validation</span> <span class="o">=</span> <span class="n">skip_interface_validation</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
 
@@ -2790,161 +2783,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">zeek_source_install_cache</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">INSTALL_CACHE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_mirror_root</span><span class="p">)</span>
     <span class="n">configure_args</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;--prefix=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;--scriptdir=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                      <span class="s1">&#39;--enable-jemalloc&#39;</span><span class="p">]</span>
+                      <span class="s1">&#39;--enable-jemalloc&#39;</span><span class="p">,</span> <span class="s1">&#39;--with-python=/usr/bin/python3&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">configure_source_package</span><span class="p">(</span><span class="n">zeek_source_install_cache</span><span class="p">,</span> <span class="n">configure_args</span><span class="o">=</span><span class="n">configure_args</span><span class="p">)</span>
     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">compile_source_package</span><span class="p">(</span><span class="n">zeek_source_install_cache</span><span class="p">,</span>
                                 <span class="n">parallel_threads</span><span class="o">=</span><span class="n">parallel_threads</span><span class="p">,</span>
                                 <span class="n">expected_lines_printed</span><span class="o">=</span><span class="n">COMPILE_PROCESS_EXPECTED_LINE_COUNT</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 id="dynamite_nsm.services.zeek.install.InstallManager.configure_compile_zeek_af_packet_plugin" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">configure_compile_zeek_af_packet_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parallel_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Configure and build AF_PACKET plugin</p>
-
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>parallel_threads</code></td>
-        <td><code>Optional[int]</code></td>
-        <td><p>Number of parallel threads to use during the compiling process</p></td>
-        <td><code>None</code></td>
-      </tr>
-  </tbody>
-</table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>None</code></td>
-      <td><p>None</p></td>
-    </tr>
-  </tbody>
-</table>
-        <details class="quote">
-          <summary>Source code in <code>dynamite_nsm/services/zeek/install.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">configure_compile_zeek_af_packet_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parallel_threads</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Configure and build AF_PACKET plugin</span>
-<span class="sd">    Args:</span>
-<span class="sd">        parallel_threads: Number of parallel threads to use during the compiling process</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        None</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">zeek_source_install_cache</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">INSTALL_CACHE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_mirror_root</span><span class="p">)</span>
-    <span class="n">zeek_af_packet_plugin_source</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/zeek/uncompiled_scripts/zeek-af_packet-plugin&#39;</span>
-    <span class="n">configure_args</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;--zeek-dist=</span><span class="si">{</span><span class="n">zeek_source_install_cache</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;--install-root=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                      <span class="s1">&#39;--with-latest-kernel&#39;</span><span class="p">]</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">configure_source_package</span><span class="p">(</span><span class="n">zeek_af_packet_plugin_source</span><span class="p">,</span> <span class="n">configure_args</span><span class="o">=</span><span class="n">configure_args</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">compile_source_package</span><span class="p">(</span><span class="n">zeek_af_packet_plugin_source</span><span class="p">,</span> <span class="n">compile_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">parallel_threads</span><span class="o">=</span><span class="n">parallel_threads</span><span class="p">,</span>
-                                <span class="n">expected_lines_printed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">copy_file_or_directory_to_destination</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/Zeek_AF_Packet&#39;</span><span class="p">,</span>
-                                               <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/lib/zeek/plugins/Zeek_AF_Packet&#39;</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 id="dynamite_nsm.services.zeek.install.InstallManager.configure_compile_zeek_community_id_plugin" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">configure_compile_zeek_community_id_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parallel_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Configure and build Community_ID plugin</p>
-
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>parallel_threads</code></td>
-        <td><code>Optional[int]</code></td>
-        <td><p>Number of parallel threads to use during the compiling process</p></td>
-        <td><code>None</code></td>
-      </tr>
-  </tbody>
-</table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>None</code></td>
-      <td><p>None</p></td>
-    </tr>
-  </tbody>
-</table>
-        <details class="quote">
-          <summary>Source code in <code>dynamite_nsm/services/zeek/install.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">configure_compile_zeek_community_id_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parallel_threads</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Configure and build Community_ID plugin</span>
-<span class="sd">    Args:</span>
-<span class="sd">        parallel_threads: Number of parallel threads to use during the compiling process</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        None</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">zeek_source_install_cache</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">INSTALL_CACHE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_mirror_root</span><span class="p">)</span>
-    <span class="n">zeek_community_id_plugin_source</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/zeek/uncompiled_scripts/zeek-community-id&#39;</span>
-    <span class="n">configure_args</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;--zeek-dist=</span><span class="si">{</span><span class="n">zeek_source_install_cache</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;--install-root=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">configure_source_package</span><span class="p">(</span><span class="n">zeek_community_id_plugin_source</span><span class="p">,</span> <span class="n">configure_args</span><span class="o">=</span><span class="n">configure_args</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">compile_source_package</span><span class="p">(</span><span class="n">zeek_community_id_plugin_source</span><span class="p">,</span> <span class="n">compile_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">parallel_threads</span><span class="o">=</span><span class="n">parallel_threads</span><span class="p">,</span>
-                                <span class="n">expected_lines_printed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">copy_file_or_directory_to_destination</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/Corelight_CommunityID&#39;</span><span class="p">,</span>
-                                               <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/lib/zeek/plugins/Corelight_CommunityID&#39;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3050,8 +2894,8 @@
         <span class="k">if</span> <span class="n">pacman_type</span> <span class="o">!=</span> <span class="s1">&#39;yum&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipping RHEL PowerTools install, as it is not needed on this distribution.&#39;</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">install_dependencies</span><span class="p">(</span><span class="n">yum_packages</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dnf-plugins-core&#39;</span><span class="p">])</span>
-        <span class="n">enable_powertools_p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;yum&#39;</span><span class="p">,</span> <span class="s1">&#39;config-manager&#39;</span><span class="p">,</span> <span class="s1">&#39;--set-enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;PowerTools&#39;</span><span class="p">],</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">install_dependencies</span><span class="p">(</span><span class="n">yum_packages</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dnf-plugins-core&#39;</span><span class="p">,</span> <span class="s1">&#39;epel-release&#39;</span><span class="p">])</span>
+        <span class="n">enable_powertools_p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;yum&#39;</span><span class="p">,</span> <span class="s1">&#39;config-manager&#39;</span><span class="p">,</span> <span class="s1">&#39;--set-enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;powertools&#39;</span><span class="p">],</span>
                                                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
         <span class="n">enable_powertools_p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">enable_powertools_p</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -3059,11 +2903,11 @@
 
     <span class="n">apt_get_packages</span> <span class="o">=</span> \
         <span class="p">[</span><span class="s1">&#39;bison&#39;</span><span class="p">,</span> <span class="s1">&#39;cmake&#39;</span><span class="p">,</span> <span class="s1">&#39;cmake3&#39;</span><span class="p">,</span> <span class="s1">&#39;flex&#39;</span><span class="p">,</span> <span class="s1">&#39;g++&#39;</span><span class="p">,</span> <span class="s1">&#39;gcc&#39;</span><span class="p">,</span> <span class="s1">&#39;libjemalloc-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libpcap-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libssl-dev&#39;</span><span class="p">,</span>
-         <span class="s1">&#39;linux-headers-$(uname -r)&#39;</span><span class="p">,</span> <span class="s1">&#39;linux-headers-generic&#39;</span><span class="p">,</span> <span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;python-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;swig&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib1g-dev&#39;</span><span class="p">]</span>
+         <span class="s1">&#39;linux-headers-$(uname -r)&#39;</span><span class="p">,</span> <span class="s1">&#39;linux-headers-generic&#39;</span><span class="p">,</span> <span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;swig&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;sqlite3&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib1g-dev&#39;</span><span class="p">]</span>
 
     <span class="n">yum_packages</span> <span class="o">=</span> \
         <span class="p">[</span><span class="s1">&#39;bison&#39;</span><span class="p">,</span> <span class="s1">&#39;cmake&#39;</span><span class="p">,</span> <span class="s1">&#39;cmake3&#39;</span><span class="p">,</span> <span class="s1">&#39;flex&#39;</span><span class="p">,</span> <span class="s1">&#39;gcc&#39;</span><span class="p">,</span> <span class="s1">&#39;gcc-c++&#39;</span><span class="p">,</span> <span class="s1">&#39;jemalloc-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;kernel-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;libpcap-devel&#39;</span><span class="p">,</span>
-         <span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;openssl-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;python2-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;python3-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;swig&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib-devel&#39;</span><span class="p">]</span>
+         <span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;openssl-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;swig&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;sqlite-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib-devel&#39;</span><span class="p">]</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">install_dependencies</span><span class="p">(</span><span class="n">apt_get_packages</span><span class="o">=</span><span class="n">apt_get_packages</span><span class="p">,</span> <span class="n">yum_packages</span><span class="o">=</span><span class="n">yum_packages</span><span class="p">,</span>
                               <span class="n">pre_install_function</span><span class="o">=</span><span class="n">install_powertools_rhel</span><span class="p">)</span>
@@ -3132,8 +2976,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_inspect_interfaces</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">install</span><span class="o">.</span><span class="n">NetworkInterfaceNotFound</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_interface_validation</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_inspect_interfaces</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">install</span><span class="o">.</span><span class="n">NetworkInterfaceNotFound</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">)</span>
     <span class="n">sysctl</span> <span class="o">=</span> <span class="n">systemctl</span><span class="o">.</span><span class="n">SystemCtl</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">install_zeek_dependencies</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">create_update_zeek_environment_variables</span><span class="p">()</span>
@@ -3145,21 +2990,20 @@
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
         <span class="n">utilities</span><span class="o">.</span><span class="n">print_coffee_art</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">configure_compile_zeek</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding AF_PACKET socket support.&#39;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">configure_compile_zeek_af_packet_plugin</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding CommunityID support.&#39;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">configure_compile_zeek_community_id_plugin</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up Zeek package manager.&#39;</span><span class="p">)</span>
+    <span class="n">zkg_installer</span> <span class="o">=</span> <span class="n">zkg_install</span><span class="o">.</span><span class="n">InstallManager</span><span class="p">()</span>
+    <span class="n">zkg_installer</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">package</span><span class="o">.</span><span class="n">InstallPackageManager</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ZEEK_PACKAGES</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">zkg</span><span class="o">.</span><span class="n">InstallZeekPackageError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;An error occurred while installing one or more Zeek packages: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">copy_file_or_directory_to_destination</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/zeek/broctl-nodes.cfg&#39;</span><span class="p">,</span>
                                                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/etc/node.cfg&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">copy_file_or_directory_to_destination</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/zeek/local.zeek&#39;</span><span class="p">,</span>
                                                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/site/local.zeek&#39;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">copy_file_or_directory_to_destination</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/zeek/dynamite_extra_scripts&#39;</span><span class="p">,</span>
-                                               <span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="p">)</span>
 
     <span class="c1"># Optimize Configurations</span>
-    <span class="n">site_local_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">SiteLocalConfigManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
-                                                      <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">node_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">NodeConfigManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">node_config</span><span class="o">.</span><span class="n">workers</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">Workers</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">worker</span> <span class="ow">in</span> <span class="n">node_config</span><span class="o">.</span><span class="n">get_optimal_zeek_worker_config</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">):</span>
@@ -3169,22 +3013,21 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Applying node configuration.&#39;</span><span class="p">)</span>
     <span class="n">node_config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
-    <span class="c1"># Enable our extra scripts</span>
-    <span class="n">extra_scripts_destination_directory</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/dynamite_extra_scripts&#39;</span>
-    <span class="k">for</span> <span class="n">script_dir</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">extra_scripts_destination_directory</span><span class="p">):</span>
-        <span class="n">site_local_config</span><span class="o">.</span><span class="n">scripts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-            <span class="n">local_site</span><span class="o">.</span><span class="n">Script</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">extra_scripts_destination_directory</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">script_dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Applying local site configuration.&#39;</span><span class="p">)</span>
-    <span class="n">site_local_config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up BPF input configuration&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/bpf_map_file.input&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">bpf_config_f</span><span class="p">:</span>
+        <span class="n">bpf_config_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
     <span class="c1"># Fix Permissions</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up file permissions.&#39;</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/site/local.zeek&#39;</span><span class="p">,</span> <span class="mi">660</span><span class="p">)</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/site/bpf_map_file.input&#39;</span><span class="p">,</span> <span class="mi">660</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/etc/node.cfg&#39;</span><span class="p">,</span> <span class="mi">660</span><span class="p">)</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/etc/networks.cfg&#39;</span><span class="p">,</span> <span class="mi">660</span><span class="p">)</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/etc/networks.cfg&#39;</span><span class="p">,</span> <span class="mi">660</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up Zeek capture rules for dynamite user.&#39;</span><span class="p">)</span>
+    <span class="n">set_caps</span><span class="o">.</span><span class="n">SetCapturePermissions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="p">)</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Installing service -&gt; </span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/systemd/zeek.service&#39;</span><span class="p">)</span>
     <span class="n">sysctl</span><span class="o">.</span><span class="n">install_and_enable</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="p">,</span> <span class="s1">&#39;systemd&#39;</span><span class="p">,</span> <span class="s1">&#39;zeek.service&#39;</span><span class="p">))</span>

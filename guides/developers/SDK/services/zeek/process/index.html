@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2648,7 +2660,7 @@
     <span class="p">}</span>
 
     <span class="n">zeek_status</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;running&#39;</span><span class="p">:</span> <span class="n">systemd_info</span><span class="o">.</span><span class="n">exit</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s1">&#39;enabled_on_startup&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sysctl</span><span class="o">.</span><span class="n">is_enabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">systemd_service</span><span class="p">)</span>
     <span class="p">}</span>
     <span class="n">zeek_subprocesses</span> <span class="o">=</span> <span class="p">[]</span>
@@ -2656,7 +2668,6 @@
         <span class="n">tokenized_line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\S+&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokenized_line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
             <span class="n">name</span><span class="p">,</span> <span class="n">_type</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tokenized_line</span>
-            <span class="n">zeek_status</span><span class="p">[</span><span class="s1">&#39;running&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokenized_line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">name</span><span class="p">,</span> <span class="n">_type</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">tokenized_line</span>
             <span class="n">pid</span> <span class="o">=</span> <span class="kc">None</span>

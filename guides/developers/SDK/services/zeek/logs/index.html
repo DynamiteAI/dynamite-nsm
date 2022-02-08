@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -4320,8 +4332,8 @@ include_archived_logs: If True, include gzipped archive logs</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">reassembly_fragment_size</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reassem_frag_size&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">reassembly_unknown_size</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reassem_unknown_size&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped_percentage</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">packets_processed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped_percentage</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">packets_processed</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">packets_link</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped_percentage</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">packets_link</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -4414,7 +4426,7 @@ include_archived_logs: If True, include gzipped archive logs</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">reassembly_fragment_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reassembly_fragment_size</span> <span class="o">+</span> <span class="n">metric_entry</span><span class="o">.</span><span class="n">reassembly_fragment_size</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">reassembly_unknown_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reassembly_unknown_size</span> <span class="o">+</span> <span class="n">metric_entry</span><span class="o">.</span><span class="n">reassembly_unknown_size</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">packets_processed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped_percentage</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">packets_processed</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped_percentage</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">packets_dropped</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">packets_link</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>

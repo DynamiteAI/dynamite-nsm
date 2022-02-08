@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2604,6 +2616,8 @@
 <span class="sd">        required_install_files: The names of files required to consider the installation successful</span>
 <span class="sd">        required_config_files: The names of config files to consider the installation properly configured.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_setup</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">DynamiteNotSetupError</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span> <span class="o">=</span> <span class="n">install_directory</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">config_directory</span> <span class="o">=</span> <span class="n">config_directory</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">required_install_files</span> <span class="o">=</span> <span class="n">required_install_files</span>

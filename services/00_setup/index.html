@@ -14,7 +14,7 @@
     
     
       
-        <title>Kibana Package Manager - DynamiteNSM</title>
+        <title>Setup - DynamiteNSM</title>
       
     
     
@@ -61,7 +61,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#kibana" class="md-skip">
+        <a href="#setup" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Kibana Package Manager
+              Setup
             
           </span>
         </div>
@@ -895,11 +895,21 @@
             
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../00_setup/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Setup
       </a>
+      
     </li>
   
 
@@ -991,58 +1001,11 @@
             
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Kibana Package Manager
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../04_kibana_package/" class="md-nav__link">
         Kibana Package Manager
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-installation" class="md-nav__link">
-    Package Installation
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#package-uninstallation" class="md-nav__link">
-    Package Uninstallation
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2410,28 +2373,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-installation" class="md-nav__link">
-    Package Installation
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#package-uninstallation" class="md-nav__link">
-    Package Uninstallation
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -2443,25 +2384,23 @@
               
                 
                 
-                <h1 id="kibana">Kibana</h1>
-<p>DynamiteNSM ships with a simple package manager for managing the installation of
-visualizations, dashboards, and saved_searches. These objects are grouped into self-contained packages
-that can easily be installed to a specific tenant.</p>
-<pre><code class="language-bash">$ sudo dynamite kibana package -h
+                <h1 id="setup">Setup</h1>
+<p>Before any Dynamite services can be installed and managed the setup bootstrapper must be called. Setup provides two modes
+<code>install</code> and <code>uninstall</code>. </p>
+<p>The <code>install</code> command retrieves the latest default configurations, sets up the directory structure, and creates a 
+<code>dynamite</code> policy in the <code>/etc/sudoers.d/</code> directory. </p>
+<pre><code class="language-bash">$ sudo dynamite setup -h
+usage: dynamite [-h] {install,uninstall} ...
 
-usage: dynamite package [-h] {install,list,list-tenants,list-saved-objects,uninstall} ...
+Setup DynamiteNSM 1.1.2
 
 positional arguments:
-  {install,list,list-tenants,list-saved-objects,uninstall}
+  {install,uninstall}
+    install            Setup required files and directories.
+    uninstall          Uninstall DynamiteNSM on this machine.
 
 optional arguments:
-  -h, --help            show this help message and exit
-</code></pre>
-<h2 id="package-installation">Package Installation</h2>
-<pre><code class="language-bash">dynamite kibana package install -h
-</code></pre>
-<h2 id="package-uninstallation">Package Uninstallation</h2>
-<pre><code class="language-bash">dynamite kibana package uninstall -h
+  -h, --help           show this help message and exit
 </code></pre>
                 
               
@@ -2481,7 +2420,7 @@ optional arguments:
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
-        <a href="../06_kibana/" class="md-footer__link md-footer__link--prev" rel="prev">
+        <a href="../../configuration/monitor/02_kibana/" class="md-footer__link md-footer__link--prev" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -2496,13 +2435,13 @@ optional arguments:
         </a>
       
       
-        <a href="../07_zeek/" class="md-footer__link md-footer__link--next" rel="next">
+        <a href="../01_updates/" class="md-footer__link md-footer__link--next" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Zeek
+              Updates
             </div>
           </div>
           <div class="md-footer__button md-icon">

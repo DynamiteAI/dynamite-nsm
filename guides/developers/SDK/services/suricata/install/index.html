@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2641,7 +2653,7 @@
 
 
 <h3 id="dynamite_nsm.services.suricata.install.InstallManager.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">,</span> <span class="n">install_directory</span><span class="p">,</span> <span class="n">log_directory</span><span class="p">,</span> <span class="n">download_suricata_archive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">,</span> <span class="n">install_directory</span><span class="p">,</span> <span class="n">log_directory</span><span class="p">,</span> <span class="n">download_suricata_archive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_interface_validation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -2689,6 +2701,12 @@
         <td><code>True</code></td>
       </tr>
       <tr>
+        <td><code>skip_interface_validation</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If included we don't check if the interface is available on the system</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
         <td><code>stdout</code></td>
         <td><code>Optional[bool]</code></td>
         <td><p>Print the output to console</p></td>
@@ -2705,14 +2723,15 @@
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/services/suricata/install.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">configuration_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">install_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">log_directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-             <span class="n">download_suricata_archive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-             <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+             <span class="n">download_suricata_archive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">skip_interface_validation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">stdout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Install Suricata</span>
 <span class="sd">    Args:</span>
 <span class="sd">        configuration_directory: Path to the configuration directory (E.G /etc/dynamite/suricata)</span>
 <span class="sd">        install_directory: Path to the install directory (E.G /opt/dynamite/suricata/)</span>
 <span class="sd">        log_directory: Path to the log directory (E.G /var/log/dynamite/suricata/)</span>
 <span class="sd">        download_suricata_archive: If True, download the Suricata archive from a mirror</span>
+<span class="sd">        skip_interface_validation: If included we don&#39;t check if the interface is available on the system</span>
 <span class="sd">        stdout: Print the output to console</span>
 <span class="sd">        verbose: Include detailed debug messages</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2720,6 +2739,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span> <span class="o">=</span> <span class="n">install_directory</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">log_directory</span> <span class="o">=</span> <span class="n">log_directory</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">download_suricata_archive</span> <span class="o">=</span> <span class="n">download_suricata_archive</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">skip_interface_validation</span> <span class="o">=</span> <span class="n">skip_interface_validation</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
     <span class="n">install</span><span class="o">.</span><span class="n">BaseInstallManager</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;suricata.install&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">)</span>
@@ -2804,6 +2824,7 @@
     <span class="n">configure_args</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;--prefix=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                       <span class="sa">f</span><span class="s1">&#39;--sysconfdir=</span><span class="si">{</span><span class="n">suricata_config_parent_directory</span><span class="si">}</span><span class="s1"> &#39;</span><span class="p">,</span>
                       <span class="sa">f</span><span class="s1">&#39;--localstatedir=</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">STATE_PATH</span><span class="si">}</span><span class="s1">/suricata&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Configuring with: </span><span class="si">{</span><span class="n">configure_args</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">configure_source_package</span><span class="p">(</span><span class="n">suricata_source_install_cache</span><span class="p">,</span> <span class="n">configure_args</span><span class="o">=</span><span class="n">configure_args</span><span class="p">)</span>
     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">compile_source_package</span><span class="p">(</span><span class="n">suricata_source_install_cache</span><span class="p">,</span>
@@ -2958,14 +2979,32 @@
     <span class="n">apt_get_packages</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;automake&#39;</span><span class="p">,</span> <span class="s1">&#39;bison&#39;</span><span class="p">,</span> <span class="s1">&#39;cargo&#39;</span><span class="p">,</span> <span class="s1">&#39;cmake&#39;</span><span class="p">,</span> <span class="s1">&#39;flex&#39;</span><span class="p">,</span> <span class="s1">&#39;g++&#39;</span><span class="p">,</span> <span class="s1">&#39;gcc&#39;</span><span class="p">,</span> <span class="s1">&#39;libcap-ng-dev&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;libjansson-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libjemalloc-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;liblz4-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libmagic-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libnspr4-dev&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;libnss3-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libpcap-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libpcre3-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;libtool&#39;</span><span class="p">,</span> <span class="s1">&#39;libyaml-dev&#39;</span><span class="p">,</span> <span class="s1">&#39;make&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;pkg-config&#39;</span><span class="p">,</span> <span class="s1">&#39;python-pip&#39;</span><span class="p">,</span> <span class="s1">&#39;rustc&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;wget&#39;</span><span class="p">,</span> <span class="s1">&#39;wireshark&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib1g-dev&#39;</span><span class="p">]</span>
+                        <span class="s1">&#39;pkg-config&#39;</span><span class="p">,</span> <span class="s1">&#39;rustc&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;wget&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib1g-dev&#39;</span><span class="p">]</span>
 
     <span class="n">yum_packages</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;automake&#39;</span><span class="p">,</span> <span class="s1">&#39;bison&#39;</span><span class="p">,</span> <span class="s1">&#39;cargo&#39;</span><span class="p">,</span> <span class="s1">&#39;cmake&#39;</span><span class="p">,</span> <span class="s1">&#39;file-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;flex&#39;</span><span class="p">,</span> <span class="s1">&#39;gcc&#39;</span><span class="p">,</span> <span class="s1">&#39;gcc-c++&#39;</span><span class="p">,</span> <span class="s1">&#39;jansson-devel&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;jemalloc-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;libcap-ng-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;libpcap-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;libtool&#39;</span><span class="p">,</span> <span class="s1">&#39;libyaml-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;lz4-devel&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;nspr-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;nss-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;pcre-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;pkgconfig&#39;</span><span class="p">,</span> <span class="s1">&#39;python3-pip&#39;</span><span class="p">,</span> <span class="s1">&#39;rustc&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;wget&#39;</span><span class="p">,</span> <span class="s1">&#39;wireshark&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib-devel&#39;</span><span class="p">]</span>
+                    <span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;nspr-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;nss-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;pcre-devel&#39;</span><span class="p">,</span> <span class="s1">&#39;pkgconfig&#39;</span><span class="p">,</span> <span class="s1">&#39;rustc&#39;</span><span class="p">,</span> <span class="s1">&#39;tar&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;wget&#39;</span><span class="p">,</span> <span class="s1">&#39;zlib-devel&#39;</span><span class="p">]</span>
 
-    <span class="nb">super</span><span class="p">(</span><span class="n">InstallManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">install_dependencies</span><span class="p">(</span><span class="n">apt_get_packages</span><span class="o">=</span><span class="n">apt_get_packages</span><span class="p">,</span> <span class="n">yum_packages</span><span class="o">=</span><span class="n">yum_packages</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">install_powertools_rhel</span><span class="p">(</span><span class="n">pacman_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Install Zeek dependencies (And PowerTools repo if on redhat based distro)</span>
+<span class="sd">        Args:</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pacman_type</span> <span class="o">!=</span> <span class="s1">&#39;yum&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Skipping RHEL PowerTools install, as it is not needed on this distribution.&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">install_dependencies</span><span class="p">(</span><span class="n">yum_packages</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dnf-plugins-core&#39;</span><span class="p">,</span> <span class="s1">&#39;epel-release&#39;</span><span class="p">])</span>
+        <span class="n">enable_powertools_p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;yum&#39;</span><span class="p">,</span> <span class="s1">&#39;config-manager&#39;</span><span class="p">,</span> <span class="s1">&#39;--set-enabled&#39;</span><span class="p">,</span> <span class="s1">&#39;powertools&#39;</span><span class="p">],</span>
+                                               <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+        <span class="n">enable_powertools_p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">enable_powertools_p</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Installed PowerTools.&quot;</span><span class="p">)</span>
+
+    <span class="nb">super</span><span class="p">(</span><span class="n">InstallManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">install_dependencies</span><span class="p">(</span><span class="n">apt_get_packages</span><span class="o">=</span><span class="n">apt_get_packages</span><span class="p">,</span> <span class="n">yum_packages</span><span class="o">=</span><span class="n">yum_packages</span><span class="p">,</span>
+                                                     <span class="n">pre_install_function</span><span class="o">=</span><span class="n">install_powertools_rhel</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3031,8 +3070,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_inspect_interfaces</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">install</span><span class="o">.</span><span class="n">NetworkInterfaceNotFound</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_interface_validation</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_inspect_interfaces</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">install</span><span class="o">.</span><span class="n">NetworkInterfaceNotFound</span><span class="p">(</span><span class="n">inspect_interfaces</span><span class="p">)</span>
     <span class="n">sysctl</span> <span class="o">=</span> <span class="n">systemctl</span><span class="o">.</span><span class="n">SystemCtl</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">install_suricata_dependencies</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">create_update_suricata_environment_variables</span><span class="p">()</span>
@@ -3043,7 +3083,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Creating directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">log_directory</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_directory</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">copy_suricata_files_and_directories</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up Suricata from source. This can a few minutes.&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up Suricata from source. This can take a few minutes.&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
         <span class="n">utilities</span><span class="o">.</span><span class="n">print_coffee_art</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">configure_compile_suricata</span><span class="p">()</span>
@@ -3082,8 +3122,11 @@
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_directory</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
-
+    <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">configuration_directory</span><span class="si">}</span><span class="s1">/suricata.yaml&#39;</span><span class="p">,</span> <span class="mi">660</span><span class="p">)</span>
     <span class="n">post_install_bootstrap_updater</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up Suricata capture rules for dynamite user.&#39;</span><span class="p">)</span>
+    <span class="n">set_caps</span><span class="o">.</span><span class="n">SetCapturePermissions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="p">)</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Installing service -&gt; </span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/systemd/suricata.service&#39;</span><span class="p">)</span>
     <span class="n">sysctl</span><span class="o">.</span><span class="n">install_and_enable</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="p">,</span> <span class="s1">&#39;systemd&#39;</span><span class="p">,</span> <span class="s1">&#39;suricata.service&#39;</span><span class="p">))</span>

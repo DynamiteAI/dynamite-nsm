@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2075,6 +2087,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.zeek.profile.ProcessProfiler.is_attached_to_network" class="md-nav__link">
+    is_attached_to_network()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dynamite_nsm.services.zeek.profile.ProcessProfiler.is_running" class="md-nav__link">
     is_running()
   </a>
@@ -2449,6 +2468,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.zeek.profile.ProcessProfiler.is_attached_to_network" class="md-nav__link">
+    is_attached_to_network()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dynamite_nsm.services.zeek.profile.ProcessProfiler.is_running" class="md-nav__link">
     is_running()
   </a>
@@ -2554,8 +2580,55 @@
     <span class="n">profile</span><span class="o">.</span><span class="n">BaseProcessProfiler</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                          <span class="n">install_directory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zeek_home</span><span class="p">,</span>
                                          <span class="n">config_directory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zeek_scripts</span><span class="p">,</span>
-                                         <span class="n">required_install_files</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;etc&#39;</span><span class="p">,</span> <span class="s1">&#39;lib&#39;</span><span class="p">],</span>
+                                         <span class="n">required_install_files</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;etc&#39;</span><span class="p">],</span>
                                          <span class="n">required_config_files</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">])</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.zeek.profile.ProcessProfiler.is_attached_to_network" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_attached_to_network</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Determine if Zeek is bound to one or more network interfaces</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True, if attached to one or more network interfaces</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/zeek/profile.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_attached_to_network</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Determine if Zeek is bound to one or more network interfaces</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        True, if attached to one or more network interfaces</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_attached_interfaces</span><span class="p">())</span>
 </code></pre></div>
         </details>
     </div>

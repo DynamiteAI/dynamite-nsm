@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -3136,7 +3148,7 @@ but also makes all the instance variables of the configuration class available a
 
 
 <h3 id="dynamite_nsm.cmd.service_interfaces.SimpleConfigManagerInterface.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pretty_print_status</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3188,7 +3200,7 @@ but also makes all the instance variables of the configuration class available a
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/cmd/service_interfaces.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">GenericConfigManager</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">YamlConfigManager</span><span class="p">],</span> <span class="n">interface_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-             <span class="n">interface_description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+             <span class="n">interface_description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">pretty_print_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initialize the interface</span>
 <span class="sd">    Args:</span>
 <span class="sd">        config: The class we wish to turn into a commandline utility</span>
@@ -3198,6 +3210,7 @@ but also makes all the instance variables of the configuration class available a
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">config_module_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">pretty_print_status</span> <span class="o">=</span> <span class="n">pretty_print_status</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="s1">&#39;commit&#39;</span><span class="p">,</span> <span class="n">interface_name</span><span class="p">,</span> <span class="n">interface_description</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
 </code></pre></div>
         </details>
@@ -3301,6 +3314,27 @@ but also makes all the instance variables of the configuration class available a
                                                                         <span class="n">interface_group_name</span><span class="o">=</span><span class="s1">&#39;config_module&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">,</span> <span class="n">targets</span><span class="o">.</span><span class="n">BaseTargets</span><span class="p">):</span>
                 <span class="n">config_module_interface</span> <span class="o">=</span> <span class="n">FilebeatTargetsInterface</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">)</span>
+                <span class="n">interface</span><span class="o">.</span><span class="n">config_module_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">config_module_interface</span><span class="p">})</span>
+                <span class="n">interface_operations</span><span class="o">.</span><span class="n">append_service_interface_to_parser</span><span class="p">(</span><span class="n">config_objects_subparser</span><span class="p">,</span>
+                                                                        <span class="n">interface</span><span class="o">=</span><span class="n">config_module_interface</span><span class="p">,</span>
+                                                                        <span class="n">interface_name</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
+                                                                        <span class="n">interface_group_name</span><span class="o">=</span><span class="s1">&#39;config_module&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">BaseComponent</span><span class="p">):</span>
+                <span class="n">config_module_interface</span> <span class="o">=</span> <span class="n">ZeekNodeConfigObjectInterface</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">)</span>
+                <span class="n">interface</span><span class="o">.</span><span class="n">config_module_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">config_module_interface</span><span class="p">})</span>
+                <span class="n">interface_operations</span><span class="o">.</span><span class="n">append_service_interface_to_parser</span><span class="p">(</span><span class="n">config_objects_subparser</span><span class="p">,</span>
+                                                                        <span class="n">interface</span><span class="o">=</span><span class="n">config_module_interface</span><span class="p">,</span>
+                                                                        <span class="n">interface_name</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
+                                                                        <span class="n">interface_group_name</span><span class="o">=</span><span class="s1">&#39;config_module&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">BaseComponents</span><span class="p">):</span>
+                <span class="n">config_module_interface</span> <span class="o">=</span> <span class="n">ZeekNodeConfigObjectsInterface</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">)</span>
+                <span class="n">interface</span><span class="o">.</span><span class="n">config_module_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">config_module_interface</span><span class="p">})</span>
+                <span class="n">interface_operations</span><span class="o">.</span><span class="n">append_service_interface_to_parser</span><span class="p">(</span><span class="n">config_objects_subparser</span><span class="p">,</span>
+                                                                        <span class="n">interface</span><span class="o">=</span><span class="n">config_module_interface</span><span class="p">,</span>
+                                                                        <span class="n">interface_name</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
+                                                                        <span class="n">interface_group_name</span><span class="o">=</span><span class="s1">&#39;config_module&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">,</span> <span class="n">misc</span><span class="o">.</span><span class="n">AfPacketInterfaces</span><span class="p">):</span>
+                <span class="n">config_module_interface</span> <span class="o">=</span> <span class="n">SuricataInterfaceConfigObjectsInterface</span><span class="p">(</span><span class="n">complex_obj</span><span class="p">)</span>
                 <span class="n">interface</span><span class="o">.</span><span class="n">config_module_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">config_module_interface</span><span class="p">})</span>
                 <span class="n">interface_operations</span><span class="o">.</span><span class="n">append_service_interface_to_parser</span><span class="p">(</span><span class="n">config_objects_subparser</span><span class="p">,</span>
                                                                         <span class="n">interface</span><span class="o">=</span><span class="n">config_module_interface</span><span class="p">,</span>
@@ -3419,14 +3453,29 @@ but also makes all the instance variables of the configuration class available a
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">selected_config_module</span><span class="o">.</span><span class="n">changed_rows</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">BaseComponent</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">selected_config_module</span><span class="o">.</span><span class="n">changed_rows</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">BaseComponents</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config_module</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">selected_config_module</span><span class="o">.</span><span class="n">changed_rows</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">misc</span><span class="o">.</span><span class="n">AfPacketInterfaces</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">selected_config_module</span><span class="o">.</span><span class="n">changed_rows</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">res</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">changed_config</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">changed_rows_only</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretty_print_status</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">changed_rows_only</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">changed_rows_only</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretty_print_status</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s1">&#39;fancy_grid&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>

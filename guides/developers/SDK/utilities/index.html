@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2550,8 +2562,22 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dynamite_nsm.utilities.is_dynamite_member" class="md-nav__link">
+    is_dynamite_member()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#dynamite_nsm.utilities.is_root" class="md-nav__link">
     is_root()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.utilities.is_setup" class="md-nav__link">
+    is_setup()
   </a>
   
 </li>
@@ -2636,6 +2662,13 @@
         <li class="md-nav__item">
   <a href="#dynamite_nsm.utilities.set_permissions_of_file" class="md-nav__link">
     set_permissions_of_file()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.utilities.test_bpf_filter" class="md-nav__link">
+    test_bpf_filter()
   </a>
   
 </li>
@@ -2779,6 +2812,7 @@
                                                                  <span class="n">timestamp</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">makedirs</span><span class="p">(</span><span class="n">configuration_backup_directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">configuration_backup_directory</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">WriteConfigError</span><span class="p">(</span>
             <span class="s2">&quot;General error while attempting to create backup directory at </span><span class="si">{}</span><span class="s2">; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">configuration_backup_directory</span><span class="p">,</span>
@@ -2831,7 +2865,7 @@
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">check_pid</span><span class="p">(</span><span class="n">pid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;:return: True, if the process is running</span>
 <span class="sd">    Args:</span>
-
+<span class="sd">        The process id</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3142,7 +3176,8 @@
     <span class="n">env_file_f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">env_file</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
     <span class="n">env_file_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="n">env_file_f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">env_file</span><span class="p">,</span> <span class="mi">700</span><span class="p">)</span>
+    <span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">env_file</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
+    <span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">env_file</span><span class="p">,</span> <span class="mi">770</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -4194,21 +4229,26 @@
 
     <span class="n">available_networks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">intface</span><span class="p">,</span> <span class="n">addr_list</span> <span class="ow">in</span> <span class="n">addresses</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="s1">&#39;address&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;169.254&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">addr_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;lo&#39;</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;lo&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;docker&#39;</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="k">elif</span> <span class="n">intface</span> <span class="ow">in</span> <span class="n">stats</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">],</span> <span class="s2">&quot;isup&quot;</span><span class="p">):</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">intface</span>
-            <span class="n">speed</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">]</span><span class="o">.</span><span class="n">speed</span>
-            <span class="n">duplex</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">]</span><span class="o">.</span><span class="n">duplex</span><span class="p">)</span>
-            <span class="n">mtu</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">]</span><span class="o">.</span><span class="n">mtu</span>
-            <span class="n">available_networks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
-                <span class="s1">&#39;speed&#39;</span><span class="p">:</span> <span class="n">speed</span><span class="p">,</span>
-                <span class="s1">&#39;duplex&#39;</span><span class="p">:</span> <span class="n">duplex</span><span class="p">,</span>
-                <span class="s1">&#39;mtu&#39;</span><span class="p">:</span> <span class="n">mtu</span>
-            <span class="p">})</span>
+        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;veth&#39;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;br-&#39;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">intface</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">intface</span>
+        <span class="n">speed</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">]</span><span class="o">.</span><span class="n">speed</span>
+        <span class="n">duplex</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">]</span><span class="o">.</span><span class="n">duplex</span><span class="p">)</span>
+        <span class="n">mtu</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">]</span><span class="o">.</span><span class="n">mtu</span>
+        <span class="n">available_networks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+            <span class="s1">&#39;speed&#39;</span><span class="p">:</span> <span class="n">speed</span><span class="p">,</span>
+            <span class="s1">&#39;duplex&#39;</span><span class="p">:</span> <span class="n">duplex</span><span class="p">,</span>
+            <span class="s1">&#39;mtu&#39;</span><span class="p">:</span> <span class="n">mtu</span>
+        <span class="p">})</span>
     <span class="k">return</span> <span class="n">available_networks</span>
 </code></pre></div>
         </details>
@@ -4261,12 +4301,17 @@
 
     <span class="n">available_networks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">intface</span><span class="p">,</span> <span class="n">addr_list</span> <span class="ow">in</span> <span class="n">addresses</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="s1">&#39;address&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;169.254&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">addr_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;lo&#39;</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;lo&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;docker&#39;</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="k">elif</span> <span class="n">intface</span> <span class="ow">in</span> <span class="n">stats</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="n">intface</span><span class="p">],</span> <span class="s2">&quot;isup&quot;</span><span class="p">):</span>
-            <span class="n">available_networks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intface</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;veth&#39;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">intface</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;br-&#39;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">intface</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">available_networks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intface</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">available_networks</span>
 </code></pre></div>
         </details>
@@ -4391,6 +4436,75 @@
 
 
 
+<h2 id="dynamite_nsm.utilities.is_dynamite_member" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_dynamite_member</span><span class="p">(</span><span class="n">user</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Check if a user is a member of the dynamite group</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>user</code></td>
+        <td><code>str</code></td>
+        <td><p>A username</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True, if the user is a member of the dynamite group</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/utilities.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_dynamite_member</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if a user is a member of the dynamite group</span>
+<span class="sd">    Args:</span>
+<span class="sd">        user: A username</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True, if the user is a member of the dynamite group</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">grp</span><span class="o">.</span><span class="n">getgrnam</span><span class="p">(</span><span class="s1">&#39;dynamite&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
 <h2 id="dynamite_nsm.utilities.is_root" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">is_root</span><span class="p">()</span></code>
 
@@ -4426,6 +4540,57 @@
 <span class="sd">         True, if the user is root</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getuid</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.utilities.is_setup" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_setup</span><span class="p">()</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Check if DynamiteNSM has required directories created.</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>bool</code></td>
+      <td><p>True if setup properly</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/utilities.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_setup</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Check if DynamiteNSM has required directories created.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        True if setup properly</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_PATH</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">INSTALL_PATH</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LOG_PATH</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
 </code></pre></div>
         </details>
     </div>
@@ -5245,18 +5410,63 @@
     <div class="doc doc-contents ">
 
       <p>Set the ownership of a file given a user/group and a path</p>
-<p>:param path: The path to the file
-:param user: The name of the user
-:param group: The group of the user</p>
 
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>path</code></td>
+        <td><code>str</code></td>
+        <td><p>The path to the file</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>user</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The name of the user</p></td>
+        <td><code>&#39;dynamite&#39;</code></td>
+      </tr>
+      <tr>
+        <td><code>group</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The group of the user</p></td>
+        <td><code>&#39;dynamite&#39;</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>None</code></td>
+      <td><p>None</p></td>
+    </tr>
+  </tbody>
+</table>
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/utilities.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_ownership_of_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;dynamite&#39;</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;dynamite&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Set the ownership of a file given a user/group and a path</span>
-
-<span class="sd">    :param path: The path to the file</span>
-<span class="sd">    :param user: The name of the user</span>
-<span class="sd">    :param group: The group of the user</span>
+<span class="sd">    Args:</span>
+<span class="sd">        path: The path to the file</span>
+<span class="sd">        user: The name of the user</span>
+<span class="sd">        group: The group of the user</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">uid</span> <span class="o">=</span> <span class="n">pwd</span><span class="o">.</span><span class="n">getpwnam</span><span class="p">(</span><span class="n">user</span><span class="p">)</span><span class="o">.</span><span class="n">pw_uid</span>
@@ -5342,6 +5552,88 @@
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s1">&#39;chmod -R </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unix_permissions_integer</span><span class="p">,</span> <span class="n">file_path</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.utilities.test_bpf_filter" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">test_bpf_filter</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">include_message</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Given a BPF expression determine if it is valid, and optionally return a message if not</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>expr</code></td>
+        <td><code>str</code></td>
+        <td><p>A valid Berkeley Packet Filter</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>include_message</code></td>
+        <td><code>bool</code></td>
+        <td><p>If True, Include an error message if expression is not valid.</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>Union[bool, Tuple[bool, str]]</code></td>
+      <td><p>The result and optional result message</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/utilities.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">test_bpf_filter</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">include_message</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Given a BPF expression determine if it is valid, and optionally return a message if not</span>
+<span class="sd">    Args:</span>
+<span class="sd">        expr: A valid Berkeley Packet Filter</span>
+<span class="sd">        include_message: If True, Include an error message if expression is not valid.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The result and optional result message</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bin_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;dynamite_nsm&#39;</span><span class="p">,</span> <span class="s1">&#39;bin/bpf_validate&#39;</span><span class="p">)</span>
+    <span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">bin_path</span><span class="p">,</span> <span class="s1">&#39;+x&#39;</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">bin_path</span><span class="p">]</span> <span class="o">+</span> <span class="n">expr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">),</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+    <span class="n">output</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+    <span class="n">serialized_values</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">include_message</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">serialized_values</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">serialized_values</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">],</span> <span class="n">serialized_values</span><span class="p">[</span><span class="s1">&#39;msg&#39;</span><span class="p">]</span>
 </code></pre></div>
         </details>
     </div>
@@ -5545,7 +5837,7 @@
   <tbody>
     <tr>
       <td><code>str</code></td>
-      <td><p>A new line deliminated string</p></td>
+      <td><p>A new line delaminated string</p></td>
     </tr>
   </tbody>
 </table>
@@ -5556,7 +5848,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        s: A string</span>
 <span class="sd">    Returns:</span>
-<span class="sd">         A new line deliminated string</span>
+<span class="sd">         A new line delaminated string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;&quot;</span>

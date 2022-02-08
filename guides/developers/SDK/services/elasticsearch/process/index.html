@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2736,7 +2748,7 @@
     <span class="n">environ</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_environment_file_dict</span><span class="p">()</span>
     <span class="n">process</span><span class="o">.</span><span class="n">BaseProcessManager</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;elasticsearch.service&#39;</span><span class="p">,</span> <span class="s1">&#39;elasticsearch.process&#39;</span><span class="p">,</span>
                                         <span class="n">log_path</span><span class="o">=</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ES_LOGS&#39;</span><span class="p">),</span>
-                                        <span class="n">create_pid_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                        <span class="n">create_pid_file</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                         <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">pretty_print_status</span><span class="o">=</span><span class="n">pretty_print_status</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">elasticsearch_profile</span><span class="o">.</span><span class="n">ProcessProfiler</span><span class="p">()</span><span class="o">.</span><span class="n">is_installed</span><span class="p">():</span>

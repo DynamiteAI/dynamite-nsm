@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2663,6 +2675,8 @@
 <span class="sd">        log_sample_size: The number of most recent entries to include</span>
 <span class="sd">        gzip_decode: If True, we&#39;ll decode the log before reading it in</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_setup</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">DynamiteNotSetupError</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">log_path</span> <span class="o">=</span> <span class="n">log_path</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">log_sample_size</span> <span class="o">=</span> <span class="n">log_sample_size</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">exists</span> <span class="o">=</span> <span class="kc">False</span>

@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2790,7 +2802,7 @@
 
 
 <h3 id="dynamite_nsm.services.base.config_objects.filebeat.targets.BaseTargets.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -2853,6 +2865,12 @@ This option is required if ssl_certificate is specified.</p></td>
         <td><code>False</code></td>
       </tr>
       <tr>
+        <td><code>ssl_enabled</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If True, The SSL transport settings will be used</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
         <td><code>ssl_certificate_authorities</code></td>
         <td><code>Optional[str]</code></td>
         <td><p>The list of root certificates for server verifications.
@@ -2886,7 +2904,7 @@ This option is required if ssl_certificate is specified.</p></td>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">ssl_certificate_authorities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">ssl_certificate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">ssl_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;certificate&#39;</span><span class="p">,</span>
-             <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+             <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;An abstract object from which all Filebeat targets are derived</span>
 <span class="sd">    Args:</span>
 <span class="sd">        target_strings: The list of downstream servers to connect to</span>
@@ -2900,6 +2918,7 @@ This option is required if ssl_certificate is specified.</p></td>
 <span class="sd">            This option is required if ssl_certificate is specified.</span>
 <span class="sd">        ssl_verification_mode: This option controls whether the client verifies server certificates and host names.</span>
 <span class="sd">        enabled: If True, Filebeat will attempt to send events to this target</span>
+<span class="sd">        ssl_enabled: If True, The SSL transport settings will be used</span>
 <span class="sd">        ssl_certificate_authorities: The list of root certificates for server verifications.</span>
 <span class="sd">            If certificate_authorities is empty or not set, the trusted certificate authorities of the host</span>
 <span class="sd">            system are used. (E.G [&quot;/etc/pki/root/ca.pem&quot;])</span>
@@ -2911,11 +2930,12 @@ This option is required if ssl_certificate is specified.</p></td>
 <span class="sd">        ssl_verification_mode: This option controls whether the client verifies server certificates and host names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">target_strings</span> <span class="o">=</span> <span class="n">target_strings</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">ssl_certificate_authorities</span> <span class="o">=</span> <span class="n">ssl_certificate_authorities</span> <span class="k">if</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ssl_certificate_authorities</span> <span class="o">=</span> <span class="n">ssl_certificate_authorities</span> <span class="k">if</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">ssl_certificate</span> <span class="o">=</span> <span class="n">ssl_certificate</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">ssl_key</span> <span class="o">=</span> <span class="n">ssl_key</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">ssl_verification_mode</span> <span class="o">=</span> <span class="n">ssl_verification_mode</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">enabled</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ssl_enabled</span> <span class="o">=</span> <span class="n">ssl_enabled</span>
 </code></pre></div>
         </details>
     </div>
@@ -2968,12 +2988,13 @@ This option is required if ssl_certificate is specified.</p></td>
         <span class="n">verification_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ssl_verification_mode</span>
     <span class="p">)</span>
     <span class="n">ssl</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ssl</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
-    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">hosts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_strings</span><span class="p">,</span>
         <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">,</span>
-        <span class="n">ssl</span><span class="o">=</span><span class="n">ssl</span>
-
     <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssl_enabled</span><span class="p">:</span>
+        <span class="n">raw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ssl</span><span class="o">=</span><span class="n">ssl</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">raw</span>
 </code></pre></div>
         </details>
     </div>
@@ -3024,7 +3045,7 @@ This option is required if ssl_certificate is specified.</p></td>
 
 
 <h3 id="dynamite_nsm.services.base.config_objects.filebeat.targets.ElasticsearchTargets.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;filebeat-%{[agent.version]}-%{+yyyy.MM.dd}&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;filebeat-%{[agent.version]}-%{+yyyy.MM.dd}&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3078,6 +3099,12 @@ This option is required if ssl_certificate is specified.</p></td>
         <td><code>False</code></td>
       </tr>
       <tr>
+        <td><code>ssl_enabled</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If True, The SSL transport settings will be used</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
         <td><code>ssl_certificate_authorities</code></td>
         <td><code>Optional[str]</code></td>
         <td><p>The list of root certificates for server verifications.</p></td>
@@ -3109,7 +3136,8 @@ This option is required if ssl_certificate is specified.</p></td>
              <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">ssl_certificate_authorities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">ssl_certificate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">ssl_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Elasticsearch endpoint configuration where events should be sent</span>
 <span class="sd">    Args:</span>
 <span class="sd">        target_strings: The list of Elasticsearch nodes to connect to.</span>
@@ -3117,13 +3145,14 @@ This option is required if ssl_certificate is specified.</p></td>
 <span class="sd">        username: The basic authentication username for connecting to Elasticsearch.</span>
 <span class="sd">        password: The basic authentication password for connecting to Elasticsearch.</span>
 <span class="sd">        enabled: If True, Filebeat will attempt to send events to this target</span>
+<span class="sd">        ssl_enabled: If True, The SSL transport settings will be used</span>
 <span class="sd">        ssl_certificate_authorities: The list of root certificates for server verifications.</span>
 <span class="sd">        ssl_certificate: The path to the certificate for SSL client authentication.</span>
 <span class="sd">        ssl_key: The client certificate key used for client authentication.</span>
 <span class="sd">        ssl_verification_mode: This option controls whether the client verifies server certificates and host names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">target_strings</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="p">,</span>
-                     <span class="n">enabled</span><span class="o">=</span><span class="n">enabled</span><span class="p">)</span>
+                     <span class="n">enabled</span><span class="o">=</span><span class="n">enabled</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="n">ssl_enabled</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
@@ -3321,7 +3350,7 @@ This option is required if ssl_certificate is specified.</p></td>
 
 
 <h3 id="dynamite_nsm.services.base.config_objects.filebeat.targets.KafkaTargets.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3375,6 +3404,12 @@ This option is required if ssl_certificate is specified.</p></td>
         <td><code>False</code></td>
       </tr>
       <tr>
+        <td><code>ssl_enabled</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If True, The SSL transport settings will be used</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
         <td><code>ssl_certificate_authorities</code></td>
         <td><code>Optional[str]</code></td>
         <td><p>The list of root certificates for server verifications.</p></td>
@@ -3405,7 +3440,8 @@ This option is required if ssl_certificate is specified.</p></td>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">topic</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">ssl_certificate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">ssl_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Kafka endpoint configuration where events should be sent</span>
 <span class="sd">    Args:</span>
 <span class="sd">        target_strings: A list of Kafka brokers, and their service port (E.G [&quot;192.168.0.9 5044&quot;])</span>
@@ -3413,13 +3449,14 @@ This option is required if ssl_certificate is specified.</p></td>
 <span class="sd">        username: The username used to authenticate to Kafka broker</span>
 <span class="sd">        password: The password used to authenticate to Kafka broker</span>
 <span class="sd">        enabled: If True, Filebeat will attempt to send events to this target</span>
+<span class="sd">        ssl_enabled: If True, The SSL transport settings will be used</span>
 <span class="sd">        ssl_certificate_authorities: The list of root certificates for server verifications.</span>
 <span class="sd">        ssl_certificate: The path to the certificate for SSL client authentication.</span>
 <span class="sd">        ssl_key: The client certificate key used for client authentication.</span>
 <span class="sd">        ssl_verification_mode: This option controls whether the client verifies server certificates and host names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">target_strings</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="p">,</span>
-                     <span class="n">enabled</span><span class="p">)</span>
+                     <span class="n">enabled</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="n">ssl_enabled</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">topic</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
@@ -3529,7 +3566,7 @@ This option is required if ssl_certificate is specified.</p></td>
 
 
 <h3 id="dynamite_nsm.services.base.config_objects.filebeat.targets.LogstashTargets.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;filebeat-%{[agent.version]}-%{+yyyy.MM.dd}&#39;</span><span class="p">,</span> <span class="n">load_balance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">socks_5_proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pipelines</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_batch_size</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;filebeat-%{[agent.version]}-%{+yyyy.MM.dd}&#39;</span><span class="p">,</span> <span class="n">load_balance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">socks_5_proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pipelines</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_batch_size</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3595,6 +3632,12 @@ This option is required if ssl_certificate is specified.</p></td>
         <td><code>False</code></td>
       </tr>
       <tr>
+        <td><code>ssl_enabled</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If True, The SSL transport settings will be used</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
         <td><code>ssl_certificate_authorities</code></td>
         <td><code>Optional[str]</code></td>
         <td><p>The list of root certificates for server verifications.</p></td>
@@ -3628,7 +3671,8 @@ This option is required if ssl_certificate is specified.</p></td>
              <span class="n">pipelines</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">max_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2048</span><span class="p">,</span>
              <span class="n">ssl_certificate_authorities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">ssl_certificate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">ssl_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Logstash endpoint configuration where events should be sent</span>
 <span class="sd">    Args:</span>
 <span class="sd">        target_strings: A list of Logstash hosts, and their service port (E.G [&quot;192.168.0.9 5044&quot;])</span>
@@ -3638,6 +3682,7 @@ This option is required if ssl_certificate is specified.</p></td>
 <span class="sd">        pipelines: Configures the number of batches to be sent asynchronously to Logstash</span>
 <span class="sd">        max_batch_size: The maximum number of events to bulk in a single Logstash request.</span>
 <span class="sd">        enabled: If True, Filebeat will attempt to send events to this target</span>
+<span class="sd">        ssl_enabled: If True, The SSL transport settings will be used</span>
 <span class="sd">        ssl_certificate_authorities: The list of root certificates for server verifications.</span>
 <span class="sd">        ssl_certificate: The path to the certificate for SSL client authentication.</span>
 <span class="sd">        ssl_key: The client certificate key used for client authentication.</span>
@@ -3645,12 +3690,12 @@ This option is required if ssl_certificate is specified.</p></td>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">load_balance</span> <span class="o">=</span> <span class="n">load_balance</span> <span class="k">if</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">load_balance</span> <span class="o">=</span> <span class="n">load_balance</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">socks_5_proxy_url</span> <span class="o">=</span> <span class="n">socks_5_proxy_url</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">pipelines</span> <span class="o">=</span> <span class="n">pipelines</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">max_batch_size</span> <span class="o">=</span> <span class="n">max_batch_size</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">target_strings</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="p">,</span>
-                     <span class="n">enabled</span><span class="p">)</span>
+                     <span class="n">enabled</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="n">ssl_enabled</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3758,7 +3803,7 @@ This option is required if ssl_certificate is specified.</p></td>
 
 
 <h3 id="dynamite_nsm.services.base.config_objects.filebeat.targets.RedisTargets.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;filebeat-%{[agent.version]}-%{+yyyy.MM.dd}&#39;</span><span class="p">,</span> <span class="n">load_balance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">socks_5_proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_batch_size</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_strings</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&#39;filebeat-%{[agent.version]}-%{+yyyy.MM.dd}&#39;</span><span class="p">,</span> <span class="n">load_balance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">socks_5_proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_batch_size</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3836,6 +3881,12 @@ This option is required if ssl_certificate is specified.</p></td>
         <td><code>False</code></td>
       </tr>
       <tr>
+        <td><code>ssl_enabled</code></td>
+        <td><code>Optional[bool]</code></td>
+        <td><p>If True, The SSL transport settings will be used</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
         <td><code>ssl_certificate_authorities</code></td>
         <td><code>Optional[str]</code></td>
         <td><p>The list of root certificates for server verifications.</p></td>
@@ -3868,8 +3919,8 @@ This option is required if ssl_certificate is specified.</p></td>
              <span class="n">workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2048</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
              <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
              <span class="n">ssl_certificate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-
+             <span class="n">ssl_verification_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;certificate&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">ssl_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Redis endpoint configuration where events should be sent</span>
 <span class="sd">    Args:</span>
 <span class="sd">        target_strings: A list of Redis hosts, and their service port (E.G [&quot;192.168.0.9 6379&quot;]</span>
@@ -3881,19 +3932,20 @@ This option is required if ssl_certificate is specified.</p></td>
 <span class="sd">        password: The password to authenticate with. The default is no authentication.</span>
 <span class="sd">        db: The Redis database number where the events are published. The default is 0.</span>
 <span class="sd">        enabled: If True, Filebeat will attempt to send events to this target</span>
+<span class="sd">        ssl_enabled: If True, The SSL transport settings will be used</span>
 <span class="sd">        ssl_certificate_authorities: The list of root certificates for server verifications.</span>
 <span class="sd">        ssl_certificate: The path to the certificate for SSL client authentication.</span>
 <span class="sd">        ssl_key: The client certificate key used for client authentication.</span>
 <span class="sd">        ssl_verification_mode: This option controls whether the client verifies server certificates and host names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">target_strings</span><span class="p">,</span> <span class="n">ssl_certificate_authorities</span><span class="p">,</span> <span class="n">ssl_certificate</span><span class="p">,</span> <span class="n">ssl_key</span><span class="p">,</span> <span class="n">ssl_verification_mode</span><span class="p">,</span>
-                     <span class="n">enabled</span><span class="p">)</span>
+                     <span class="n">enabled</span><span class="p">,</span> <span class="n">ssl_enabled</span><span class="o">=</span><span class="n">ssl_enabled</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">socks_5_proxy_url</span> <span class="o">=</span> <span class="n">socks_5_proxy_url</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">workers</span> <span class="o">=</span> <span class="n">workers</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">max_batch_size</span> <span class="o">=</span> <span class="n">max_batch_size</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">db</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">load_balance</span> <span class="o">=</span> <span class="n">load_balance</span> <span class="k">if</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">load_balance</span> <span class="o">=</span> <span class="n">load_balance</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
 </code></pre></div>
         </details>

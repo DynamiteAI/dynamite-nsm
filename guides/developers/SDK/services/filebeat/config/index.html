@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -1927,6 +1939,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.filebeat.config.ConfigManager.reset" class="md-nav__link">
+    reset()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dynamite_nsm.services.filebeat.config.ConfigManager.switch_to_elasticsearch_target" class="md-nav__link">
     switch_to_elasticsearch_target()
   </a>
@@ -2601,6 +2620,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.filebeat.config.ConfigManager.reset" class="md-nav__link">
+    reset()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dynamite_nsm.services.filebeat.config.ConfigManager.switch_to_elasticsearch_target" class="md-nav__link">
     switch_to_elasticsearch_target()
   </a>
@@ -2851,6 +2877,7 @@ Elasticsearch.</li>
         <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elasticsearch_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate_authorities&#39;</span><span class="p">),</span>
         <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elasticsearch_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">),</span>
         <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elasticsearch_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">),</span>
+        <span class="n">ssl_enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elasticsearch_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
         <span class="n">ssl_certificate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elasticsearch_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate&#39;</span><span class="p">),</span>
         <span class="n">ssl_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elasticsearch_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span>
         <span class="n">ssl_verification_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_elasticsearch_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verification_mode&#39;</span><span class="p">),</span>
@@ -2860,10 +2887,11 @@ Elasticsearch.</li>
     <span class="bp">self</span><span class="o">.</span><span class="n">logstash_targets</span> <span class="o">=</span> <span class="n">LogstashTargets</span><span class="p">(</span>
         <span class="n">target_strings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hosts&#39;</span><span class="p">),</span>
         <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">),</span>
-        <span class="n">load_balance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loadbalancing&#39;</span><span class="p">),</span>
+        <span class="n">load_balance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loadbalance&#39;</span><span class="p">),</span>
         <span class="n">socks_5_proxy_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;proxy_url&#39;</span><span class="p">),</span>
         <span class="n">pipelines</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pipelining&#39;</span><span class="p">),</span>
         <span class="n">max_batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bulk_max_size&#39;</span><span class="p">),</span>
+        <span class="n">ssl_enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
         <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate_authorities&#39;</span><span class="p">),</span>
         <span class="n">ssl_certificate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate&#39;</span><span class="p">),</span>
         <span class="n">ssl_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logstash_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span>
@@ -2876,6 +2904,7 @@ Elasticsearch.</li>
         <span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;topic&#39;</span><span class="p">),</span>
         <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">),</span>
         <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">),</span>
+        <span class="n">ssl_enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
         <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate_authorities&#39;</span><span class="p">),</span>
         <span class="n">ssl_certificate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate&#39;</span><span class="p">),</span>
         <span class="n">ssl_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span>
@@ -2884,11 +2913,13 @@ Elasticsearch.</li>
     <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">redis_targets</span> <span class="o">=</span> <span class="n">RedisTargets</span><span class="p">(</span>
-        <span class="n">target_strings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hosts&#39;</span><span class="p">),</span>
-        <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kafka_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">),</span>
+        <span class="n">target_strings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hosts&#39;</span><span class="p">),</span>
+        <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">),</span>
         <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">),</span>
-        <span class="n">load_balance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loadbalancing&#39;</span><span class="p">),</span>
+        <span class="n">load_balance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loadbalance&#39;</span>
+                                                 <span class="s1">&#39;&#39;</span><span class="p">),</span>
         <span class="n">db</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;db&#39;</span><span class="p">),</span>
+        <span class="n">ssl_enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
         <span class="n">ssl_certificate_authorities</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate_authorities&#39;</span><span class="p">),</span>
         <span class="n">ssl_certificate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;certificate&#39;</span><span class="p">),</span>
         <span class="n">ssl_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_targets_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ssl&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">),</span>
@@ -2976,7 +3007,7 @@ Elasticsearch.</li>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">out_file_path</span><span class="p">:</span>
-        <span class="n">out_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filebeat_config_path</span>
+        <span class="n">out_file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/filebeat.yml&#39;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_inputs_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_logs</span><span class="o">.</span><span class="n">get_raw</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_processors_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_processors</span><span class="o">.</span><span class="n">get_raw</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_index_template_settings_raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_template_settings</span><span class="o">.</span><span class="n">get_raw</span><span class="p">()</span>
@@ -3167,7 +3198,7 @@ Elasticsearch.</li>
 <span class="sd">    Returns:</span>
 <span class="sd">         An instance of ConfigManager</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">tmp_dir</span> <span class="o">=</span> <span class="s1">&#39;/tmp/dynamite/temp_configs&#39;</span>
+    <span class="n">tmp_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_PATH</span><span class="si">}</span><span class="s1">/.tmp&#39;</span>
     <span class="n">tmp_config</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tmp_dir</span><span class="si">}</span><span class="s1">/filebeat.yml&#39;</span>
     <span class="n">utilities</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp_config</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_f</span><span class="p">:</span>
@@ -3395,6 +3426,84 @@ Elasticsearch.</li>
         <span class="n">write_module</span><span class="p">(</span><span class="n">suricata_module_path</span><span class="p">,</span> <span class="n">suricata_module_data</span><span class="p">)</span>
         <span class="n">patch_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">patch_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.filebeat.config.ConfigManager.reset" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Reset a configuration file back to its default</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>out_file_path</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The path to the output file</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>default_config_path</code></td>
+        <td><code>Optional[str]</code></td>
+        <td><p>The path to the default configuration</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code></code></td>
+      <td><p>None</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/filebeat/config.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">default_config_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reset a configuration file back to its default</span>
+<span class="sd">    Args:</span>
+<span class="sd">        out_file_path: The path to the output file</span>
+<span class="sd">        default_config_path: The path to the default configuration</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">out_file_path</span><span class="p">:</span>
+        <span class="n">out_file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">install_directory</span><span class="si">}</span><span class="s1">/filebeat.yml&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">default_config_path</span><span class="p">:</span>
+        <span class="n">default_config_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">const</span><span class="o">.</span><span class="n">DEFAULT_CONFIGS</span><span class="si">}</span><span class="s1">/filebeat/filebeat.yml&#39;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ConfigManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">out_file_path</span><span class="p">,</span> <span class="n">default_config_path</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">out_file_path</span><span class="o">=</span><span class="n">out_file_path</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>

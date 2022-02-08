@@ -950,6 +950,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2450,8 +2462,7 @@ We highly recommend installing the <code>dynamite-nsm</code> package on a fresh 
 </blockquote>
 <hr />
 <blockquote>
-<p>⚠️ <code>root</code> access is needed as <code>dynamite</code> will need to be able to install and uninstall services within the
-Dynamite stack, and perform privileged operations like user creation and <code>systemctl</code> management.</p>
+<p>⚠️ <code>root</code> access is needed as <code>dynamite</code> will need to be able to install and uninstall services.</p>
 </blockquote>
 <p><code>dynamite-nsm</code> is a <a href="https://www.python.org/downloads/">Python3.7+</a> compatible package that can be installed directly through <a href="https://pip.pypa.io/en/stable/installing/">pip</a>.</p>
 <pre><code class="language-bash">sudo pip install dynamite-nsm
@@ -2465,11 +2476,13 @@ sudo pip install dynamite-nsm/
 <a href="../../guides/developers/01_overview">developer guides</a>!</p>
 </blockquote>
 <p>Once installed, you should be able to call <code>dynamite</code> directly from the commandline. 
-Keep in mind that <code>dynamite</code> requires <code>root</code> access in order to run basically any command.
-We will use the <code>dynamite</code> commandline utility for setting up and managing all the services we install.</p>
-<p>Download any default configuration or mirror updates.</p>
-<pre><code class="language-bash">sudo dynamite updates install
+We will use the <code>dynamite</code> commandline utility for setting up and managing all the services we install.
+Keep in mind that the <code>dynamite</code> utility requires <code>root</code> access in order to run <code>install</code> and <code>uninstall</code> commands.</p>
+<p>Before you can begin installing services you must initialize the system with the <code>setup</code> bootstrapper as root.</p>
+<pre><code class="language-bash">sudo dynamite setup install
 </code></pre>
+<p>This command will download configuration updates, setup directory structure, and add a <code>sudoers.d/</code> policy 
+allowing users in the <code>dynamite</code> group to run some elevated commands.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="command-not-found">Command not found</h3>
 <p><strong>Symptoms</strong>: You run any <code>dynamite</code> command, but the shell reports that the <code>dynamite</code> Could not be found or something similar.</p>

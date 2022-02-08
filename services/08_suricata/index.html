@@ -897,6 +897,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2531,7 +2543,7 @@ rule-sets to quickly identify sophisticated threats.</p>
 <p>Within DynamiteNSM, Suricata is used primarily for identifying known suspicious or malicious activity.</p>
 <p>By default, Suricata runs the <a href="https://rules.emergingthreats.net/open/suricata-4.0/rules/">EmergingThreat Open rule-set</a>, which is updated daily.</p>
 <p>To make sure you are running the latest rules run <code>sudo dynamite suricata update</code>.</p>
-<pre><code class="language-bash">$ sudo dynamite suricata -h
+<pre><code class="language-bash">$ dynamite suricata -h
 
 usage: dynamite [-h] {install,uninstall,update,process,config,logs} ...
 
@@ -2554,16 +2566,16 @@ optional arguments:
 <pre><code class="language-bash">sudo dynamite suricata install -h
 </code></pre>
 <h2 id="configuration">Configuration</h2>
-<pre><code class="language-bash">sudo dynamite suricata config -h
+<pre><code class="language-bash">dynamite suricata config -h
 </code></pre>
 <h3 id="scripts-configuration">Scripts Configuration</h3>
-<pre><code class="language-bash">sudo dynamite suricata config main rules -h
+<pre><code class="language-bash">dynamite suricata config main rules -h
 </code></pre>
 <h2 id="process-management">Process Management</h2>
-<pre><code class="language-bash">sudo dynamite suricata process -h
+<pre><code class="language-bash">dynamite suricata process -h
 </code></pre>
 <h2 id="view-logs">View Logs</h2>
-<pre><code class="language-bash">sudo dynamite suricata logs -h
+<pre><code class="language-bash">dynamite suricata logs -h
 </code></pre>
 <h2 id="defaults">Defaults</h2>
 <h3 id="directories">Directories</h3>

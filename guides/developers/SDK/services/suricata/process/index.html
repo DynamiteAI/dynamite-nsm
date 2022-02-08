@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2523,7 +2535,6 @@
 
 
 
-
   <div class="doc doc-object doc-class">
 
 
@@ -2719,7 +2730,7 @@
     <span class="n">process</span><span class="o">.</span><span class="n">BaseProcessManager</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;suricata.service&#39;</span><span class="p">,</span> <span class="s1">&#39;suricata.process&#39;</span><span class="p">,</span> <span class="n">log_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                         <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">pretty_print_status</span><span class="o">=</span><span class="n">pretty_print_status</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">profile</span><span class="o">.</span><span class="n">ProcessProfiler</span><span class="p">()</span><span class="o">.</span><span class="n">is_installed</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="n">general_exceptions</span><span class="o">.</span><span class="n">CallProcessError</span><span class="p">(</span><span class="s2">&quot;Suricata is not installed.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">CallProcessError</span><span class="p">(</span><span class="s2">&quot;Suricata is not installed.&quot;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>

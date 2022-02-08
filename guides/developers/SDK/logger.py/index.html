@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2411,7 +2423,7 @@
 
 
 <h2 id="dynamite_nsm.logger.get_logger" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_logger</span><span class="p">(</span><span class="n">component_name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_logger</span><span class="p">(</span><span class="n">component_name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 
 </h2>
@@ -2449,18 +2461,25 @@
         <td><p>If True, prints to console</p></td>
         <td><code>True</code></td>
       </tr>
+      <tr>
+        <td><code>stdout_only</code></td>
+        <td><code></code></td>
+        <td><p>If True, we only print to the console (overrides stdout)</p></td>
+        <td><code>False</code></td>
+      </tr>
   </tbody>
 </table>      <p>Returns: A logger instance</p>
 
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/logger.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">component_name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">component_name</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Get a pre-configured logging instance</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        component_name: The name of the service doing the logging.</span>
 <span class="sd">        level: The minimum logging level</span>
 <span class="sd">        stdout: If True, prints to console</span>
+<span class="sd">        stdout_only: If True, we only print to the console (overrides stdout)</span>
 
 <span class="sd">    Returns: A logger instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2469,16 +2488,21 @@
                                         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;cyan&#39;</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
                                         <span class="s1">&#39;programname&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">},</span> <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;yellow&#39;</span><span class="p">}}</span>
 
-    <span class="n">utilities</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LOG_PATH</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">component_name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">):</span>
-        <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LOG_PATH</span><span class="p">,</span> <span class="s1">&#39;dynamite-</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">TODAY_FORMATTED_DATE</span><span class="p">)))</span>
-        <span class="n">fformatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
-            <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> | </span><span class="si">%(name)20s</span><span class="s1"> | </span><span class="si">%(module)20s</span><span class="s1"> | </span><span class="si">%(funcName)45s</span><span class="s1"> | </span><span class="si">%(lineno)4s</span><span class="s1"> | </span><span class="si">%(levelname)8s</span><span class="s1"> |  </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">fformatter</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stdout_only</span><span class="p">:</span>
+            <span class="n">log_out_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LOG_PATH</span><span class="p">,</span> <span class="s1">&#39;dynamite-</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">TODAY_FORMATTED_DATE</span><span class="p">))</span>
+            <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_out_path</span><span class="p">)</span>
+            <span class="n">fformatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> | </span><span class="si">%(name)20s</span><span class="s1"> | </span><span class="si">%(module)20s</span><span class="s1"> | </span><span class="si">%(funcName)45s</span><span class="s1"> | </span><span class="si">%(lineno)4s</span><span class="s1"> | </span><span class="si">%(levelname)8s</span><span class="s1"> |  </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">fformatter</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">utilities</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+                <span class="n">utilities</span><span class="o">.</span><span class="n">set_ownership_of_file</span><span class="p">(</span><span class="n">log_out_path</span><span class="p">)</span>
+                <span class="n">utilities</span><span class="o">.</span><span class="n">set_permissions_of_file</span><span class="p">(</span><span class="n">log_out_path</span><span class="p">,</span> <span class="mi">660</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stdout</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">stdout</span><span class="p">:</span>
         <span class="n">coloredlogs</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
                             <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-25s</span><span class="s1"> </span><span class="si">%(levelname)-10s</span><span class="s1"> | </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>

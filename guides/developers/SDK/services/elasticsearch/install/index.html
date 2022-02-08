@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -2926,7 +2938,8 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">tls_cert_subject</span> <span class="o">=</span> <span class="n">tls_cert_subject</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">heap_size_gigs</span><span class="p">:</span>
-        <span class="n">heap_size_gigs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">utilities</span><span class="o">.</span><span class="n">get_memory_available_bytes</span><span class="p">()</span> <span class="o">/</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">reserved_memory</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_memory_available_bytes</span><span class="p">()</span> <span class="o">*</span> <span class="mf">.75</span>
+        <span class="n">heap_size_gigs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">reserved_memory</span> <span class="o">/</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">9</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">formatted_subj</span> <span class="o">=</span> <span class="n">tls_cert_subject</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span>
     <span class="n">formatted_subj_2</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">formatted_subj</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)))</span>
     <span class="n">es_main_config</span><span class="o">.</span><span class="n">node_name</span> <span class="o">=</span> <span class="n">node_name</span>
@@ -3108,7 +3121,6 @@
     <span class="n">es_directories</span> <span class="o">=</span> <span class="p">[</span><span class="n">env_vars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ES_HOME&#39;</span><span class="p">),</span> <span class="n">env_vars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ES_LOGS&#39;</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">purge_config</span><span class="p">:</span>
         <span class="n">es_directories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_vars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ES_PATH_CONF&#39;</span><span class="p">))</span>
-    <span class="n">install_events_to_hosts</span><span class="o">.</span><span class="n">EventsToHostsTask</span><span class="p">()</span><span class="o">.</span><span class="n">remove_cronjob</span><span class="p">()</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;elasticsearch.uninstall&#39;</span><span class="p">,</span> <span class="n">directories</span><span class="o">=</span><span class="n">es_directories</span><span class="p">,</span>
                      <span class="n">environ_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ES_PATH_CONF&#39;</span><span class="p">,</span> <span class="s1">&#39;ES_HOME&#39;</span><span class="p">,</span> <span class="s1">&#39;ES_LOGS&#39;</span><span class="p">],</span>
                      <span class="n">process</span><span class="o">=</span><span class="n">ProcessManager</span><span class="p">(</span><span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">),</span>

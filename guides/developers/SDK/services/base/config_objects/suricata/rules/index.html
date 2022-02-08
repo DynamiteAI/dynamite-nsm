@@ -895,6 +895,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../../../services/00_setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -1592,6 +1604,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.base.config_objects.suricata.rules.Rule.get_contents" class="md-nav__link">
+    get_contents()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1614,13 +1633,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dynamite_nsm.services.base.config_objects.suricata.rules.list_available_rule_names" class="md-nav__link">
-    list_available_rule_names()
-  </a>
   
 </li>
       
@@ -2472,6 +2484,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#dynamite_nsm.services.base.config_objects.suricata.rules.Rule.get_contents" class="md-nav__link">
+    get_contents()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2494,13 +2513,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dynamite_nsm.services.base.config_objects.suricata.rules.list_available_rule_names" class="md-nav__link">
-    list_available_rule_names()
-  </a>
   
 </li>
       
@@ -2606,7 +2618,7 @@
       <tr>
         <td><code>enabled</code></td>
         <td><code>Optional[bool]</code></td>
-        <td><p>Whether or not the ruleset is enabled</p></td>
+        <td><p>Whether the ruleset is enabled</p></td>
         <td><code>False</code></td>
       </tr>
   </tbody>
@@ -2618,10 +2630,64 @@
 <span class="sd">    Represents a Suricata ruleset that can be enabled or disabled.</span>
 <span class="sd">    Args:</span>
 <span class="sd">        name: The name of the ruleset</span>
-<span class="sd">        enabled: Whether or not the ruleset is enabled</span>
+<span class="sd">        enabled: Whether the ruleset is enabled</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">enabled</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_contents</span><span class="p">()</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">enabled</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="dynamite_nsm.services.base.config_objects.suricata.rules.Rule.get_contents" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_contents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the content of the Suricata rule file.</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code></code></td>
+      <td><p>The contents of the Suricata rule</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/services/base/config_objects/suricata/rules.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_contents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the content of the Suricata rule file.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The contents of the Suricata rule</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">get_environment_file_dict</span><span class="p">()</span>
+    <span class="n">suricata_rules_root</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;SURICATA_CONFIG&#39;</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">CONFIG_PATH</span><span class="p">)</span><span class="si">}</span><span class="s2">/rules&quot;</span>
+    <span class="n">path_match_1</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">suricata_rules_root</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path_match_1</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_match_1</span><span class="p">)</span> <span class="k">as</span> <span class="n">content_rule_in</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">content_rule_in</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">5120</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
 </code></pre></div>
         </details>
     </div>
@@ -2729,51 +2795,6 @@
 
   </div>
 
-
-
-
-  <div class="doc doc-object doc-function">
-
-
-
-<h2 id="dynamite_nsm.services.base.config_objects.suricata.rules.list_available_rule_names" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">list_available_rule_names</span><span class="p">()</span></code>
-
-
-</h2>
-
-    <div class="doc doc-contents ">
-
-      <p>List the names of all available Suricata rules.</p>
-
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>List[str]</code></td>
-      <td><p>A list of Suricata rule names that can be enabled</p></td>
-    </tr>
-  </tbody>
-</table>
-        <details class="quote">
-          <summary>Source code in <code>dynamite_nsm/services/base/config_objects/suricata/rules.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">list_available_rule_names</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;List the names of all available Suricata rules.</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        A list of Suricata rule names that can be enabled</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">available_rules_names</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
 
 
 
