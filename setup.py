@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dynamite-nsm',
-    version='1.1.2',
+    version='1.1.4',
     packages=find_packages(),
     scripts=['scripts/dynamite'],
     url='https://github.com/DynamiteAI/dynamite-nsm',
