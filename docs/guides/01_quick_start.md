@@ -157,3 +157,36 @@ You must restart the agent for changes to be applied.
 ```bash
 dynamite agent process restart
 ```
+
+## Manage this Instance Remotely
+
+`dynamite-nsm` now ships with a remote management utility creatively named [`dynamite-remote`](/guides/03_dynamite_remote).
+Unlike the `dynamite` utility `dynamite-remote` can be run on most *NIX operating systems that have `openssh-client` installed.
+
+First create an authentication package on your remote management server. 
+You can install this utility on the management server simply by installing the latest version of `dynamite-nsm` via `pip3` or a tool like it. 
+
+
+```bash
+
+user@remote-server:~# dynamite-remote create --name agent1 --host agent1.dev.local --port 22 --description "agent1 traffic sensor"
+```
+
+Move the authentication package created by the above command over to your `agent1` node.
+
+```bash
+scp agent1.tar.gz user@agent1.dev.local:/home/user/
+```
+
+Use the `dynamite auth` command to install the authentication package you generated.
+
+```bash
+
+root@agent1.dev.local:~# dynamite auth install --archive /home/user/agent.tar.gz
+```
+
+On the remote machine you should now be able to run commands on `agent1.dev.local`
+
+```bash
+dynamite-remote execute dev-machine "zeek config site scripts"
+```

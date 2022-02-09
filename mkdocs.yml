@@ -53,10 +53,10 @@ nav:
           - Kibana: configuration/monitor/02_kibana.md
   - Services:
       - Setup: services/00_setup.md
+      - Authentication: services/10_auth.md
       - Updates: services/01_updates.md
       - Monitor: services/02_monitor.md
       - Agent: services/03_agent.md
-      - Remote: services/10_remote.md
       - Elasticsearch: services/04_elasticsearch.md
       - Logstash: services/05_logstash.md
       - Kibana: services/06_kibana.md

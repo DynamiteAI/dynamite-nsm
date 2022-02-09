@@ -2,7 +2,22 @@ import argparse
 from typing import Optional
 
 from dynamite_nsm.cmd import setup, agent, monitor, elasticsearch, logstash, kibana, suricata, zeek, filebeat, \
-    updates, remote
+    updates, auth
+
+component_modules = dict(
+        setup=setup,
+        agent=agent,
+        monitor=monitor,
+        elasticsearch=elasticsearch,
+        logstash=logstash,
+        kibana=kibana,
+        package=kibana.package,
+        zeek=zeek,
+        suricata=suricata,
+        filebeat=filebeat,
+        updates=updates,
+        auth=auth
+    )
 
 
 def process_arguments(args: argparse.Namespace, component: Optional[str], interface: Optional[str] = None,
@@ -16,20 +31,6 @@ def process_arguments(args: argparse.Namespace, component: Optional[str], interf
     :param sub_interface: A string representing a sub-interface (for example a config or log name)
     :return: The results of the executed context.
     """
-    component_modules = dict(
-        setup=setup,
-        agent=agent,
-        monitor=monitor,
-        elasticsearch=elasticsearch,
-        logstash=logstash,
-        kibana=kibana,
-        package=kibana.package,
-        zeek=zeek,
-        suricata=suricata,
-        filebeat=filebeat,
-        updates=updates,
-        remote=remote
-    )
     component_interface = None
     try:
         component_interface = getattr(component_modules[component], interface)

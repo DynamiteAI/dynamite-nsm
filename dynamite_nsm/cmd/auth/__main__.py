@@ -1,6 +1,5 @@
-from dynamite_nsm import utilities
 from dynamite_nsm.cmd import process_arguments
-from dynamite_nsm.cmd.remote import get_action_parser
+from dynamite_nsm.cmd.auth import get_action_parser
 
 if __name__ == '__main__':
     parser = get_action_parser()

@@ -490,6 +490,8 @@ def get_sshd_directory_path():
             if line.startswith('Include'):
                 include_directory = ' '.join(line.split(' ')[1:])
                 break
+    include_directory = include_directory.replace('*.conf', '')
+
     return include_directory
 
 
