@@ -10,11 +10,9 @@ def create_ssh_wrapper_script():
 
 DYNAMITE_REMOTE_LOCKS=$HOME/.dynamite_remote/locks/
 
-echo $DYNAMITE_REMOTE_LOCKS
-
 # Create the locks directory if it does not exist
 mkdir -p $DYNAMITE_REMOTE_LOCKS
-ssh_command=$(whereis ssh)
+ssh_command=$(which ssh)
 
 # Parse the commandline arguments passed in by node.py
 array=( $@ )
@@ -24,17 +22,15 @@ node_command="${array[@]:8:$len-1}"
 
 
 # Create a lock file
-echo Creating lock. $DYNAMITE_REMOTE_LOCKS/$hostname_or_ip
+# echo Creating lock. $DYNAMITE_REMOTE_LOCKS/$hostname_or_ip
 touch "$DYNAMITE_REMOTE_LOCKS/$hostname_or_ip"
 echo "$node_command" > "$DYNAMITE_REMOTE_LOCKS/$hostname_or_ip"
-
 $ssh_command "$@"
 
 # Remove the lock
-echo Removing lock. $DYNAMITE_REMOTE_LOCKS/$hostname_or_ip
+# echo Removing lock. $DYNAMITE_REMOTE_LOCKS/$hostname_or_ip
 rm $DYNAMITE_REMOTE_LOCKS/$hostname_or_ip
-printf '[Remote Session Exited]'
-    '''
+'''
 
     wrapper_directory = f'{user_home}/.dynamite_remote/bin/'
     utilities.makedirs(wrapper_directory)

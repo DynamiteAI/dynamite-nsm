@@ -8,7 +8,6 @@ import tarfile
 import logging
 import datetime
 
-
 from typing import Dict, Optional
 
 import daemon
@@ -88,8 +87,8 @@ class Node:
         Returns: The SQLAlchemy model containing metadata associated with the node.
         """
         try:
-            metadata = db.db_session.query(models.Node).\
-                filter(models.Node.name == self.name).\
+            metadata = db.db_session.query(models.Node). \
+                filter(models.Node.name == self.name). \
                 one()
         except NoResultFound:
             return None
@@ -117,6 +116,7 @@ class Node:
         Returns: A instance of the node
 
         """
+
         def generate_keypair():
             tmp_key_root = '/tmp/dynamite-remote/keys/'
             tmp_priv_key_path = f'{tmp_key_root}/{self.name}'
@@ -152,6 +152,7 @@ class Node:
                 tarinfo = tarfile.TarInfo('metadata.json')
                 tarinfo.size = len(data)
                 tar_out.addfile(tarinfo, metadata_f)
+
         self.logger.info('Initializing Database.')
         db.init_db()
         new_node = models.Node(
@@ -205,14 +206,14 @@ class Node:
                                       stderr=output_logs,
                                       ):
                 utilities.execute_dynamite_command_on_remote_host(metadata.host, metadata.port, self.key_path,
-                                                                      *dynamite_arguments)
+                                                                  *dynamite_arguments)
 
             output_logs.close()
         else:
             self.logger.info('Running in foreground.')
             try:
                 utilities.execute_dynamite_command_on_remote_host(metadata.host, metadata.port, self.key_path,
-                                                              *dynamite_arguments)
+                                                                  *dynamite_arguments)
             except utilities.NodeLocked as e:
                 self.logger.error(f'{str(e).strip()}. You may use --force if you want to bypass this lock and '
                                   f'execute this command anyway.')
@@ -222,6 +223,3 @@ class Node:
         lockfile_path = f'{utilities.LOCK_PATH}/{metadata.host}'
         self.logger.info(f'Removing lock: {lockfile_path}')
         utilities.safely_remove_file(lockfile_path)
-
-
-
