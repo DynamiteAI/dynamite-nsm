@@ -13,10 +13,10 @@ from dynamite_nsm.services.base.config_objects.zeek import local_network, local_
 from dynamite_nsm.services.base.config_objects.zeek import bpf_filter
 
 
-def lookup_script_definition(script_id: int):
+def lookup_script_definition(script_id: str) -> Dict:
     """Return the definition, categories, and friendly_name of a given script
     Args:
-        script_id: A numeric identifier representing a Zeek script.
+        script_id: A unique identifier representing a Zeek script.
     Returns:
          A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}
     """

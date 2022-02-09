@@ -63,17 +63,6 @@ sudoers_patch = f"""
 """
 
 
-def get_sudoers_directory_path():
-    include_directory = None
-    with open(const.SUDOERS_FILE, 'r') as sudoers_in:
-        for i, line in enumerate(sudoers_in.readlines()):
-            line = line.strip()
-            if line.startswith('#includedir') or line.startswith('@includedir'):
-                include_directory = ' '.join(line.split(' ')[1:])
-                break
-    return include_directory
-
-
 class InstallManager:
 
     def __init__(self):
@@ -86,7 +75,7 @@ class InstallManager:
 
     @staticmethod
     def patch_sudoers():
-        include_directory = get_sudoers_directory_path()
+        include_directory = utilities.get_sudoers_directory_path()
         if not include_directory:
             include_directory = const.SUDOERS_DIRECTORY
             utilities.makedirs(include_directory)
@@ -162,7 +151,7 @@ class UninstallManager:
                     processes[i]().stop()
                     uninstallers[i]().uninstall()
             self.logger.info('Removing patched sudoers file.')
-            utilities.safely_remove_file(f'{get_sudoers_directory_path()}/dynamite')
+            utilities.safely_remove_file(f'{utilities.get_sudoers_directory_path()}/dynamite')
             for directory in [const.LOG_PATH, const.CONFIG_PATH, const.INSTALL_PATH, const.INSTALL_PATH]:
                 self.logger.info(f'Removing {directory}.')
                 if os.path.exists(directory):

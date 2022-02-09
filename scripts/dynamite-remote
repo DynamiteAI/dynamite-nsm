@@ -1,0 +1,91 @@
+#! /usr/bin/python3
+
+import argparse
+from multiprocessing import Process
+from dynamite_remote import node
+from dynamite_remote.bootstrap import create_ssh_wrapper_script
+
+if __name__ == '__main__':
+    __spec__ = None
+    create_ssh_wrapper_script()
+    parser = argparse.ArgumentParser('Dynamite Remote', description='Remotely manage DynamiteNSM nodes across your '
+                                                                    'network environments.')
+    subparsers = parser.add_subparsers()
+    create_node_parser = subparsers.add_parser('create',
+                                                 help='Generate an authentication package that can be installed on a '
+                                                      'remote node allowing management. Add the remote to list of '
+                                                      'controllable nodes.')
+    remove_node_parser = subparsers.add_parser('remove', help='Remove a remote that was previously created.')
+    list_parser = subparsers.add_parser('list', help='List the nodes we can control remotely.')
+    execute_parser = subparsers.add_parser('execute', help='Run a command against a remote node.')
+    # Create an authentication package
+    create_node_parser.set_defaults(action='create')
+    create_node_parser.add_argument(
+        '--name', type=str, required=True, help='A friendly name for the remote node.',
+    )
+    create_node_parser.add_argument(
+        '--host', type=str, required=True, help='A host or IP address of the remote node you will be connecting to.',
+    )
+    create_node_parser.add_argument(
+        '--port', type=int, required=False, help='The corresponding SSH port to use.', default=22
+    )
+    create_node_parser.add_argument(
+        '--description', type=str, required=False, help='A description of this node (E.G web-server environment sensor)',
+        default='Remote node'
+    )
+
+    # Remove Command
+    remove_node_parser.set_defaults(action='remove')
+    remove_node_parser.add_argument(
+        'remote', help='The name of the node or node group to remove.'
+    )
+
+    # List Command
+    list_parser.set_defaults(action='list')
+
+    # Execute Command
+    execute_parser.set_defaults(action='execute')
+    execute_parser.add_argument(
+        'remote', help='The name of the node or node group to execute the command against.'
+    )
+    execute_parser.add_argument(
+        'command', help='The command to run on the remote node (E.G \'elasticsearch process status\').', nargs='+',
+        type=str
+    )
+    execute_parser.add_argument(
+        '-d', '--daemon', dest='daemon', action='store_true',
+        help='Daemonize the command so that it runs in the background as a task.',
+    )
+    execute_parser.add_argument(
+        '--force', dest='force', action='store_true',
+        help='Removes the lock on the node. This flag should be used sparingly as it could result to '
+             'concurrent tasks running on remote nodes.',
+    )
+    args = parser.parse_args()
+    if args.action == 'create':
+        node.Node(
+            name=args.name,
+            stdout=True,
+            verbose=True
+        ).install(
+            host=args.host,
+            port=args.port,
+            description=args.description,
+        )
+    elif args.action == 'remove':
+        node.Node(args.remote, stdout=True).remove()
+    elif args.action == 'list':
+        node.print_nodes()
+    elif args.action == 'execute':
+        remote_node = node.Node(args.remote, stdout=True)
+        if not remote_node.installed():
+            remote_node = node.Node.create_from_host_str(args.remote, stdout=True)
+        if not remote_node.installed():
+            exit(1)
+        if args.force:
+            remote_node.remove_execute_lock()
+        if not args.daemon:
+            remote_node.invoke_command(*args.command)
+        else:
+            p = Process(target=remote_node.invoke_command, args=args.command, kwargs=dict(run_as_task=True))
+            p.start()

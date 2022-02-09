@@ -4,7 +4,7 @@ setup(
     name='dynamite-nsm',
     version='1.1.4',
     packages=find_packages(),
-    scripts=['scripts/dynamite'],
+    scripts=['scripts/dynamite', 'scripts/dynamite-remote'],
     url='https://github.com/DynamiteAI/dynamite-nsm',
     long_description_content_type="text/markdown",
     license='GPL 3',
@@ -30,7 +30,7 @@ setup(
         'python-crontab==2.5.1',
         'python-daemon==2.3.0',
         'requests==2.25.1',
-        'sqlalchemy==1.3.18',
+        'SQLAlchemy==1.4.7',
         'Unidecode==1.2.0',
     ],
     classifiers=[

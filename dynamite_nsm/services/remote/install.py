@@ -1,16 +1,30 @@
 import os
 import json
+import shutil
 import tarfile
 from typing import Optional
 
+from dynamite_nsm import const
 from dynamite_nsm import utilities
 from dynamite_nsm.services.base import install
+
+dynamite_bin = shutil.which('dynamite')
+
+sudoers_patch = f'''
+dynamite-remote ALL=(ALL) NOPASSWD: {dynamite_bin}'
+'''
+
+ssh_config_patch = f'''
+Match User dynamite-remote
+    PasswordAuthentication no
+    PubkeyAuthentication yes
+'''
 
 
 class InstallManager(install.BaseInstallManager):
 
     def __init__(self, install_directory: str, stdout: Optional[bool] = False, verbose: Optional[bool] = False):
-        """ Install a new remote manager authentication package
+        """Install a new remote manager authentication package
         Args:
             install_directory: Path to the install directory (E.G /opt/dynamite/remotes/)
             stdout: Print output to console
@@ -20,45 +34,26 @@ class InstallManager(install.BaseInstallManager):
         self.install_directory = install_directory
 
     @staticmethod
-    def patch_sshd_config() -> None:
-        """Locate and patch the sshd_config file with logic to allow only pubkey auth for dynamite-remote user.
-        Returns:
-            None
-        """
-        sshd_config_location = None
-        sshd_config_addition = '\nMatch User dynamite-remote' \
-                               '\n\tPasswordAuthentication no' \
-                               '\n\tPubkeyAuthentication yes\n'
-
-        probable_sshd_locations = ['/etc/ssh/sshd_config']
-        for loc in probable_sshd_locations:
-            if os.path.exists(loc):
-                sshd_config_location = loc
-                break
-        if sshd_config_location:
-            with open(sshd_config_location, 'r') as sshd_config_in:
-                if 'Match User dynamite-remote' not in sshd_config_in.read():
-                    with open(sshd_config_location, 'a') as sshd_config_out:
-                        sshd_config_out.write(sshd_config_addition)
+    def patch_sudoers():
+        include_directory = utilities.get_sudoers_directory_path()
+        if not include_directory:
+            include_directory = const.SUDOERS_DIRECTORY
+            utilities.makedirs(include_directory)
+            with open(const.SUDOERS_FILE, 'a') as sudoers_out:
+                sudoers_out.write(f'\n#includedir {include_directory}')
+        with open(f'{include_directory}/dynamite-remote', 'w') as dynamite_sudoers_out:
+            dynamite_sudoers_out.write(sudoers_patch)
 
     @staticmethod
-    def patch_sudoers_file() -> None:
-        """Add logic to allow the dynamite-remote user root access to invoke dynamite commandline utility w/o a password
-        Returns:
-            None
-        """
-        sudoers_file_location = None
-        sudoers_file_addition = '\ndynamite-remote ALL=(ALL) NOPASSWD: /usr/local/bin/dynamite\n'
-        probable_sudoers_locations = ['/etc/sudoers']
-        for loc in probable_sudoers_locations:
-            if os.path.exists(loc):
-                sudoers_file_location = loc
-                break
-        if sudoers_file_location:
-            with open(sudoers_file_location, 'r') as sudoers_file_in:
-                if sudoers_file_addition not in sudoers_file_in.read():
-                    with open(sudoers_file_location, 'a') as sudoers_file_out:
-                        sudoers_file_out.write(sudoers_file_addition)
+    def patch_ssh_config():
+        include_directory = utilities.get_sshd_directory_path()
+        if not include_directory:
+            include_directory = const.SSH_CONF_DIRECTORY
+            utilities.makedirs(include_directory)
+            with open(const.SSH_CONF_FILE, 'a') as ssh_config_out:
+                ssh_config_out.write(f'\nInclude {include_directory}')
+        with open(f'{include_directory}/dynamite-remote', 'w') as dynamite_ssh_config_out:
+            dynamite_ssh_config_out.write(ssh_config_patch)
 
     def create_update_remote_environment_variables(self) -> None:
         """Creates all the required Zeek environmental variables
@@ -109,9 +104,9 @@ class InstallManager(install.BaseInstallManager):
         self.logger.debug(f'Setting ownership of {pub_key_file_path} to dynamite-remote.')
         utilities.set_ownership_of_file(remote_user_root, user='dynamite-remote', group='dynamite-remote')
         self.logger.debug('Patching sudoers file.')
-        self.patch_sudoers_file()
+        self.patch_sudoers()
         self.logger.debug('Patching sshd_config')
-        self.patch_sshd_config()
+        self.patch_ssh_config()
         self.logger.info(f'{metadata["hostname"]} has been installed as a remote on this node. '
                          f'You can now access it via:'
                          f' \'dynamite-remote execute {metadata["node_name"]} <dynamite command>\'.')
@@ -122,7 +117,8 @@ class UninstallManager(install.BaseUninstallManager):
     Uninstall Dynamite remote manager
     """
 
-    def __init__(self, remote_name: Optional[str] = None, delete_remote_user: Optional[bool] = False, stdout: Optional[bool] = False,
+    def __init__(self, remote_name: Optional[str] = None, delete_remote_user: Optional[bool] = False,
+                 stdout: Optional[bool] = False,
                  verbose: Optional[bool] = False):
         """ Uninstall a remote
         Args:

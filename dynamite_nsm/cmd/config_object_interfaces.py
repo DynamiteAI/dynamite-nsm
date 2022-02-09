@@ -50,7 +50,7 @@ class AnalyzersInterface(BaseInterface):
         choices = []
         for analyzer in interface.config_obj.analyzers:
             choices.append(analyzer.id)
-        parser.add_argument('--ids', dest='analyzer_ids', nargs='+', type=int, default=[],
+        parser.add_argument('--ids', dest='analyzer_ids', nargs='+', type=str, default=[],
                             help='Specify one or more ids for the config object you want to work with.')
         parser.add_argument('--enable', dest='enable', action='store_true', help=f'Enable selected object.')
         parser.add_argument('--disable', dest='disable', action='store_true', help=f'Disable selected object')

@@ -3,8 +3,6 @@ import json
 import sys
 import getpass
 import argparse
-import traceback
-
 import tabulate
 
 from dynamite_nsm import utilities

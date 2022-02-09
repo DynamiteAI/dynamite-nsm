@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import json
 import random
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from yaml import Loader
 from yaml import load
@@ -16,10 +16,10 @@ from dynamite_nsm.services.base.config import YamlConfigManager
 from dynamite_nsm.services.base.config_objects.suricata import misc, rules
 
 
-def lookup_rule_definition(rule_id: int):
+def lookup_rule_definition(rule_id: str) -> Dict:
     """Return the definition, categories, and friendly_name of a given script
     Args:
-        rule_id: A numeric identifier representing a Suricata rule.
+        rule_id: A unique identifier representing a Suricata rule.
     Returns:
          A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}
     """

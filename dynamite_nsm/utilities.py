@@ -477,6 +477,37 @@ def get_terminal_size() -> Optional[Tuple[int, int]]:
     return w, h
 
 
+def get_sshd_directory_path():
+    """Gets the path of the Include directory in the sshd_config
+
+    Returns:
+        The path to the sshd_config.d/
+    """
+    include_directory = None
+    with open(const.SSH_CONF_FILE, 'r') as sudoers_in:
+        for i, line in enumerate(sudoers_in.readlines()):
+            line = line.strip()
+            if line.startswith('Include'):
+                include_directory = ' '.join(line.split(' ')[1:])
+                break
+    return include_directory
+
+
+def get_sudoers_directory_path():
+    """Get the path to the #includedir directory
+    Returns:
+        The path to sudoers.d/
+    """
+    include_directory = None
+    with open(const.SUDOERS_FILE, 'r') as sudoers_in:
+        for i, line in enumerate(sudoers_in.readlines()):
+            line = line.strip()
+            if line.startswith('#includedir') or line.startswith('@includedir'):
+                include_directory = ' '.join(line.split(' ')[1:])
+                break
+    return include_directory
+
+
 def generate_random_password(length: int = 30) -> str:
     """Generate a random password containing alphanumeric and symbolic characters
     Args:

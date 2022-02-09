@@ -28,6 +28,8 @@ PCAP_PATH = "/etc/dynamite/pcaps/"
 JVM_ROOT = '/usr/lib/jvm/'
 PID_PATH = '/var/run/'
 SYS_BIN = '/usr/bin/'
+SSH_CONF_FILE = '/etc/ssh/ssh_config'
+SSH_CONF_DIRECTORY = '/etc/ssh/ssh_config.d/'
 SUDOERS_FILE = '/etc/sudoers'
 SUDOERS_DIRECTORY = '/etc/sudoers.d/'
 
