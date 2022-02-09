@@ -907,6 +907,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../services/10_auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -933,18 +945,6 @@
     <li class="md-nav__item">
       <a href="../../../../../services/03_agent/" class="md-nav__link">
         Agent
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../../services/10_remote/" class="md-nav__link">
-        Remote
       </a>
     </li>
   
@@ -3047,7 +3047,7 @@ as well as Suricata rule-sets</p>
     <span class="n">choices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">analyzer</span> <span class="ow">in</span> <span class="n">interface</span><span class="o">.</span><span class="n">config_obj</span><span class="o">.</span><span class="n">analyzers</span><span class="p">:</span>
         <span class="n">choices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">analyzer</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--ids&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;analyzer_ids&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--ids&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;analyzer_ids&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify one or more ids for the config object you want to work with.&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--enable&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;enable&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Enable selected object.&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--disable&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;disable&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Disable selected object&#39;</span><span class="p">)</span>

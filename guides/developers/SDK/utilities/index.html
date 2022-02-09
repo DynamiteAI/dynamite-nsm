@@ -907,6 +907,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../services/10_auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -933,18 +945,6 @@
     <li class="md-nav__item">
       <a href="../../../../services/03_agent/" class="md-nav__link">
         Agent
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../services/10_remote/" class="md-nav__link">
-        Remote
       </a>
     </li>
   
@@ -2550,6 +2550,20 @@
         <li class="md-nav__item">
   <a href="#dynamite_nsm.utilities.get_primary_ip_address" class="md-nav__link">
     get_primary_ip_address()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.utilities.get_sshd_directory_path" class="md-nav__link">
+    get_sshd_directory_path()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dynamite_nsm.utilities.get_sudoers_directory_path" class="md-nav__link">
+    get_sudoers_directory_path()
   </a>
   
 </li>
@@ -4371,6 +4385,113 @@
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">IP</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.utilities.get_sshd_directory_path" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_sshd_directory_path</span><span class="p">()</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Gets the path of the Include directory in the sshd_config</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code></code></td>
+      <td><p>The path to the sshd_config.d/</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/utilities.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_sshd_directory_path</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Gets the path of the Include directory in the sshd_config</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The path to the sshd_config.d/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">include_directory</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SSH_CONF_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">sudoers_in</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sudoers_in</span><span class="o">.</span><span class="n">readlines</span><span class="p">()):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Include&#39;</span><span class="p">):</span>
+                <span class="n">include_directory</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="k">break</span>
+    <span class="n">include_directory</span> <span class="o">=</span> <span class="n">include_directory</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;*.conf&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">include_directory</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h2 id="dynamite_nsm.utilities.get_sudoers_directory_path" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_sudoers_directory_path</span><span class="p">()</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Get the path to the #includedir directory</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code></code></td>
+      <td><p>The path to sudoers.d/</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>dynamite_nsm/utilities.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">get_sudoers_directory_path</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Get the path to the #includedir directory</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        The path to sudoers.d/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">include_directory</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SUDOERS_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">sudoers_in</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sudoers_in</span><span class="o">.</span><span class="n">readlines</span><span class="p">()):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#includedir&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;@includedir&#39;</span><span class="p">):</span>
+                <span class="n">include_directory</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="k">break</span>
+    <span class="k">return</span> <span class="n">include_directory</span>
 </code></pre></div>
         </details>
     </div>

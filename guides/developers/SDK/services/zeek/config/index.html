@@ -907,6 +907,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../../../../services/10_auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../../../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -933,18 +945,6 @@
     <li class="md-nav__item">
       <a href="../../../../../../services/03_agent/" class="md-nav__link">
         Agent
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../../../services/10_remote/" class="md-nav__link">
-        Remote
       </a>
     </li>
   
@@ -4892,8 +4892,8 @@ sniffs network traffic and does protocol analysis on the reassembled traffic str
   <tbody>
       <tr>
         <td><code>script_id</code></td>
-        <td><code>int</code></td>
-        <td><p>A numeric identifier representing a Zeek script.</p></td>
+        <td><code>str</code></td>
+        <td><p>A unique identifier representing a Zeek script.</p></td>
         <td><em>required</em></td>
       </tr>
   </tbody>
@@ -4908,17 +4908,17 @@ sniffs network traffic and does protocol analysis on the reassembled traffic str
   </thead>
   <tbody>
     <tr>
-      <td><code></code></td>
+      <td><code>Dict</code></td>
       <td><p>A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}</p></td>
     </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>dynamite_nsm/services/zeek/config.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">lookup_script_definition</span><span class="p">(</span><span class="n">script_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">lookup_script_definition</span><span class="p">(</span><span class="n">script_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return the definition, categories, and friendly_name of a given script</span>
 <span class="sd">    Args:</span>
-<span class="sd">        script_id: A numeric identifier representing a Zeek script.</span>
+<span class="sd">        script_id: A unique identifier representing a Zeek script.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">         A dictionary of the format {&quot;friendly_name&quot; &lt;str&gt;, &quot;description&quot; &lt;str&gt;, &quot;categories&quot; &lt;list&gt;}</span>
 <span class="sd">    &quot;&quot;&quot;</span>

@@ -907,6 +907,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../../services/10_auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../services/01_updates/" class="md-nav__link">
         Updates
       </a>
@@ -933,18 +945,6 @@
     <li class="md-nav__item">
       <a href="../../services/03_agent/" class="md-nav__link">
         Agent
-      </a>
-    </li>
-  
-
-          
-            
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../services/10_remote/" class="md-nav__link">
-        Remote
       </a>
     </li>
   
@@ -1134,6 +1134,13 @@
         <li class="md-nav__item">
   <a href="#adding-additional-inspection-interfaces" class="md-nav__link">
     Adding Additional Inspection Interfaces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manage-this-instance-remotely" class="md-nav__link">
+    Manage this Instance Remotely
   </a>
   
 </li>
@@ -2472,6 +2479,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#manage-this-instance-remotely" class="md-nav__link">
+    Manage this Instance Remotely
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2645,6 +2659,24 @@ balanced between Zeek and Suricata sanely.</p>
 </code></pre>
 <p>You must restart the agent for changes to be applied.</p>
 <pre><code class="language-bash">dynamite agent process restart
+</code></pre>
+<h2 id="manage-this-instance-remotely">Manage this Instance Remotely</h2>
+<p><code>dynamite-nsm</code> now ships with a remote management utility creatively named <a href="/guides/03_dynamite_remote"><code>dynamite-remote</code></a>.
+Unlike the <code>dynamite</code> utility <code>dynamite-remote</code> can be run on most *NIX operating systems that have <code>openssh-client</code> installed.</p>
+<p>First create an authentication package on your remote management server. 
+You can install this utility on the management server simply by installing the latest version of <code>dynamite-nsm</code> via <code>pip3</code> or a tool like it. </p>
+<pre><code class="language-bash">
+user@remote-server:~# dynamite-remote create --name agent1 --host agent1.dev.local --port 22 --description &quot;agent1 traffic sensor&quot;
+</code></pre>
+<p>Move the authentication package created by the above command over to your <code>agent1</code> node.</p>
+<pre><code class="language-bash">scp agent1.tar.gz user@agent1.dev.local:/home/user/
+</code></pre>
+<p>Use the <code>dynamite auth</code> command to install the authentication package you generated.</p>
+<pre><code class="language-bash">
+root@agent1.dev.local:~# dynamite auth install --archive /home/user/agent.tar.gz
+</code></pre>
+<p>On the remote machine you should now be able to run commands on <code>agent1.dev.local</code></p>
+<pre><code class="language-bash">dynamite-remote execute dev-machine &quot;zeek config site scripts&quot;
 </code></pre>
                 
               
