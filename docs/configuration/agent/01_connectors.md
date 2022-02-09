@@ -14,7 +14,7 @@ Dynamite `agents` rely on `filebeat` for sending events and alerts to a downstre
 ## Logstash
 
 ```bash
-sudo dynamite filebeat config logstash_targets -h
+dynamite filebeat config logstash_targets -h
 ```
 
 Logstash is powerful data-processing pipeline by Elastic.co. It provides a versatile set of configuration driven ingestion, filtering, and transformation functions. Logstash can be paired with a multitude of upstream retention solutions such as ElasticSearch and InfluxDB.

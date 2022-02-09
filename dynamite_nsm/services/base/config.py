@@ -90,7 +90,8 @@ class GenericConfigManager:
         with open(default_config_path, 'r') as default_conf_f_in:
             with open(out_file_path, 'w') as conf_f_out:
                 conf_f_out.write(default_conf_f_in.read())
-        utilities.set_ownership_of_file(out_file_path)
+        if utilities.is_root():
+            utilities.set_ownership_of_file(out_file_path)
 
     def commit(self, out_file_path: str, backup_directory: Optional[str] = None) -> None:
         """Write out an updated configuration file, and optionally backup the old one.
@@ -110,7 +111,8 @@ class GenericConfigManager:
         try:
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
-            utilities.set_ownership_of_file(out_file_path)
+            if utilities.is_root():
+                utilities.set_ownership_of_file(out_file_path)
         except IOError as e:
             raise exceptions.WriteConfigError(f'An error occurred while writing the configuration file to disk. {e}')
         self.logger.warning('Configuration updated. Restart this service to apply.')

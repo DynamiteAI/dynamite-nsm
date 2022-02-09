@@ -23,7 +23,7 @@ enabling disabling scripts and rules.
 
 You can list all the available scripts with the below command. Note the `Id` column as these can be used for selection.
 ```bash
-sudo dynamite zeek config site scripts
+dynamite zeek config site scripts
 ```
 
 > Alternatively, advanced users may wish to interact directly with the configuration file. If installed with default options
