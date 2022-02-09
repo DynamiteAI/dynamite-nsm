@@ -66,6 +66,7 @@ nav:
       - Filebeat: services/09_filebeat.md
   - Guides:
       - Quick Start: guides/01_quick_start.md
+      - Remote Management: guides/03_dynamite_remote.md
       - Navigating Kibana:
           - Overview: guides/base_views/01_overview.md
           - Alert: guides/base_views/02_alerts.md

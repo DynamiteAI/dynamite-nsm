@@ -1,10 +1,12 @@
 import os
+import shutil
 import subprocess
 import time
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.zeek import config
+from dynamite_nsm.exceptions import InstallError
 from dynamite_nsm.services.zeek import package, zkg
 from dynamite_nsm.services.zeek.tasks import set_caps
 from dynamite_nsm.services.zeek.zkg import install as zkg_install
@@ -39,6 +41,12 @@ class InstallManager(install.BaseInstallManager):
         self.verbose = verbose
 
         super(InstallManager, self).__init__(name='zeek.install', verbose=verbose, stdout=stdout)
+
+        if not shutil.which('python3-config'):
+            raise InstallError(
+                'Python3 development bindings must be installed for Zeek installation to fully succeed. '
+                'Common Packages: "python3-dev" (Debian based) "python3-devel" (RHEL based)')
+
         if download_zeek_archive:
             self.logger.info("Attempting to download Zeek archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.ZEEK_MIRRORS)
