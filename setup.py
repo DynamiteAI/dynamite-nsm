@@ -19,7 +19,6 @@ setup(
     install_requires=[
         'bcrypt==3.2.0',
         'coloredlogs==15.0',
-        'crontab==0.23.0',
         'progressbar==2.5',
         'tabulate==0.8.9',
         'PyYAML==6.0',

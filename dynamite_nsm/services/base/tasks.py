@@ -3,12 +3,10 @@ import sys
 import requests
 import subprocess
 from time import sleep
-
 import crontab
 from dynamite_nsm import const
 from dynamite_nsm import utilities
 from typing import List, Optional, Tuple
-from dynamite_nsm.logger import get_logger
 
 
 class BaseTask:
