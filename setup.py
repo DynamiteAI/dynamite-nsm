@@ -4,6 +4,7 @@ setup(
     name='dynamite-nsm',
     version='1.1.4',
     packages=find_packages(),
+    python_requires='>=3.7.0',
     scripts=['scripts/dynamite', 'scripts/dynamite-remote'],
     url='https://github.com/DynamiteAI/dynamite-nsm',
     long_description_content_type="text/markdown",
