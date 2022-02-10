@@ -21,9 +21,11 @@ sudo pip3 install dynamite-nsm
 <center>
     <img src="docs/data/img/demos/intro.gif">
 </center>
+<br>
+<p align="right">
+ <a href="https://dynamiteai.github.io/dynamite-nsm/guides/01_quick_start"><b>Quick Start Guide »</b></a>
+</p>
 
-
-[**Quick Start Guide »**](https://dynamiteai.github.io/dynamite-nsm/guides/01_quick_start)
 
 
 ### Dashboards
@@ -33,9 +35,10 @@ DynamiteNSM's `monitor` component ships with a powerful set of dashboards for fi
 <center>
     <img src="docs/data/img/kibana_dashboard_alerts.png">
 </center>
-
-[**Dashboard Overview »**](https://dynamiteai.github.io/dynamite-nsm/guides/base_views/01_overview)
-
+<br>
+<p align="right">
+ <a href="https://dynamiteai.github.io/dynamite-nsm/guides/base_views/01_overview"><b>Dashboard Overview »</b></a>
+</p>
 
 
 ### Documentation
@@ -44,6 +47,15 @@ Checkout our comprehensive documentation complete with tutorials, guides, and ex
 
 Those wishing to contribute may also be interested in our [development guides](https://dynamiteai.github.io/dynamite-nsm/guides/developers/01_overview).
 
-[**Read the Documentation »**](https://dynamiteai.github.io/dynamite-nsm/)
+<center>
+    <img src="docs/data/img/dynamite_arch.png">
+</center>
+
+<br>
+
+<p align="right">
+ <a href="https://dynamiteai.github.io/dynamite-nsm/"><b>Read the Documentation »</b></a>
+</p>
+
 
 
