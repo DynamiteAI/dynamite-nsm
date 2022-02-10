@@ -1,5 +1,37 @@
 ## Releases
 
+### 1.1
+
+#### New Features
+- Most `dynamite` commands can now run as non-root users, provided that user is added to the `dynamite` group.
+- `setup` command added to decouple environment preparation from individual service installation. Also provides the ability to fully uninstall NSM services. 
+- `zeek reset`, `suricata reset`, and `filebeat reset` commands allows users to revert various configurations back to a default states.
+- `suricata config `
+- Zeek and Suricata now expose network interface settings to the `dynamite` commandline.
+- `dynamite-remote` is now included by default with the `dynamite-nsm` package.
+- Zeek Script and Suricata Ruleset ids are now generated via SHA1 content based hashing.
+- `setcap` now runs before Zeek and Suricata processes are started, allowing them to capture traffic as non-root privileged users.
+- `dynamite_nsm.services.base.systemctl` module now provides a `FallbackCtl` mode which currently allows agent processes to be managed inside a docker container.
+- Added several docker examples for Dynamite Agent
+- BPF validation binary now included as part of the package.
+- Added friendly aliases and descriptive information for several new EmergingThreat Open rule-sets
+- Added the [Log4Shell exploit detection](https://github.com/corelight/cve-2021-44228) script for Zeek by default.
+- Improved exception handling across `dynamite_nsm` package.
+- Updated to latest [default configurations](https://github.com/DynamiteAI/configurations/releases/tag/1.1.3)
+- Installs Kibana `BaseViews` [0.4](https://github.com/DynamiteAI/kibana_packages)
+
+#### Removed Features
+- `dynamite remote` command has been replaced with `dynamite auth` to avoid confusion.
+- `dynamite agent optimize` command no longer takes the parameter `--inspection-interfaces`
+- Removed Suricata installer's WireShark dependency
+
+#### Bugs
+- Elasticsearch and Logstash will no longer over-allocate Java heap.
+- Hard coded binary paths have been removed from NSM installed `.service` files.
+- When installing NSM services on RHEL systems powertools and EPEL repos are first added.
+- Addressed issued where Filebeat Kafka targets were pulling Redis host definitions
+
+
 ### 1.0
 
 #### New Features
