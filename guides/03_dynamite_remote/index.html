@@ -2484,12 +2484,13 @@
                 
                 
                 <h1 id="dynamite-remote">Dynamite Remote</h1>
-<p>The <code>dynamite-remote</code> utility is a self-contained script that ships with dynamite-nsm. The utility
+<p>The <code>dynamite-remote</code> utility is a self-contained script that ships with the <code>dynamite-nsm</code> package. The utility
 allows administrators to create <em>Authentication packages</em> that once installed on remote instances allow remote management. 
 The dynamite-remote script works on most *NIX operating systems with <code>openssh-client</code> installed.</p>
 <h2 id="usage">Usage</h2>
 <p>The <code>dynamite-remote</code> utility should be run on the machine you wish to use for remote management. 
 Once an authentication package has been created you can <a href="/services/10_auth">install it</a> on a remote node to easily manage it.</p>
+<p><img alt="" src="../../data/img/dynamite_arch.png" /></p>
 <pre><code>$ dynamite-remote -h
 
 usage: Dynamite Remote [-h] {create,remove,list,execute} ...
