@@ -65,12 +65,18 @@ class InstallManager(install.BaseInstallManager):
         Returns:
             None
         """
-        response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            with open(f'{const.INSTALL_CACHE}/configurations.tar.gz', 'wb') as f:
-                f.write(response.raw.read())
-        else:
-            raise exceptions.DownloadError(f'Download {url} failed; status: {response.status_code}')
+        try:
+            configuration_archive = f'{const.INSTALL_CACHE}/configurations.tar.gz'
+            if os.path.exists(configuration_archive):
+                utilities.safely_remove_file(configuration_archive)
+            response = requests.get(url, stream=True)
+            if response.status_code == 200:
+                with open(configuration_archive, 'wb') as f:
+                    f.write(response.raw.read())
+            else:
+                raise exceptions.DownloadError(f'Download {url} failed; status: {response.status_code}')
+        except PermissionError:
+            raise exceptions.RequiresRootError()
 
     @staticmethod
     def extract_configurations_package(

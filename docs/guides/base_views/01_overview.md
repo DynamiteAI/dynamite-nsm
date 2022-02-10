@@ -26,7 +26,7 @@ Alerts are typically indicative of suspicious or malicious behavior. The Alerts 
 
 ### Conversations
 
-Conversations represent bi-directional communications between hosts. The Conversations module provides  high-level summaries of top-talkers, ports, and application
+Conversations represent bidirectional communications between hosts. The Conversations module provides  high-level summaries of top-talkers, ports, and application
 protocols and can serve as a starting point for more focused threat hunts.
 
 <p align="center">

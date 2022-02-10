@@ -181,7 +181,7 @@ class InstallManager(install.BaseInstallManager):
                                           unix_permissions_integer='go-w')
         utilities.set_permissions_of_file(f'{self.install_directory}/module/', unix_permissions_integer='go-w')
         utilities.set_ownership_of_file(config_file, user='dynamite', group='dynamite')
-        utilities.set_permissions_of_file(config_file, unix_permissions_integer=644)
+        utilities.set_permissions_of_file(config_file, unix_permissions_integer=660)
         filebeat_config.enable_ecs_normalization()
 
         # Install and enable service

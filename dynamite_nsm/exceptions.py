@@ -34,6 +34,12 @@ class DownloadError(Exception):
         super(DownloadError, self).__init__(msg)
 
 
+class DynamiteNotSetupError(Exception):
+    def __init__(self):
+        msg = "You must run dynamite setup install before you can continue."
+        super(DynamiteNotSetupError, self).__init__(msg)
+
+
 class InstallError(Exception):
     def __init__(self, message):
         """Thrown when a component fails to install
@@ -87,6 +93,12 @@ class ResetPasswordError(Exception):
         """
         msg = "An error occurred while attempting to reset password: {}".format(message)
         super(ResetPasswordError, self).__init__(msg)
+
+
+class RequiresRootError(PermissionError):
+    def __init__(self):
+        msg = "This operation must be run with root."
+        super(RequiresRootError, self).__init__(msg)
 
 
 class UninstallError(Exception):

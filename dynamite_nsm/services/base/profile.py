@@ -1,4 +1,5 @@
 import os
+from dynamite_nsm import exceptions, utilities
 
 
 class BaseProcessProfiler:
@@ -14,6 +15,8 @@ class BaseProcessProfiler:
             required_install_files: The names of files required to consider the installation successful
             required_config_files: The names of config files to consider the installation properly configured.
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         self.install_directory = install_directory
         self.config_directory = config_directory
         self.required_install_files = required_install_files

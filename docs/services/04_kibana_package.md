@@ -18,12 +18,12 @@ optional arguments:
 
 ## Package Installation
 ```bash
-sudo dynamite kibana package install -h
+dynamite kibana package install -h
 ```
 
 ## Package Uninstallation
 ```bash
-sudo dynamite kibana package uninstall -h
+dynamite kibana package uninstall -h
 ```
 
 

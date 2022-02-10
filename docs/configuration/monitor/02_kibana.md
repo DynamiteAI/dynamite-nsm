@@ -13,7 +13,7 @@ The `main` configuration provides limited access into several relevant sections 
 To display the current `main` configuration options.
 
 ```bash
-sudo dynamite kibana config main
+dynamite kibana config main
 ```
 
 ```markdown

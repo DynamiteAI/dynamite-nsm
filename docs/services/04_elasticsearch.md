@@ -30,12 +30,12 @@ sudo dynamite elasticsearch install -h
 
 ## Configuration
 ```markdown
-sudo dynamite elasticsearch config -h
+dynamite elasticsearch config -h
 ```
 
 ## Process Management
 ```markdown
-sudo dynamite elasticsearch process -h
+dynamite elasticsearch process -h
 ```
 
 ## Defaults

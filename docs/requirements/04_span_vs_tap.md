@@ -11,14 +11,14 @@ To be able to start forwarding events an agent must be deployed on a SPAN port o
 - A **network TAP** (Test Access Point) a dedicated device that transmit both the send and receive data streams simultaneously on separate channels. They are deployed in-line and are a single point of failure. Be careful when choosing a network tap!
 
 <center>
-    <img src="/dynamite-nsm/data/img/example_deployment.png">
+    <img src="/data/img/example_deployment.png">
 </center>
 
 ## Pros and Cons
 
 ### Span Ports
 <p align="center">
-    <img src="/dynamite-nsm/data/img/span_diagram.png" />
+    <img src="/data/img/span_diagram.png" />
 </p>
 
 - Available on almost all managed switches
@@ -28,7 +28,7 @@ To be able to start forwarding events an agent must be deployed on a SPAN port o
 ### Network Taps
 
 <p align="center">
-    <img src="/dynamite-nsm/data/img/tap_diagram.png" />
+    <img src="/data/img/tap_diagram.png" />
 </p>
 
 - A high quality tap typically handles much better under high traffic load (will not drop packets.)

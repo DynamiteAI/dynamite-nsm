@@ -10,7 +10,7 @@ By default, Suricata runs the [EmergingThreat Open rule-set](https://rules.emerg
 To make sure you are running the latest rules run `sudo dynamite suricata update`.
 
 ```bash
-$ sudo dynamite suricata -h
+$ dynamite suricata -h
 
 usage: dynamite [-h] {install,uninstall,update,process,config,logs} ...
 
@@ -37,22 +37,22 @@ sudo dynamite suricata install -h
 
 ## Configuration
 ```bash
-sudo dynamite suricata config -h
+dynamite suricata config -h
 ```
 
 ### Scripts Configuration
 ```bash
-sudo dynamite suricata config main rules -h
+dynamite suricata config main rules -h
 ```
 
 ## Process Management
 ```bash
-sudo dynamite suricata process -h
+dynamite suricata process -h
 ```
 
 ## View Logs
 ```bash
-sudo dynamite suricata logs -h
+dynamite suricata logs -h
 ```
 
 ## Defaults

@@ -4,6 +4,7 @@ from typing import Dict, Optional, Union
 
 import tabulate
 
+from dynamite_nsm import exceptions
 from dynamite_nsm import const, utilities
 from dynamite_nsm.logger import get_logger
 from dynamite_nsm.services.base import systemctl
@@ -28,6 +29,8 @@ class BaseProcessManager:
             verbose: Include detailed debug messages
             pretty_print_status: If enabled, status will be printed in a tabulated style
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
@@ -50,7 +53,6 @@ class BaseProcessManager:
     def _get_pid(pid_file: str) -> int:
         pid = None
         h, t = os.path.split(pid_file)
-        utilities.makedirs(h, exist_ok=True)
         try:
             utilities.set_ownership_of_file(h)
         # PID file does not exist

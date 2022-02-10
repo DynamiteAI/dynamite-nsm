@@ -17,6 +17,9 @@ jobs:
       run: |
         sudo python -m pip install --upgrade pip
         sudo pip install .
+    - name: Setup DynamiteNSM
+      run: |
+        sudo dynamite setup install
     - name: Install Elasticsearch
       run: |
         sudo dynamite elasticsearch install --verbose

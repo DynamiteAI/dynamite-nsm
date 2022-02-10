@@ -14,7 +14,7 @@ DynamiteNSM exposes two configurations specific to Elasticsearch: `java` and `ma
 To display current `java` options.
 
 ```bash
-sudo dynamite elasticsearch config java
+dynamite elasticsearch config java
 ```
 
 ```markdown

@@ -52,10 +52,11 @@ nav:
           - Elasticsearch: configuration/monitor/01_elasticsearch.md
           - Kibana: configuration/monitor/02_kibana.md
   - Services:
+      - Setup: services/00_setup.md
+      - Authentication: services/10_auth.md
       - Updates: services/01_updates.md
       - Monitor: services/02_monitor.md
       - Agent: services/03_agent.md
-      - Remote: services/10_remote.md
       - Elasticsearch: services/04_elasticsearch.md
       - Logstash: services/05_logstash.md
       - Kibana: services/06_kibana.md
@@ -65,6 +66,7 @@ nav:
       - Filebeat: services/09_filebeat.md
   - Guides:
       - Quick Start: guides/01_quick_start.md
+      - Remote Management: guides/03_dynamite_remote.md
       - Navigating Kibana:
           - Overview: guides/base_views/01_overview.md
           - Alert: guides/base_views/02_alerts.md

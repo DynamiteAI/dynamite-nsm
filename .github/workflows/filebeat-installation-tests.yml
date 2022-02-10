@@ -17,6 +17,9 @@ jobs:
       run: |
         sudo python -m pip install --upgrade pip
         sudo pip install .
+    - name: Setup DynamiteNSM
+      run: |
+        sudo dynamite setup install
     - name: Install Filebeat
       run: |
         sudo dynamite filebeat install --targets=localhost:5601 --verbose

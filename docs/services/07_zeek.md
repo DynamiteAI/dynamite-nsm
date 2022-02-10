@@ -8,7 +8,7 @@ Through its scripting framework, Zeek is capable of generating [many logs](https
 around and alerts.
 
 ```bash
-$ sudo dynamite zeek -h 
+$ dynamite zeek -h 
 
 usage: dynamite [-h] {install,uninstall,process,config,logs} ...
 
@@ -36,12 +36,12 @@ sudo dynamite zeek install -h
 
 ## Configuration
 ```bash
-sudo dynamite zeek config -h
+dynamite zeek config -h
 ```
 
 ### Scripts Configuration
 ```bash
-sudo dynamite zeek config site scripts -h
+dynamite zeek config site scripts -h
 ```
 
 ## Process Management
@@ -51,7 +51,7 @@ sudo dynamite zeek process -h
 
 ## View Logs
 ```bash
-sudo dynamite zeek logs -h
+dynamite zeek logs -h
 ```
 
 ## Defaults

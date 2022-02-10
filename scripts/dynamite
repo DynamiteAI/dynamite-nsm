@@ -1,19 +1,16 @@
-#!/usr/bin/python
+#! /usr/bin/env python3
 import json
 import sys
+import getpass
 import argparse
-
 import tabulate
 
 from dynamite_nsm import utilities
-
-if utilities.is_root() and not utilities.get_environment_file_dict():
-    utilities.create_dynamite_environment_file()
-
+from dynamite_nsm import exceptions
 from dynamite_nsm.const import VERSION
 from dynamite_nsm.cmd import process_arguments
 from dynamite_nsm.utilities import print_dynamite_logo
-from dynamite_nsm.cmd import agent, monitor, elasticsearch, logstash, kibana, remote, zeek, suricata, filebeat, updates
+from dynamite_nsm.cmd import component_modules
 
 
 def print_service_statuses():
@@ -24,8 +21,22 @@ def print_service_statuses():
     from dynamite_nsm.services.elasticsearch import profile as elasticsearch_profile
     from dynamite_nsm.services.logstash import profile as logstash_profile
     from dynamite_nsm.services.kibana import profile as kibana_profile
-    if not utilities.is_root():
-        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))
+    if not utilities.is_setup():
+        print(
+            utilities.PrintDecorations.colorize('Your environment is not setup yet.',
+                                                _color='red'))
+        print(
+            utilities.PrintDecorations.colorize('Run \'sudo dynamite setup install\' to setup the environment.',
+                                                _color='yellow'))
+        exit(0)
+    elif not utilities.is_root() and not utilities.is_dynamite_member(getpass.getuser()):
+        print(
+            utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
+        print(
+            utilities.PrintDecorations.colorize(
+                f'Run \'sudo usermod -a -G dynamite {getpass.getuser()}\' to add your current user to the dynamite '
+                f'group. You may have to logout of your current shell before the change takes affect.',
+                _color='yellow'))
         exit(0)
     profiler_map = dict(
         elasticsearch=elasticsearch_profile.ProcessProfiler(),
@@ -54,19 +65,7 @@ def get_component(component_name: str):
 
     :param component_name: The name of the component
     """
-    component_map = dict(
-        agent=agent,
-        monitor=monitor,
-        elasticsearch=elasticsearch,
-        logstash=logstash,
-        kibana=kibana,
-        zeek=zeek,
-        suricata=suricata,
-        filebeat=filebeat,
-        updates=updates,
-        remote=remote
-    )
-    selected_component = component_map[component_name]
+    selected_component = component_modules[component_name]
     return selected_component
 
 
@@ -81,6 +80,8 @@ def get_component_level_args(component_name: str):
 if __name__ == '__main__':
     dynamite_dummy_parser = argparse.ArgumentParser(f'Dynamite Network Security Monitor [{VERSION}]')
     dynamite_dummy_parser.add_argument('component', help='A component within the Dynamite stack to manage.', choices=[
+        'auth',
+        'setup',
         'agent',
         'monitor',
         'zeek',
@@ -90,7 +91,6 @@ if __name__ == '__main__':
         'logstash',
         'kibana',
         'updates',
-        'remote'
     ])
 
     dynamite_dummy_parser.add_argument('action',
@@ -122,7 +122,7 @@ if __name__ == '__main__':
                                     sub_interface=sub_interface, print_help_on_error=False)
             if res:
                 print(res)
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as e:
             res = process_arguments(args=get_component_level_args(component), component=component, interface=interface,
                                     print_help_on_error=True)
             if isinstance(res, bool):
@@ -140,5 +140,31 @@ if __name__ == '__main__':
         print_service_statuses()
     except KeyError:
         dynamite_dummy_parser.print_help()
-    except PermissionError:
-        print(utilities.PrintDecorations.colorize('You must run this command as root.', _color='red'))
+    except exceptions.RequiresRootError as e:
+        if '--verbose' in sys.argv:
+            print(
+                utilities.PrintDecorations.colorize(str(e), _color='red'))
+        print(
+            utilities.PrintDecorations.colorize('You must be root to run this command.',
+                                                _color='red'))
+    except PermissionError as e:
+        if '--verbose' in sys.argv:
+            print(
+                utilities.PrintDecorations.colorize(str(e), _color='red'))
+        print(
+            utilities.PrintDecorations.colorize('You do not have permission to perform this operation.', _color='red'))
+        print(
+            utilities.PrintDecorations.colorize(
+                f'Run \'sudo usermod -a -G dynamite {getpass.getuser()}\' to add your current user to the dynamite '
+                f'group. You may have to logout of your current shell before the change takes affect.',
+                _color='yellow'))
+    except exceptions.DynamiteNotSetupError as e:
+        if '--verbose' in sys.argv:
+            print(
+                utilities.PrintDecorations.colorize(str(e), _color='red'))
+        print(
+            utilities.PrintDecorations.colorize('Your environment is not setup yet.',
+                                                _color='red'))
+        print(
+            utilities.PrintDecorations.colorize('Run \'sudo dynamite setup install\' to setup the environment.',
+                                                _color='yellow'))
