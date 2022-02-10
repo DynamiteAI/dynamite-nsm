@@ -2483,14 +2483,19 @@
                 
                 <h1 id="introduction">Introduction</h1>
 <h3 id="what-is-dynamite-network-security-monitor">What is Dynamite Network Security Monitor?</h3>
-<p>DynamiteNSM is a lightweight, versatile network security monitor conveniently bundled as a <code>Python 3.7+</code> package. It is designed to make securing your network environment simple and intuitive. </p>
-<p>It has two main components: <code>agent</code> and <code>monitor</code>. Dynamite agents can easily be deployed to monitor dedicated network segments while the monitor provides
-a powerful query interface and in-depth analytics.</p>
+<p>DynamiteNSM is a lightweight, versatile network security monitor conveniently bundled as a <code>Python 3.7+</code> package. It is designed to make securing your network environment simple and intuitive, and can be deployed in a variety of environments including high-speed data centers, small-to-large enterprises, IoT &amp; industrial networks, and even at home.</p>
+<p>NSM includes two key components and simple remote management utility. </p>
+<ul>
+<li>The <strong>agent</strong> extracts Zeek network metadata merged with Suricata IDS security alerts and forwards them to a downstream collector. </li>
+<li>The <strong>monitor</strong> can receive events forwarded from the agent, ingesting and normalizing them, so they can be viewed within visualized and queried.</li>
+</ul>
+<p>NSM can handle massive volumes of network traffic, and unlike many other tools, it can be installed and managed with a standalone command-line utility. 
+The system is inherently passive without disruption to the network.</p>
 <p><center>
     <img src="./data/img/demos/intro.gif">
 </center></p>
 <p style="text-align: right;">
-    <a href="./about/01_project_goals"> Read More »</a>
+    <a href="./about/02_architecture"> Read More »</a>
 </p>
 
 <h3 id="checkout-the-dashboards">Checkout the Dashboards</h3>
