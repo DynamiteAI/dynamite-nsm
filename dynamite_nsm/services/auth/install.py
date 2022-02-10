@@ -11,7 +11,7 @@ from dynamite_nsm.services.base import install
 dynamite_bin = shutil.which('dynamite')
 
 sudoers_patch = f'''
-dynamite-remote ALL=(ALL) NOPASSWD: {dynamite_bin}'
+dynamite-remote ALL=(ALL) NOPASSWD: {dynamite_bin}
 '''
 
 ssh_config_patch = f'''
