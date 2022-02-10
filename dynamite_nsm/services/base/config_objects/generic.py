@@ -1,5 +1,5 @@
 import json
-from zlib import adler32
+from hashlib import sha256
 from typing import List, Optional, Union
 
 
@@ -60,17 +60,22 @@ class Analyzer(GenericItem):
     """
     Analyzers are packages used for identifying Zeek scripts and signatures as well as Suricata rule-sets
     """
-    def __init__(self, name: str, enabled: Optional[bool] = False):
+    def __init__(self, name: str, enabled: Optional[bool] = False, content: Optional[str] = None):
         """
         Create a simple analyzer object
 
         Args:
-            name: The name (or often path) to the the analyzer
+            name: The name (or often path) to the analyzer
             enabled: True, if enabled
+            content: If included the contents of the analyzer will be used to generate a unique hash.
         """
         self.name = name
-        self.id = adler32(str(name).encode("utf-8")) % 15000
         self.enabled = enabled
+
+        if not content:
+            self.id = sha256(str(name).encode("utf-8")).hexdigest()[0:7]
+        else:
+            self.id = sha256(str(content).encode("utf-8")).hexdigest()[0:7]
 
     def __str__(self):
         return json.dumps(dict(
@@ -85,7 +90,7 @@ class Analyzers(GenericItemGroup):
     """A Group of Analyzers; provides some basic methods for filtering and display"""
 
     def __init__(self, analyzers: Optional[List[Analyzer]] = None):
-        super().__init__('name', analyzers)
+        super().__init__('id', analyzers)
         self.analyzers = self.items
 
     def get_disabled(self) -> List[Analyzer]:

@@ -1,6 +1,8 @@
 import json
+import os.path
 from typing import Optional, List
 
+from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base.config_objects.generic import Analyzer, Analyzers
 
 
@@ -26,14 +28,6 @@ available_rules_names = [
 ]
 
 
-def list_available_rule_names() -> List[str]:
-    """List the names of all available Suricata rules.
-    Returns:
-        A list of Suricata rule names that can be enabled
-    """
-    return available_rules_names
-
-
 class Rule(Analyzer):
 
     def __init__(self, name: str, enabled: Optional[bool] = False):
@@ -41,10 +35,26 @@ class Rule(Analyzer):
         Represents a Suricata ruleset that can be enabled or disabled.
         Args:
             name: The name of the ruleset
-            enabled: Whether or not the ruleset is enabled
+            enabled: Whether the ruleset is enabled
         """
         self.value = None
-        super().__init__(name, enabled)
+        self.name = name
+        content = self.get_contents()
+        super().__init__(name, enabled, content=content)
+
+    def get_contents(self):
+        """Get the content of the Suricata rule file.
+
+        Returns:
+            The contents of the Suricata rule
+        """
+        env = utilities.get_environment_file_dict()
+        suricata_rules_root = f"{env.get('SURICATA_CONFIG', const.CONFIG_PATH)}/rules"
+        path_match_1 = f'{suricata_rules_root}/{self.name}'
+        if os.path.exists(path_match_1):
+            with open(path_match_1) as content_rule_in:
+                return content_rule_in.read(5120)
+        return None
 
 
 class Rules(Analyzers):

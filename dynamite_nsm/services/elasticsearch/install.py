@@ -136,7 +136,8 @@ class InstallManager(install.BaseInstallManager):
         else:
             tls_cert_subject = tls_cert_subject
         if not heap_size_gigs:
-            heap_size_gigs = int((utilities.get_memory_available_bytes() / 10 ** 9) / 2)
+            reserved_memory = utilities.get_memory_available_bytes() * .75
+            heap_size_gigs = int((reserved_memory / 10 ** 9) / 2)
         formatted_subj = tls_cert_subject.lstrip("/").replace("/", ",")
         formatted_subj_2 = ','.join(reversed(formatted_subj.split(',')))
         es_main_config.node_name = node_name
@@ -212,7 +213,6 @@ class UninstallManager(install.BaseUninstallManager):
         es_directories = [env_vars.get('ES_HOME'), env_vars.get('ES_LOGS')]
         if purge_config:
             es_directories.append(env_vars.get('ES_PATH_CONF'))
-        install_events_to_hosts.EventsToHostsTask().remove_cronjob()
         super().__init__('elasticsearch.uninstall', directories=es_directories,
                          environ_vars=['ES_PATH_CONF', 'ES_HOME', 'ES_LOGS'],
                          process=ProcessManager(stdout=stdout, verbose=verbose),

@@ -1,13 +1,16 @@
 import os
+import shutil
 import subprocess
 import time
 from typing import List, Optional
 
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.zeek import config
-from dynamite_nsm.services.zeek import package
+from dynamite_nsm.exceptions import InstallError
+from dynamite_nsm.services.zeek import package, zkg
+from dynamite_nsm.services.zeek.tasks import set_caps
 from dynamite_nsm.services.zeek.zkg import install as zkg_install
-from dynamite_nsm.services.base.config_objects.zeek import node, local_site
+from dynamite_nsm.services.base.config_objects.zeek import node
 from dynamite_nsm.services.base import install, systemctl
 
 COMPILE_PROCESS_EXPECTED_LINE_COUNT = 7392
@@ -38,6 +41,12 @@ class InstallManager(install.BaseInstallManager):
         self.verbose = verbose
 
         super(InstallManager, self).__init__(name='zeek.install', verbose=verbose, stdout=stdout)
+
+        if not shutil.which('python3-config'):
+            raise InstallError(
+                'Python3 development bindings must be installed for Zeek installation to fully succeed. '
+                'Common Packages: "python3-dev" (Debian based) "python3-devel" (RHEL based)')
+
         if download_zeek_archive:
             self.logger.info("Attempting to download Zeek archive.")
             _, archive_name, self.local_mirror_root = self.download_from_mirror(const.ZEEK_MIRRORS)
@@ -91,8 +100,8 @@ class InstallManager(install.BaseInstallManager):
             if pacman_type != 'yum':
                 self.logger.info('Skipping RHEL PowerTools install, as it is not needed on this distribution.')
                 return
-            self.install_dependencies(yum_packages=['dnf-plugins-core'])
-            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'PowerTools'],
+            self.install_dependencies(yum_packages=['dnf-plugins-core', 'epel-release'])
+            enable_powertools_p = subprocess.Popen(['yum', 'config-manager', '--set-enabled', 'powertools'],
                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             enable_powertools_p.communicate()
             if enable_powertools_p.returncode == 0:
@@ -133,7 +142,10 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Setting up Zeek package manager.')
         zkg_installer = zkg_install.InstallManager()
         zkg_installer.setup()
-        package.InstallPackageManager(const.ZEEK_PACKAGES, stdout=self.stdout, verbose=self.verbose).setup()
+        try:
+            package.InstallPackageManager(const.ZEEK_PACKAGES, stdout=self.stdout, verbose=self.verbose).setup()
+        except zkg.InstallZeekPackageError as e:
+            self.logger.error(f'An error occurred while installing one or more Zeek packages: {e}')
 
         self.copy_file_or_directory_to_destination(f'{const.DEFAULT_CONFIGS}/zeek/broctl-nodes.cfg',
                                                    f'{self.install_directory}/etc/node.cfg')
@@ -141,8 +153,6 @@ class InstallManager(install.BaseInstallManager):
                                                    f'{self.configuration_directory}/site/local.zeek')
 
         # Optimize Configurations
-        site_local_config = config.SiteLocalConfigManager(self.configuration_directory, stdout=self.stdout,
-                                                          verbose=self.verbose)
         node_config = config.NodeConfigManager(self.install_directory, stdout=self.stdout, verbose=self.verbose)
         node_config.workers = node.Workers()
         for worker in node_config.get_optimal_zeek_worker_config(inspect_interfaces):
@@ -152,10 +162,21 @@ class InstallManager(install.BaseInstallManager):
         self.logger.info('Applying node configuration.')
         node_config.commit()
 
+        self.logger.info('Setting up BPF input configuration')
+        with open(f'{self.configuration_directory}/bpf_map_file.input', 'w') as bpf_config_f:
+            bpf_config_f.write('')
+
         # Fix Permissions
         self.logger.info('Setting up file permissions.')
         utilities.set_ownership_of_file(self.configuration_directory, user='dynamite', group='dynamite')
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/site/local.zeek', 660)
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/site/bpf_map_file.input', 660)
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/node.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/networks.cfg', 660)
+        utilities.set_permissions_of_file(f'{self.install_directory}/etc/networks.cfg', 660)
+        self.logger.info('Setting up Zeek capture rules for dynamite user.')
+        set_caps.SetCapturePermissions(self.install_directory).invoke(shell=True)
 
         self.logger.info(f'Installing service -> {const.DEFAULT_CONFIGS}/systemd/zeek.service')
         sysctl.install_and_enable(os.path.join(const.DEFAULT_CONFIGS, 'systemd', 'zeek.service'))

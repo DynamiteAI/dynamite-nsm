@@ -6,19 +6,20 @@ from dynamite_nsm.cmd.base_interface import BaseInterface
 
 def append_service_interface_to_parser(parent_parser: argparse, interface_name: str, interface: BaseInterface,
                                        interface_group_name: Optional[str] = 'interface') -> argparse.ArgumentParser:
-    """
-    Add an interface to an existing parser.
-
-    :param parent_parser: The parent parser to add the interface too
-    :param interface_name: The name of this interface as it will appear in the commandline utility
-    :param interface: The interface object itself
-    :param interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy this
-                                 service_interface should be placed
-    :return: The parser object
+    """Add an interface to an existing parser.
+    Args:
+        parent_parser: The parent parser to add the interface too
+        interface_name: The name of this interface as it will appear in the commandline utility
+        interface: The interface object itself
+        interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy this
+        service_interface should be placed
+    Returns:
+         The parser object
     """
     from dynamite_nsm.cmd import service_interfaces
     from dynamite_nsm.cmd import config_object_interfaces
-    from dynamite_nsm.cmd.config_object_interfaces import AnalyzersInterface, FilebeatTargetsInterface
+    from dynamite_nsm.cmd.config_object_interfaces import AnalyzersInterface, FilebeatTargetsInterface, \
+        SuricataInterfaceConfigObjectsInterface, ZeekNodeConfigObjectInterface, ZeekNodeConfigObjectsInterface
     from dynamite_nsm.cmd.service_interfaces import MultipleResponsibilityInterface, SingleResponsibilityInterface, \
         SimpleConfigManagerInterface
 
@@ -43,22 +44,30 @@ def append_service_interface_to_parser(parent_parser: argparse, interface_name: 
     elif isinstance(interface, FilebeatTargetsInterface):
         config_object_interfaces.append_config_object_filebeat_targets_to_parser(parser=sub_interface_parser,
                                                                                  interface=interface)
-
+    elif isinstance(interface, SuricataInterfaceConfigObjectsInterface):
+        config_object_interfaces.append_config_object_suricata_interface_obj_to_parser(parser=sub_interface_parser,
+                                                                                       interface=interface)
+    elif isinstance(interface, ZeekNodeConfigObjectInterface):
+        config_object_interfaces.append_config_object_zeek_node_obj_to_parser(parser=sub_interface_parser,
+                                                                              interface=interface)
+    elif isinstance(interface, ZeekNodeConfigObjectsInterface):
+        config_object_interfaces.append_config_object_zeek_node_objs_to_parser(parser=sub_interface_parser,
+                                                                               interface=interface)
     return parent_parser
 
 
 def append_service_interfaces_to_parser(
         parent_parser: argparse, interfaces: Dict[str, BaseInterface],
         interface_group_name: Optional[str] = 'sub_interface') -> argparse.ArgumentParser:
-    """
-    Append multiple service interfaces to a single parser
-
-    :param parent_parser:
-    :param interfaces: A dictionary service interface packages where the key is the name of that interface,
-                    and the value is the interface object itself.
-    :param interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy these
-                                 service_interfaces should be placed
-    :return: The parser object
+    """Append multiple service interfaces to a single parser
+    Args:
+        parent_parser:
+        interfaces: A dictionary service interface packages where the key is the name of that interface, and the value
+        is the interface object itself.
+        interface_group_name: A name identifying where in the component, interface, sub-interface hierarchy these
+        service_interfaces should be placed
+    Returns:
+         The parser object
     """
 
     for name, value in interfaces.items():

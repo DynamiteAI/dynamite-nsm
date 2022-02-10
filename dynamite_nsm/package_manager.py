@@ -29,7 +29,7 @@ class OSPackageManager:
         log_level = logging.INFO
         if verbose:
             log_level = logging.DEBUG
-        self.logger = get_logger('OS_PACKAGE_MGR', level=log_level, stdout=stdout)
+        self.logger = get_logger('package.manager', level=log_level, stdout=stdout)
 
     @staticmethod
     def detect_package_manager(verbose: Optional[bool] = False) -> str:

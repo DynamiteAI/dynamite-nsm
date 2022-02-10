@@ -13,7 +13,7 @@ transform it on the fly, and send it to your desired destination.
 DynamiteNSM pre-configures Logstash with several useful defaults, and automatically optimizes its use of the JVM heap.
 
 ```bash
-$ sudo dynamite logstash -h
+$ dynamite logstash -h
 
 usage: dynamite [-h] {install,uninstall,process,config} ...
 
@@ -38,12 +38,12 @@ sudo dynamite logstash install -h
 
 ## Configuration
 ```markdown
-sudo dynamite logstash config -h
+dynamite logstash config -h
 ```
 
 ## Process Management
 ```markdown
-sudo dynamite logstash process -h
+dynamite logstash process -h
 ```
 
 ## Defaults

@@ -4,7 +4,7 @@ The Dynamite team publishes a set of default configurations and mirrors for each
 To take advantage of any new improvements to the default configuration sets simply run: `sudo dynamite updates install`.
 Now the next time you install a new `service` the new default configurations will be applied.
 ```bash
-$ sudo dynamite updates install -h
+$ dynamite updates install -h
 
 usage: dynamite [-h] {install} ...
 

@@ -2,9 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='dynamite-nsm',
-    version='1.1.0',
+    version='1.1.4',
     packages=find_packages(),
-    scripts=['scripts/dynamite'],
+    python_requires='>=3.7.0',
+    scripts=['scripts/dynamite', 'scripts/dynamite-remote'],
     url='https://github.com/DynamiteAI/dynamite-nsm',
     long_description_content_type="text/markdown",
     license='GPL 3',
@@ -13,12 +14,15 @@ setup(
     description='DynamiteNSM is a lightweight, versatile network security monitor designed to '
                 'make securing your network environment simple and intuitive.',
     include_package_data=True,
+    package_data={
+        'dynamite_nsm': ['bin/*']
+    },
     install_requires=[
         'bcrypt==3.2.0',
         'coloredlogs==15.0',
         'progressbar==2.5',
         'tabulate==0.8.9',
-        'PyYAML==5.3.1',
+        'PyYAML==6.0',
         'psutil==5.8.0',
         'docstring-parser==0.7.3',
         'marshmallow==3.11.1',
@@ -26,7 +30,7 @@ setup(
         'python-crontab==2.5.1',
         'python-daemon==2.3.0',
         'requests==2.25.1',
-        'sqlalchemy==1.3.18',
+        'SQLAlchemy==1.4.7',
         'Unidecode==1.2.0',
     ],
     classifiers=[

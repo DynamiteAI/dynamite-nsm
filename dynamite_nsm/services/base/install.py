@@ -37,26 +37,30 @@ class BaseInstallManager:
     An interface used to assist with a variety of common service installation tasks
     """
 
-    def __init__(self, name: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True,
-                 log_level=logging.INFO):
+    def __init__(self, name: str, verbose: Optional[bool] = False, requires_root: Optional[bool] = True,
+                 stdout: Optional[bool] = True, log_level=logging.INFO):
         """
         Build a custom service installer
 
         Args:
             name: The name of the service
+            requires_root: If True, then the uninstaller will check that the user is root
             stdout: Print output to console
             verbose: Include detailed debug messages
             log_level: The minimum logging.LOG_LEVEL to be handled
         """
+        if not utilities.is_setup():
+            raise exceptions.DynamiteNotSetupError()
+        if requires_root and not utilities.is_root():
+            raise exceptions.RequiresRootError()
         if verbose:
             log_level = logging.DEBUG
         self.stdout = stdout
         self.verbose = verbose
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
         self.dynamite_environ = utilities.get_environment_file_dict()
+        utilities.makedirs(const.INSTALL_CACHE)
         utilities.create_dynamite_user()
-        utilities.makedirs(const.PID_PATH, exist_ok=True)
-        utilities.set_ownership_of_file(const.PID_PATH, user='dynamite', group='dynamite')
 
     def compile_source_package(self, source_root_directory: str, compile_args: Optional[List[str]] = None,
                                parallel_threads: Optional[int] = None,
@@ -172,6 +176,7 @@ class BaseInstallManager:
                 read_lines[overwrite_line_no] = f'{name}={value}\n'
             with open(env_file_path, 'w') as env_fw:
                 env_fw.writelines(read_lines)
+        utilities.set_ownership_of_file(env_file_path)
 
     def download_from_mirror(self, mirror_path: str) -> Tuple[str, str, Optional[str]]:
         """Download a Dynamite service from a mirror
@@ -341,13 +346,16 @@ class BaseUninstallManager:
 
     def __init__(self, name: str, directories: List[str], environ_vars: Optional[List[str]] = None,
                  process: Optional[process.BaseProcessManager] = None,
-                 sysctl_service_name: Optional[str] = None, verbose: Optional[bool] = False,
+                 sysctl_service_name: Optional[str] = None, requires_root: Optional[bool] = True,
+                 verbose: Optional[bool] = False,
                  stdout: Optional[bool] = True, log_level=logging.INFO):
         """Remove installed files for a given service
         Args:
             name: The name of the process
             directories: The directories to be removed
             process: The process to be terminated
+            sysctl_service_name: The name any associated systemd unit file.
+            requires_root: If True, then the uninstaller will check that the user is root
             stdout: Print output to console
             verbose: Include detailed debug messages
             log_level: The logging.LOG_LEVEL to use when logging
@@ -362,6 +370,8 @@ class BaseUninstallManager:
         if verbose:
             log_level = logging.DEBUG
         self.logger = get_logger(str(name).upper(), level=log_level, stdout=stdout)
+        if requires_root and not utilities.is_root():
+            raise exceptions.RequiresRootError()
 
     @staticmethod
     def delete_env_variable(name: str):
@@ -382,18 +392,18 @@ class BaseUninstallManager:
         Returns:
             None
         """
-        sysctl = systemctl.SystemCtl()
+        sysctl = systemctl.SystemCtl(stdout=self.stdout, verbose=self.verbose)
         if self.process:
             self.process.stop()
         for dir in self.directories:
-            self.logger.debug(f'Removing {dir}')
+            self.logger.info(f'Removing {dir}')
             shutil.rmtree(dir, ignore_errors=True)
         if self.environ_vars:
             for var in self.environ_vars:
                 self.delete_env_variable(var)
         if self.sysctl_service_name:
             try:
-                self.logger.debug(f'Uninstalling {self.sysctl_service_name}')
+                self.logger.info(f'Uninstalling {self.sysctl_service_name}')
                 sysctl.uninstall_and_disable(self.sysctl_service_name)
             except FileNotFoundError:
                 self.logger.debug('Skipping service uninstallation as systemd was not implemented in this setup.')

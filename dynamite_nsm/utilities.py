@@ -4,9 +4,11 @@ import crypt
 import fcntl
 import getpass
 import grp
+import json
 import multiprocessing
 import os
 import pwd
+import pkg_resources
 import random
 import re
 import shutil
@@ -86,6 +88,7 @@ def backup_configuration_file(source_file: str, configuration_backup_directory: 
                                                                  timestamp))
     try:
         makedirs(configuration_backup_directory, exist_ok=True)
+        set_ownership_of_file(configuration_backup_directory)
     except Exception as e:
         raise exceptions.WriteConfigError(
             "General error while attempting to create backup directory at {}; {}".format(configuration_backup_directory,
@@ -161,7 +164,7 @@ def restore_backup_configuration(configuration_backup_filepath: str, config_file
 def check_pid(pid: int) -> bool:
     """:return: True, if the process is running
     Args:
-
+        The process id
     Returns:
         None
     """
@@ -243,7 +246,8 @@ def create_dynamite_environment_file() -> None:
     env_file_f = open(env_file, 'a')
     env_file_f.write('')
     env_file_f.close()
-    set_permissions_of_file(env_file, 700)
+    set_ownership_of_file(env_file, user='dynamite', group='dynamite')
+    set_permissions_of_file(env_file, 770)
 
 
 def create_dynamite_user() -> None:
@@ -473,6 +477,39 @@ def get_terminal_size() -> Optional[Tuple[int, int]]:
     return w, h
 
 
+def get_sshd_directory_path():
+    """Gets the path of the Include directory in the sshd_config
+
+    Returns:
+        The path to the sshd_config.d/
+    """
+    include_directory = None
+    with open(const.SSH_CONF_FILE, 'r') as sudoers_in:
+        for i, line in enumerate(sudoers_in.readlines()):
+            line = line.strip()
+            if line.startswith('Include'):
+                include_directory = ' '.join(line.split(' ')[1:])
+                break
+    include_directory = include_directory.replace('*.conf', '')
+
+    return include_directory
+
+
+def get_sudoers_directory_path():
+    """Get the path to the #includedir directory
+    Returns:
+        The path to sudoers.d/
+    """
+    include_directory = None
+    with open(const.SUDOERS_FILE, 'r') as sudoers_in:
+        for i, line in enumerate(sudoers_in.readlines()):
+            line = line.strip()
+            if line.startswith('#includedir') or line.startswith('@includedir'):
+                include_directory = ' '.join(line.split(' ')[1:])
+                break
+    return include_directory
+
+
 def generate_random_password(length: int = 30) -> str:
     """Generate a random password containing alphanumeric and symbolic characters
     Args:
@@ -551,16 +588,17 @@ def get_network_interface_names() -> List[str]:
 
     available_networks = []
     for intface, addr_list in addresses.items():
-        if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
+        if intface.startswith('lo'):
             continue
-        elif intface.startswith('lo'):
+        elif intface.startswith('docker'):
             continue
         elif intface.startswith('veth'):
             continue
         elif intface.startswith('br-'):
             continue
-        elif intface in stats and getattr(stats[intface], "isup"):
-            available_networks.append(intface)
+        elif intface not in stats:
+            continue
+        available_networks.append(intface)
     return available_networks
 
 
@@ -577,25 +615,26 @@ def get_network_interface_configurations() -> List[Dict]:
 
     available_networks = []
     for intface, addr_list in addresses.items():
-        if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
+        if intface.startswith('lo'):
             continue
-        elif intface.startswith('lo'):
+        elif intface.startswith('docker'):
             continue
         elif intface.startswith('veth'):
             continue
         elif intface.startswith('br-'):
             continue
-        elif intface in stats and getattr(stats[intface], "isup"):
-            name = intface
-            speed = stats[intface].speed
-            duplex = str(stats[intface].duplex)
-            mtu = stats[intface].mtu
-            available_networks.append({
-                'name': name,
-                'speed': speed,
-                'duplex': duplex,
-                'mtu': mtu
-            })
+        elif intface not in stats:
+            continue
+        name = intface
+        speed = stats[intface].speed
+        duplex = str(stats[intface].duplex)
+        mtu = stats[intface].mtu
+        available_networks.append({
+            'name': name,
+            'speed': speed,
+            'duplex': duplex,
+            'mtu': mtu
+        })
     return available_networks
 
 
@@ -660,6 +699,33 @@ def is_root() -> bool:
          True, if the user is root
     """
     return os.getuid() == 0
+
+
+def is_dynamite_member(user: str) -> bool:
+    """
+    Check if a user is a member of the dynamite group
+    Args:
+        user: A username
+
+    Returns:
+        True, if the user is a member of the dynamite group
+    """
+    group = grp.getgrnam('dynamite')
+    return user in group[3]
+
+
+def is_setup() -> bool:
+    """Check if DynamiteNSM has required directories created.
+    Returns:
+        True if setup properly
+    """
+    if not os.path.exists(const.CONFIG_PATH):
+        return False
+    elif not os.path.exists(const.INSTALL_PATH):
+        return False
+    elif not os.path.exists(const.LOG_PATH):
+        return False
+    return True
 
 
 def makedirs(path: str, exist_ok: Optional[bool] = True) -> None:
@@ -869,10 +935,12 @@ def safely_remove_file(path: str) -> None:
 
 def set_ownership_of_file(path: str, user: Optional[str] = 'dynamite', group: Optional[str] = 'dynamite') -> None:
     """Set the ownership of a file given a user/group and a path
-
-    :param path: The path to the file
-    :param user: The name of the user
-    :param group: The group of the user
+    Args:
+        path: The path to the file
+        user: The name of the user
+        group: The group of the user
+    Returns:
+        None
     """
 
     uid = pwd.getpwnam(user).pw_uid
@@ -896,6 +964,26 @@ def set_permissions_of_file(file_path: str, unix_permissions_integer: Union[str,
         None
     """
     subprocess.call('chmod -R {} {}'.format(unix_permissions_integer, file_path), shell=True)
+
+
+def test_bpf_filter(expr: str, include_message: bool = False) -> Union[bool, Tuple[bool, str]]:
+    """Given a BPF expression determine if it is valid, and optionally return a message if not
+    Args:
+        expr: A valid Berkeley Packet Filter
+        include_message: If True, Include an error message if expression is not valid.
+
+    Returns:
+        The result and optional result message
+    """
+    bin_path = pkg_resources.resource_filename('dynamite_nsm', 'bin/bpf_validate')
+    set_permissions_of_file(bin_path, '+x')
+    p = subprocess.Popen([bin_path] + expr.split(' '), stdout=subprocess.PIPE)
+    output, _ = p.communicate()
+    serialized_values = json.loads(output)
+    if not include_message:
+        return serialized_values['success']
+    else:
+        return serialized_values['success'], serialized_values['msg']
 
 
 def update_sysctl(verbose: Optional[bool] = False) -> None:
@@ -961,7 +1049,7 @@ def wrap_text(s: str) -> str:
     Args:
         s: A string
     Returns:
-         A new line deliminated string
+         A new line delaminated string
     """
     if not s:
         return ""

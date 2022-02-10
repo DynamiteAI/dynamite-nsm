@@ -21,8 +21,7 @@ class InstallZeekPackageError(Exception):
 
 
 def install_zeek_package(package_git_url: str, stdout: Optional[bool] = True, verbose: Optional[bool] = False):
-    """
-    Update Suricata rules specified in the oinkmaster.conf file
+    """Install a Zeek package via ZKG
 
     Args:
         package_git_url: The path to the git repo containing the Zeek package
@@ -55,3 +54,7 @@ def install_zeek_package(package_git_url: str, stdout: Optional[bool] = True, ve
         logger.error(f'ZKG returned a non-zero exit-code during load: {zkg_load_p.returncode}.')
         raise InstallZeekPackageError(
             f'ZKG returned a non-zero exit-code during load: {zkg_load_p.returncode}; err: {err}.')
+
+
+if __name__ == '__main__':
+    install_zeek_package('https://github.com/corelight/cve-2021-44228.git', stdout=True, verbose=True)

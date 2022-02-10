@@ -5,7 +5,7 @@ This setup will work with small lab environments, but is not suggested for scena
 
 ## Pre-requisites
 
-- Two physical or virtual machines running a [supported operating system](/supported_operating_systems). One machine will be dedicated to packet acquisition and analysis - **The Agent**; the other for the storing and presentation of this data - **The Monitor**.
+- Two physical or virtual machines running a [supported operating system](/requirements/01_supported_operating_systems/). One machine will be dedicated to packet acquisition and analysis - **The Agent**; the other for the storing and presentation of this data - **The Monitor**.
 
 | Role    | RAM | CPUs | Network Interfaces  |
 |---------|-----|------|---------------------|
@@ -18,7 +18,7 @@ This setup will work with small lab environments, but is not suggested for scena
 > ⓘ `dynamite zeek logs metrics --pretty` and `dynamite suricata logs metrics --pretty` can be used to watch for dropped packets.
 
 
-- A physical or virtual switch capable of [SPANing or a dedicated TAP](/requirements/04_span_vs_tap) device.
+- A physical or virtual switch with a [SPAN port or a dedicated TAP](/requirements/04_span_vs_tap) device.
 - [Python 3.7+](https://www.python.org/downloads/).
 
 
@@ -30,9 +30,9 @@ This setup will work with small lab environments, but is not suggested for scena
 pip install dynamite-nsm
 ```
 
-- Download any default configuration or mirror updates.
+- Initialize the environment enabling services to be installed and managed.
 ```bash
-sudo dynamite updates install
+sudo dynamite setup install
 ```
 
 ## Install the Monitor
@@ -132,8 +132,61 @@ sudo dynamite filebeat logs main --pretty
 ╘════════════════════════════╧═══════════╧═══════════════════════════╧════════════════════════════════════════════════════════════════════════════════╛
 ```
 
-- If you ever change the hardware specifications or wish to monitor an additional network interface be sure to run the below command, which will automatically recalibrate `zeek` and `suricata` for efficient resource utilization.
+## Adding Additional Inspection Interfaces
+
+Users can easily add new network interfaces for both Zeek and Suricata.
+
 
 ```bash
-sudo dynamite agent optimize --inspect-interfaces=<mon_iface0> <mon_iface1>
+dynamite zeek reset node --inspect-interfaces=<inspect-iface-1> <inspect-iface-2>
+```
+
+```bash
+dynamite suricata reset --inspect-interfaces=<inspect-iface-1> <inspect-iface-2>
+```
+
+Once your desired configurations are applied to be sure to run the `agent optimize` command to ensure resources are being
+balanced between Zeek and Suricata sanely.
+
+```bash
+dynamite agent optimize
+```
+
+You must restart the agent for changes to be applied.
+
+```bash
+dynamite agent process restart
+```
+
+## Manage this Instance Remotely
+
+`dynamite-nsm` now ships with a remote management utility creatively named [`dynamite-remote`](/guides/03_dynamite_remote).
+Unlike the `dynamite` utility `dynamite-remote` can be run on most *NIX operating systems that have `openssh-client` installed.
+
+First create an authentication package on your remote management server. 
+You can install this utility on the management server simply by installing the latest version of `dynamite-nsm` via `pip3` or a tool like it. 
+
+
+```bash
+
+user@remote-server:~# dynamite-remote create --name agent1 --host agent1.dev.local --port 22 --description "agent1 traffic sensor"
+```
+
+Move the authentication package created by the above command over to your `agent1` node.
+
+```bash
+scp agent1.tar.gz user@agent1.dev.local:/home/user/
+```
+
+Use the `dynamite auth` command to install the authentication package you generated.
+
+```bash
+
+root@agent1.dev.local:~# dynamite auth install --archive /home/user/agent.tar.gz
+```
+
+On the remote machine you should now be able to run commands on `agent1.dev.local`
+
+```bash
+dynamite-remote execute dev-machine "zeek config site scripts"
 ```

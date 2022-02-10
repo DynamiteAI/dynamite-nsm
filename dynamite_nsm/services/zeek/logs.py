@@ -210,7 +210,7 @@ class MetricsEntry:
         self.reassembly_fragment_size = entry.get('reassem_frag_size', 0)
         self.reassembly_unknown_size = entry.get('reassem_unknown_size', 0)
         self.packets_dropped_percentage = 0
-        if self.packets_processed > 0:
+        if self.packets_link > 0:
             self.packets_dropped_percentage = round(self.packets_dropped / self.packets_link, 2)
 
     def merge_metric_entry(self, metric_entry: MetricsEntry) -> None:

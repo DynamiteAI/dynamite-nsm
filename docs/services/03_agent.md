@@ -3,7 +3,7 @@
 The `agent` is a convenience `service` that provides a single interface around some of Elasticsearch and Kibana's interfaces. 
 
 ```bash
-$ sudo dynamite agent -h
+$ dynamite agent -h
 
 usage: dynamite [-h] {install,uninstall,process,optimize} ...
 
@@ -35,12 +35,12 @@ These configurations must be accessed directly through the [Zeek](/services/07_z
 or [Filebeat](/services/09_filebeat) service commands.
 
 ```bash
-sudo dynamite elasticsearch config -h
-sudo dynamite kibana config -h
+dynamite elasticsearch config -h
+dynamite kibana config -h
 ```
 
 
 ## Process Management
 ```markdown
-sudo dynamite agent process -h
+dynamite agent process -h
 ```

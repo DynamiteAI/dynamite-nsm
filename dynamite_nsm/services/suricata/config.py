@@ -1,15 +1,36 @@
 from __future__ import annotations
 
 import os
-from typing import Optional, Tuple
+import json
+import random
+from typing import Dict, List, Optional, Tuple
 
 from yaml import Loader
 from yaml import load
 
 from dynamite_nsm import exceptions as general_exceptions
-from dynamite_nsm import utilities
+
+from dynamite_nsm import const, utilities
+from dynamite_nsm.services.base import install
 from dynamite_nsm.services.base.config import YamlConfigManager
 from dynamite_nsm.services.base.config_objects.suricata import misc, rules
+
+
+def lookup_rule_definition(rule_id: str) -> Dict:
+    """Return the definition, categories, and friendly_name of a given script
+    Args:
+        rule_id: A unique identifier representing a Suricata rule.
+    Returns:
+         A dictionary of the format {"friendly_name" <str>, "description" <str>, "categories" <list>}
+    """
+    try:
+        suricata_rule_defs = os.path.join(const.DEFAULT_CONFIGS, 'suricata', 'suricata_rule_definitions.json')
+        with open(suricata_rule_defs) as f:
+            suricata_defs = json.load(f)
+    except FileNotFoundError:
+        suricata_defs = {}
+    definition = suricata_defs.get(str(rule_id))
+    return definition
 
 
 class ConfigManager(YamlConfigManager):
@@ -147,7 +168,7 @@ class ConfigManager(YamlConfigManager):
 
         self.rules = rules.Rules()
 
-        for rule_name in rules.list_available_rule_names():
+        for rule_name in self.list_available_rule_names():
             if rule_name in self._rule_files_raw:
                 self.rules.add(rules.Rule(rule_name, enabled=True))
             else:
@@ -182,7 +203,7 @@ class ConfigManager(YamlConfigManager):
         Returns:
              An instance of ConfigManager
         """
-        tmp_dir = '/tmp/dynamite/temp_configs/'
+        tmp_dir = f'{const.CONFIG_PATH}/.tmp'
         tmp_config = f'{tmp_dir}/suricata.yaml'
         utilities.makedirs(tmp_dir)
         with open(tmp_config, 'w') as out_f:
@@ -205,6 +226,40 @@ class ConfigManager(YamlConfigManager):
                 receive_cpu_set.add(c)
                 worker_cpu_set.add(c)
         return misc.Threading(management_cpu_set, receive_cpu_set, worker_cpu_set)
+
+    def list_available_rule_names(self) -> List[str]:
+        """List the names of all available Suricata rules.
+        Returns:
+            A list of Suricata rule names that can be enabled
+        """
+        return [rule for rule in os.listdir(f'{self.configuration_directory}/rules') if rule.endswith('.rules')]
+
+    def reset(self, inspect_interfaces: List[str], out_file_path: Optional[str] = None,
+              default_config_path: Optional[str] = None):
+        """Reset a configuration file back to its default
+        Args:
+            inspect_interfaces: A list of network interfaces to capture on (E.G ["mon0", "mon1"])
+            out_file_path: The path to the output file
+            default_config_path: The path to the default configuration
+        Returns:
+            None
+        """
+        if not install.BaseInstallManager.validate_inspect_interfaces(inspect_interfaces):
+            raise install.NetworkInterfaceNotFound(inspect_interfaces)
+        if not out_file_path:
+            out_file_path = f'{self.configuration_directory}/suricata.yaml'
+        if not default_config_path:
+            default_config_path = f'{const.DEFAULT_CONFIGS}/suricata/suricata.yaml'
+        super(ConfigManager, self).reset(out_file_path, default_config_path)
+        self.af_packet_interfaces = misc.AfPacketInterfaces()
+        for interface in inspect_interfaces:
+            self.af_packet_interfaces.add(
+                misc.AfPacketInterface(
+                    interface_name=interface, threads='auto', cluster_id=random.randint(1, 50000),
+                    cluster_type='cluster_qm'
+                )
+            )
+        self.commit(out_file_path=out_file_path)
 
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
                top_text: Optional[str] = None) -> None:
