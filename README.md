@@ -25,6 +25,19 @@ sudo pip3 install dynamite-nsm
 
 [**Quick Start Guide »**](https://dynamiteai.github.io/dynamite-nsm/guides/01_quick_start)
 
+
+### Dashboards
+
+DynamiteNSM's `monitor` component ships with a powerful set of dashboards for finding patterns in your network data.
+
+<center>
+    <img src="docs/data/img/kibana_dashboard_alerts.png">
+</center>
+
+[**Dashboard Overview »**](https://dynamiteai.github.io/dynamite-nsm/guides/base_views/01_overview)
+
+
+
 ### Documentation
 
 Checkout our comprehensive documentation complete with tutorials, guides, and example quickstart deployments.
