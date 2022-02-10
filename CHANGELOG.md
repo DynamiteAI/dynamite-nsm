@@ -24,6 +24,7 @@
 - `dynamite remote` command has been replaced with `dynamite auth` to avoid confusion.
 - `dynamite agent optimize` command no longer takes the parameter `--inspection-interfaces`
 - Removed Suricata installer's WireShark dependency
+- Zeek service now checks that `python sources` are available prior to install
 
 #### Bugs
 - Elasticsearch and Logstash will no longer over-allocate Java heap.
