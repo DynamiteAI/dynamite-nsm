@@ -2483,15 +2483,16 @@
                 
                 <h1 id="introduction">Introduction</h1>
 <h3 id="what-is-dynamite-network-security-monitor">What is Dynamite Network Security Monitor?</h3>
-<p>DynamiteNSM is a lightweight, versatile network security monitor conveniently bundled as a <code>Python 3.7+</code> package. It is designed to make securing your network environment simple and intuitive, and can be deployed in a variety of environments including high-speed data centers, small-to-large enterprises, IoT &amp; industrial networks, and even at home.</p>
-<p>NSM includes two key components and simple remote management utility. </p>
+<p>DynamiteNSM is a lightweight network security monitor conveniently bundled as a <code>Python ≥3.7</code> package. 
+Built initially to simplify the installation of <a href="https://zeek.org/">Zeek</a> and <a href="https://suricata.io/">Suricata</a>, the package now includes a robust set of Python modules for installing and managing both network monitoring and data visualization services.</p>
+<p>However, you do not need to write a single line of code to begin using DynamiteNSM. 
+The package comes with a commandline utility that automates the deployment of passive, packet-sniffing <code>agents</code> throughout your network, along with a <code>monitor</code> for visualizing the events produced by them.</p>
 <ul>
-<li>The <strong>agent</strong> extracts Zeek network metadata merged with Suricata IDS security alerts and forwards them to a downstream collector. </li>
-<li>The <strong>monitor</strong> can receive events forwarded from the agent, ingesting and normalizing them, so they can be viewed within visualized and queried.</li>
+<li>The <strong>Agent</strong> extracts Zeek network metadata merged with Suricata IDS security alerts and forwards them to a downstream collector. </li>
+<li>The <strong>Monitor</strong> receives these events, normalizing and indexing them, so that they can be visualized and queried later.</li>
 </ul>
-<p>NSM can handle massive volumes of network traffic, and unlike many other tools, it can be installed and managed with a standalone command-line utility. 
-The system is inherently passive without disruption to the network.</p>
-<p><center>
+<p>DynamiteNSM can provide insights into a variety of network environments including high-speed data centers, small-to-large enterprises, IoT &amp; industrial networks, and even at home.
+<center>
     <img src="./data/img/demos/intro.gif">
 </center></p>
 <p style="text-align: right;">
