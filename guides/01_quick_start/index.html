@@ -2516,7 +2516,7 @@
 This setup will work with small lab environments, but is not suggested for scenarios where over 300MiBs of sustained throughput is expected.</p>
 <h2 id="pre-requisites">Pre-requisites</h2>
 <ul>
-<li>Two physical or virtual machines running a <a href="/supported_operating_systems">supported operating system</a>. One machine will be dedicated to packet acquisition and analysis - <strong>The Agent</strong>; the other for the storing and presentation of this data - <strong>The Monitor</strong>.</li>
+<li>Two physical or virtual machines running a <a href="/requirements/01_supported_operating_systems/">supported operating system</a>. One machine will be dedicated to packet acquisition and analysis - <strong>The Agent</strong>; the other for the storing and presentation of this data - <strong>The Monitor</strong>.</li>
 </ul>
 <table>
 <thead>
@@ -2548,7 +2548,7 @@ however this may result in dropped packets depending on your average throughput.
 <p>ⓘ <code>dynamite zeek logs metrics --pretty</code> and <code>dynamite suricata logs metrics --pretty</code> can be used to watch for dropped packets.</p>
 </blockquote>
 <ul>
-<li>A physical or virtual switch capable of <a href="/requirements/04_span_vs_tap">SPANing or a dedicated TAP</a> device.</li>
+<li>A physical or virtual switch with a <a href="/requirements/04_span_vs_tap">SPAN port or a dedicated TAP</a> device.</li>
 <li><a href="https://www.python.org/downloads/">Python 3.7+</a>.</li>
 </ul>
 <h2 id="setup-dynamitensm-sdks-and-utilities">Setup DynamiteNSM SDKs and utilities.</h2>
