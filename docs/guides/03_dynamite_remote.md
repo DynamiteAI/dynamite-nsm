@@ -1,5 +1,5 @@
 # Dynamite Remote
-The `dynamite-remote` utility is a self-contained script that ships with dynamite-nsm. The utility
+The `dynamite-remote` utility is a self-contained script that ships with the `dynamite-nsm` package. The utility
 allows administrators to create *Authentication packages* that once installed on remote instances allow remote management. 
 The dynamite-remote script works on most *NIX operating systems with `openssh-client` installed.
 
@@ -7,6 +7,8 @@ The dynamite-remote script works on most *NIX operating systems with `openssh-cl
 
 The `dynamite-remote` utility should be run on the machine you wish to use for remote management. 
 Once an authentication package has been created you can [install it](/services/10_auth) on a remote node to easily manage it.
+
+![](../data/img/dynamite_arch.png)
 
 ```
 $ dynamite-remote -h

@@ -2,17 +2,22 @@
 
 ### What is Dynamite Network Security Monitor?
 
-DynamiteNSM is a lightweight, versatile network security monitor designed to make securing your network environment simple and intuitive.
+DynamiteNSM is a lightweight network security monitor conveniently bundled as a `Python ≥3.7` package. 
+Built initially to simplify the installation of [Zeek](https://zeek.org/) and [Suricata](https://suricata.io/), the package now includes a robust set of Python modules for installing and managing both network monitoring and data visualization services.
 
-It has two main components: `agent` and `monitor`. Dynamite agents can easily be deployed to monitor dedicated network segments while the monitor provides
-a powerful query interface and in-depth analytics.
+However, you do not need to write a single line of code to begin using DynamiteNSM. 
+The package comes with a commandline utility that automates the deployment of passive, packet-sniffing `agents` throughout your network, along with a `monitor` for visualizing the events produced by them.
 
+- The **Agent** extracts Zeek network metadata merged with Suricata IDS security alerts and forwards them to a downstream collector. 
+- The **Monitor** receives these events, normalizing and indexing them, so that they can be visualized and queried later.
+
+DynamiteNSM can provide insights into a variety of network environments including high-speed data centers, small-to-large enterprises, IoT & industrial networks, and even at home.
 <center>
     <img src="./data/img/demos/intro.gif">
 </center>
 
 <p style="text-align: right;">
-    <a href="./about/01_project_goals"> Read More »</a>
+    <a href="./about/02_architecture"> Read More »</a>
 </p>
 
 ### Checkout the Dashboards
@@ -21,7 +26,7 @@ DynamiteNSM ships with a powerful set of visualizations, saved queries, and dash
 for a variety of operational and security use-cases.
 
 <p align="center">
-    <img src="./data/img/kibana_alerts_map.png" />
+    <img src="./data/img/kibana_alerts_discovery_view.png" />
 </p>
 
 <p style="text-align: right;">
@@ -30,7 +35,7 @@ for a variety of operational and security use-cases.
 
 ### Dive Right In.
 
-Learn by doing. Read our [quick-start guide](/guides/01_quick_start), and quickly setup a working environment perfect for 
+Learn by doing. Read our [QuickStart Guide](./guides/01_quick_start), and quickly set up a working environment perfect for 
 monitoring a home network or lab environment.
 
 <center>

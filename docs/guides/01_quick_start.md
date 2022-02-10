@@ -5,7 +5,7 @@ This setup will work with small lab environments, but is not suggested for scena
 
 ## Pre-requisites
 
-- Two physical or virtual machines running a [supported operating system](/supported_operating_systems). One machine will be dedicated to packet acquisition and analysis - **The Agent**; the other for the storing and presentation of this data - **The Monitor**.
+- Two physical or virtual machines running a [supported operating system](/requirements/01_supported_operating_systems/). One machine will be dedicated to packet acquisition and analysis - **The Agent**; the other for the storing and presentation of this data - **The Monitor**.
 
 | Role    | RAM | CPUs | Network Interfaces  |
 |---------|-----|------|---------------------|
@@ -18,7 +18,7 @@ This setup will work with small lab environments, but is not suggested for scena
 > ⓘ `dynamite zeek logs metrics --pretty` and `dynamite suricata logs metrics --pretty` can be used to watch for dropped packets.
 
 
-- A physical or virtual switch capable of [SPANing or a dedicated TAP](/requirements/04_span_vs_tap) device.
+- A physical or virtual switch with a [SPAN port or a dedicated TAP](/requirements/04_span_vs_tap) device.
 - [Python 3.7+](https://www.python.org/downloads/).
 
 

@@ -32,27 +32,27 @@ it can be found here: `/etc/dynamite/zeek/site/local.zeek`
 Users enumerate choice scripts by specifying their `--ids`
 
 ```bash
-sudo dynamite zeek config site scripts --ids 5926 372 275 5823
+dynamite zeek config site scripts --ids 0fd1658 20d7e67 2878963 99e00b3
 ```
 
 ```markdown
-╒══════╤═════════════════════════════════════════╤═══════════╤═════════╕
-│   Id │ Name                                    │ Enabled   │ Value   │
-╞══════╪═════════════════════════════════════════╪═══════════╪═════════╡
-│ 5926 │ policy/protocols/conn/mac-logging       │ True      │ N/A     │
-├──────┼─────────────────────────────────────────┼───────────┼─────────┤
-│  275 │ frameworks/dpd/detect-protocols         │ True      │ N/A     │
-├──────┼─────────────────────────────────────────┼───────────┼─────────┤
-│ 5823 │ frameworks/files/entropy-test-all-files │ False     │ N/A     │
-├──────┼─────────────────────────────────────────┼───────────┼─────────┤
-│  372 │ Zeek_AF_Packet/scripts                  │ True      │ N/A     │
-╘══════╧═════════════════════════════════════════╧═══════════╧═════════╛
+╒═════════╤═════════════════════════════════════════════════╤═══════════╤═════════╕
+│ Id      │ Name                                            │ Enabled   │ Value   │
+╞═════════╪═════════════════════════════════════════════════╪═══════════╪═════════╡
+│ 99e00b3 │ protocols/ssh/detect-bruteforcing               │ True      │ N/A     │
+├─────────┼─────────────────────────────────────────────────┼───────────┼─────────┤
+│ 2878963 │ protocols/ssl/log-hostcerts-only                │ True      │ N/A     │
+├─────────┼─────────────────────────────────────────────────┼───────────┼─────────┤
+│ 0fd1658 │ policy/frameworks/notice/extend-email/hostnames │ True      │ N/A     │
+├─────────┼─────────────────────────────────────────────────┼───────────┼─────────┤
+│ 20d7e67 │ packages/cve-2021-44228.git                     │ False     │ N/A     │
+╘═════════╧═════════════════════════════════════════════════╧═══════════╧═════════╛
 ```
 
 Enabling and disabling Zeek Scripts can be done simply by adding an `--enable` or `--disable` flag.
 
 ```bash
-sudo dynamite zeek config site scripts --ids 5926 275 5823 --disable
+dynamite zeek config site scripts --ids 0fd1658 20d7e67 2878963 99e00b3 --disable
 ```
 
 ### Suricata
@@ -60,25 +60,27 @@ sudo dynamite zeek config site scripts --ids 5926 275 5823 --disable
 Suricata's rule interface functions almost exactly as Zeek's. To list all available Suricata rules use the below command.
 
 ```bash
-sudo dynamite suricata config main rules
+dynamite suricata config main rules
 ```
 
 Specific `--ids` can also be selected and enabled or disabled.
 
 ```bash
-sudo dynamite suricata config main rules --ids 9007 2857 4409 --enable
+dynamite suricata config main rules --ids 1aeb6e4 e649d09 0bbab15 bdfac29 --enable
 ```
 
 ```markdown
-╒══════╤═══════════════════════╤═══════════╤═════════╕
-│   Id │ Name                  │ Enabled   │ Value   │
-╞══════╪═══════════════════════╪═══════════╪═════════╡
-│ 4409 │ emerging-telnet.rules │ True      │ N/A     │
-├──────┼───────────────────────┼───────────┼─────────┤
-│ 2857 │ dns-events.rules      │ True      │ N/A     │
-├──────┼───────────────────────┼───────────┼─────────┤
-│ 9007 │ tls-events.rules      │ True      │ N/A     │
-╘══════╧═══════════════════════╧═══════════╧═════════╛
+╒═════════╤═══════════════════════════════╤═══════════╤═════════╕
+│ Id      │ Name                          │ Enabled   │ Value   │
+╞═════════╪═══════════════════════════════╪═══════════╪═════════╡
+│ bdfac29 │ ciarmy.rules                  │ True      │ N/A     │
+├─────────┼───────────────────────────────┼───────────┼─────────┤
+│ 0bbab15 │ emerging-scada.rules          │ False     │ N/A     │
+├─────────┼───────────────────────────────┼───────────┼─────────┤
+│ e649d09 │ tls-events.rules              │ False     │ N/A     │
+├─────────┼───────────────────────────────┼───────────┼─────────┤
+│ 1aeb6e4 │ emerging-mobile_malware.rules │ False     │ N/A     │
+╘═════════╧═══════════════════════════════╧═══════════╧═════════╛
 ```
 
 > Advanced users can find the `suricata.yaml` configuration at `/etc/dynamite/suricata/suricata.yaml` assuming 

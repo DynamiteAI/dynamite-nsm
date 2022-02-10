@@ -201,10 +201,11 @@ class JavaOptionsConfigManager(GenericConfigManager):
         try:
             with open(out_file_path, 'w') as config_raw_f:
                 config_raw_f.write(self.formatted_data)
-            utilities.set_ownership_of_file(out_file_path)
+            if utilities.is_root():
+                utilities.set_ownership_of_file(out_file_path)
+                utilities.set_permissions_of_file(out_file_path, 644)
         except IOError:
             raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
-        utilities.set_permissions_of_file(out_file_path, 644)
 
 
 class YamlConfigManager(GenericConfigManager):
@@ -330,7 +331,8 @@ class YamlConfigManager(GenericConfigManager):
                     dump(self.config_data, config_yaml_f, default_flow_style=False, Dumper=NoAliasDumper)
                 except RecursionError:
                     dump(self.config_data, config_yaml_f, default_flow_style=False)
-            utilities.set_ownership_of_file(out_file_path)
+            if utilities.is_root():
+                utilities.set_ownership_of_file(out_file_path)
         except IOError:
             raise exceptions.WriteConfigError('An error occurred while writing the configuration file to disk.')
         self.logger.warning('Configuration updated. Restart this service to apply.')
