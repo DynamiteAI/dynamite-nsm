@@ -12,7 +12,7 @@ Built initially to simplify the installation of [Zeek](https://zeek.org/) and [S
 However, you do not need to write a single line of code to begin using DynamiteNSM. 
 The package comes with a commandline utility that automates the deployment of passive, packet-sniffing `agents` throughout your network, along with a `monitor` for visualizing the events produced by them. 
 
-You can install the `dynamite-nsm` package via `pip3` on any one of these supported [Linux distributions]((https://dynamiteai.github.io/dynamite-nsm/requirements/01_supported_operating_systems)). 
+You can install the `dynamite-nsm` package via `pip3` on any one of these supported [Linux distributions](https://dynamiteai.github.io/dynamite-nsm/requirements/01_supported_operating_systems). 
 
 ```bash
 sudo pip3 install dynamite-nsm
