@@ -348,7 +348,7 @@ class SourcesConfigManager(GenericConfigManager):
     def __init__(self, configuration_directory: str, verbose: Optional[bool] = False,
                  stdout: Optional[bool] = True):
         self.configuration_directory = configuration_directory
-        config.DEFAULT_DATA_DIRECTORY = f'{self.configuration_directory}/cache/'
+        config.DEFAULT_DATA_DIRECTORY = f'{self.configuration_directory}/data/'
         config.DEFAULT_UPDATE_YAML_PATH = f'{self.configuration_directory}/update.yaml'
         config.DEFAULT_SURICATA_YAML_PATH = [f'{self.configuration_directory}/suricata.yaml']
         self.config = config
@@ -452,3 +452,8 @@ class SourcesConfigManager(GenericConfigManager):
             os.remove(disabled_source_filename)
             self.logger.info(f"Source {name} removed, previously disabled.")
 
+
+if __name__ == '__main__':
+    s = SourcesConfigManager('/etc/dynamite/suricata/')
+    s.remove_source('et/open')
+    #print(s.add_source('oisf/trafficid'))
