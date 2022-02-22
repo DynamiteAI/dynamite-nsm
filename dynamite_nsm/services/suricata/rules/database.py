@@ -23,8 +23,10 @@ def init_ruleset_db():
 class Ruleset(Model):
     __tablename__ = 'ruleset'
     sid = Column('sid', Integer, primary_key=True)
+    class_type = Column('class_type', String(254), index=True)
     lineno = Column('lineno', Integer)
     enabled = Column('enabled', Boolean)
+    action = Column('action', String(12))
     proto = Column('proto', String(12))
     source = Column('source', String(2048))
     source_port = Column('source_port', String(2048))
@@ -33,11 +35,13 @@ class Ruleset(Model):
     destination_port = Column('destination_port', String(2048))
     options_blob = Column('options', String(4096))
 
-    def __init__(self, sid: int, lineno: int, enabled: bool, proto: str, source: str, source_port: str, direction: str,
-                 destination: str, destination_port: str, options_blob: str):
+    def __init__(self, sid: int, class_type: str, lineno: int, enabled: bool, action: str, proto: str, source: str,
+                 source_port: str, direction: str, destination: str, destination_port: str, options_blob: str):
         self.sid = sid
+        self.class_type = class_type
         self.lineno = lineno
         self.enabled = enabled
+        self.action = action
         self.proto = proto
         self.source = source
         self.source_port = source_port

@@ -456,4 +456,3 @@ class SourcesConfigManager(GenericConfigManager):
 if __name__ == '__main__':
     s = SourcesConfigManager('/etc/dynamite/suricata/')
     s.remove_source('et/open')
-    #print(s.add_source('oisf/trafficid'))

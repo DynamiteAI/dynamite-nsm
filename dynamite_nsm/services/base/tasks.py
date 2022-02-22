@@ -1,19 +1,30 @@
 import os
 import sys
+import logging
 import requests
 import subprocess
 from time import sleep
 import crontab
+
+from typing import List, Optional, Tuple
+
 from dynamite_nsm import const
 from dynamite_nsm import utilities
-from typing import List, Optional, Tuple
+from dynamite_nsm.logger import get_logger
 
 
 class BaseTask:
-    def __init__(self, name: str, package_link: Optional[str] = None, description: Optional[str] = None):
+    def __init__(self, name: str, package_link: Optional[str] = None, description: Optional[str] = None,
+                 verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         self.name = name
         self.package_link = package_link
         self.description = description
+        log_level = logging.INFO
+        if verbose:
+            log_level = logging.DEBUG
+        self.stdout = stdout
+        self.verbose = verbose
+        self.logger = get_logger(str(name), level=log_level, stdout=stdout)
 
     def download_and_install(self):
         raise NotImplemented()
@@ -24,11 +35,13 @@ class BaseTask:
 
 class BaseShellCommandsTask(BaseTask):
 
-    def __init__(self, name: str, package_link: str, commands: List[List[str]], description: Optional[str] = None):
-        super().__init__(name, package_link, description)
+    def __init__(self, name: str, package_link: str, commands: List[List[str]], description: Optional[str] = None,
+                 verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        super().__init__(name, package_link, description, stdout=stdout, verbose=verbose)
         self.commands = commands
 
-    def invoke(self, shell: Optional[bool] = False, cwd: Optional[str] = os.getcwd()) -> List[Tuple[List, bytes, bytes]]:
+    def invoke(self, shell: Optional[bool] = False, cwd: Optional[str] = os.getcwd()) -> List[
+        Tuple[List, bytes, bytes]]:
         results = []
         for command in self.commands:
             if not shell:
@@ -62,13 +75,15 @@ class BaseShellCommandsTask(BaseTask):
 
 class BaseShellCommandTask(BaseShellCommandsTask):
 
-    def __init__(self, name: str, package_link: str, command: str, args: List[str], description: Optional[str] = None):
+    def __init__(self, name: str, package_link: str, command: str, args: List[str], description: Optional[str] = None,
+                 verbose: Optional[bool] = False, stdout: Optional[bool] = True):
         command = [
             command
         ]
         command.extend(args)
 
-        super().__init__(name, commands=[command], package_link=package_link, description=description)
+        super().__init__(name, commands=[command], package_link=package_link, description=description, verbose=verbose,
+                         stdout=stdout)
         self.command = command
         self.args = args
 
@@ -92,8 +107,8 @@ class BaseKibanaPackageInstallTask(BaseTask):
                  password: Optional[str] = 'admin',
                  target: Optional[str] = f'http://{utilities.get_primary_ip_address()}:5601',
                  tenant: Optional[str] = '',
-                 description: Optional[str] = ''):
-        super().__init__(name, kibana_package_link, description)
+                 description: Optional[str] = '', verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        super().__init__(name, kibana_package_link, description, verbose=verbose, stdout=stdout)
         self.username = username
         self.password = password
         self.target = target
