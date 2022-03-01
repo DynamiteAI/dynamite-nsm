@@ -1,17 +1,24 @@
 from __future__ import annotations
 
+import os.path
 import re
-import time
 from random import randint
 from typing import Dict, List, Optional, Tuple, Union
 
 import sqlalchemy.exc
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Boolean, Integer, String
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from dynamite_nsm import utilities
 from dynamite_nsm.services.suricata.rules import validators
-from dynamite_nsm.services.suricata.rules.database import Ruleset
-from dynamite_nsm.services.suricata.rules.database import db_session, init_ruleset_db
 from dynamite_nsm.services.base.config import GenericConfigManager
+
+env = utilities.get_environment_file_dict()
+
+SURICATA_CONFIGURATION = env.get('SURICATA_CONFIG')
+Model = declarative_base(name='Model')
 
 
 class MissingSid(Exception):
@@ -32,15 +39,6 @@ class MissingRule(Exception):
         super(MissingRule, self).__init__(msg)
 
 
-def dump_database(rule_file: str):
-    """Dump the database to a suricata.rules file"""
-
-    with open(rule_file, 'w') as rule_file_out:
-        for row in db_session.query(Ruleset).order_by(Ruleset.lineno):
-            rule = Rule.create_from_ruleset_entry(row)
-            rule_file_out.write(str(rule) + '\n')
-
-
 def parse_suricata_rule_options_blob(opts: str) -> List[Union[Tuple, str]]:
     """Parses the options section of Suricata Rules
     Args:
@@ -50,7 +48,10 @@ def parse_suricata_rule_options_blob(opts: str) -> List[Union[Tuple, str]]:
         A List of options
     """
     options = []
-    for opt in opts.split('; '):
+
+    # split by ; excluding those found inside quotations
+    tokenized_opts = re.split(r";(?![(\"]*[\")])", opts)
+    for opt in tokenized_opts:
         opt = opt.strip()
         if not opt:
             continue
@@ -65,6 +66,10 @@ def parse_suricata_rule_options_blob(opts: str) -> List[Union[Tuple, str]]:
             options.append((k, v))
         elif len(tokenized_opt) == 1:
             options.append(tokenized_opt[0].replace(';', ''))
+        else:
+            k = tokenized_opt[0]
+            v = ':'.join(tokenized_opt[1:])
+            options.append((k, v))
     return options
 
 
@@ -142,12 +147,7 @@ class Rule:
 
     @staticmethod
     def generate_sid():
-        while True:
-            new_sid = randint(10 ** 5, 10 ** 6)
-            if not db_session.query(Ruleset).get(new_sid):
-                break
-            time.sleep(0.1)
-        return new_sid
+        return randint(10 ** 5, 10 ** 6)
 
     @staticmethod
     def extract_options(options: List) -> Dict:
@@ -164,6 +164,23 @@ class Rule:
             class_type = 'unknown'
         return dict(sid=sid, class_type=class_type)
 
+    def compare(self, rule: Rule):
+        if self.action != rule.action:
+            return False
+        elif self.source != rule.source:
+            return False
+        elif self.source_port != rule.source_port:
+            return False
+        elif self.direction != rule.direction:
+            return False
+        elif self.destination != rule.destination:
+            return False
+        elif self.destination_port != rule.destination_port:
+            return False
+        elif self.options != rule.options:
+            return False
+        return True
+
     def header(self) -> str:
         """Retrieve the rule header
         Returns:
@@ -177,13 +194,33 @@ class Rule:
             A String representation of the rule options
         """
         options = []
+        found_sid = False
+        found_class_type = False
         for opt in self.options:
             if isinstance(opt, tuple):
                 k, v = opt
-                v = repr(v)[1:-1].replace('\\\\', '\\')
+                # PCRE options have lots of string literals that often need to be escaped
+                if k.lower() == 'pcre':
+                    # repr function attempts to escape single quote characters which is not what we want as all pcre
+                    # options are encapsulated in double quotes.
+                    v = v.replace("'", "singlequotechar")
+                    v = repr(v)[1:-1]
+                    v = v.replace('singlequotechar', "'")
+                    # replace double backslashes with single backslashes
+                    v = v.replace('\\\\', '\\')
+                elif k.lower() == 'sid':
+                    v = self.sid
+                    found_sid = True
+                elif k.lower() == 'classtype':
+                    v = self.class_type
+                    found_class_type = True
                 options.append(f'{k}:{v}')
             elif isinstance(opt, str):
                 options.append(opt)
+        if not found_class_type:
+            options.append(f'classtype:{self.class_type}')
+        if not found_sid:
+            options.append(f'sid:{self.sid}')
         return '; '.join(options) + ';'
 
     def validate(self) -> Dict:
@@ -208,23 +245,103 @@ class Rule:
         }
 
 
+class Ruleset(Model):
+    __tablename__ = 'ruleset'
+    id = Column('id', Integer, primary_key=True, autoincrement=True, nullable=False)
+    sid = Column('sid', Integer, unique=True, index=True)
+    class_type = Column('class_type', String(254), index=True)
+    lineno = Column('lineno', Integer, index=True)
+    lineos = Column('lineos', Integer, index=True)
+    enabled = Column('enabled', Boolean)
+    action = Column('action', String(12))
+    proto = Column('proto', String(12))
+    source = Column('source', String(2048))
+    source_port = Column('source_port', String(2048))
+    direction = Column('direction', String(2))
+    destination = Column('destination', String(2048))
+    destination_port = Column('destination_port', String(2048))
+    options_blob = Column('options', String(4096))
+
+    def __init__(self, sid: int, class_type: str, lineno: int, lineos: int, enabled: bool, action: str, proto: str,
+                 source: str, source_port: str, direction: str, destination: str, destination_port: str,
+                 options_blob: str):
+        self.sid = sid
+        self.class_type = class_type
+        self.lineno = lineno
+        self.lineos = lineos
+        self.enabled = enabled
+        self.action = action
+        self.proto = proto
+        self.source = source
+        self.source_port = source_port
+        self.direction = direction
+        self.destination = destination
+        self.destination_port = destination_port
+        self.options_blob = options_blob
+
+    @classmethod
+    def create_from_rule(cls, rule: Rule, sid: Optional[int] = None, lineno: Optional[int] = -1,
+                         lineos: Optional[int] = -1) -> Ruleset:
+        if sid:
+            rule.sid = sid
+
+        return cls(
+            sid=rule.sid,
+            class_type=rule.class_type,
+            enabled=rule.enabled,
+            action=rule.action,
+            proto=rule.proto,
+            source=rule.source,
+            source_port=rule.source_port,
+            direction=rule.direction,
+            destination=rule.destination,
+            destination_port=rule.destination_port,
+            options_blob=rule.options_blob(),
+            lineno=lineno,
+            lineos=lineos,
+        )
+
+
 class RuleFile(GenericConfigManager):
 
     def __init__(self, rule_file_path: str):
+        self._idx = 1
         super().__init__({}, 'suricata.rules.manager')
-        env = utilities.get_environment_file_dict()
+        first_init = False
+        db_path = f"{SURICATA_CONFIGURATION}/{os.path.basename(rule_file_path).replace('.rules', '.db')}"
+        if not os.path.exists(db_path):
+            first_init = True
+        self.cache_path = db_path
+        self.engine = create_engine(f'sqlite:///{self.cache_path}')
+        self.db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
         self.rule_file_path = rule_file_path
         self.suricata_configuration_root = env['SURICATA_CONFIG']
+        if first_init:
+            self.logger.info('First init detected, building cache.')
+            self.build_cache()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        _raw = self.db_session.query(Ruleset).get(self._idx)
+        self._idx += 1
+        if not _raw:
+            raise StopIteration()
+        return Rule.create_from_ruleset_entry(_raw)
+
+    def init_cache(self):
+        utilities.safely_remove_file(self.cache_path)
+        Model.metadata.create_all(bind=self.engine)
 
     def build_cache(self):
-        init_ruleset_db()
+        self.init_cache()
         with open(self.rule_file_path, 'r') as rule_file_in:
             lineno = 1
             while True:
                 line = rule_file_in.readline()
                 if line == '':
                     break
-
                 rule = serialize_suricata_rule(line)
                 if not validators.validate_suricata_address_group_values(rule.source):
                     self.logger.warning(f'{rule.sid} source ({rule.source}) is not valid.')
@@ -250,9 +367,9 @@ class RuleFile(GenericConfigManager):
                     destination_port=rule.destination_port,
                     options_blob=rule.options_blob()
                 )
-                db_session.add(rs)
+                self.db_session.add(rs)
                 lineno += 1
-            db_session.commit()
+            self.db_session.commit()
 
     def get_rule(self, sid: int) -> Optional[Rule]:
         """Given the sid for a cached rule, returns the corresponding `Rule` instance
@@ -263,7 +380,7 @@ class RuleFile(GenericConfigManager):
             A `Rule` instance
         """
         self.logger.debug(f'Fetching rule {sid}.')
-        rule_record = db_session.query(Ruleset).get(sid)
+        rule_record = self.db_session.query(Ruleset).filter_by(sid=sid).one()
         if rule_record:
             return Rule(
                 enabled=rule_record.enabled,
@@ -287,7 +404,7 @@ class RuleFile(GenericConfigManager):
         """
         new_rule.validate()
         self.logger.debug(f'Adding rule {new_rule.sid} -> {new_rule}')
-        with open(f'{self.suricata_configuration_root}/deltas.conf', 'a') as deltas_f_out:
+        with open(f'{self.suricata_configuration_root}/.deltas', 'a') as deltas_f_out:
             deltas_f_out.write(
                 f'{new_rule.sid},add,{new_rule}\n'
             )
@@ -300,7 +417,7 @@ class RuleFile(GenericConfigManager):
             None
         """
         new_content = ''
-        with open(f'{self.suricata_configuration_root}/deltas.conf', 'r') as deltas_f_in:
+        with open(f'{self.suricata_configuration_root}/.deltas', 'r') as deltas_f_in:
             for line in deltas_f_in.readlines():
                 line_tokens = line.split(',')
                 parsed_sid = line_tokens[0]
@@ -309,7 +426,7 @@ class RuleFile(GenericConfigManager):
                 else:
                     new_content += f'{line.strip()}\n'
 
-        with open(f'{self.suricata_configuration_root}/deltas.conf', 'w') as deltas_f_out:
+        with open(f'{self.suricata_configuration_root}/.deltas', 'w') as deltas_f_out:
             deltas_f_out.write(new_content)
 
     def disable_rule(self, sid: int) -> None:
@@ -320,7 +437,7 @@ class RuleFile(GenericConfigManager):
             None
         """
         self.get_rule(sid)
-        with open(f'{self.suricata_configuration_root}/deltas.conf', 'a') as deltas_f_out:
+        with open(f'{self.suricata_configuration_root}/.deltas', 'a') as deltas_f_out:
             deltas_f_out.write(
                 f'{sid},disable\n'
             )
@@ -333,7 +450,7 @@ class RuleFile(GenericConfigManager):
             None
         """
         self.get_rule(sid)
-        with open(f'{self.suricata_configuration_root}/deltas.conf', 'a') as deltas_f_out:
+        with open(f'{self.suricata_configuration_root}/.deltas', 'a') as deltas_f_out:
             deltas_f_out.write(
                 f'{sid},enable\n'
             )
@@ -350,23 +467,22 @@ class RuleFile(GenericConfigManager):
         self.get_rule(sid)
         new_rule.validate()
         self.logger.debug(f'Editing rule {new_rule.sid} -> {new_rule}')
-        with open(f'{self.suricata_configuration_root}/deltas.conf', 'a') as deltas_f_out:
+        with open(f'{self.suricata_configuration_root}/.deltas', 'a') as deltas_f_out:
             deltas_f_out.write(
                 f'{new_rule.sid},edit,{new_rule}\n'
             )
 
     def merge(self):
         change_set_map = {}
-        with open(f'{self.suricata_configuration_root}/deltas.conf', 'r') as deltas_f_in:
-
-            # Loop through the deltas.conf file and parse out the sid, action, and data
+        with open(f'{self.suricata_configuration_root}/.deltas', 'r') as deltas_f_in:
+            # Loop through the .deltas file and parse out the sid, action, and data
             # Create a change_set_map that maps a rule sid to the actions to perform on that rule
             # {sid: [(action, data), ...]}
             for line in deltas_f_in.readlines():
                 tokenized_line = line.split(',')
                 sid = tokenized_line[0]
                 action = tokenized_line[1]
-                data = ''.join(tokenized_line[2:]).strip()
+                data = ','.join(tokenized_line[2:]).strip()
                 if not change_set_map.get(sid):
                     change_set_map[sid] = [(action, data)]
                 else:
@@ -375,7 +491,6 @@ class RuleFile(GenericConfigManager):
         # Loop through change_set_map, each iteration will inspect a rule mapped to one or more changes.
         # Changes are applied to the database in order.
         for sid, changes in change_set_map.items():
-
             # Loop through all the changes that are applied to a particular rule
             for change in changes:
                 action, data = change
@@ -386,43 +501,43 @@ class RuleFile(GenericConfigManager):
                     self.logger.info(f'Adding {sid} -> {data} to cache.')
                     rule = serialize_suricata_rule(data)
                     rs = Ruleset.create_from_rule(rule, sid=int(sid))
-                    db_session.add(rs)
+                    self.db_session.add(rs)
                     try:
-                        db_session.commit()
+                        self.db_session.commit()
                     except sqlalchemy.exc.IntegrityError as e:
                         if 'UNIQUE constraint failed' in str(e):
-                            db_session.rollback()
+                            self.db_session.rollback()
                             self.logger.info(f'{sid} already exists in the cache, skipping add.')
 
                 # Remove the rule from our ruleset database cache.
                 elif action == 'delete':
                     self.logger.info(f'Deleting {sid} from cache.')
-                    ruleset = db_session.query(Ruleset).get(sid)
+                    ruleset = self.db_session.query(Ruleset).get(sid)
                     if ruleset:
-                        db_session.delete(ruleset)
-                        db_session.commit()
+                        self.db_session.delete(ruleset)
+                        self.db_session.commit()
                     else:
                         self.logger.info(f'{sid} does not exists in the cache, skipping delete.')
                 elif action == 'disable':
                     self.logger.info(f'Disabling {sid} in cache.')
-                    ruleset = db_session.query(Ruleset).get(sid)
+                    ruleset = self.db_session.query(Ruleset).get(sid)
                     if ruleset:
                         ruleset.enabled = False
-                        db_session.commit()
+                        self.db_session.commit()
                     else:
                         self.logger.info(f'{sid} does not exists in the cache, skipping disable.')
                 elif action == 'enable':
                     self.logger.info(f'Enabling {sid} in cache.')
-                    ruleset = db_session.query(Ruleset).get(sid)
+                    ruleset = self.db_session.query(Ruleset).get(sid)
                     if ruleset:
                         ruleset.enabled = True
-                        db_session.commit()
+                        self.db_session.commit()
                     else:
                         self.logger.info(f'{sid} does not exists in the cache, skipping enable.')
                 elif action == 'edit':
                     self.logger.info(f'Editing {sid} in cache.')
                     rule = serialize_suricata_rule(data)
-                    ruleset = db_session.query(Ruleset).get(sid)
+                    ruleset = self.db_session.query(Ruleset).get(sid)
                     if rule.action != ruleset.action:
                         self.logger.debug(f'Updating action {ruleset.action} -> {rule.action}')
                         ruleset.action = rule.action
@@ -449,31 +564,13 @@ class RuleFile(GenericConfigManager):
                         self.logger.debug(f'Updating destination_port {ruleset.options_blob} -> {rule.options_blob()}')
                         ruleset.options_blob = rule.options_blob()
 
-
-if __name__ == '__main__':
-    r = RuleFile('/etc/dynamite/suricata/data/rules/suricata.rules')
-    r.build_cache()
-
-    dump_database('out.rules')
-    rule='alert udp $EXTERNAL_NET any -> $HOME_NET 500 (msg:"ET ATTACK_RESPONSE Possible CVE-2016-1287 Inbound Reverse CLI Shellcode"; flow:to_server; content:"|ff ff ff|tcp/CONNECT/3/"; pcre:"/^(?:\d{1,3}\.){3}\d{1,3}\/\d+\x00$/Ri"; reference:url,raw.githubusercontent.com/exodusintel/disclosures/master/CVE_2016_1287_PoC; classtype:attempted-admin; sid:2022819; rev:1; metadata:created_at 2016_05_18, updated_at 2016_05_18;)'
-    print(serialize_suricata_rule(rule))
-    """
-    
-    r.add_rule(
-        Rule(
-            enabled=False,
-            action='alert',
-            proto='tcp',
-            source='192.168.0.5',
-            source_port='any',
-            direction='->',
-            destination='any',
-            destination_port='53',
-            options=[],
-        )
-    )
-    """
-
-    # r.disable_rule(933516)
-    # r.enable_rule(933516)
-    # r.merge()
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
+        """Dump the database to a suricata.rules file"""
+        if not out_file_path:
+            out_file_path = self.rule_file_path
+        row_count = self.db_session.query(Ruleset.sid).count()
+        self.logger.info(f'Dumping {row_count} rules to {out_file_path}.')
+        with open(out_file_path, 'w') as rule_file_out:
+            for row in self.db_session.query(Ruleset).order_by(Ruleset.lineno):
+                rule = Rule.create_from_ruleset_entry(row)
+                rule_file_out.write(str(rule) + '\n')
