@@ -1,0 +1,17 @@
+[Unit]
+Description=Filebeat Log Collector
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=dynamite
+Group=dynamite
+EnvironmentFile=/etc/dynamite/environment
+ExecStart=/bin/bash -c "${FILEBEAT_HOME}/filebeat -c ${FILEBEAT_HOME}/filebeat.yml --strict.perms=false"
+Restart=always
+RestartSec=10s
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

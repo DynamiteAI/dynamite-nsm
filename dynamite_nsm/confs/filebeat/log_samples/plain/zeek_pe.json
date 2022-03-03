@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T21:15:39.976Z",
+	"agent": {
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev",
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 0,
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/pe.log"
+		}
+	},
+	"message": "{\"ts\":1611004537.196761,\"id\":\"FrwH7FGDquiAD3A05\",\"machine\":\"I386\",\"compile_ts\":1146304591.0,\"os\":\"Windows 95 or NT 4.0\",\"subsystem\":\"WINDOWS_GUI\",\"is_exe\":true,\"is_64bit\":false,\"uses_aslr\":false,\"uses_dep\":false,\"uses_code_integrity\":false,\"uses_seh\":true,\"has_import_table\":true,\"has_export_table\":false,\"has_cert_table\":true,\"has_debug_data\":false,\"section_names\":[\".text\",\".rdata\",\".data\",\".rsrc\"]}"
+}

@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T20:54:59.913Z",
+	"agent": {
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev",
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/ssl.log"
+		},
+		"offset": 4525
+	},
+	"message": "{\"ts\":1611003289.640754,\"uid\":\"Cziisy4kt9npgmH5r5\",\"id.orig_h\":\"192.168.194.128\",\"id.orig_p\":57808,\"id.resp_h\":\"34.120.5.221\",\"id.resp_p\":443,\"version\":\"TLSv13\",\"cipher\":\"TLS_AES_128_GCM_SHA256\",\"curve\":\"x25519\",\"server_name\":\"getpocket.cdn.mozilla.net\",\"resumed\":true,\"established\":true,\"community_id\":\"1:2/GpHokLxGI4DX8P8yzhwENJS6U=\"}"
+}

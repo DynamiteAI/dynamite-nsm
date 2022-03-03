@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T20:54:59.913Z",
+	"agent": {
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 6672,
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/x509.log"
+		}
+	},
+	"message": "{\"ts\":1611003289.640754,\"id\":\"Fdh1rT3APObnkWG9P2\",\"certificate.version\":3,\"certificate.serial\":\"0E251F25CB1732E1835E0C4CF0EA7D4A\",\"certificate.subject\":\"CN=spocs.getpocket.com\",\"certificate.issuer\":\"CN=Amazon,OU=Server CA 1B,O=Amazon,C=US\",\"certificate.not_valid_before\":1590811200.0,\"certificate.not_valid_after\":1625068800.0,\"certificate.key_alg\":\"rsaEncryption\",\"certificate.sig_alg\":\"sha256WithRSAEncryption\",\"certificate.key_type\":\"rsa\",\"certificate.key_length\":2048,\"certificate.exponent\":\"65537\",\"san.dns\":[\"spocs.getpocket.com\"],\"basic_constraints.ca\":false}"
+}

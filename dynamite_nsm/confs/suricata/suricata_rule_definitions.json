@@ -1,0 +1,440 @@
+{
+  "7199f4a": {
+    "friendly_name": "Attack/Response Traffic",
+    "description": "Responses indicative of intrusion\u2014LMHost file download, certain banners, Metasploit Meterpreter kill command detected, etc.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "5d8f630": {
+    "friendly_name": "Chat",
+    "description": "Identification of traffic related to numerous chat clients, irc, and possible check-in activity",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "af37eeb": {
+    "friendly_name": "Suspicious DNS Behavior",
+    "description": "Rules for attacks and vulnerabilities regarding DNS. Also category for abuse of the service for things such as tunneling.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "41381a3": {
+    "friendly_name": "Miscellaneous Attacks",
+    "description": "Various attacks uncategorizable attack detections.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "046da61": {
+    "friendly_name": "Denial of Service",
+    "description": "Denial of Service attempt detection. Intended to catch inbound DOS activity, and outbound indications.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "9d6f3a2": {
+    "friendly_name": "Generic Exploits",
+    "description": "Exploits that are not covered in specific service category. Rules to detect direct exploits.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "15158f6": {
+    "friendly_name": "Remote Shellcode Execution",
+    "description": "Detect remote shellcode execution attempts. Remote shellcode relies on standard TCP/IP socket connections to allow the attacker access to the shell on the target machine.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "a79291b": {
+    "friendly_name": "Suspicious FTP Behavior",
+    "description": "Rules for attacks, exploits, and vulnerabilities regarding FTP. Also includes basic none malicious FTP activity for logging purposes, such as login, etc.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "2808034": {
+    "friendly_name": "General Malware/Spyware",
+    "description": "Malware and Spyware related, no clear criminal intent.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "1aeb6e4": {
+    "friendly_name": "Mobile Malware/Spyware",
+    "description": "Specific to mobile platforms: Malware and Spyware related, no clear criminal intent.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "b4bf3f3": {
+    "friendly_name": "Trojan Traffic",
+    "description": "Malicious software that has clear criminal intent. Rules here detect malicious software that is in transit, active, infecting, attacking, updating, and whatever else we can detect on the wire.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "f1a3b79": {
+    "friendly_name": "Suspicious VOIP Behavior",
+    "description": "Rules for attacks and vulnerabilities related to VOIP environments.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "8f9153c": {
+    "friendly_name": "Webapp Specific Attacks",
+    "description": "Detect attacks and vulnerabilities in specific web applications",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "e47fd80": {
+    "friendly_name": "ActiveX Attacks",
+    "description": "Detect attacks against Microsoft ActiveX controls and exploits targeting vulnerabilities in ActiveX controls",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "9d2f33f": {
+    "friendly_name": "Suspicious Client-side Behavior",
+    "description": "Web client side attacks and vulnerabilities.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "0d4c512": {
+    "friendly_name": "Suspicious Server-side Behavior",
+    "description": "Rules for attacks and vulnerabilities against web servers.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "eec9aa1": {
+    "friendly_name": "Worm Traffic",
+    "description": "Traffic indicative of network based worm activity.",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "01a5bf8": {
+    "friendly_name": "ICMP Attacks",
+    "description": "Attacks and vulnerabilities regarding Internet Control Message Protocol (ICMP).",
+    "categories": [
+      "alerts"
+    ]
+  },
+  "452d3a8": {
+    "friendly_name": "Kerberos Events",
+    "description": "Kerberos app layer events",
+    "categories": [
+      "events"
+    ]
+  },
+  "699bed1": {
+    "friendly_name": "HTTP Events",
+    "description": "Logs HTTP protocol specific events, typically normal operation.",
+    "categories": [
+      "events"
+    ]
+  },
+  "21b255f": {
+    "friendly_name": "NFS Events",
+    "description": "Logs NFS (Network Filesystem) protocol specific events, typically normal operation.",
+    "categories": [
+      "events"
+    ]
+  },
+  "bff1a55": {
+    "friendly_name": "NTP Events",
+    "description": "Logs NTP (Network Time Protocol) specific events, typically normal operation.",
+    "categories": [
+      "events"
+    ]
+  },
+  "f44826e": {
+    "friendly_name": "Suspicious POP3 Behavior",
+    "description": "Rules for the identification, as well as attacks and vulnerabilities regarding the POP3 protocol. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "events"
+    ]
+  },
+  "1f27f73": {
+    "friendly_name": "SMTP Events",
+    "description": "Rules that will log SMTP operations.",
+    "categories": [
+      "events"
+    ]
+  },
+  "2730471": {
+    "friendly_name": "Informational Events",
+    "description": "Provide audit level events that are useful for correlation and identifying interesting activity which may not be inherently malicious but is often observed in malware and other threats",
+    "categories": [
+      "events"
+    ]
+  },
+  "6aa22d5": {
+    "friendly_name": "ICMP Events",
+    "description": "ICMP protocol specific events, typically associated with normal operations for logging purposes.",
+    "categories": [
+      "events"
+    ]
+  },
+  "e562432": {
+    "friendly_name": "SMB Events",
+    "description": "Logs SMB (Server Message Block) specific events, typically normal operation.",
+    "categories": [
+      "events"
+    ]
+  },
+  "0fe51c0": {
+    "friendly_name": "IPSec Events",
+    "description": "Logs IPSec tunneling events, typically normal operation.",
+    "categories": [
+      "events"
+    ]
+  },
+  "9aa717e": {
+    "friendly_name": "Modbus Events",
+    "description": "Logs Modbus protocol events, typically normal operation.",
+    "categories": [
+      "events"
+    ]
+  },
+  "537ea06": {
+    "friendly_name": "Suspicious IMAP Behavior",
+    "description": "Rules for the identification, as well as attacks and vulnerabilities regarding the IMAP protocol. ",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "f200a57": {
+    "friendly_name": "Suspicious Netbios Behavior",
+    "description": "Rules for the identification, as well as attacks, exploits and vulnerabilities regarding Netbios. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "218827b": {
+    "friendly_name": "Suspicious RPC Behavior",
+    "description": "RPC related attacks, vulnerabilities, and protocol detection. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "4c8db3e": {
+    "friendly_name": "Suspicious SMTP Traffic",
+    "description": "Rules for attacks, exploits, and vulnerabilities regarding SMTP. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "7741f26": {
+    "friendly_name": "Suspicious SNMP Behavior",
+    "description": "Rules for attacks, exploits, and vulnerabilities regarding SNMP. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "9b9f037": {
+    "friendly_name": "Suspicious SQL Behavior",
+    "description": "Rules for attacks, exploits, and vulnerabilities regarding SQL. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "b4b79b2": {
+    "friendly_name": "Suspicious Telnet Behavior",
+    "description": "Rules for attacks and vulnerabilities regarding the TELNET service. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "509dbc0": {
+    "friendly_name": "Suspicious TFTP Behavior",
+    "description": "Rules for attacks and vulnerabilities regarding the TFTP service. Also included are rules detecting basic activity of the protocol for logging purposes.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "e649d09": {
+    "friendly_name": "Suspicious TLS Behavior",
+    "description": "Rules for matching on TLS events and anomalies.",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "0bbab15": {
+    "friendly_name": "SCADA Attacks",
+    "description": "Detect attacks, exploits attempts, and vulnerabilities related to supervisory control and data acquisition (SCADA) systems. Also contains non-malicious SCADA activity for logging purposes",
+    "categories": [
+      "alerts",
+      "events"
+    ]
+  },
+  "ef2ed47": {
+    "friendly_name": "Protocol Decoder Errors",
+    "description": "Various detectable protocol decode errors.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "cfef511": {
+    "friendly_name": "Peer-to-Peer Identification",
+    "description": "Rules for the identification of Peer-to-Peer traffic and attacks against. Including torrents, edonkey, Bittorrent, Gnutella, Limewire, etc.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "e1bc960": {
+    "friendly_name": "Application Identification",
+    "description": "Application Identification category. Includes signatures for applications like DropBox and Google Apps, etc. Also covers off port protocols, basic DLP such as credit card numbers and social security numbers.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "0ab7276": {
+    "friendly_name": "User Agent Identification",
+    "description": "User agent identification and detection.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "cd52f5a": {
+    "friendly_name": "Inappropriate Traffic",
+    "description": "Detect activity related to sites that are pornographic or otherwise not appropriate for a work environment.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "b6d4a5f": {
+    "friendly_name": "DNS Issues",
+    "description": "Various detectable DNS issues, not necessarily malicious.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "99d33ad": {
+    "friendly_name": "Network Scanners",
+    "description": "Detect reconnaissance and probing from tools such as Nessus, Nikto, and other port scanning, tools",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "19db558": {
+    "friendly_name": "Application Layer Issues",
+    "description": "Detect various application layer transactional issues.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "65c7e8a": {
+    "friendly_name": "DNP3 Issues",
+    "description": "Detect various issues with DNP3 protocol.",
+    "categories": [
+      "identifications"
+    ]
+  },
+  "599cbf7": {
+    "friendly_name": "Bot Command and Control",
+    "description": "These are auto-generated from several sources of known and confirmed active Botnet and other Command and Control hosts. Updated daily, primary data source is Shadowserver.org.",
+    "categories": [
+      "alerts",
+      "auto-generated"
+    ]
+  },
+  "deee35b": {
+    "friendly_name": "Bot Command and Control (Port Grouped)",
+    "description": "These are auto-generated from several sources of known and confirmed active Botnet and other Command and Control hosts. Updated daily, primary data source is Shadowserver.org. This set is grouped by destination-port.",
+    "categories": [
+      "alerts",
+      "auto-generated"
+    ]
+  },
+  "305fa51": {
+    "friendly_name": "Gaming Attacks",
+    "description": "Common gaming traffic and various attacks against those games.",
+    "categories": [
+      "identifications",
+      "alerts"
+    ]
+  },
+  "84b87f1": {
+    "friendly_name": "Compromised Hosts",
+    "description": " Based on a list of known compromised hosts that is confirmed and updated daily.",
+    "categories": [
+      "alerts",
+      "threat-community"
+    ]
+  },
+  "fff95c8": {
+    "friendly_name": "Current Events",
+    "description": "Active and short lived campaigns. This category covers exploit kits and malware that will be aged and removed quickly due to the short lived nature of the threat.",
+    "categories": [
+      "alerts",
+      "threat-community"
+    ]
+  },
+  "3a38db2": {
+    "friendly_name": "DShield",
+    "description": "IP based rules for Dshield Identified attackers. Daily updated list of the DShield top attackers list.",
+    "categories": [
+      "alerts",
+      "threat-community"
+    ]
+  },
+  "79d6a51": {
+    "friendly_name": "Spamhaus DROP Alerts",
+    "description": "Detects IP addresses on the Spamhaus DROP (Don\u2019t Route or Peer) list. These lists are maintained daily.",
+    "categories": [
+      "alerts",
+      "threat-community"
+    ]
+  },
+  "f0277e9": {
+    "friendly_name": "Command and Control Blocklist (Threatview.io)",
+    "description": "Command and Control servers identified by the Threatview.io research team.",
+    "categories": [
+      "alerts",
+      "auto-generated",
+      "threat-community"
+    ]
+  },
+  "bdfac29": {
+    "friendly_name": "CIArmy",
+    "description": "Collective Intelligence generated IP rules for blocking based upon cinsscore.com.",
+    "categories": [
+      "alerts",
+      "threat-community",
+      "auto-generated"
+    ]
+  },
+  "3e21ddf": {
+    "friendly_name": "3coresec",
+    "description": "This category is for signatures that are generated automatically from the 3CORESec team\u2019s IP block lists.",
+    "categories": [
+      "alerts",
+      "threat-community",
+      "auto-generated"
+    ]
+  },
+  "f9ead59": {
+    "friendly_name": "TOR Traffic Identification",
+    "description": "IP Based rules for the identification of traffic to and from TOR exit nodes.",
+    "categories": [
+      "alerts",
+      "identifications",
+      "threat-community"
+    ]
+  }
+}

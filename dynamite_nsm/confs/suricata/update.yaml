@@ -1,0 +1,9 @@
+disable-conf: /etc/dynamite/suricata/disable.conf
+enable-conf: /etc/dynamite/suricata/enable.conf
+drop-conf: /etc/dynamite/suricata/drop.conf
+modify-conf: /etc/dynamite/suricata/modify.conf
+ignore:
+  - "*deleted.rules"
+
+local:
+  - /etc/dynamite/suricata/rules

@@ -1,0 +1,23 @@
+[Unit]
+Description=Zeek Network Traffic Monitor
+After=network.target
+
+[Service]
+User=dynamite
+Group=dynamite
+EnvironmentFile=/etc/dynamite/environment
+Environment="PYTHON_BIN=/usr/bin/python3"
+ExecStartPre=/bin/bash -c "${PYTHON_BIN} ${ZEEK_HOME}/bin/zeekctl cleanup"
+ExecStartPre=/bin/bash -c "${PYTHON_BIN} ${ZEEK_HOME}/bin/zeekctl check"
+ExecStartPre=/bin/bash -c "${PYTHON_BIN} ${ZEEK_HOME}/bin/zeekctl install"
+ExecStart=/bin/bash -c "${PYTHON_BIN} ${ZEEK_HOME}/bin/zeekctl start"
+ExecStop=/bin/bash -c "${PYTHON_BIN} ${ZEEK_HOME}/bin/zeekctl stop"
+RestartSec=10s
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStopSec=600
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

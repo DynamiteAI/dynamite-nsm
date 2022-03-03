@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T20:51:29.900Z",
+	"agent": {
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev",
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/http.log"
+		},
+		"offset": 75736
+	},
+	"message": "{\"ts\":1611002935.072792,\"uid\":\"CeNJiK1MYVTfTEy7t3\",\"id.orig_h\":\"192.168.194.128\",\"id.orig_p\":45828,\"id.resp_h\":\"54.152.182.23\",\"id.resp_p\":9200,\"trans_depth\":93,\"method\":\"POST\",\"host\":\"ec2-54-152-182-23.compute-1.amazonaws.com\",\"uri\":\"/_bulk\",\"version\":\"1.1\",\"user_agent\":\"Go-http-client/1.1\",\"request_body_len\":3261,\"response_body_len\":719,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"orig_fuids\":[\"F6kpKK1wmgLSVbWbCf\"],\"orig_mime_types\":[\"text/json\"],\"resp_fuids\":[\"FVvRx71StXNI4tOtc6\"],\"resp_mime_types\":[\"text/json\"],\"client_header_names\":[\"HOST\",\"USER-AGENT\",\"CONTENT-LENGTH\",\"ACCEPT\",\"CONTENT-TYPE\",\"ACCEPT-ENCODING\"],\"uri_vars\":[\"/_bulk\"],\"community_id\":\"1:SwYW/rkejKmk+NZzBdNDAhxFye4=\"}"
+}
