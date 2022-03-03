@@ -261,6 +261,7 @@ class UpdateRules(tasks.BaseTask):
                 return 0
             self.logger.info('Merging in changes.')
             rule_file = RuleFile(f'{self.configuration_directory}/data/rules/suricata.rules')
+            rule_file.build_cache()
             rule_file.merge()
             rule_file.commit()
 

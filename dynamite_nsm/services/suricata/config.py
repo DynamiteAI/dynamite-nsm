@@ -355,6 +355,18 @@ class SourcesConfigManager(GenericConfigManager):
         self.source_index = sources.load_source_index(config)
         super().__init__({}, 'suricata.update.sources', verbose, stdout)
 
+    @staticmethod
+    def _format_sources_as_list(raw_sources: Dict) -> List[Dict]:
+        new_sources = []
+        for k, v in raw_sources.items():
+            v.update({'name': k})
+            if v.get('min-version'):
+                v['min_version'] = v.pop('min-version')
+            if v.get('support-url'):
+                v['support-url'] = v.pop('support-url')
+            new_sources.append(v)
+        return new_sources
+
     def _enable_index_source(self, name: str, secret: Optional[str] = None):
         source_directory = sources.get_source_directory()
         source = self.source_index.get_sources()[name]
@@ -419,20 +431,20 @@ class SourcesConfigManager(GenericConfigManager):
         else:
             self._enable_index_source(name, secret)
 
-    def list_enabled_sources(self) -> Dict[str, Dict]:
+    def list_enabled_sources(self) -> List[Dict]:
         """Get enabled sources
         Returns:
-            A dictionary where keys are the source names and values are the metadata associated with that source
+            A list of enabled sources
         """
         self.logger.debug(f'Fetching enabled sources from {sources.get_source_directory()}')
-        return sources.get_enabled_sources()
+        return self._format_sources_as_list(sources.get_enabled_sources())
 
-    def list_available_sources(self) -> Dict[str, Dict]:
+    def list_available_sources(self) -> List[Dict]:
         """Get all available sources
         Returns:
-            A dictionary where keys are the source names and values are the metadata associated with that source
+            A list of available sources
         """
-        return sources.load_source_index(self.config).get_sources()
+        return self._format_sources_as_list(sources.load_source_index(self.config).get_sources())
 
     def remove_source(self, name: str) -> None:
         """Remove a source
