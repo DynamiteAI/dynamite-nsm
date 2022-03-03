@@ -1,5 +1,5 @@
 from typing import Optional
-from dynamite_nsm.services.suricata.oinkmaster import update_suricata_rules
+from dynamite_nsm.services.suricata.tasks import update_rules
 from dynamite_nsm.services.base.install import BaseInstallManager
 
 
@@ -21,4 +21,4 @@ class RuleUpdateManager(BaseInstallManager):
         Returns:
             None
         """
-        update_suricata_rules(stdout=self.stdout, verbose=self.verbose)
+        update_rules.UpdateRules().invoke()

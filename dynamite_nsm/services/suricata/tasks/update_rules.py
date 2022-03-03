@@ -14,6 +14,7 @@ from suricata.update import engine
 from dynamite_nsm import utilities
 from dynamite_nsm import exceptions
 from dynamite_nsm.services.base import tasks
+from dynamite_nsm.services.suricata.rules.objects import RuleFile
 
 
 class DummyArgs:
@@ -258,6 +259,10 @@ class UpdateRules(tasks.BaseTask):
                 self.logger.info("No changes detected, exiting.")
                 notes.dump_notes()
                 return 0
+            self.logger.info('Merging in changes.')
+            rule_file = RuleFile(f'{self.configuration_directory}/data/rules/suricata.rules')
+            rule_file.merge()
+            rule_file.commit()
 
             if not test_suricata(suricata_path):
                 self.logger.error("Suricata test failed, aborting.")

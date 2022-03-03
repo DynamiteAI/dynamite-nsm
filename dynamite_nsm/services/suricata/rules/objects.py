@@ -473,6 +473,14 @@ class RuleFile(GenericConfigManager):
             )
 
     def merge(self):
+        """Perform operations found in the .deltas file against the cache:
+               - Add custom rules
+               - Remove custom rules
+               - Edit any rule
+               - Enable any rule
+               - Disable any rule
+            The `commit` method must be called to apply the changes to the suricata.rules file.
+        """
         change_set_map = {}
         with open(f'{self.suricata_configuration_root}/.deltas', 'r') as deltas_f_in:
             # Loop through the .deltas file and parse out the sid, action, and data
