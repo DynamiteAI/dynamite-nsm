@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T21:17:19.980Z",
+	"agent": {
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev",
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 0,
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/ssh.log"
+		}
+	},
+	"message": "{\"ts\":1611004627.916861,\"uid\":\"CAMmwh4vfkG9rDxWcd\",\"id.orig_h\":\"192.168.194.1\",\"id.orig_p\":50448,\"id.resp_h\":\"192.168.194.128\",\"id.resp_p\":22,\"version\":2,\"auth_success\":true,\"auth_attempts\":1,\"client\":\"SSH-2.0-OpenSSH_8.1\",\"server\":\"SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.1\",\"cipher_alg\":\"chacha20-poly1305@openssh.com\",\"mac_alg\":\"umac-64-etm@openssh.com\",\"compression_alg\":\"none\",\"kex_alg\":\"curve25519-sha256\",\"host_key_alg\":\"ecdsa-sha2-nistp256\",\"host_key\":\"24:c3:65:22:da:ed:29:48:80:ae:df:de:74:25:cb:b6\",\"community_id\":\"1:ulqgDBoUWpI/RdAIXa6SjKc7/NM=\"}"
+}

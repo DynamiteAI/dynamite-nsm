@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T20:59:59.928Z",
+	"agent": {
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 340,
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/dhcp.log"
+		}
+	},
+	"message": "{\"ts\":1611003582.932836,\"uids\":[\"CLnwnD4N4WvFZX7Pmg\"],\"client_addr\":\"192.168.194.128\",\"server_addr\":\"192.168.194.254\",\"mac\":\"00:0c:29:c6:7e:22\",\"host_name\":\"sensor-dev\",\"domain\":\"localdomain\",\"assigned_addr\":\"192.168.194.128\",\"lease_time\":1800.0,\"msg_types\":[\"REQUEST\",\"ACK\"],\"duration\":0.0,\"msg_orig\":[\"192.168.194.128\",\"192.168.194.254\"]}"
+}

@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T21:20:26.989Z",
+	"agent": {
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 112989789,
+		"file": {
+			"path": "/opt/dynamite/suricata/logs/eve.json"
+		}
+	},
+	"message": "{\"timestamp\":\"2021-01-18T16:20:24.899299-0500\",\"flow_id\":424175191242979,\"in_iface\":\"ens37\",\"event_type\":\"alert\",\"src_ip\":\"172.16.23.1\",\"src_port\":57621,\"dest_ip\":\"172.16.23.255\",\"dest_port\":57621,\"proto\":\"UDP\",\"community_id\":\"1:MAZK8VOhlED0IWtc4eWEUm\\/Gb8A=\",\"alert\":{\"action\":\"allowed\",\"gid\":1,\"signature_id\":2027397,\"rev\":1,\"signature\":\"ET POLICY Spotify P2P Client\",\"category\":\"Not Suspicious Traffic\",\"severity\":3,\"metadata\":{\"updated_at\":[\"2019_05_30\"],\"signature_severity\":[\"Minor\"],\"performance_impact\":[\"Low\"],\"deployment\":[\"Internal\"],\"created_at\":[\"2019_05_30\"],\"attack_target\":[\"Client_Endpoint\"],\"affected_product\":[\"Windows_Client_Apps\"]}},\"app_proto\":\"failed\",\"flow\":{\"pkts_toserver\":1,\"pkts_toclient\":0,\"bytes_toserver\":86,\"bytes_toclient\":0,\"start\":\"2021-01-18T16:20:24.899299-0500\"}}"
+}

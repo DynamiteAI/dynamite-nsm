@@ -1,0 +1,53 @@
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+filebeat.inputs:
+- enabled: false
+  paths:
+  - /opt/dynamite/zeek/logs/current/*.log
+  - /opt/dynamite/suricata/logs/eve.json
+  type: log
+output.elasticsearch:
+  enabled: true
+  hosts:
+  - https://localhost:9200
+  password: admin
+  ssl:
+    certificate_authorities: []
+    verification_mode: none
+  username: admin
+output.kafka:
+  enabled: false
+  hosts:
+  - localhost:9092
+  ssl:
+    certificate_authorities: []
+  topic: dynamite_events
+output.logstash:
+  bulk_max_size: 2048
+  enabled: false
+  hosts:
+  - localhost:5044
+  loadbalance: false
+  pipelining: 2
+  ssl:
+    certificate_authorities: []
+output.redis:
+  bulk_max_size: 2048
+  db: 0
+  enabled: false
+  hosts:
+  - localhost:9092
+  loadbalance: false
+  ssl:
+    certificate_authorities: []
+  worker: 1
+processors:
+- add_fields:
+    fields:
+      originating_agent_tag: dynamite_nsm_agent
+setup.kibana:
+  enabled: false
+setup.template:
+  enabled: true
+  overwrite: true

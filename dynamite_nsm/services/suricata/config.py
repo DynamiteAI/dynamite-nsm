@@ -7,13 +7,34 @@ from typing import Dict, List, Optional, Tuple
 
 from yaml import Loader
 from yaml import load
+from suricata.update import config
+from suricata.update import sources
+from suricata.update.commands.enablesource import write_source_config
 
-from dynamite_nsm import exceptions as general_exceptions
 
 from dynamite_nsm import const, utilities
 from dynamite_nsm.services.base import install
-from dynamite_nsm.services.base.config import YamlConfigManager
+from dynamite_nsm import exceptions as general_exceptions
+from dynamite_nsm.services.base.config import YamlConfigManager, GenericConfigManager
 from dynamite_nsm.services.base.config_objects.suricata import misc, rules
+
+
+class SourceAlreadyExists(Exception):
+    def __init__(self, name):
+        msg = f"This source ({name}) already exists. You must first remove it before it can be added again."
+        super(SourceAlreadyExists, self).__init__(msg)
+
+
+class SourceUrlMissing(Exception):
+    def __init__(self, name):
+        msg = f"You must specify a URL for this source ({name})."
+        super(SourceUrlMissing, self).__init__(msg)
+
+
+class SourceSecretMissing(Exception):
+    def __init__(self, name):
+        msg = f"You must specify a secret for this source ({name})."
+        super(SourceSecretMissing, self).__init__(msg)
 
 
 def lookup_rule_definition(rule_id: str) -> Dict:
@@ -280,3 +301,158 @@ class ConfigManager(YamlConfigManager):
         self._af_packet_interfaces_raw = self.af_packet_interfaces.get_raw()
         self._threading_raw = self.threading.get_raw()
         super(ConfigManager, self).commit(out_file_path, backup_directory, top_text=top_text)
+
+
+class UpdateConfigManager(YamlConfigManager):
+
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False, stdout: Optional[bool] = True):
+        extract_tokens = {
+            'disable_conf': ('disable-conf',),
+            'enable_conf': ('enable-conf',),
+            'modify_conf': ('modify-conf',),
+            'ignore': ('ignore',),
+            'sources': ('sources',),
+            'local': ('local',)
+        }
+        self.disable_conf = None
+        self.enable_conf = None
+        self.modify_conf = None
+        self.ignore = None
+        self.sources = None
+        self.local = None
+
+        self.configuration_directory = configuration_directory
+        self.suricata_config_file = os.path.join(self.configuration_directory, 'update.yaml')
+        try:
+            with open(self.suricata_config_file, 'r') as configyaml:
+                self.config_data_raw = load(configyaml, Loader=Loader)
+        except (IOError, ValueError):
+            raise general_exceptions.ReadConfigError(f'Failed to read or parse {self.suricata_config_file}.')
+
+        super().__init__(self.config_data_raw, name='suricata.update.config', verbose=verbose, stdout=stdout,
+                         **extract_tokens)
+
+        self.parse_yaml_file()
+
+    def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None,
+               top_text: Optional[str] = None) -> None:
+        if not out_file_path:
+            out_file_path = f'{self.configuration_directory}/update.yaml'
+        super(UpdateConfigManager, self).commit(out_file_path, backup_directory, top_text=top_text)
+
+
+class SourcesConfigManager(GenericConfigManager):
+
+    DEFAULT_SOURCE = 'et/open'
+
+    def __init__(self, configuration_directory: str, verbose: Optional[bool] = False,
+                 stdout: Optional[bool] = True):
+        self.configuration_directory = configuration_directory
+        config.DEFAULT_DATA_DIRECTORY = f'{self.configuration_directory}/data/'
+        config.DEFAULT_UPDATE_YAML_PATH = f'{self.configuration_directory}/update.yaml'
+        config.DEFAULT_SURICATA_YAML_PATH = [f'{self.configuration_directory}/suricata.yaml']
+        self.config = config
+        self.source_index = sources.load_source_index(config)
+        super().__init__({}, 'suricata.update.sources', verbose, stdout)
+
+    def _enable_index_source(self, name: str, secret: Optional[str] = None):
+        source_directory = sources.get_source_directory()
+        source = self.source_index.get_sources()[name]
+        source_parameters = source.get('parameters', {})
+        if 'secret-code' in source_parameters:
+            if not secret:
+                raise SourceSecretMissing(name)
+            source_parameters['secret-code'] = secret
+        if 'checksum' in source:
+            checksum = source["checksum"]
+        else:
+            checksum = source.get("checksum", True)
+        new_source = sources.SourceConfiguration(
+            name, params=source_parameters, checksum=checksum)
+        if not os.path.exists(source_directory):
+            utilities.makedirs(source_directory)
+            if "replaces" in source and self.DEFAULT_SOURCE in source["replaces"]:
+                self.logger.debug("Not enabling default source as selected source replaces it")
+            elif new_source.name == self.DEFAULT_SOURCE:
+                self.logger.debug(
+                    "Not enabling default source as selected source is the default")
+            else:
+                self.logger.info(f"Enabling default source {self.DEFAULT_SOURCE}")
+                if not self.source_index.get_source_by_name(self.DEFAULT_SOURCE):
+                    self.logger.error(f"Default source {self.DEFAULT_SOURCE} not in index")
+                else:
+                    default_source_config = sources.SourceConfiguration(self.DEFAULT_SOURCE)
+                    write_source_config(default_source_config, True)
+        write_source_config(new_source, True)
+        self.logger.info(f'Source {str(new_source)} enabled.')
+        if "replaces" in source:
+            for replaces in source["replaces"]:
+                filename = sources.get_enabled_source_filename(replaces)
+                if os.path.exists(filename):
+                    os.unlink(filename)
+
+    def add_source(self, name: str, url: Optional[str] = None, secret: Optional[str] = None,
+                   header: Optional[str] = None) -> None:
+        """Add a source from an index of known public sources, or add a source from a custom URL
+        Args:
+            name: The name of the source to add, if not found within the index a new one will be created
+            url: The url where the rules can be downloaded
+            secret: A secret key required to retrieve some commercial rule-sets
+            header: An http header sometimes required when basic HTTP authentication is used
+
+        Returns:
+            None
+        """
+        enabled_source_filename = sources.get_enabled_source_filename(name)
+        if os.path.exists(enabled_source_filename):
+            raise SourceAlreadyExists(name)
+
+        if name not in self.source_index.get_sources():
+            if not url:
+                raise SourceUrlMissing(name)
+            checksum = None
+            if sources.source_name_exists(name):
+                raise SourceAlreadyExists(name)
+            source_config = sources.SourceConfiguration(
+                name, header=header, url=url, checksum=checksum)
+            sources.save_source_config(source_config)
+        else:
+            self._enable_index_source(name, secret)
+
+    def list_enabled_sources(self) -> Dict[str, Dict]:
+        """Get enabled sources
+        Returns:
+            A dictionary where keys are the source names and values are the metadata associated with that source
+        """
+        self.logger.debug(f'Fetching enabled sources from {sources.get_source_directory()}')
+        return sources.get_enabled_sources()
+
+    def list_available_sources(self) -> Dict[str, Dict]:
+        """Get all available sources
+        Returns:
+            A dictionary where keys are the source names and values are the metadata associated with that source
+        """
+        return sources.load_source_index(self.config).get_sources()
+
+    def remove_source(self, name: str) -> None:
+        """Remove a source
+        Args:
+            name: The name of the source
+        Returns:
+            None
+        """
+        enabled_source_filename = sources.get_enabled_source_filename(name)
+        if os.path.exists(enabled_source_filename):
+            self.logger.debug(f"Deleting file {enabled_source_filename}.")
+            os.remove(enabled_source_filename)
+            self.logger.info(f"Source {name} removed, previously enabled.")
+        disabled_source_filename = sources.get_disabled_source_filename(name)
+        if os.path.exists(disabled_source_filename):
+            self.logger.debug(f"Deleting file {disabled_source_filename}.", )
+            os.remove(disabled_source_filename)
+            self.logger.info(f"Source {name} removed, previously disabled.")
+
+
+if __name__ == '__main__':
+    s = SourcesConfigManager('/etc/dynamite/suricata/')
+    s.remove_source('et/open')

@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T20:51:29.901Z",
+	"agent": {
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 91259,
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/files.log"
+		}
+	},
+	"message": "{\"ts\":1611002935.072792,\"fuid\":\"F6kpKK1wmgLSVbWbCf\",\"tx_hosts\":[\"192.168.194.128\"],\"rx_hosts\":[\"54.152.182.23\"],\"conn_uids\":[\"CeNJiK1MYVTfTEy7t3\"],\"source\":\"HTTP\",\"depth\":0,\"analyzers\":[\"SHA1\",\"MD5\"],\"mime_type\":\"text/json\",\"duration\":0.0,\"local_orig\":true,\"is_orig\":true,\"seen_bytes\":3261,\"total_bytes\":3261,\"missing_bytes\":0,\"overflow_bytes\":0,\"timedout\":false,\"md5\":\"f42b9e0526362db67615fa54130bd109\",\"sha1\":\"74b9434bcfcc86945fa9f65ebecd21eead6f4ca9\"}"
+}

@@ -1,0 +1,4 @@
+- module: suricata
+  # All logs
+  eve:
+    enabled: true

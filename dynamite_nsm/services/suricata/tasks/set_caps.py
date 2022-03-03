@@ -12,3 +12,7 @@ class SetCapturePermissions(tasks.BaseShellCommandsTask):
 
     def invoke(self, shell: Optional[bool] = False, cwd: Optional[str] = os.getcwd()) -> List[Tuple[List, bytes, bytes]]:
         return super().invoke(shell, cwd)
+
+
+if __name__ == '__main__':
+    SetCapturePermissions('/opt/dynamite/suricata/').invoke()

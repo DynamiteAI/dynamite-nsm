@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T20:51:39.901Z",
+	"agent": {
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat",
+		"version": "7.9.2",
+		"hostname": "sensor-dev"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 1115,
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/weird.log"
+		}
+	},
+	"message": "{\"ts\":1611003091.593869,\"uid\":\"CTPN1o1UqvlukX3oVa\",\"id.orig_h\":\"192.168.194.1\",\"id.orig_p\":50193,\"id.resp_h\":\"192.168.194.128\",\"id.resp_p\":5000,\"name\":\"truncated_tcp_payload\",\"notice\":false,\"peer\":\"dynamite-worker-ens33-1\"}"
+}

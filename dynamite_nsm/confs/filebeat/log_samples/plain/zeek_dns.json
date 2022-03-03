@@ -1,0 +1,30 @@
+{
+	"@timestamp": "2021-01-18T20:51:29.899Z",
+	"agent": {
+		"version": "7.9.2",
+		"hostname": "sensor-dev",
+		"ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+		"id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+		"name": "sensor-dev",
+		"type": "filebeat"
+	},
+	"ecs": {
+		"version": "1.5.0"
+	},
+	"fields": {
+		"originating_agent_tag": "sensordev_agt"
+	},
+	"host": {
+		"name": "sensor-dev"
+	},
+	"input": {
+		"type": "log"
+	},
+	"log": {
+		"offset": 25324,
+		"file": {
+			"path": "/opt/dynamite/zeek/logs/current/dns.log"
+		}
+	},
+	"message": "{\"ts\":1611002938.817571,\"uid\":\"CBcBl62nZ1ilbz9b75\",\"id.orig_h\":\"192.168.194.128\",\"id.orig_p\":34779,\"id.resp_h\":\"192.168.194.2\",\"id.resp_p\":53,\"proto\":\"udp\",\"trans_id\":57080,\"query\":\"ec2-54-152-182-23.compute-1.amazonaws.com\",\"qclass\":1,\"qclass_name\":\"C_INTERNET\",\"qtype\":28,\"qtype_name\":\"AAAA\",\"rcode\":0,\"rcode_name\":\"NOERROR\",\"AA\":false,\"TC\":false,\"RD\":true,\"RA\":false,\"Z\":0,\"rejected\":false,\"auth\":[\"dns-external-master.amazon.com\"],\"community_id\":\"1:2XhDk1Fa9j4UKQjQU/I6LR0+TlY=\"}"
+}

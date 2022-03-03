@@ -1,0 +1,19 @@
+[Unit]
+Description=Suricata IDS
+After=network.target
+Requires=network.target
+
+[Service]
+User=dynamite
+Group=dynamite
+Type=forking
+EnvironmentFile=/etc/dynamite/environment
+ExecStart=/bin/bash -c "${SURICATA_HOME}/bin/suricata -c ${SURICATA_CONFIG}/suricata.yaml --af-packet -D"
+ExecReload=/bin/kill -SIGHUP $MAINPID
+ExecStop=/bin/kill -SIGTERM $MAINPID
+PrivateTmp=yes
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

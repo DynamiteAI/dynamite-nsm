@@ -1,0 +1,30 @@
+{
+  "@timestamp": "2021-01-18T20:51:29.900Z",
+  "fields": {
+    "originating_agent_tag": "sensordev_agt"
+  },
+  "log": {
+    "offset": 44154,
+    "file": {
+      "path": "/opt/dynamite/zeek/logs/current/conn.log"
+    }
+  },
+  "message": "{\"ts\":1611002934.576912,\"uid\":\"CqTRYF2nRmEAo2YPcj\",\"id.orig_h\":\"192.168.194.1\",\"id.orig_p\":50152,\"id.resp_h\":\"192.168.194.128\",\"id.resp_p\":5000,\"proto\":\"tcp\",\"service\":\"http\",\"duration\":0.18938612937927246,\"orig_bytes\":871,\"resp_bytes\":161,\"conn_state\":\"SF\",\"local_orig\":true,\"local_resp\":true,\"missed_bytes\":0,\"history\":\"ShADadfF\",\"orig_pkts\":7,\"orig_ip_bytes\":1247,\"resp_pkts\":6,\"resp_ip_bytes\":481,\"orig_l2_addr\":\"00:50:56:c0:00:08\",\"resp_l2_addr\":\"00:0c:29:c6:7e:22\",\"community_id\":\"1:WvUW+MlQ1TFt1RX7ZBQgBvDqdF4=\",\"orientation\":\"internal\",\"pcr\":0.687984496124031}",
+  "input": {
+    "type": "log"
+  },
+  "ecs": {
+    "version": "1.5.0"
+  },
+  "host": {
+    "name": "sensor-dev"
+  },
+  "agent": {
+    "version": "7.9.2",
+    "hostname": "sensor-dev",
+    "ephemeral_id": "d6350ebc-834c-446e-bdae-f37e1337c765",
+    "id": "6bf5192e-e2f1-49bb-ab7a-c04c26381e7e",
+    "name": "sensor-dev",
+    "type": "filebeat"
+  }
+}

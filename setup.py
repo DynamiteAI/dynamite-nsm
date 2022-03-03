@@ -1,4 +1,19 @@
+import os
+from typing import List
 from setuptools import setup, find_packages
+
+
+def package_files(directory: str) -> List[str]:
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+
+package_data = ['bin/*']
+package_data.extend(package_files('dynamite_nsm/confs'))
+
 
 setup(
     name='dynamite-nsm',
@@ -15,7 +30,7 @@ setup(
                 'make securing your network environment simple and intuitive.',
     include_package_data=True,
     package_data={
-        'dynamite_nsm': ['bin/*']
+        'dynamite_nsm': package_data
     },
     install_requires=[
         'bcrypt==3.2.0',

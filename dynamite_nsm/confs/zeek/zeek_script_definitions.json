@@ -1,0 +1,423 @@
+{
+  "6a2a78c": {
+    "friendly_name": "Log SMB Commands",
+    "description": "Load this script to generate an SMB command log, smb_cmd.log. This is primarily useful for debugging.",
+    "categories": [
+      "smb"
+    ]
+  },
+  "c978807": {
+    "friendly_name": "Track Certificates",
+    "description": "Log information about certificates while attempting to avoid duplicate logging.",
+    "categories": [
+      "ssl"
+    ]
+  },
+  "3a50886": {
+    "friendly_name": "Add Additional Authoritative Responses",
+    "description": "This script adds authoritative and additional responses for the current query to the DNS log. It can cause severe overhead due to the need for all authoritative and additional responses to have events generated.",
+    "categories": [
+      "dns"
+    ]
+  },
+  "ed26c25": {
+    "friendly_name": "Add DNS Query Labels",
+    "description": "Adds additional labels to dns log",
+    "categories": [
+      "dns"
+    ]
+  },
+  "ddda379": {
+    "friendly_name": "Add Message Origin",
+    "description": "Add a field that logs the order of hosts sending messages using the same DHCP transaction ID. This information is occasionally needed on some networks to fully explain the DHCP sequence.",
+    "categories": [
+      "dhcp"
+    ]
+  },
+  "a925e33": {
+    "friendly_name": "Add Subscriber Options",
+    "description": "Adds circuit identifier which typically represents the router or switch interface number.",
+    "categories": [
+      "dhcp"
+    ]
+  },
+  "740bf81": {
+    "friendly_name": "Add Header Names",
+    "description": "Extract and include the header names used for each request in the HTTP logging stream. The headers in the logging stream will be stored in the same order which they were seen on the wire.",
+    "categories": [
+      "http"
+    ]
+  },
+  "d903a55": {
+    "friendly_name": "Extract URI Variables",
+    "description": "Extracts and logs variables from the requested URI in the default HTTP logging stream.",
+    "categories": [
+      "http"
+    ]
+  },
+  "e2aeebe": {
+    "friendly_name": "Extract Cookie Variables",
+    "description": "Extracts and logs variable names from cookies sent by clients.",
+    "categories": [
+      "http"
+    ]
+  },
+  "cd749ac": {
+    "friendly_name": "Add Body Excerpt",
+    "description": "This script is for optionally adding a body excerpt to the SMTP entities log.",
+    "categories": [
+      "smtp"
+    ]
+  },
+  "e4a5fef": {
+    "friendly_name": "Hash All Files",
+    "description": "Perform MD5 and SHA1 hashing on all files.",
+    "categories": [
+      "files"
+    ]
+  },
+  "5ffd187": {
+    "friendly_name": "Add File Entropy",
+    "description": "Calculates the information density of the contents of the file, expressed as a number of bits per character. ",
+    "categories": [
+      "files"
+    ]
+  },
+  "1a4d828": {
+    "friendly_name": "Extract All Files",
+    "description": "Extract all files to disk.",
+    "categories": [
+      "files"
+    ]
+  },
+  "10f6c01": {
+    "friendly_name": "Tune Defaults",
+    "description": "Miscellaneous tuning parameters.",
+    "categories": [
+      "tuning"
+    ]
+  },
+  "782a147": {
+    "friendly_name": "Track Modbus Master/Slave",
+    "description": "Script for tracking known Modbus masters and slaves.",
+    "categories": [
+      "modbus"
+    ]
+  },
+  "e38d1ba": {
+    "friendly_name": "Track Memory Map",
+    "description": "This script tracks the memory map of holding (read/write) registers and logs changes as they are discovered.",
+    "categories": [
+      "modbus"
+    ]
+  },
+  "7093e8e": {
+    "friendly_name": "Enable JSON Logging",
+    "description": "Loading this script will cause all logs to be written out as JSON by default.",
+    "categories": [
+      "logging"
+    ]
+  },
+  "60c8f2a": {
+    "friendly_name": "Log Loaded Scripts",
+    "description": "Log the loaded scripts.",
+    "categories": [
+      "logging"
+    ]
+  },
+  "924eab7": {
+    "friendly_name": "Log Capture Loss",
+    "description": "This script logs evidence regarding the degree to which the packet capture process suffers from measurement loss.",
+    "categories": [
+      "logging"
+    ]
+  },
+  "41e0fa2": {
+    "friendly_name": "Log General Statistics",
+    "description": "Log memory/packet/lag statistics.",
+    "categories": [
+      "logging"
+    ]
+  },
+  "2878963": {
+    "friendly_name": "Log Host Certificates Only",
+    "description": "When this script is loaded, only the host certificates (client and server) will be logged to x509.log.",
+    "categories": [
+      "ssl",
+      "x509"
+    ]
+  },
+  "3e224d4": {
+    "friendly_name": "Extract Host Certificates",
+    "description": "This script is used to extract host certificates seen on the wire to disk after being converted to PEM files. The certificates will be stored in a single file, one for local certificates and one for remote certificates.",
+    "categories": [
+      "ssl",
+      "x509"
+    ]
+  },
+  "a21ae7b": {
+    "friendly_name": "Add Kerberos Ticket Hashes",
+    "description": "Add Kerberos ticket hashes to the kerberos log.",
+    "categories": [
+      "kerberos"
+    ]
+  },
+  "d154f23": {
+    "friendly_name": "Enable Dynamite Protocol Detection",
+    "description": "Finds connections with protocols on non-standard ports with DPD.",
+    "categories": [
+      "detections"
+    ]
+  },
+  "7505295": {
+    "friendly_name": "Detect TCP Scan",
+    "description": "Detects probable TCP scans.",
+    "categories": [
+      "detections"
+    ]
+  },
+  "80fbab7": {
+    "friendly_name": "Add Community Id",
+    "description": "Community Id allows for correlation across Suricata generated logs. If enabled, community_id will be added to connections and relevant protocol logs.",
+    "categories": [
+      "detections"
+    ]
+  },
+  "d3b8337": {
+    "friendly_name": "Detect Protocol Violations",
+    "description": "This script enables logging of packet segment data when a protocol parsing violation is encountered.",
+    "categories": [
+      "detections"
+    ]
+  },
+  "a3003e5": {
+    "friendly_name": "MAC Address Logging",
+    "description": "This script adds link-layer address (MAC) information to the connection logs",
+    "categories": [
+      "connections"
+    ]
+  },
+  "c880156": {
+    "friendly_name": "Connection Orientation",
+    "description": "Adds the orientation field to the connection log. Orientation is merely a way to describe the hosts/networks involved in the communication, and how it was initiated.",
+    "categories": [
+      "connections"
+    ]
+  },
+  "ce8bc6e": {
+    "friendly_name": "Producer/Consumer Ratios",
+    "description": "This script calculates and adds PCR to the connection log using application bytes. ",
+    "categories": [
+      "connections"
+    ]
+  },
+  "e17c61d": {
+    "friendly_name": "Detect Suspicious Traffic",
+    "description": "Detect various potentially bad FTP activities.",
+    "categories": [
+      "ftp",
+      "detections"
+    ]
+  },
+  "98e4cdb": {
+    "friendly_name": "Detect Software",
+    "description": "Software identification and extraction for FTP protocol.",
+    "categories": [
+      "ftp",
+      "detections"
+    ]
+  },
+  "1b03381": {
+    "friendly_name": "Detect External Names",
+    "description": "This script detects names which are not within zones considered to be local but resolving to addresses considered local.",
+    "categories": [
+      "dns",
+      "detections"
+    ]
+  },
+  "a2cf3b1": {
+    "friendly_name": "Detect RDP Over SSL",
+    "description": "If an RDP session is \u201cupgraded\u201d to SSL, this will be indicated with this script in a new field added to the RDP log.",
+    "categories": [
+      "rdp",
+      "detections"
+    ]
+  },
+  "9363b9a": {
+    "friendly_name": "Detect Software",
+    "description": "Extracts SSH client and server information from SSH connections and forwards it to the software framework.",
+    "categories": [
+      "ssh",
+      "detections"
+    ]
+  },
+  "8049148": {
+    "friendly_name": "Detect Software",
+    "description": "Software identification and extraction for DHCP traffic.",
+    "categories": [
+      "dhcp",
+      "detections"
+    ]
+  },
+  "8c7bc4e": {
+    "friendly_name": "Detect Web Applications",
+    "description": "Detect and log web applications through the software framework.",
+    "categories": [
+      "http",
+      "detections"
+    ]
+  },
+  "baaccfa": {
+    "friendly_name": "Detect Software",
+    "description": "Software identification and extraction for HTTP traffic.",
+    "categories": [
+      "http",
+      "detections"
+    ]
+  },
+  "5a02d33": {
+    "friendly_name": "Detect Browser Plugins",
+    "description": "Detect browser plugins as they leak through requests to Omniture advertising servers.",
+    "categories": [
+      "http",
+      "detections"
+    ]
+  },
+  "ba9197e": {
+    "friendly_name": "Detect Email Address Blacklisted",
+    "description": "Watch for various SPAM blocklist URLs in SMTP error messages.",
+    "categories": [
+      "smtp",
+      "detections"
+    ]
+  },
+  "67f08c7": {
+    "friendly_name": "Detect Software",
+    "description": "This script feeds software detected through email into the software framework. Mail clients and webmail interfaces are the only thing currently detected.",
+    "categories": [
+      "smtp",
+      "detections"
+    ]
+  },
+  "7cfebb3": {
+    "friendly_name": "Validate Signed Certificate Timestamps",
+    "description": "Perform validation of Signed Certificate Timestamps, as used for Certificate Transparency. See RFC6962 for more details.",
+    "categories": [
+      "ssl",
+      "validations"
+    ]
+  },
+  "39d6c7e": {
+    "friendly_name": "Validate OCSP",
+    "description": "Perform validation of stapled OCSP responses.",
+    "categories": [
+      "ssl",
+      "validations"
+    ]
+  },
+  "c6dd7f2": {
+    "friendly_name": "Add ICSI Certificate Notary",
+    "description": "Include the ISCI notary information.",
+    "categories": [
+      "ssl",
+      "validations"
+    ]
+  },
+  "4b3ac05": {
+    "friendly_name": "Detect Malware By Known Hashes",
+    "description": "Detect file downloads that have hash values matching files in Team Cymru\u2019s Malware Hash Registry",
+    "categories": [
+      "files",
+      "detections"
+    ]
+  },
+  "5576da3": {
+    "friendly_name": "Detect Software",
+    "description": "Software identification and extraction for MySQL traffic.",
+    "categories": [
+      "mysql",
+      "detections"
+    ]
+  },
+  "20d7e67": {
+    "friendly_name": "Detect Log4Shell Attack",
+    "description": "Detect Log4Shell (CVE-2021-44228) attack over HTTP.",
+    "categories": [
+      "detections",
+      "notices"
+    ]
+  },
+  "ba6557d": {
+    "friendly_name": "Detect Weak Keys",
+    "description": "Generate notices when SSL/TLS connections use certificates, DH parameters, or cipher suites that are deemed to be insecure.",
+    "categories": [
+      "ssl",
+      "detections",
+      "notices"
+    ]
+  },
+  "b627a93": {
+    "friendly_name": "Detect Heartbleed Attack",
+    "description": "Detect the TLS Heartbleed (CVE-2014-0160) attack.",
+    "categories": [
+      "ssl",
+      "detections",
+      "notices"
+    ]
+  },
+  "e202e1e": {
+    "friendly_name": "Detect Suspicious SSH Traffic",
+    "description": "This script will generate a notice if an apparent SSH login originates or heads to a host with a reverse hostname that looks suspicious.",
+    "categories": [
+      "ssh",
+      "detections",
+      "notices"
+    ]
+  },
+  "99e00b3": {
+    "friendly_name": "Detect Brute Force Attacks",
+    "description": "Detect hosts which are doing password guessing attacks and/or password bruteforcing over SSH.",
+    "categories": [
+      "ssh",
+      "detections",
+      "notices"
+    ]
+  },
+  "b156bba": {
+    "friendly_name": "Detect Brute Force Attacks",
+    "description": "FTP brute-forcing detector, triggering when too many rejected usernames or failed passwords have occurred from a single address.",
+    "categories": [
+      "ftp",
+      "detections",
+      "notices"
+    ]
+  },
+  "0fd1658": {
+    "friendly_name": "Add DNS Derived Hostnames",
+    "description": "Loading this script extends the Notice::ACTION_EMAIL action by appending to the email the hostnames associated with Notice::Info\u2019s src and dst fields as determined by a DNS lookup.",
+    "categories": [
+      "smtp",
+      "detections",
+      "notices"
+    ]
+  },
+  "0727dc2": {
+    "friendly_name": "Detect SQL Injection Attacks",
+    "description": "SQL injection attack detection over the HTTP protocol.",
+    "categories": [
+      "http",
+      "detections",
+      "notices"
+    ]
+  },
+  "07dab12": {
+    "friendly_name": "Detect Expiring Certificates",
+    "description": "Generate notices when X.509 certificates over SSL/TLS are expired or going to expire soon based on the date and time values stored within the certificate.",
+    "categories": [
+      "ssl",
+      "x509",
+      "detections",
+      "notices"
+    ]
+  }
+}

@@ -1,11 +1,11 @@
 import os
 import shutil
+import pkg_resources
 
 from dynamite_nsm import const
 from dynamite_nsm import logger
 from dynamite_nsm import utilities
 from dynamite_nsm import exceptions
-from dynamite_nsm.services.updates import install as update_installer
 
 systemctl_bin_path = shutil.which('systemctl')
 setcap_bin_path = shutil.which('setcap')
@@ -84,8 +84,33 @@ class InstallManager:
         with open(f'{include_directory}/dynamite', 'w') as dynamite_sudoers_out:
             dynamite_sudoers_out.write(sudoers_patch)
 
+    def extract_included_configurations(self) -> None:
+        """Extracts default configurations included with this package to the root configuration path
+        Returns:
+            None
+        """
+        es_confs = pkg_resources.resource_filename('dynamite_nsm', 'confs/elasticsearch')
+        ls_confs = pkg_resources.resource_filename('dynamite_nsm', 'confs/logstash')
+        kb_confs = pkg_resources.resource_filename('dynamite_nsm', 'confs/kibana')
+        fb_confs = pkg_resources.resource_filename('dynamite_nsm', 'confs/filebeat')
+        sa_confs = pkg_resources.resource_filename('dynamite_nsm', 'confs/suricata')
+        zk_confs = pkg_resources.resource_filename('dynamite_nsm', 'confs/zeek')
+        systemd = pkg_resources.resource_filename('dynamite_nsm', 'confs/systemd')
+        mirrors = pkg_resources.resource_filename('dynamite_nsm', 'confs/mirrors')
+        default_confs = [es_confs, ls_confs, kb_confs, fb_confs, sa_confs, zk_confs, systemd]
+        for p in default_confs:
+            top_dir = os.path.basename(p)
+            dst_dir = f'{const.DEFAULT_CONFIGS}/{top_dir}'
+            utilities.makedirs(dst_dir)
+            self.logger.debug(f'Copying {p} -> {dst_dir}')
+            utilities.copytree(p, f'{const.DEFAULT_CONFIGS}/{top_dir}')
+
+        self.logger.debug(f'Copying {mirrors} -> {const.MIRRORS}')
+        utilities.copytree(mirrors, const.MIRRORS)
+
     def setup(self):
-        fresh_install_paths = [const.LOG_PATH, const.CONFIG_PATH, const.INSTALL_PATH, const.INSTALL_CACHE]
+        fresh_install_paths = [const.LOG_PATH, const.CONFIG_PATH, const.DEFAULT_CONFIGS, const.MIRRORS,
+                               const.INSTALL_PATH, const.INSTALL_CACHE]
         try:
             self.logger.info('Creating dynamite user and group.')
             utilities.create_dynamite_user()
@@ -98,8 +123,8 @@ class InstallManager:
             utilities.create_dynamite_environment_file()
             self.logger.info('Patching sudoers file.')
             self.patch_sudoers()
-            self.logger.info('Checking for updates')
-            update_installer.InstallManager(stdout=True, verbose=True).setup()
+            self.logger.info('Setting up default configurations and mirrors.')
+            self.extract_included_configurations()
             self.logger.info('Setup complete. You can now install and manage services.')
         except Exception:
             raise exceptions.InstallError('Failed to setup DynamiteNSM directory structure.')
@@ -158,5 +183,3 @@ class UninstallManager:
                     shutil.rmtree(directory)
         except Exception:
             raise exceptions.UninstallError('Failed to remove DynamiteNSM from this system.')
-
-
