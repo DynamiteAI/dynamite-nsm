@@ -82,13 +82,39 @@ def serialize_suricata_rule(rule: str) -> Rule:
         A Suricata Rule object
 
     """
+
+    def format_bracketed_text(s: str) -> str:
+        """Remove spaces from strings inside of brackets
+        Args:
+            s: A String that includes brackets
+
+        Returns:
+            A string where the spaces have been removed inside of bracketed content
+
+        """
+        new_string = ''
+        inside_bracket = False
+        for c in s:
+            if c == '[':
+                inside_bracket = True
+            elif c == ']':
+                inside_bracket = False
+            if inside_bracket and c == ' ':
+                continue
+            new_string += c
+        return new_string
+
     enabled = True
     if rule.startswith('#'):
         enabled = False
         rule = rule[1:].strip()
     o_paren_index = rule.index('(') + 1
     c_paren_index = max([i for i, c in enumerate(rule) if c == ')'])
+    # Get rid of extra spaces
     action_header = re.sub(r'\s+', ' ', rule[0: o_paren_index - 1]).strip()
+
+    # Remove spaces inside of brackets
+    action_header = format_bracketed_text(action_header)
     rule_options = rule[o_paren_index:c_paren_index]
     action = action_header.split(' ')[0].strip()
     header = action_header.replace(action, '').strip()

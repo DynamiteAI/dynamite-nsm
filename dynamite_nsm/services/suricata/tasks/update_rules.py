@@ -255,10 +255,6 @@ class UpdateRules(tasks.BaseTask):
                 threshold_processor.process(
                     open(self.threshold_in_file), open(self.threshold_out_file, "w"), rulemap)
 
-            if not self.force and not file_tracker.any_modified():
-                self.logger.info("No changes detected, exiting.")
-                notes.dump_notes()
-                return 0
             self.logger.info('Merging in changes.')
             rule_file = RuleFile(f'{self.configuration_directory}/data/rules/suricata.rules')
             rule_file.build_cache()
