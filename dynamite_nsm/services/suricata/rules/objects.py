@@ -465,6 +465,22 @@ class RuleFile(GenericConfigManager):
                 f'{sid},enable\n'
             )
 
+    def enable_rule_by_class_type(self, class_type: str):
+        rules = self.get_rules_by_class_type(class_type)
+        with open(f'{self.suricata_configuration_root}/.deltas', 'a') as deltas_f_out:
+            for rule in rules:
+                deltas_f_out.write(
+                    f'{rule.sid},enable\n'
+                )
+
+    def disable_rule_by_class_type(self, class_type: str):
+        rules = self.get_rules_by_class_type(class_type)
+        with open(f'{self.suricata_configuration_root}/.deltas', 'a') as deltas_f_out:
+            for rule in rules:
+                deltas_f_out.write(
+                    f'{rule.sid},disable\n'
+                )
+
     def edit_rule(self, sid: int, new_rule: Rule) -> None:
         """Replace an existing rule with a new one
         Args:
@@ -482,7 +498,7 @@ class RuleFile(GenericConfigManager):
                 f'{new_rule.sid},edit,{new_rule}\n'
             )
 
-    def get_class_types(self) -> List[str]:
+    def get_rule_class_types(self) -> List[str]:
         """Get a distinct list of available rule classtypes
         Returns:
             A list of available rule-types
@@ -609,7 +625,7 @@ class RuleFile(GenericConfigManager):
                     else:
                         self.logger.info(f'{sid} does not exists in the cache, skipping delete.')
                 elif action == 'disable':
-                    self.logger.info(f'Disabling {sid} in cache.')
+                    self.logger.debug(f'Disabling {sid} in cache.')
                     try:
                         ruleset = self.db_session.query(Ruleset).filter_by(sid=sid).one()
                     except sqlalchemy.exc.NoResultFound:
@@ -620,7 +636,7 @@ class RuleFile(GenericConfigManager):
                     else:
                         self.logger.info(f'{sid} does not exists in the cache, skipping disable.')
                 elif action == 'enable':
-                    self.logger.info(f'Enabling {sid} in cache.')
+                    self.logger.debug(f'Enabling {sid} in cache.')
                     try:
                         ruleset = self.db_session.query(Ruleset).filter_by(sid=sid).one()
                     except sqlalchemy.exc.NoResultFound:
@@ -719,5 +735,7 @@ class RuleFile(GenericConfigManager):
 
 if __name__ == '__main__':
     rf = RuleFile('/etc/dynamite/suricata/data/rules/suricata.rules')
-    print(rf.get_class_types())
-    print(len(rf.get_rules_by_class_type('default-login-attempt')))
+    print(rf.get_rule_class_types())
+    rf.enable_rule_by_class_type('unknown')
+    rf.enable_rule_by_class_type('denial-of-service')
+    rf.commit()
