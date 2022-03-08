@@ -182,10 +182,10 @@ class Rule:
             The SID of the rule.
         """
         key_val_opts = dict([opt for opt in options if isinstance(opt, tuple)])
-        sid = key_val_opts.get('sid')
+        sid = key_val_opts.get('sid').strip()
         if not sid:
             sid = Rule.generate_sid()
-        class_type = key_val_opts.get('classtype')
+        class_type = key_val_opts.get('classtype').strip()
         if not class_type:
             class_type = 'unknown'
         return dict(sid=sid, class_type=class_type)
@@ -356,11 +356,19 @@ class RuleFile(GenericConfigManager):
             raise StopIteration()
         return Rule.create_from_ruleset_entry(_raw)
 
-    def init_cache(self):
+    def init_cache(self) -> None:
+        """Initialize the sqlite3 database; removing any old ones
+        Returns:
+            None
+        """
         utilities.safely_remove_file(self.cache_path)
         Model.metadata.create_all(bind=self.engine)
 
     def build_cache(self):
+        """Populate our database with the rules found in suricata.rules file.
+        Returns:
+            None
+        """
         self.init_cache()
         with open(self.rule_file_path, 'r') as rule_file_in:
             lineno = 1
@@ -396,30 +404,6 @@ class RuleFile(GenericConfigManager):
                 self.db_session.add(rs)
                 lineno += 1
             self.db_session.commit()
-
-    def get_rule(self, sid: int) -> Optional[Rule]:
-        """Given the sid for a cached rule, returns the corresponding `Rule` instance
-        Args:
-            sid: The sid of the rule to fetch
-
-        Returns:
-            A `Rule` instance
-        """
-        self.logger.debug(f'Fetching rule {sid}.')
-        rule_record = self.db_session.query(Ruleset).filter_by(sid=sid).one()
-        if rule_record:
-            return Rule(
-                enabled=rule_record.enabled,
-                action=rule_record.action,
-                proto=rule_record.proto,
-                source=rule_record.source,
-                source_port=rule_record.source_port,
-                direction=rule_record.direction,
-                destination=rule_record.destination,
-                destination_port=rule_record.destination_port,
-                options=parse_suricata_rule_options_blob(rule_record.options_blob)
-            )
-        raise MissingRule(sid)
 
     def add_rule(self, new_rule: Rule) -> None:
         """Add a new custom rule
@@ -498,6 +482,75 @@ class RuleFile(GenericConfigManager):
                 f'{new_rule.sid},edit,{new_rule}\n'
             )
 
+    def get_class_types(self) -> List[str]:
+        """Get a distinct list of available rule classtypes
+        Returns:
+            A list of available rule-types
+        """
+        return sorted([c[0] for c in self.db_session.query(Ruleset.class_type).distinct().all()])
+
+    def get_rule(self, sid: int) -> Optional[Rule]:
+        """Given the sid for a cached rule, returns the corresponding `Rule` instance
+        Args:
+            sid: The sid of the rule to fetch
+
+        Returns:
+            A `Rule` instance
+        """
+        rules = self.get_rules([sid])
+        if not rules:
+            raise MissingRule(sid)
+        return rules[0]
+
+    def get_rules(self, sids: List[int]) -> List[Rule]:
+        """Given multiple sids for cached rules, returns the corresponding `Rule` instance for every id that is found
+        Args:
+            sids: The list of sids the rules to fetch
+
+        Returns:
+            A list of `Rule` instances
+        """
+        rules = []
+        rule_records = self.db_session.query(Ruleset).filter(Ruleset.sid.in_(sids)).all()
+        for rule_record in rule_records:
+            rule = Rule(
+                enabled=rule_record.enabled,
+                action=rule_record.action,
+                proto=rule_record.proto,
+                source=rule_record.source,
+                source_port=rule_record.source_port,
+                direction=rule_record.direction,
+                destination=rule_record.destination,
+                destination_port=rule_record.destination_port,
+                options=parse_suricata_rule_options_blob(rule_record.options_blob)
+            )
+            rules.append(rule)
+        return rules
+
+    def get_rules_by_class_type(self, class_type: str) -> List[Rule]:
+        """Given a rule classtype returns the corresponding `Rule` instance for every match
+        Args:
+            class_type: A suricata classtype
+        Returns:
+            A list of `Rule` instances
+        """
+        rules = []
+        rule_records = self.db_session.query(Ruleset).filter_by(class_type=class_type).all()
+        for rule_record in rule_records:
+            rule = Rule(
+                enabled=rule_record.enabled,
+                action=rule_record.action,
+                proto=rule_record.proto,
+                source=rule_record.source,
+                source_port=rule_record.source_port,
+                direction=rule_record.direction,
+                destination=rule_record.destination,
+                destination_port=rule_record.destination_port,
+                options=parse_suricata_rule_options_blob(rule_record.options_blob)
+            )
+            rules.append(rule)
+        return rules
+
     def merge(self):
         """Perform operations found in the .deltas file against the cache:
                - Add custom rules
@@ -515,7 +568,7 @@ class RuleFile(GenericConfigManager):
             for line in deltas_f_in.readlines():
                 tokenized_line = line.split(',')
                 sid = tokenized_line[0]
-                action = tokenized_line[1]
+                action = tokenized_line[1].strip()
                 data = ','.join(tokenized_line[2:]).strip()
                 if not change_set_map.get(sid):
                     change_set_map[sid] = [(action, data)]
@@ -546,7 +599,10 @@ class RuleFile(GenericConfigManager):
                 # Remove the rule from our ruleset database cache.
                 elif action == 'delete':
                     self.logger.info(f'Deleting {sid} from cache.')
-                    ruleset = self.db_session.query(Ruleset).get(sid)
+                    try:
+                        ruleset = self.db_session.query(Ruleset).filter_by(sid=sid).one()
+                    except sqlalchemy.exc.NoResultFound:
+                        ruleset = None
                     if ruleset:
                         self.db_session.delete(ruleset)
                         self.db_session.commit()
@@ -554,7 +610,10 @@ class RuleFile(GenericConfigManager):
                         self.logger.info(f'{sid} does not exists in the cache, skipping delete.')
                 elif action == 'disable':
                     self.logger.info(f'Disabling {sid} in cache.')
-                    ruleset = self.db_session.query(Ruleset).get(sid)
+                    try:
+                        ruleset = self.db_session.query(Ruleset).filter_by(sid=sid).one()
+                    except sqlalchemy.exc.NoResultFound:
+                        ruleset = None
                     if ruleset:
                         ruleset.enabled = False
                         self.db_session.commit()
@@ -562,7 +621,10 @@ class RuleFile(GenericConfigManager):
                         self.logger.info(f'{sid} does not exists in the cache, skipping disable.')
                 elif action == 'enable':
                     self.logger.info(f'Enabling {sid} in cache.')
-                    ruleset = self.db_session.query(Ruleset).get(sid)
+                    try:
+                        ruleset = self.db_session.query(Ruleset).filter_by(sid=sid).one()
+                    except sqlalchemy.exc.NoResultFound:
+                        ruleset = None
                     if ruleset:
                         ruleset.enabled = True
                         self.db_session.commit()
@@ -571,7 +633,13 @@ class RuleFile(GenericConfigManager):
                 elif action == 'edit':
                     self.logger.info(f'Editing {sid} in cache.')
                     rule = serialize_suricata_rule(data)
-                    ruleset = self.db_session.query(Ruleset).get(sid)
+                    try:
+                        ruleset = self.db_session.query(Ruleset).filter_by(sid=sid).one()
+                    except sqlalchemy.exc.NoResultFound:
+                        ruleset = None
+                    if not ruleset:
+                        self.logger.info(f'{sid} does not exists in the cache, skipping edit.')
+                        continue
                     if rule.action != ruleset.action:
                         self.logger.debug(f'Updating action {ruleset.action} -> {rule.action}')
                         ruleset.action = rule.action
@@ -598,8 +666,46 @@ class RuleFile(GenericConfigManager):
                         self.logger.debug(f'Updating destination_port {ruleset.options_blob} -> {rule.options_blob()}')
                         ruleset.options_blob = rule.options_blob()
 
+    def prune(self) -> None:
+        """Removes changes from .deltas file that are no longer applicable, should only be run after a merge operation
+        Returns:
+            None
+        """
+        self.logger.info('Pruning .deltas file.')
+        change_set_map = {}
+        with open(f'{self.suricata_configuration_root}/.deltas', 'r') as deltas_f_in:
+            # Loop through the .deltas file and parse out the sid, action, and data
+            # Create a change_set_map that maps a rule sid to the actions to perform on that rule
+            # {sid: [(action, data), ...]}
+            for line in deltas_f_in.readlines():
+                tokenized_line = line.split(',')
+                sid = tokenized_line[0]
+                action = tokenized_line[1].strip()
+                data = ','.join(tokenized_line[2:]).strip()
+                if not change_set_map.get(sid):
+                    change_set_map[sid] = [(action, data)]
+                else:
+                    change_set_map[sid].append((action, data))
+            with open(f'{self.suricata_configuration_root}/.deltas', 'w') as deltas_f_out:
+                for sid, changes in change_set_map.items():
+                    if changes[-1][0] == 'disable':
+                        for change in changes[0:-1]:
+                            action = change[0]
+                            if action != 'edit':
+                                self.logger.info(f'Pruning {sid}.{action} from .deltas file.')
+                            else:
+                                deltas_f_out.write(f'{sid},edit,{action.strip()}\n')
+                    else:
+                        for change in changes:
+                            action, new_rule = change
+                            if not new_rule:
+                                deltas_f_out.write(f'{sid},{action.strip()}\n')
+                            else:
+                                deltas_f_out.write(f'{sid},{action.strip()},{new_rule.strip()}\n')
+
     def commit(self, out_file_path: Optional[str] = None, backup_directory: Optional[str] = None) -> None:
-        """Dump the database to a suricata.rules file"""
+        """Merge in our deltas; Dump the database to a suricata.rules file; prune the .deltas file"""
+        self.merge()
         if not out_file_path:
             out_file_path = self.rule_file_path
         row_count = self.db_session.query(Ruleset.sid).count()
@@ -608,3 +714,10 @@ class RuleFile(GenericConfigManager):
             for row in self.db_session.query(Ruleset).order_by(Ruleset.lineno):
                 rule = Rule.create_from_ruleset_entry(row)
                 rule_file_out.write(str(rule) + '\n')
+        self.prune()
+
+
+if __name__ == '__main__':
+    rf = RuleFile('/etc/dynamite/suricata/data/rules/suricata.rules')
+    print(rf.get_class_types())
+    print(len(rf.get_rules_by_class_type('default-login-attempt')))
