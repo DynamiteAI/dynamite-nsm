@@ -167,6 +167,8 @@ class InstallManager(install.BaseInstallManager):
         self.create_update_suricata_environment_variables()
         self.logger.debug(f'Creating directory: {self.configuration_directory}')
         utilities.makedirs(self.configuration_directory)
+        self.logger.debug(f'Creating directory: {self.configuration_directory}/data')
+        utilities.makedirs(f'{self.configuration_directory}/data')
         self.logger.debug(f'Creating directory: {self.install_directory}')
         utilities.makedirs(self.install_directory)
         self.logger.debug(f'Creating directory: {self.log_directory}')
@@ -179,6 +181,10 @@ class InstallManager(install.BaseInstallManager):
 
         self.copy_file_or_directory_to_destination(
             f'{const.DEFAULT_CONFIGS}/suricata/suricata.yaml',
+            self.configuration_directory
+        )
+        self.copy_file_or_directory_to_destination(
+            f'{const.DEFAULT_CONFIGS}/suricata/update.yaml',
             self.configuration_directory
         )
 
@@ -212,6 +218,8 @@ class InstallManager(install.BaseInstallManager):
         utilities.set_ownership_of_file(self.install_directory, user='dynamite', group='dynamite')
         utilities.set_ownership_of_file(self.log_directory, user='dynamite', group='dynamite')
         utilities.set_permissions_of_file(f'{self.configuration_directory}/suricata.yaml', 660)
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/update.yaml', 660)
+        utilities.set_permissions_of_file(f'{self.configuration_directory}/data', 770)
         post_install_bootstrap_updater(self.install_directory, stdout=self.stdout, verbose=self.verbose)
 
         self.logger.info('Setting up Suricata capture rules for dynamite user.')
