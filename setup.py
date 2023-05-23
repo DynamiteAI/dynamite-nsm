@@ -29,7 +29,7 @@ setup(
         'pytest==6.2.2',
         'python-crontab==2.5.1',
         'python-daemon==2.3.0',
-        'requests==2.25.1',
+        'requests==2.31.0',
         'SQLAlchemy==1.4.7',
         'Unidecode==1.2.0',
     ],
